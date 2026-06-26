@@ -1,0 +1,2 @@
+import Link from "next/link";
+export function Button({href, children, secondary=false}:{href:string; children:React.ReactNode; secondary?:boolean}){return <Link href={href} className={secondary?"inline-flex rounded-full border border-sand/50 px-6 py-3 text-sm font-semibold text-linen hover:bg-linen/10":"inline-flex rounded-full bg-sand px-6 py-3 text-sm font-semibold text-ink hover:bg-linen"}>{children}</Link>}
