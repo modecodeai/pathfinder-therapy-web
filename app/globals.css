@@ -1,0 +1,28 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color: #1d2623;
+  background: #f5f1e9;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  margin: 0;
+  background:
+    linear-gradient(180deg, rgba(245, 241, 233, 0.96), rgba(245, 241, 233, 1)),
+    #f5f1e9;
+}
+
+::selection {
+  color: #f5f1e9;
+  background: #536b57;
+}
