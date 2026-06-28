@@ -1,3 +1,10 @@
+export const site = {
+  name: "Pathfinder Therapy",
+  description: "Creating the conditions in which people can understand themselves well enough to live more freely.",
+  url: "https://pathfindertherapy.com",
+  email: "hi@pathfindertherapy.com"
+};
+
 export const nav = [
   { label: "About", href: "/about" },
   { label: "Approach", href: "/approach" },
