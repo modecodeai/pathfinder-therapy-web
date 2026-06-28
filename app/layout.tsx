@@ -1,24 +1,15 @@
 import type { Metadata } from "next";
 import "./globals.css";
-import { site } from "@/data/site";
 
 export const metadata: Metadata = {
-  title: {
-    default: `${site.name} | Private therapy in Lisbon and online`,
-    template: `%s | ${site.name}`,
-  },
-  description: site.description,
-  metadataBase: new URL(site.url),
+  title: "Pathfinder Therapy | Find your bearings",
+  description: "Private therapy in Lisbon and online. Helping you understand yourself, your relationships, and the path ahead.",
 };
 
-export default function RootLayout({
-  children,
-}: Readonly<{
-  children: React.ReactNode;
-}>) {
+export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en">
-      <body className="font-sans antialiased">{children}</body>
+    <html lang="en-GB">
+      <body>{children}</body>
     </html>
   );
 }
