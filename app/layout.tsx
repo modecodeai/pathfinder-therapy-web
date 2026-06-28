@@ -2,9 +2,9 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Pathfinder Therapy | Find Your Bearings",
+  title: "Pathfinder Therapy | Find your bearings",
   description:
-    "Pathfinder Therapy creates the conditions in which people can understand themselves well enough to live more freely.",
+    "Private therapy in Lisbon and online. Creating the conditions in which people can understand themselves well enough to live more freely."
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
