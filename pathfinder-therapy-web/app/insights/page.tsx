@@ -1,2 +1,0 @@
-import { Container } from "@/components/Container";
-export default function Insights(){return <main className="bg-linen py-32"><Container className="max-w-4xl"><h1 className="serif text-5xl sm:text-7xl">Pathfinder Insights</h1><p className="mt-8 text-xl leading-9 text-ink/72">Thoughtful writing on understanding ourselves, relationships, trauma, growth, meaning, and the path towards living more freely.</p></Container></main>}
