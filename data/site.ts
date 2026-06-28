@@ -6,7 +6,7 @@ export const site = {
 };
 
 export const nav = [
-  { label: "About", href: "/about" },
+  { label: "Home", href: "/" },
   { label: "Approach", href: "/approach" },
   { label: "Therapy", href: "/therapy" },
   { label: "Retreats", href: "/retreats" },
@@ -16,57 +16,57 @@ export const nav = [
 
 export const navItems = nav;
 
-export const featurePanels = [
+export const chapters = [
   {
-    kicker: "Our approach",
-    title: "Understanding creates freedom.",
-    body: "We integrate therapeutic depth with a grounded respect for the human story. Our work is trauma-informed, relational, and tailored to you.",
-    image: "/images/approach-path.svg",
-    href: "/approach"
+    number: "01",
+    title: "Understanding",
+    body: "What if your patterns make sense when viewed in the light of your life?",
+    href: "/approach",
+    image: "/images/chapter-understanding.svg"
   },
   {
-    kicker: "Therapy",
-    title: "A space to explore. A path to clarity.",
-    body: "Individual and couples therapy for people seeking reflection, connection, and meaningful change.",
-    image: "/images/therapy-room.svg",
-    href: "/therapy"
+    number: "02",
+    title: "Working Together",
+    body: "Private therapy in Lisbon and online for people seeking clarity, connection and meaningful change.",
+    href: "/therapy",
+    image: "/images/chapter-therapy.svg"
   },
   {
-    kicker: "Retreats",
-    title: "Step away. Recalibrate. Reconnect.",
-    body: "Immersive experiences in nature that create space for reflection, connection, and renewal.",
-    image: "/images/retreat.svg",
-    href: "/retreats"
+    number: "03",
+    title: "Retreat",
+    body: "Space, stillness and nature for deeper reflection and renewal.",
+    href: "/retreats",
+    image: "/images/chapter-retreat.svg"
   },
   {
-    kicker: "Journal",
-    title: "Reflections for the journey.",
-    body: "Thoughts, reflections, and guides to support you between sessions.",
-    image: "/images/journal.svg",
-    href: "/journal"
+    number: "04",
+    title: "Journal",
+    body: "Essays on adaptation, relationships, trauma, meaning and the courage to become yourself.",
+    href: "/journal",
+    image: "/images/chapter-journal.svg"
   }
 ];
 
 export const routes = {
   about: {
-    title: "Therapist. Veteran. Human.",
-    body: "Brent brings clinical training, lived experience, and a grounded respect for the ways people adapt to difficult terrain."
+    title: "I'll walk alongside you.",
+    body: "I'm Brent, a therapist working in Lisbon and online. My work is shaped by clinical training, lived experience and a grounded respect for the ways people adapt to difficult terrain."
   },
   approach: {
     title: "People make sense.",
-    body: "Every feeling, behaviour, and relationship pattern has developed within the context of a life lived. Therapy is not about judgement. It is about understanding."
+    body: "Every feeling, behaviour and relationship pattern has developed within the context of a life lived. Therapy is not about judgement. It is about understanding."
   },
   therapy: {
     title: "A space to understand.",
-    body: "Private therapy in Lisbon and online for English-speaking adults and couples seeking clarity, connection, and meaningful change."
+    body: "Private therapy in Lisbon and online for English-speaking adults and couples seeking clarity, connection and meaningful change."
   },
   retreats: {
     title: "Space away from the noise.",
-    body: "Future Pathfinder retreats will create reflective spaces in nature for pause, reconnection, and growth."
+    body: "Future Pathfinder retreats will create reflective spaces in nature for pause, reconnection and growth."
   },
   journal: {
     title: "Pathfinder Journal",
-    body: "Essays and reflections on understanding ourselves, relationships, trauma, growth, meaning, and the path towards living more freely."
+    body: "Essays and reflections on understanding ourselves, relationships, trauma, growth, meaning and the path towards living more freely."
   },
   contact: {
     title: "Begin therapy.",

@@ -1,18 +1,13 @@
 import Link from "next/link";
-import { Sidebar } from "@/components/Sidebar";
-import { Footer } from "@/components/Footer";
 
 export default function Page() {
   return (
-    <div className="site-shell">
-      <Sidebar />
-      <main className="main simple-page">
-        <p className="kicker">Pathfinder Therapy</p>
-        <h1>Understanding creates freedom.</h1>
-        <p>People make sense. Adaptation is intelligent. Therapy is not about fixing you. It is about understanding yourself well enough to choose what comes next.</p>
-        <Link className="button" href="/contact">Book a Consultation</Link>
-      </main>
-      <Footer />
-    </div>
+    <main className="simple-page">
+      <Link href="/" className="back-link">← Pathfinder</Link>
+      <p className="section-kicker">Pathfinder Therapy</p>
+      <h1>People make sense.</h1>
+      <p>Every feeling, behaviour and relationship pattern has developed within the context of a life lived.</p>
+      <Link href="/contact" className="primary-button">Book a consultation</Link>
+    </main>
   );
 }

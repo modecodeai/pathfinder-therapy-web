@@ -1,18 +1,13 @@
 import Link from "next/link";
-import { Sidebar } from "@/components/Sidebar";
-import { Footer } from "@/components/Footer";
 
 export default function Page() {
   return (
-    <div className="site-shell">
-      <Sidebar />
-      <main className="main simple-page">
-        <p className="kicker">Pathfinder Therapy</p>
-        <h1>Therapist. Veteran. Human.</h1>
-        <p>Brent brings clinical training, lived experience, and a grounded respect for the ways people adapt to difficult terrain.</p>
-        <Link className="button" href="/contact">Book a Consultation</Link>
-      </main>
-      <Footer />
-    </div>
+    <main className="simple-page">
+      <Link href="/" className="back-link">← Pathfinder</Link>
+      <p className="section-kicker">Pathfinder Therapy</p>
+      <h1>I'll walk alongside you.</h1>
+      <p>I'm Brent. Pathfinder is built around understanding before judgement, relationship before technique, and the belief that people make sense.</p>
+      <Link href="/contact" className="primary-button">Book a consultation</Link>
+    </main>
   );
 }
