@@ -7,6 +7,8 @@ export const nav = [
   { label: "Contact", href: "/contact" }
 ];
 
+export const navItems = nav;
+
 export const featurePanels = [
   {
     kicker: "Our approach",
