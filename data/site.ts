@@ -2,7 +2,7 @@ export const site = {
   name: "Pathfinder Therapy",
   description:
     "Creating the conditions in which people can understand themselves well enough to live more freely.",
-  url: "https://pathfindertherapy.com",
+  url: "https://pathfindertherapy.org.uk",
   email: "hi@pathfindertherapy.com"
 };
 
