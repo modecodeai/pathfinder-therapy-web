@@ -1,4 +1,7 @@
 import Link from "next/link";
+import { createPageMetadata } from "@/lib/metadata";
+
+export const metadata = createPageMetadata("/approach/", "Approach | Pathfinder Therapy");
 
 export default function Page() {
   return (

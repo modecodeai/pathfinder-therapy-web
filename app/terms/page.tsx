@@ -1,3 +1,7 @@
+import { createPageMetadata } from "@/lib/metadata";
+
+export const metadata = createPageMetadata("/terms/", "Terms | Pathfinder Therapy");
+
 export default function Page() {
   return (
     <main style={{minHeight:"100vh",background:"#071512",color:"#f4efe6",display:"grid",placeItems:"center",fontFamily:"Georgia, serif",padding:"2rem",textAlign:"center"}}>

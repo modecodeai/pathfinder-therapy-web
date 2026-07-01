@@ -1,0 +1,3 @@
+# Path-based redirects only. Cloudflare Pages does not support domain-level
+# redirects in this file. www -> apex is handled by functions/_middleware.js
+# and should also be configured in Cloudflare Bulk Redirects as a fallback.
