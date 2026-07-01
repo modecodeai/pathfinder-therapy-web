@@ -1,12 +1,10 @@
-import Link from "next/link";
+import { PlaceholderPage } from "@/components/PlaceholderPage";
+
+export const metadata = {
+  title: "Therapy",
+  alternates: { canonical: "/therapy" }
+};
 
 export default function Page() {
-  return (
-    <main className="simple-page">
-      <Link href="/" className="back-link">← Pathfinder</Link>
-      <p className="eyebrow">Pathfinder</p>
-      <h1>Coming soon.</h1>
-      <p>This page will follow the locked Pathfinder Design Language 1.0.</p>
-    </main>
-  );
+  return <PlaceholderPage title="Coming soon." eyebrow="Therapy" />;
 }
