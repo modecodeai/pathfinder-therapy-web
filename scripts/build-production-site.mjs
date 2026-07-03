@@ -25,6 +25,11 @@ import {
   CALENDLY_INLINE_SCRIPT,
   DEFAULT_CALENDLY_URL
 } from "./site-calendly.mjs";
+import {
+  GOOGLE_ADS_HELPER_SCRIPT,
+  injectGtag,
+  logGoogleAdsBuildConfig
+} from "./site-google-ads.mjs";
 
 const PREVIEW_ORIGIN =
   process.env.PATHFINDER_PREVIEW_ORIGIN ?? "https://9aa49f15.pathfinder-therapy-web.pages.dev";
@@ -97,7 +102,7 @@ const ATTRIBUTION_SCRIPT = `<script id="pathfinder-lead-attribution">
     if (!link) return;
     var href = link.getAttribute("href");
     if (!href || href.indexOf("http") === 0 || href.indexOf("mailto:") === 0 || href.indexOf("tel:") === 0) return;
-    if (href.indexOf("/contact") === 0 || href.indexOf("/start") === 0) {
+    if (href.indexOf("/contact") === 0 || href.indexOf("/start") === 0 || href.indexOf("/book") === 0) {
       var nextHref = appendAttribution(href);
       if (nextHref !== href) link.setAttribute("href", nextHref);
     }
@@ -138,7 +143,6 @@ const FORM_ENHANCEMENT_SCRIPT = `<script id="pathfinder-form-enhancement">
       if (url.indexOf("/api/contact") >= 0) {
         response.clone().json().then(function (data) {
           if (data && data.ok) {
-            track("generate_lead", bodySource());
             setTimeout(function () {
               window.location.href = "/thank-you/";
             }, 600);
@@ -161,8 +165,8 @@ const FORM_ENHANCEMENT_SCRIPT = `<script id="pathfinder-form-enhancement">
     document.querySelectorAll('a[href^="tel:"]').forEach(function (link) {
       link.addEventListener("click", function () {
         track("phone_click", bodySource());
-        if (typeof window.gtag === "function") {
-          window.gtag("event", "conversion", { send_to: "AW-10976126920/phone" });
+        if (window.pathfinderAds) {
+          window.pathfinderAds.firePhoneConversion();
         }
       });
     });
@@ -207,7 +211,6 @@ const FORM_ENHANCEMENT_SCRIPT = `<script id="pathfinder-form-enhancement">
             if (!result.response.ok || !result.data.ok) {
               throw new Error(result.data.message || "The enquiry could not be sent.");
             }
-            track("generate_lead", bodySource());
             window.location.href = "/thank-you/";
           })
           .catch(function (error) {
@@ -232,13 +235,9 @@ const FORM_ENHANCEMENT_SCRIPT = `<script id="pathfinder-form-enhancement">
 </script>`;
 
 const THANK_YOU_SCRIPT = `<script id="pathfinder-thank-you-conversion">
-(function () {
-  var KEY = "pathfinder_lead_converted";
-  if (sessionStorage.getItem(KEY)) return;
-  if (typeof window.gtag !== "function") return;
-  window.gtag("event", "generate_lead", { event_category: "contact", event_label: "thank_you_page" });
-  sessionStorage.setItem(KEY, "1");
-})();
+document.addEventListener("DOMContentLoaded", function () {
+  if (window.pathfinderAds) window.pathfinderAds.fireLeadConversion("thank_you_page");
+});
 </script>`;
 
 async function fetchText(url) {
@@ -306,6 +305,8 @@ function patchHtml(html, { robots = null, title = null, canonical = null, descri
     next = next.replace("</head>", `<link rel="canonical" href="${canonical}"/>\n</head>`);
   }
 
+  next = injectGtag(next);
+  next = injectBeforeBodyClose(next, GOOGLE_ADS_HELPER_SCRIPT);
   next = injectBeforeBodyClose(next, ATTRIBUTION_SCRIPT);
   next = injectBeforeBodyClose(next, FORM_ENHANCEMENT_SCRIPT);
   return next;
@@ -486,13 +487,9 @@ ${LANDING_SCRIPT}
 }
 
 const BOOK_CONFIRMED_SCRIPT = `<script id="pathfinder-book-confirmed-conversion">
-(function () {
-  var KEY = "pathfinder_calendly_converted";
-  if (sessionStorage.getItem(KEY)) return;
-  if (typeof window.gtag !== "function") return;
-  window.gtag("event", "generate_lead", { event_category: "calendly", event_label: "book_confirmed_page" });
-  sessionStorage.setItem(KEY, "1");
-})();
+document.addEventListener("DOMContentLoaded", function () {
+  if (window.pathfinderAds) window.pathfinderAds.fireBookingConversion("book_confirmed_page");
+});
 </script>`;
 
 function buildBookPage(contactHtml) {
@@ -987,6 +984,7 @@ async function main() {
   await writeRoute(PREVIEW_ORIGIN, BOOK_CONFIRMED_PATH, bookConfirmedHtml);
   console.log("Added /start/, /thank-you/, /book/, and /book-confirmed/");
   console.log(`Calendly embed: ${DEFAULT_CALENDLY_URL.replace(/^https?:\/\//, "")}`);
+  logGoogleAdsBuildConfig();
 
   const shellHtml = await fetchText(`${PREVIEW_ORIGIN}/approach/`);
   const faqHtml = stripHydrationScripts(buildFaqPage(shellHtml));

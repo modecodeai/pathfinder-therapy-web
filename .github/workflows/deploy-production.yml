@@ -37,6 +37,10 @@ jobs:
         env:
           PATHFINDER_PREVIEW_ORIGIN: ${{ github.event.inputs.preview_origin || 'https://9aa49f15.pathfinder-therapy-web.pages.dev' }}
           PATHFINDER_CALENDLY_URL: ${{ secrets.PATHFINDER_CALENDLY_URL || vars.PATHFINDER_CALENDLY_URL }}
+          PATHFINDER_GA_ID: ${{ secrets.PATHFINDER_GA_ID || vars.PATHFINDER_GA_ID }}
+          PATHFINDER_GOOGLE_ADS_ID: ${{ secrets.PATHFINDER_GOOGLE_ADS_ID || vars.PATHFINDER_GOOGLE_ADS_ID }}
+          PATHFINDER_GOOGLE_ADS_LEAD_LABEL: ${{ secrets.PATHFINDER_GOOGLE_ADS_LEAD_LABEL || vars.PATHFINDER_GOOGLE_ADS_LEAD_LABEL }}
+          PATHFINDER_GOOGLE_ADS_BOOKING_LABEL: ${{ secrets.PATHFINDER_GOOGLE_ADS_BOOKING_LABEL || vars.PATHFINDER_GOOGLE_ADS_BOOKING_LABEL }}
         run: |
           if [ -z "$PATHFINDER_CALENDLY_URL" ]; then
             echo "PATHFINDER_CALENDLY_URL is empty — /book/ will use the fallback placeholder."

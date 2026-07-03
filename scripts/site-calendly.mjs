@@ -40,7 +40,7 @@ export const CALENDLY_INLINE_SCRIPT = `<script id="pathfinder-calendly-inline">
   function buildCalendlyUrl(baseUrl) {
     var stored = readAttribution();
     var url = new URL(baseUrl);
-    ["utm_source", "utm_medium", "utm_campaign", "utm_term", "utm_content"].forEach(function (key) {
+    ["utm_source", "utm_medium", "utm_campaign", "utm_term", "utm_content", "gclid", "fbclid"].forEach(function (key) {
       if (stored[key]) url.searchParams.set(key, stored[key]);
     });
     return url.toString();
@@ -75,9 +75,6 @@ export const CALENDLY_INLINE_SCRIPT = `<script id="pathfinder-calendly-inline">
       if (!event.data || !event.data.event) return;
       if (event.data.event === "calendly.event_scheduled") {
         track("calendly_event_scheduled", "inline_widget");
-        if (typeof window.gtag === "function") {
-          window.gtag("event", "generate_lead", { event_category: "calendly", event_label: "zoom_intro_booked" });
-        }
         setTimeout(function () {
           window.location.href = "/book-confirmed/";
         }, 800);
