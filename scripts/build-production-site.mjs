@@ -1,6 +1,13 @@
 import { mkdir, readFile, writeFile, cp, rm } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import {
+  applySiteWideUx,
+  BOOKING_LABEL,
+  BOOKING_PATH,
+  buildAiSummaryJson,
+  buildLlmsTxt
+} from "./site-ux-layer.mjs";
 
 const PREVIEW_ORIGIN =
   process.env.PATHFINDER_PREVIEW_ORIGIN ?? "https://9aa49f15.pathfinder-therapy-web.pages.dev";
@@ -461,6 +468,229 @@ ${LANDING_SCRIPT}
   return html;
 }
 
+function replaceMainContent(html, mainInner) {
+  return html.replace(
+    /<main id="main-content"[\s\S]*?<\/main>/,
+    `<main id="main-content" class="siteMain interiorMain" tabindex="-1">${mainInner}</main>`
+  );
+}
+
+function buildInteriorPage(shellHtml, { title, description, canonical, mainInner, schema = "" }) {
+  let html = replaceMainContent(shellHtml, mainInner);
+  html = patchHtml(html, { title, description, canonical });
+  if (schema) {
+    html = html.replace("</head>", `${schema}\n</head>`);
+  }
+  return applySiteWideUx(html, new URL(canonical).pathname);
+}
+
+function buildFaqPage(shellHtml) {
+  const mainInner = `<article class="approachPage">
+<section class="approachHero" aria-labelledby="faq-title">
+  <div class="approachHeroCopy">
+    <p class="sectionKicker">Questions</p>
+    <h1 class="approachHeroTitle" id="faq-title">Frequently asked questions</h1>
+    <p class="approachHeroText">Clear answers about therapy with Brent Kelly in Lisbon and online — so you can decide your next step with less uncertainty.</p>
+  </div>
+</section>
+<section class="approachEssay" aria-labelledby="faq-booking">
+  <div class="approachEssayInner">
+    <p class="sectionKicker">Booking</p>
+    <h2 class="approachSectionTitle" id="faq-booking">How do I arrange an initial consultation?</h2>
+    <div class="approachBody">
+      <p>Use the <a href="${BOOKING_PATH}">consultation enquiry form</a>. It takes about two minutes. Brent replies to non-urgent messages within one working day to arrange an initial conversation.</p>
+      <p>You can also email <a href="mailto:hi@pathfindertherapy.com">hi@pathfindertherapy.com</a> or call/WhatsApp <a href="tel:+351914775365">+351 914 775 365</a>.</p>
+    </div>
+  </div>
+</section>
+<section class="approachEssay" aria-labelledby="faq-who">
+  <div class="approachEssayInner">
+    <p class="sectionKicker">Who this is for</p>
+    <h2 class="approachSectionTitle" id="faq-who">Who do you work with?</h2>
+    <div class="approachBody">
+      <p>Adults and couples navigating trauma, anxiety, attachment, relationship difficulties, life transitions, and complex experiences — including military veterans. Sessions are in English.</p>
+      <p>You do not need a diagnosis to begin. Many people start with a feeling, a pattern, or a sense that something needs attention.</p>
+    </div>
+  </div>
+</section>
+<section class="approachEssay" aria-labelledby="faq-location">
+  <div class="approachEssayInner">
+    <p class="sectionKicker">Location</p>
+    <h2 class="approachSectionTitle" id="faq-location">Can I see you in person or online?</h2>
+    <div class="approachBody">
+      <p>Yes. Brent offers sessions at the Pathfinder Therapy clinic in Lisbon (R. Rodrigues Sampaio 76) and secure online therapy across Portugal and internationally where appropriate.</p>
+    </div>
+  </div>
+</section>
+<section class="approachEssay" aria-labelledby="faq-first">
+  <div class="approachEssayInner">
+    <p class="sectionKicker">First session</p>
+    <h2 class="approachSectionTitle" id="faq-first">What happens in a first session?</h2>
+    <div class="approachBody">
+      <p>The first meeting is a chance to understand what brings you to therapy, ask questions, and sense whether the approach feels like a fit. There is no pressure to share your full history immediately.</p>
+      <p><a href="/knowledge-library/what-happens-in-a-first-therapy-session/">Read more about first sessions</a>.</p>
+    </div>
+  </div>
+</section>
+<section class="approachEssay" aria-labelledby="faq-emdr">
+  <div class="approachEssayInner">
+    <p class="sectionKicker">EMDR &amp; trauma</p>
+    <h2 class="approachSectionTitle" id="faq-emdr">Do you offer EMDR and trauma therapy?</h2>
+    <div class="approachBody">
+      <p>Yes. Brent offers trauma-informed psychotherapy and EMDR where clinically appropriate, alongside Transactional Analysis and relational work.</p>
+      <p><a href="/knowledge-library/what-is-trauma-therapy/">What is trauma therapy?</a> · <a href="/knowledge-library/how-does-emdr-work/">How does EMDR work?</a></p>
+    </div>
+  </div>
+</section>
+<section class="approachEssay" aria-labelledby="faq-fees">
+  <div class="approachEssayInner">
+    <p class="sectionKicker">Fees</p>
+    <h2 class="approachSectionTitle" id="faq-fees">How much do sessions cost?</h2>
+    <div class="approachBody">
+      <p>Individual sessions are from €75 for 50 minutes. Couples sessions may differ — see the <a href="/fees/">fees page</a> or ask when you enquire.</p>
+    </div>
+  </div>
+</section>
+<section class="approachEssay" aria-labelledby="faq-confidential">
+  <div class="approachEssayInner">
+    <p class="sectionKicker">Confidentiality</p>
+    <h2 class="approachSectionTitle" id="faq-confidential">Is therapy confidential?</h2>
+    <div class="approachBody">
+      <p>Yes. Sessions are confidential within ethical and legal limits. Brent is NCPS registered, holds professional indemnity insurance, and receives clinical supervision.</p>
+    </div>
+  </div>
+</section>
+<section class="approachEssay" aria-labelledby="faq-crisis">
+  <div class="approachEssayInner">
+    <p class="sectionKicker">Urgent support</p>
+    <h2 class="approachSectionTitle" id="faq-crisis">Is this a crisis service?</h2>
+    <div class="approachBody">
+      <p>No. Pathfinder Therapy is for non-urgent enquiries only. If you are in crisis or immediate danger, contact local emergency services or see our <a href="/crisis-support/">crisis support page</a>.</p>
+    </div>
+  </div>
+</section>
+<section class="approachEssay pfPageCta" aria-label="Book consultation">
+  <div class="approachEssayInner">
+    <h2 class="approachSectionTitle">Ready to take the next step?</h2>
+    <div class="approachBody"><p>${BOOKING_LABEL} — Brent responds within one working day.</p></div>
+    <div class="pfHeroActions" style="margin-top:16px">
+      <a class="pfHeroPrimary" href="${BOOKING_PATH}">${BOOKING_LABEL}</a>
+      <a class="pfHeroSecondary" href="https://wa.me/351914775365">WhatsApp Brent</a>
+    </div>
+  </div>
+</section>
+</article>`;
+
+  const schema = `<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"FAQPage","mainEntity":[
+{"@type":"Question","name":"How do I arrange an initial consultation?","acceptedAnswer":{"@type":"Answer","text":"Use the consultation enquiry form at pathfindertherapy.com/start. Brent replies within one working day."}},
+{"@type":"Question","name":"Can I see Brent in person or online?","acceptedAnswer":{"@type":"Answer","text":"Yes. Sessions are available at the Lisbon clinic and securely online across Portugal."}},
+{"@type":"Question","name":"How much do sessions cost?","acceptedAnswer":{"@type":"Answer","text":"Individual sessions are from EUR 75 for 50 minutes."}},
+{"@type":"Question","name":"Do you offer EMDR and trauma therapy?","acceptedAnswer":{"@type":"Answer","text":"Yes. Brent offers trauma-informed psychotherapy and EMDR where clinically appropriate."}}
+]}
+</script>`;
+
+  return buildInteriorPage(shellHtml, {
+    title: "FAQ | Psychotherapist Lisbon | Pathfinder Therapy",
+    description:
+      "Answers about booking, fees, online therapy, EMDR, trauma therapy, and first sessions with Brent Kelly in Lisbon.",
+    canonical: "https://www.pathfindertherapy.com/faq/",
+    mainInner,
+    schema
+  });
+}
+
+function buildFeesPage(shellHtml) {
+  const mainInner = `<article class="approachPage">
+<section class="approachHero" aria-labelledby="fees-title">
+  <div class="approachHeroCopy">
+    <p class="sectionKicker">Fees</p>
+    <h1 class="approachHeroTitle" id="fees-title">Session fees</h1>
+    <p class="approachHeroText">Transparent pricing for private psychotherapy in Lisbon and online. Fees are discussed clearly before work begins.</p>
+  </div>
+</section>
+<section class="approachEssay" aria-labelledby="fees-individual">
+  <div class="approachEssayInner">
+    <p class="sectionKicker">Individual</p>
+    <h2 class="approachSectionTitle" id="fees-individual">Individual therapy</h2>
+    <div class="approachBody">
+      <p><strong>From €75</strong> per 50-minute session.</p>
+      <p>Trauma-informed psychotherapy for adults — in person at our Lisbon clinic or securely online.</p>
+    </div>
+  </div>
+</section>
+<section class="approachEssay" aria-labelledby="fees-couples">
+  <div class="approachEssayInner">
+    <p class="sectionKicker">Couples</p>
+    <h2 class="approachSectionTitle" id="fees-couples">Couples therapy</h2>
+    <div class="approachBody">
+      <p>Fees for couples sessions may differ from individual work. Brent will confirm the rate when you enquire and before your first appointment.</p>
+    </div>
+  </div>
+</section>
+<section class="approachEssay" aria-labelledby="fees-consultation">
+  <div class="approachEssayInner">
+    <p class="sectionKicker">Initial consultation</p>
+    <h2 class="approachSectionTitle" id="fees-consultation">Initial consultation</h2>
+    <div class="approachBody">
+      <p>Send a brief enquiry via the <a href="${BOOKING_PATH}">consultation form</a>. Brent will reply within one working day to arrange an initial conversation and confirm fees, format (in person or online), and next steps.</p>
+    </div>
+  </div>
+</section>
+<section class="approachEssay" aria-labelledby="fees-payment">
+  <div class="approachEssayInner">
+    <p class="sectionKicker">Payment</p>
+    <h2 class="approachSectionTitle" id="fees-payment">Payment and cancellation</h2>
+    <div class="approachBody">
+      <p>Payment arrangements are agreed before sessions begin. Cancellation terms are shared at booking so expectations are clear for both parties.</p>
+      <p>Pathfinder Therapy is a private practice. Sessions are not typically covered by public health insurance in Portugal.</p>
+    </div>
+  </div>
+</section>
+<section class="approachEssay pfPageCta" aria-label="Book consultation">
+  <div class="approachEssayInner">
+    <h2 class="approachSectionTitle">Questions about fees or availability?</h2>
+    <div class="approachBody"><p>${BOOKING_LABEL} — no obligation to continue after the initial conversation.</p></div>
+    <div class="pfHeroActions" style="margin-top:16px">
+      <a class="pfHeroPrimary" href="${BOOKING_PATH}">${BOOKING_LABEL}</a>
+      <a class="pfHeroSecondary" href="mailto:hi@pathfindertherapy.com">Email Brent</a>
+    </div>
+  </div>
+</section>
+</article>`;
+
+  const schema = `<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"MedicalBusiness","name":"Pathfinder Therapy","url":"https://www.pathfindertherapy.com/fees/","priceRange":"EUR75","makesOffer":{"@type":"Offer","price":"75","priceCurrency":"EUR","description":"Individual psychotherapy session (50 minutes)"}}
+</script>`;
+
+  return buildInteriorPage(shellHtml, {
+    title: "Fees | Psychotherapy Lisbon | Pathfinder Therapy",
+    description:
+      "Session fees for individual and couples therapy with Brent Kelly in Lisbon and online. Individual sessions from €75.",
+    canonical: "https://www.pathfindertherapy.com/fees/",
+    mainInner,
+    schema
+  });
+}
+
+function patchSitemap(sitemapXml) {
+  let next = sitemapXml;
+  const additions = [
+    { loc: "https://www.pathfindertherapy.com/faq/", priority: "0.75" },
+    { loc: "https://www.pathfindertherapy.com/fees/", priority: "0.75" }
+  ];
+
+  for (const entry of additions) {
+    if (next.includes(entry.loc)) continue;
+    next = next.replace(
+      "</urlset>",
+      `  <url>\n    <loc>${entry.loc}</loc>\n    <lastmod>${new Date().toISOString().slice(0, 10)}</lastmod>\n    <priority>${entry.priority}</priority>\n  </url>\n</urlset>`
+    );
+  }
+
+  return next;
+}
+
 function buildThankYouPage(contactHtml) {
   const { head, tail } = extractHeadAndTail(contactHtml);
 
@@ -539,7 +769,7 @@ async function main() {
     const html = await fetchText(previewUrl);
     if (route === "/contact/") contactHtml = html;
     for (const asset of extractAssetPaths(html)) assetPaths.add(asset);
-    const patched = patchHtml(html);
+    const patched = applySiteWideUx(patchHtml(html), route);
     await writeRoute(PREVIEW_ORIGIN, route, patched);
     console.log(`Mirrored ${route}`);
   }
@@ -556,8 +786,29 @@ async function main() {
   await writeRoute(PREVIEW_ORIGIN, "/thank-you/", thankYouHtml);
   console.log("Added /start/ and /thank-you/");
 
+  const shellHtml = await fetchText(`${PREVIEW_ORIGIN}/approach/`);
+  const faqHtml = buildFaqPage(shellHtml);
+  const feesHtml = buildFeesPage(shellHtml);
+  for (const asset of extractAssetPaths(faqHtml)) assetPaths.add(asset);
+  for (const asset of extractAssetPaths(feesHtml)) assetPaths.add(asset);
+  await writeRoute(PREVIEW_ORIGIN, "/faq/", faqHtml);
+  await writeRoute(PREVIEW_ORIGIN, "/fees/", feesHtml);
+  console.log("Added /faq/ and /fees/");
+
+  await writeFile(path.join(OUT_DIR, "llms.txt"), buildLlmsTxt(), "utf8");
+  await writeFile(path.join(OUT_DIR, "ai-summary.json"), buildAiSummaryJson(), "utf8");
+  console.log("Added llms.txt and ai-summary.json");
+
   for (const assetPath of assetPaths) {
     await downloadAsset(assetPath);
+  }
+
+  const sitemapPath = path.join(OUT_DIR, "sitemap.xml");
+  try {
+    const existingSitemap = await readFile(sitemapPath, "utf8");
+    await writeFile(sitemapPath, patchSitemap(existingSitemap), "utf8");
+  } catch {
+    await writeFile(sitemapPath, patchSitemap(sitemapXml), "utf8");
   }
 
   const redirectsSource = path.join(path.dirname(fileURLToPath(import.meta.url)), "..", "public", "_redirects");

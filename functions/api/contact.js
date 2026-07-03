@@ -100,24 +100,58 @@ export async function onRequestPost(context) {
       .join("\n");
 
     if (env.RESEND_API_KEY) {
-      const response = await fetch("https://api.resend.com/emails", {
+      const fromEmail = env.CONTACT_FROM_EMAIL || "Pathfinder Therapy <onboarding@resend.dev>";
+      const toEmail = env.CONTACT_TO_EMAIL || "hi@pathfindertherapy.com";
+
+      const notifyResponse = await fetch("https://api.resend.com/emails", {
         method: "POST",
         headers: {
           Authorization: `Bearer ${env.RESEND_API_KEY}`,
           "Content-Type": "application/json"
         },
         body: JSON.stringify({
-          from: env.CONTACT_FROM_EMAIL || "Pathfinder Therapy <onboarding@resend.dev>",
-          to: [env.CONTACT_TO_EMAIL || "hi@pathfindertherapy.com"],
+          from: fromEmail,
+          to: [toEmail],
           reply_to: email,
           subject: `Website enquiry: ${enquiryType} — ${name}`,
           text: emailBody
         })
       });
 
-      if (!response.ok) {
+      if (!notifyResponse.ok) {
         throw new Error("Email delivery failed");
       }
+
+      const autoReplyBody = [
+        `Dear ${name},`,
+        "",
+        "Thank you for contacting Pathfinder Therapy. Your enquiry has been received securely.",
+        "",
+        "Brent responds to non-urgent messages within one working day, usually sooner, to arrange an initial conversation.",
+        "",
+        "If you are in crisis or immediate danger, please contact local emergency services. Pathfinder Therapy is not a crisis service.",
+        "",
+        "Warm regards,",
+        "Brent Kelly",
+        "Pathfinder Therapy",
+        "https://www.pathfindertherapy.com",
+        "+351 914 775 365"
+      ].join("\n");
+
+      await fetch("https://api.resend.com/emails", {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${env.RESEND_API_KEY}`,
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          from: fromEmail,
+          to: [email],
+          reply_to: toEmail,
+          subject: "We received your enquiry — Pathfinder Therapy",
+          text: autoReplyBody
+        })
+      }).catch(() => {});
     }
 
     return jsonResponse({
