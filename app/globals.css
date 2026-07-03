@@ -93,7 +93,18 @@ h1 { font-family: Georgia, "Times New Roman", serif; font-size: clamp(74px, 9vw,
 .hero-support { font-family: Georgia, serif; font-size: clamp(25px, 3vw, 52px); line-height: 1.04; margin: 0 0 10px; color: var(--linen); max-width: 570px; }
 .hero-support.muted { color: rgba(246,242,234,.72); }
 .hero-body { max-width: 470px; color: rgba(246,242,234,.72); font-size: 17px; line-height: 1.7; margin: 24px 0 0; }
-.scroll-cue { margin-top: 54px; color: var(--bronze-soft); font-size: 12px; letter-spacing: .18em; text-transform: uppercase; }
+.hero-cta {
+  display: inline-flex;
+  margin-top: 28px;
+  border: 1px solid rgba(200,154,88,.75);
+  color: var(--bronze-soft);
+  padding: 13px 18px;
+  border-radius: 999px;
+  font-size: 12px;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+}
+.scroll-cue { margin-top: 24px; color: var(--bronze-soft); font-size: 12px; letter-spacing: .18em; text-transform: uppercase; }
 .scroll-cue span { display: inline-block; padding-left: 8px; animation: breathe 1.8s infinite ease-in-out; }
 @keyframes breathe { 0%,100%{ transform: translateY(0); opacity:.55;} 50%{ transform: translateY(7px); opacity:1;} }
 
@@ -137,6 +148,206 @@ h1 { font-family: Georgia, "Times New Roman", serif; font-size: clamp(74px, 9vw,
 }
 .footer a { transition: color .35s ease; }
 .footer a:hover { color: var(--bronze-soft); }
+
+.funnel-shell {
+  min-height: 100vh;
+  background: linear-gradient(180deg, var(--forest-deep) 0%, var(--forest) 100%);
+  color: var(--linen);
+}
+.funnel-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 24px clamp(24px, 4vw, 48px);
+  border-bottom: 1px solid rgba(246,242,234,.08);
+}
+.funnel-header-cta {
+  border: 1px solid rgba(200,154,88,.65);
+  color: var(--bronze-soft);
+  padding: 10px 16px;
+  border-radius: 999px;
+  font-size: 12px;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+}
+.funnel-main {
+  padding: clamp(32px, 6vw, 72px) clamp(24px, 5vw, 64px) 80px;
+  max-width: 1120px;
+  margin: 0 auto;
+}
+.funnel-main-centered { display: grid; place-items: center; }
+.funnel-intro h1 {
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: clamp(42px, 6vw, 72px);
+  line-height: .95;
+  font-weight: 400;
+  margin: 0 0 16px;
+}
+.funnel-lead {
+  max-width: 640px;
+  color: rgba(246,242,234,.76);
+  font-size: 18px;
+  line-height: 1.65;
+  margin: 0;
+}
+.funnel-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.2fr) minmax(280px, .8fr);
+  gap: clamp(24px, 4vw, 40px);
+  margin-top: 36px;
+}
+.funnel-form-panel,
+.funnel-trust-panel,
+.funnel-contact-card,
+.thank-you-panel,
+.contact-clinic-card {
+  border: 1px solid rgba(246,242,234,.1);
+  background: rgba(8,16,15,.55);
+  border-radius: 18px;
+  padding: clamp(20px, 3vw, 28px);
+}
+.funnel-form-kicker {
+  margin: 0 0 16px;
+  color: var(--bronze-soft);
+  font-size: 12px;
+  letter-spacing: .18em;
+  text-transform: uppercase;
+}
+.trust-list {
+  margin: 0;
+  padding-left: 18px;
+  color: rgba(246,242,234,.78);
+  line-height: 1.7;
+}
+.trust-list li + li { margin-top: 10px; }
+.funnel-address { color: rgba(246,242,234,.72); line-height: 1.6; }
+.funnel-crisis-note {
+  margin: 20px 0 0;
+  color: rgba(246,242,234,.58);
+  font-size: 14px;
+  line-height: 1.6;
+}
+.funnel-contact-card { margin-top: 24px; }
+
+.contact-page {
+  min-height: 100vh;
+  background: var(--forest);
+  padding: clamp(32px, 6vw, 72px) clamp(24px, 5vw, 64px) 80px;
+}
+.contact-page-header { max-width: 760px; margin-bottom: 36px; }
+.contact-page-header h1 {
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: clamp(42px, 6vw, 72px);
+  line-height: .95;
+  font-weight: 400;
+  margin: 12px 0 16px;
+}
+.contact-page-intro {
+  max-width: 640px;
+  color: rgba(246,242,234,.76);
+  font-size: 18px;
+  line-height: 1.65;
+}
+.contact-page-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.2fr) minmax(260px, .8fr);
+  gap: clamp(24px, 4vw, 40px);
+  max-width: 1120px;
+}
+.contact-page-grid h2 {
+  font-family: Georgia, serif;
+  font-weight: 400;
+  font-size: clamp(28px, 3vw, 38px);
+  margin: 0 0 20px;
+}
+
+.contact-form {
+  display: grid;
+  gap: 18px;
+}
+.contact-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+.contact-form label {
+  display: grid;
+  gap: 8px;
+  color: rgba(246,242,234,.82);
+  font-size: 14px;
+}
+.contact-form label span {
+  color: var(--bronze-soft);
+  font-size: 12px;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+}
+.contact-form input,
+.contact-form select,
+.contact-form textarea {
+  width: 100%;
+  border: 1px solid rgba(246,242,234,.16);
+  background: rgba(8,16,15,.72);
+  color: var(--linen);
+  border-radius: 10px;
+  padding: 12px 14px;
+  font: inherit;
+}
+.contact-form textarea { resize: vertical; min-height: 120px; }
+.contact-trap {
+  position: absolute;
+  left: -9999px;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+}
+.contact-security-note,
+.contact-fallback {
+  margin: 0;
+  color: rgba(246,242,234,.62);
+  font-size: 14px;
+  line-height: 1.6;
+}
+.contact-consent {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+}
+.contact-consent input { margin-top: 4px; width: auto; }
+.contact-consent span { text-transform: none; letter-spacing: normal; font-size: 14px; line-height: 1.55; }
+.contact-submit {
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+  border: 1px solid rgba(200,154,88,.75);
+  background: rgba(200,154,88,.12);
+  color: var(--bronze-soft);
+  padding: 14px 20px;
+  border-radius: 999px;
+  font-size: 13px;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+.contact-submit:disabled { opacity: .65; cursor: wait; }
+.contact-status { margin: 0; font-size: 15px; line-height: 1.5; }
+.contact-status-success { color: #b9d6b0; }
+.contact-status-error { color: #efb4b4; }
+.thank-you-panel { max-width: 640px; text-align: left; }
+.thank-you-panel h1 {
+  font-family: Georgia, serif;
+  font-size: clamp(42px, 6vw, 64px);
+  line-height: .95;
+  font-weight: 400;
+  margin: 0 0 16px;
+}
+.thank-you-home { margin-top: 24px; text-decoration: none; }
+
+@media (max-width: 760px) {
+  .funnel-grid,
+  .contact-page-grid,
+  .contact-grid { grid-template-columns: 1fr; }
+}
 
 @media (max-width: 1080px) {
   .arrival-shell { grid-template-columns: 230px 1fr; }

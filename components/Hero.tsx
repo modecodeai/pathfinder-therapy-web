@@ -1,3 +1,6 @@
+import { LeadCtaLink } from "@/components/LeadCtaLink";
+import { leadFunnel } from "@/data/site";
+
 export function Hero() {
   return (
     <main className="hero-stage">
@@ -21,6 +24,9 @@ export function Hero() {
         <p className="hero-support">You don’t need to have the answers.</p>
         <p className="hero-support muted">You don’t even need to know the questions.</p>
         <p className="hero-body">Some paths bring us closer to ourselves. Others lead us away.</p>
+        <LeadCtaLink href={leadFunnel.defaultCtaPath} className="hero-cta" label="hero_book_consultation">
+          Book a consultation
+        </LeadCtaLink>
         <a className="scroll-cue" href="#begin">Scroll to begin <span>↓</span></a>
       </section>
     </main>

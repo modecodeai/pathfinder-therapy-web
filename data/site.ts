@@ -1,13 +1,26 @@
 export const site = {
   name: "Pathfinder Therapy",
-  title: "Pathfinder Therapy | Find your bearings",
+  title: "Pathfinder Therapy | Trauma-Informed Psychotherapy in Lisbon",
   description:
-    "Private therapy in Lisbon and online. Creating the conditions in which people can understand themselves well enough to live more freely.",
-  url: "https://pathfindertherapy.org.uk",
+    "Trauma-informed psychotherapy with Brent Kelly at Pathfinder Therapy, online and in Lisbon.",
+  url: "https://www.pathfindertherapy.com",
   email: "hi@pathfindertherapy.com",
+  phoneDisplay: "+351 914 775 365",
+  phoneE164: "+351914775365",
+  whatsappUrl: "https://wa.me/351914775365",
+  addressDisplay: "R. Rodrigues Sampaio 76 1º Andar, 1150-281 Lisboa, Portugal",
   ogImage: "/pathfinder-therapy-room.png",
   ogImageAlt: "Pathfinder Therapy room"
 };
+
+export const enquiryTypes = [
+  "Individual therapy",
+  "Couples therapy",
+  "EMDR",
+  "Online therapy",
+  "Clinical enquiry",
+  "Other"
+];
 
 export const navItems = [
   { label: "Begin", href: "/" },
@@ -63,3 +76,9 @@ export const chapters = [
     tone: "Quiet pages"
   }
 ];
+
+export const leadFunnel = {
+  landingPath: "/start/",
+  thankYouPath: "/thank-you/",
+  defaultCtaPath: "/start/"
+};

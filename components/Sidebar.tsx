@@ -1,6 +1,7 @@
 import Link from "next/link";
-import { navItems, site } from "@/data/site";
+import { LeadCtaLink } from "@/components/LeadCtaLink";
 import { Compass } from "@/components/Compass";
+import { leadFunnel, navItems, site } from "@/data/site";
 
 export function Sidebar() {
   return (
@@ -22,7 +23,9 @@ export function Sidebar() {
       </nav>
 
       <div className="sidebar-lower">
-        <Link href="/contact" className="sidebar-cta">Book a Consultation</Link>
+        <LeadCtaLink href={leadFunnel.defaultCtaPath} className="sidebar-cta" label="sidebar_book_consultation">
+          Book a Consultation
+        </LeadCtaLink>
         <p className="sidebar-philosophy">{site.description}</p>
         <Compass />
         <div className="seasonal">
