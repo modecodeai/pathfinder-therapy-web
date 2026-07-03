@@ -134,12 +134,73 @@ const FORM_ENHANCEMENT_SCRIPT = `<script id="pathfinder-form-enhancement">
       track("ad_landing_view", "start");
     }
 
+    document.querySelectorAll('a[href^="tel:"]').forEach(function (link) {
+      link.addEventListener("click", function () {
+        track("phone_click", bodySource());
+        if (typeof window.gtag === "function") {
+          window.gtag("event", "conversion", { send_to: "AW-10976126920/phone" });
+        }
+      });
+    });
+
+    document.querySelectorAll('a[href*="wa.me"]').forEach(function (link) {
+      link.addEventListener("click", function () {
+        track("whatsapp_click", bodySource());
+      });
+    });
+
     document.querySelectorAll("form.contactForm").forEach(function (form) {
       var started = false;
       form.addEventListener("focusin", function () {
         if (started) return;
         started = true;
         track("form_start", bodySource());
+      });
+
+      form.addEventListener("submit", function (event) {
+        if (form.dataset.enhanced === "true") return;
+        event.preventDefault();
+        form.dataset.enhanced = "true";
+        var submitButton = form.querySelector('button[type="submit"]');
+        if (submitButton) {
+          submitButton.disabled = true;
+          submitButton.textContent = "Sending...";
+        }
+        var fields = Object.fromEntries(new FormData(form).entries());
+        var payload = window.pathfinderLead ? window.pathfinderLead.payload() : {};
+        Object.assign(fields, payload, { source: bodySource() });
+        fetch("/api/contact", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(fields)
+        })
+          .then(function (response) {
+            return response.json().then(function (data) {
+              return { response: response, data: data };
+            });
+          })
+          .then(function (result) {
+            if (!result.response.ok || !result.data.ok) {
+              throw new Error(result.data.message || "The enquiry could not be sent.");
+            }
+            track("generate_lead", bodySource());
+            window.location.href = "/thank-you/";
+          })
+          .catch(function (error) {
+            form.dataset.enhanced = "false";
+            if (submitButton) {
+              submitButton.disabled = false;
+              submitButton.textContent = submitButton.dataset.label || "Arrange an initial consultation";
+            }
+            var status = form.querySelector(".contactStatus");
+            if (!status) {
+              status = document.createElement("p");
+              status.className = "contactStatus contactStatus-error";
+              status.setAttribute("role", "alert");
+              form.appendChild(status);
+            }
+            status.textContent = error.message || "The enquiry could not be sent. Please contact us directly.";
+          });
       });
     });
   });
@@ -199,7 +260,7 @@ function injectBeforeBodyClose(html, snippet) {
   return html.replace("</body>", `${snippet}\n</body>`);
 }
 
-function patchHtml(html, { robots = null, title = null, canonical = null } = {}) {
+function patchHtml(html, { robots = null, title = null, canonical = null, description = null } = {}) {
   let next = html;
 
   if (robots) {
@@ -209,6 +270,11 @@ function patchHtml(html, { robots = null, title = null, canonical = null } = {})
 
   if (title) {
     next = next.replace(/<title>[^<]*<\/title>/, `<title>${title}</title>`);
+  }
+
+  if (description) {
+    next = next.replace(/<meta name="description" content="[^"]*"\/>/g, "");
+    next = next.replace("</head>", `<meta name="description" content="${description}"/>\n</head>`);
   }
 
   if (canonical) {
@@ -221,74 +287,213 @@ function patchHtml(html, { robots = null, title = null, canonical = null } = {})
   return next;
 }
 
+const LANDING_CSS = `<style id="pathfinder-landing-cro">
+.lpShell { min-height: 100vh; background: var(--color-forest-deep, #08100f); color: var(--color-linen, #f6f2ea); }
+.lpHeader { display: flex; justify-content: space-between; align-items: center; gap: 16px; padding: 16px clamp(20px, 4vw, 40px); border-bottom: 1px solid rgba(246,242,234,.08); }
+.lpBrand { display: flex; align-items: center; gap: 12px; color: var(--color-bronze, #c89a58); text-decoration: none; }
+.lpBrandWord { font-family: Georgia, serif; letter-spacing: .08em; font-size: 14px; }
+.lpHeaderPhone { border: 1px solid rgba(200,154,88,.55); color: var(--color-bronze-soft, #d9b777); padding: 10px 14px; border-radius: 999px; font-size: 13px; text-decoration: none; white-space: nowrap; }
+.lpMain { padding: clamp(20px, 4vw, 40px) clamp(20px, 4vw, 48px) 120px; max-width: 1180px; margin: 0 auto; }
+.lpGrid { display: grid; grid-template-columns: minmax(0, 1.05fr) minmax(320px, .95fr); gap: clamp(24px, 4vw, 40px); align-items: start; }
+.lpHero { display: grid; gap: 18px; }
+.lpKicker { margin: 0; color: var(--color-bronze-soft, #d9b777); font-size: 12px; letter-spacing: .18em; text-transform: uppercase; }
+.lpTitle { margin: 0; font-family: Georgia, "Times New Roman", serif; font-size: clamp(2rem, 4.8vw, 3.4rem); line-height: 1.02; font-weight: 600; color: var(--color-linen, #f6f2ea); text-wrap: balance; }
+.lpLead { margin: 0; font-size: clamp(1.05rem, 2.2vw, 1.25rem); line-height: 1.65; color: color-mix(in srgb, var(--color-linen, #f6f2ea) 86%, #8d867b); max-width: 38rem; }
+.lpHeroActions { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 4px; }
+.lpPrimaryCta, .lpSecondaryCta { display: inline-flex; align-items: center; justify-content: center; min-height: 48px; padding: 0 20px; border-radius: 999px; font-size: 14px; font-weight: 600; text-decoration: none; letter-spacing: .04em; }
+.lpPrimaryCta { background: rgba(200,154,88,.18); border: 1px solid rgba(200,154,88,.75); color: var(--color-bronze-soft, #d9b777); }
+.lpSecondaryCta { border: 1px solid rgba(246,242,234,.18); color: rgba(246,242,234,.88); }
+.lpTherapist { display: grid; grid-template-columns: 72px minmax(0, 1fr); gap: 14px; align-items: center; padding: 16px; border: 1px solid rgba(246,242,234,.1); border-radius: 16px; background: rgba(8,16,15,.45); }
+.lpTherapist img { width: 72px; height: 72px; border-radius: 50%; object-fit: cover; }
+.lpTherapistName { margin: 0 0 4px; font-weight: 600; }
+.lpTherapistRole { margin: 0; font-size: 14px; color: rgba(246,242,234,.72); line-height: 1.5; }
+.lpTrustList { display: flex; flex-wrap: wrap; gap: 8px; margin: 0; padding: 0; list-style: none; }
+.lpTrustList li { padding: 8px 12px; border-radius: 999px; border: 1px solid rgba(200,154,88,.28); background: rgba(200,154,88,.08); font-size: 12px; letter-spacing: .04em; color: rgba(246,242,234,.84); }
+.lpSteps { display: grid; gap: 12px; margin: 0; padding: 0; list-style: none; }
+.lpSteps li { display: grid; grid-template-columns: 28px minmax(0, 1fr); gap: 12px; align-items: start; font-size: 15px; line-height: 1.55; color: rgba(246,242,234,.78); }
+.lpStepNum { width: 28px; height: 28px; border-radius: 50%; display: grid; place-items: center; border: 1px solid rgba(200,154,88,.45); color: var(--color-bronze-soft, #d9b777); font-size: 12px; font-weight: 700; }
+.lpFormPanel { position: sticky; top: 20px; border: 1px solid rgba(246,242,234,.12); border-radius: 18px; padding: clamp(18px, 3vw, 24px); background: rgba(8,16,15,.72); box-shadow: 0 24px 80px rgba(0,0,0,.28); }
+.lpFormIntro { margin: 0 0 16px; font-size: 15px; line-height: 1.6; color: rgba(246,242,234,.76); }
+.lpFormPanel .contactForm { margin-top: 0; max-width: none; }
+.lpFormPanel .contactSubmit { width: 100%; min-height: 52px; font-size: 14px; }
+.lpReassurance { margin: 14px 0 0; font-size: 13px; line-height: 1.6; color: rgba(246,242,234,.62); }
+.lpTrustStrip { margin-top: 36px; display: grid; gap: 12px; padding-top: 24px; border-top: 1px solid rgba(246,242,234,.08); }
+.lpTrustStrip p { margin: 0; font-size: 14px; line-height: 1.65; color: rgba(246,242,234,.72); }
+.lpLocal { margin-top: 28px; font-size: 14px; line-height: 1.7; color: rgba(246,242,234,.58); }
+.lpFooter { margin-top: 28px; padding-top: 18px; border-top: 1px solid rgba(246,242,234,.08); font-size: 12px; color: rgba(246,242,234,.48); display: flex; flex-wrap: wrap; gap: 12px 20px; }
+.lpFooter a { color: rgba(246,242,234,.62); }
+.lpStickyCta { position: fixed; left: 0; right: 0; bottom: 0; z-index: 40; display: none; padding: 12px 16px calc(12px + env(safe-area-inset-bottom)); background: rgba(8,16,15,.94); border-top: 1px solid rgba(246,242,234,.1); backdrop-filter: blur(10px); }
+.lpStickyCta a { display: flex; align-items: center; justify-content: center; min-height: 48px; border-radius: 999px; background: rgba(200,154,88,.18); border: 1px solid rgba(200,154,88,.75); color: var(--color-bronze-soft, #d9b777); font-weight: 600; text-decoration: none; }
+.siteShell, .siteSidebar, .mobileSidebar, .mobileSidebarPanel { display: none !important; }
+@media (max-width: 900px) {
+  .lpGrid { grid-template-columns: 1fr; }
+  .lpFormPanel { position: static; order: 2; }
+  .lpHero { order: 1; }
+  .lpStickyCta { display: block; }
+  .lpHeaderPhone span { display: none; }
+}
+</style>`;
+
+const LANDING_SCRIPT = `<script id="pathfinder-landing-cro">
+document.addEventListener("DOMContentLoaded", function () {
+  document.querySelectorAll('[data-scroll-target]').forEach(function (button) {
+    button.addEventListener("click", function (event) {
+      var target = document.querySelector(button.getAttribute("data-scroll-target"));
+      if (!target) return;
+      event.preventDefault();
+      target.scrollIntoView({ behavior: "smooth", block: "start" });
+    });
+  });
+});
+</script>`;
+
+const LANDING_SCHEMA = `<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"MedicalWebPage","name":"Arrange an initial psychotherapy consultation in Lisbon","url":"https://www.pathfindertherapy.com/start/","about":{"@type":"MedicalTherapy","name":"Trauma-informed psychotherapy"},"mainEntity":{"@type":"MedicalBusiness","name":"Pathfinder Therapy","url":"https://www.pathfindertherapy.com","telephone":"+351914775365","priceRange":"EUR75","medicalSpecialty":["Psychotherapy","Trauma therapy","EMDR"],"address":{"@type":"PostalAddress","addressLocality":"Lisboa","addressCountry":"PT"}},"provider":{"@type":"Person","name":"Brent Kelly","jobTitle":"Psychotherapist","knowsAbout":["Trauma","EMDR","Transactional Analysis","Military veterans"]}}
+</script>`;
+
+function prepareLandingForm(formHtml) {
+  return formHtml
+    .replace(
+      /<button class="contactSubmit" type="submit">[^<]*<\/button>/,
+      '<button class="contactSubmit" type="submit" data-label="Arrange an initial consultation">Arrange an initial consultation</button>'
+    )
+    .replace(/value="yes"/, 'value="on"')
+    .replace(
+      /<textarea([^>]*)><\/textarea>/,
+      '<textarea$1 placeholder="A brief note is enough — no need to share your full history here."></textarea>'
+    )
+    .replace(
+      '<p class="contactSecureIntro">',
+      '<p class="contactSecureIntro" id="consultation-form-intro">'
+    );
+}
+
+function extractHeadAndTail(contactHtml) {
+  const headEnd = contactHtml.indexOf("</head>") + 7;
+  const head = contactHtml.slice(0, headEnd);
+  const tailMatch = contactHtml.match(/<script id="pathfinder-google-tag-loader"[\s\S]*$/);
+  const tail = tailMatch ? tailMatch[0].replace("</body></html>", "") : "";
+  return { head, tail };
+}
+
 function buildStartPage(contactHtml) {
-  const mainMatch = contactHtml.match(/<main[\s\S]*?<\/main>/);
-  const sidebarMatch = contactHtml.match(/<aside class="sidebar"[\s\S]*?<\/aside>/);
-  const mobileMatch = contactHtml.match(/<div class="mobileSidebar[\s\S]*?<\/div>\s*<\/div>/);
+  const { head, tail } = extractHeadAndTail(contactHtml);
+  const formHtml = prepareLandingForm(
+    contactHtml.match(/<form class="contactForm"[\s\S]*?<\/form>/)?.[0] ?? ""
+  );
 
-  const shellStart = contactHtml.slice(0, contactHtml.indexOf("<main"));
-  const shellEnd = contactHtml.slice(contactHtml.indexOf("</main>") + 7);
-
-  const startMain = `<main class="approachPage" id="main-content">
-  <section class="approachHero">
-    <div class="approachHeroCopy">
-      <p class="sectionKicker">Private practice · Lisbon &amp; online</p>
-      <h1 class="approachHeroTitle" id="start-title">Begin your enquiry.</h1>
-      <div class="approachHeroText">
-        <p>Tell us what you are looking for and Brent will respond to non-urgent enquiries, usually within one working day.</p>
-        <p>Trauma-informed psychotherapy in Lisbon and online. Individual, couples, EMDR, and online sessions.</p>
+  const body = `<body class="lpShell">
+<a class="skipLink" href="#main-content">Skip to main content</a>
+<header class="lpHeader">
+  <a class="lpBrand" href="/" aria-label="Pathfinder Therapy home">
+    <span class="lpBrandWord">PATHFINDER THERAPY</span>
+  </a>
+  <a class="lpHeaderPhone" href="tel:+351914775365" aria-label="Call Pathfinder Therapy">
+    <span>Call</span> +351 914 775 365
+  </a>
+</header>
+<main class="lpMain" id="main-content">
+  <div class="lpGrid">
+    <section class="lpHero" aria-labelledby="start-title">
+      <p class="lpKicker">English-speaking psychotherapist · Lisbon clinic &amp; online</p>
+      <h1 class="lpTitle" id="start-title">Find out if therapy is right for you — with a registered psychotherapist in Lisbon or online.</h1>
+      <p class="lpLead">Trauma-informed psychotherapy for anxiety, trauma, relationships, and life transitions. Brent Kelly responds to non-urgent enquiries within one working day.</p>
+      <div class="lpHeroActions">
+        <a class="lpPrimaryCta" href="#consultation-form" data-scroll-target="#consultation-form">Arrange an initial consultation</a>
+        <a class="lpSecondaryCta" href="https://wa.me/351914775365">WhatsApp Brent</a>
       </div>
-    </div>
-  </section>
-  <section class="approachEssay">
-    <div class="approachEssayInner">
-      <p class="sectionKicker">Secure enquiry form</p>
-      ${contactHtml.match(/<form class="contactForm"[\s\S]*?<\/form>/)?.[0] ?? ""}
-      <div class="relatedPages" style="margin-top:2rem">
-        <p class="sectionKicker">Why Pathfinder</p>
-        <ul class="approachHeroText">
-          <li>Trauma-informed psychotherapy with Brent Kelly</li>
-          <li>Lisbon clinic and secure online therapy</li>
-          <li>Experienced with veterans, attachment, and complex trauma</li>
-        </ul>
+      <div class="lpTherapist">
+        <img src="/assets/images/about-brent.webp" width="72" height="72" alt="Brent Kelly, psychotherapist at Pathfinder Therapy Lisbon" loading="eager" decoding="async" />
+        <div>
+          <p class="lpTherapistName">Brent Kelly</p>
+          <p class="lpTherapistRole">Registered psychotherapist · trauma, EMDR, veterans, couples &amp; individual therapy · Lisbon &amp; online</p>
+        </div>
       </div>
-    </div>
+      <ul class="lpTrustList" aria-label="Professional reassurance">
+        <li>NCPS registered</li>
+        <li>Trauma-informed</li>
+        <li>EMDR</li>
+        <li>Transactional Analysis</li>
+        <li>Veterans experience</li>
+        <li>Confidential</li>
+        <li>Supervised practice</li>
+      </ul>
+      <ol class="lpSteps" aria-label="What happens next">
+        <li><span class="lpStepNum">1</span><span>Send a brief, secure enquiry — no detailed clinical history needed.</span></li>
+        <li><span class="lpStepNum">2</span><span>Brent replies within one working day to arrange an initial conversation.</span></li>
+        <li><span class="lpStepNum">3</span><span>If it feels like a fit, book your first session in Lisbon or online.</span></li>
+      </ol>
+    </section>
+    <section class="lpFormPanel" id="consultation-form" aria-labelledby="consultation-form-intro">
+      <p class="lpKicker">Confidential enquiry</p>
+      <p class="lpFormIntro" id="consultation-form-intro">This takes about two minutes. Your details are sent securely to Brent — for non-urgent enquiries only.</p>
+      ${formHtml}
+      <p class="lpReassurance">Sessions from €75 · Lisbon clinic or secure online · Professional indemnity insurance · Clinical supervision in place</p>
+    </section>
+  </div>
+  <section class="lpTrustStrip" aria-label="Why Pathfinder Therapy">
+    <p class="lpKicker">Why people choose Pathfinder</p>
+    <p>Pathfinder Therapy offers calm, trauma-informed psychotherapy for adults and couples in Lisbon and across Portugal online. Brent works with trauma, anxiety, attachment, military veterans, and complex life experiences — using EMDR and Transactional Analysis where appropriate.</p>
   </section>
-</main>`;
+  <p class="lpLocal">Psychotherapist in Lisbon · trauma therapist Lisbon · EMDR Lisbon · English-speaking therapy in Portugal · online psychotherapy Portugal</p>
+  <footer class="lpFooter">
+    <span>Pathfinder Therapy · R. Rodrigues Sampaio 76, Lisboa</span>
+    <a href="/privacy/">Privacy</a>
+    <a href="/crisis-support/">Crisis support</a>
+    <span>Non-urgent enquiries only</span>
+  </footer>
+</main>
+<div class="lpStickyCta">
+  <a href="#consultation-form" data-scroll-target="#consultation-form">Arrange an initial consultation</a>
+</div>
+${tail}
+${LANDING_SCRIPT}
+</body></html>`;
 
-  let html = `${shellStart}${sidebarMatch?.[0] ?? ""}${mobileMatch?.[0] ?? ""}${startMain}${shellEnd}`;
+  let html = `${head}${LANDING_CSS}${LANDING_SCHEMA}${body}`;
   html = patchHtml(html, {
     robots: "noindex, nofollow",
-    title: "Begin Therapy | Pathfinder Therapy Lisbon",
+    title: "Arrange an Initial Consultation | Psychotherapist Lisbon | Pathfinder Therapy",
+    description:
+      "Arrange a confidential initial psychotherapy consultation with Brent Kelly in Lisbon or online. Trauma-informed therapy, EMDR, English-speaking. Response within one working day.",
     canonical: "https://www.pathfindertherapy.com/start/"
   });
   return html;
 }
 
 function buildThankYouPage(contactHtml) {
-  const shellStart = contactHtml.slice(0, contactHtml.indexOf("<main"));
-  const shellEnd = contactHtml.slice(contactHtml.indexOf("</main>") + 7);
-  const sidebarMatch = contactHtml.match(/<aside class="sidebar"[\s\S]*?<\/aside>/);
-  const mobileMatch = contactHtml.match(/<div class="mobileSidebar[\s\S]*?<\/div>\s*<\/div>/);
+  const { head, tail } = extractHeadAndTail(contactHtml);
 
-  const thankYouMain = `<main class="approachPage" id="main-content">
-  <section class="approachHero">
-    <div class="approachHeroCopy">
-      <p class="sectionKicker">Enquiry received</p>
-      <h1 class="approachHeroTitle">Thank you.</h1>
-      <div class="approachHeroText">
-        <p>Brent will respond to non-urgent enquiries as soon as possible, usually within one working day.</p>
-        <p>If you need to reach us directly, email <a href="mailto:hi@pathfindertherapy.com">hi@pathfindertherapy.com</a> or WhatsApp <a href="https://wa.me/351914775365">+351 914 775 365</a>.</p>
-        <p><a class="button approachCtaAction" href="/">Return to homepage</a></p>
-      </div>
+  const body = `<body class="lpShell">
+<a class="skipLink" href="#main-content">Skip to main content</a>
+<header class="lpHeader">
+  <a class="lpBrand" href="/" aria-label="Pathfinder Therapy home"><span class="lpBrandWord">PATHFINDER THERAPY</span></a>
+</header>
+<main class="lpMain" id="main-content">
+  <section class="lpHero" style="max-width:42rem">
+    <p class="lpKicker">Enquiry received</p>
+    <h1 class="lpTitle">Thank you — Brent will be in touch soon.</h1>
+    <p class="lpLead">Your enquiry was sent securely. Brent responds to non-urgent messages within one working day, usually sooner.</p>
+    <ol class="lpSteps">
+      <li><span class="lpStepNum">✓</span><span>Your message has been received confidentially.</span></li>
+      <li><span class="lpStepNum">2</span><span>Brent will reply by email to arrange an initial conversation.</span></li>
+      <li><span class="lpStepNum">3</span><span>If you both agree it feels right, your first session can be booked in Lisbon or online.</span></li>
+    </ol>
+    <div class="lpHeroActions">
+      <a class="lpSecondaryCta" href="/">Return to homepage</a>
+      <a class="lpSecondaryCta" href="https://wa.me/351914775365">WhatsApp +351 914 775 365</a>
     </div>
+    <p class="lpReassurance">If you are in crisis or immediate danger, contact local emergency services. This service is for non-urgent enquiries only.</p>
   </section>
-</main>`;
+</main>
+${tail}
+</body></html>`;
 
-  let html = `${shellStart}${sidebarMatch?.[0] ?? ""}${mobileMatch?.[0] ?? ""}${thankYouMain}${shellEnd}`;
+  let html = `${head}${LANDING_CSS}${body}`;
   html = patchHtml(html, {
     robots: "noindex, nofollow",
     title: "Thank You | Pathfinder Therapy",
+    description: "Your enquiry has been received securely by Pathfinder Therapy.",
     canonical: "https://www.pathfindertherapy.com/thank-you/"
   });
   html = injectBeforeBodyClose(html, THANK_YOU_SCRIPT);
