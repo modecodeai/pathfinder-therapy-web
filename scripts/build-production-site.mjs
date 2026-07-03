@@ -2,12 +2,18 @@ import { mkdir, readFile, writeFile, cp, rm } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import {
-  applySiteWideUx,
   BOOKING_LABEL,
   BOOKING_PATH,
   buildAiSummaryJson,
   buildLlmsTxt
 } from "./site-ux-layer.mjs";
+import {
+  applyShellV2,
+  buildContactPageBody,
+  buildStickyBar,
+  extractPageParts,
+  wrapInShellV2
+} from "./site-shell-v2.mjs";
 
 const PREVIEW_ORIGIN =
   process.env.PATHFINDER_PREVIEW_ORIGIN ?? "https://9aa49f15.pathfinder-therapy-web.pages.dev";
@@ -468,6 +474,43 @@ ${LANDING_SCRIPT}
   return html;
 }
 
+function buildInteriorPageV2(shellHtml, { title, description, canonical, mainInner, schema = "" }) {
+  const route = new URL(canonical).pathname;
+  const parts = extractPageParts(shellHtml);
+  let head = parts.head;
+  if (schema) {
+    head = head.replace("</head>", `${schema}\n</head>`);
+  }
+  let html = wrapInShellV2({ ...parts, head, route, mainInner });
+  html = patchHtml(html, { title, description, canonical });
+  return html;
+}
+
+function buildContactPageV2(contactHtml) {
+  const parts = extractPageParts(contactHtml);
+  const formHtml = prepareLandingForm(
+    contactHtml.match(/<form class="contactForm"[\s\S]*?<\/form>/)?.[0] ?? ""
+  );
+  const mainInner = buildContactPageBody(formHtml);
+  let html = wrapInShellV2({
+    ...parts,
+    route: "/contact/",
+    mainInner,
+    interior: false
+  });
+  html = html.replace(
+    buildStickyBar(),
+    buildStickyBar("#consultation-form", BOOKING_LABEL)
+  );
+  html = patchHtml(html, {
+    title: "Contact | Arrange a Consultation | Pathfinder Therapy Lisbon",
+    description:
+      "Contact Brent Kelly to arrange a confidential initial psychotherapy consultation in Lisbon or online. Response within one working day.",
+    canonical: "https://www.pathfindertherapy.com/contact/"
+  });
+  return html;
+}
+
 function replaceMainContent(html, mainInner) {
   return html.replace(
     /<main id="main-content"[\s\S]*?<\/main>/,
@@ -475,13 +518,8 @@ function replaceMainContent(html, mainInner) {
   );
 }
 
-function buildInteriorPage(shellHtml, { title, description, canonical, mainInner, schema = "" }) {
-  let html = replaceMainContent(shellHtml, mainInner);
-  html = patchHtml(html, { title, description, canonical });
-  if (schema) {
-    html = html.replace("</head>", `${schema}\n</head>`);
-  }
-  return applySiteWideUx(html, new URL(canonical).pathname);
+function buildInteriorPage(shellHtml, options) {
+  return buildInteriorPageV2(shellHtml, options);
 }
 
 function buildFaqPage(shellHtml) {
@@ -761,7 +799,7 @@ async function main() {
     return url.pathname.endsWith("/") ? url.pathname : `${url.pathname}/`;
   });
 
-  const builtRoutes = new Set(["/start/", "/thank-you/", "/faq/", "/fees/"]);
+  const builtRoutes = new Set(["/start/", "/thank-you/", "/faq/", "/fees/", "/contact/"]);
   const assetPaths = new Set(["/robots.txt", "/rss.xml", "/sitemap.xml", "/favicon.ico", "/favicon.svg"]);
   let contactHtml = "";
 
@@ -779,16 +817,23 @@ async function main() {
       console.warn(`Skipping unavailable route ${route}: ${error.message}`);
       continue;
     }
-    if (route === "/contact/") contactHtml = html;
+    if (route === "/contact/") {
+      contactHtml = html;
+    }
     for (const asset of extractAssetPaths(html)) assetPaths.add(asset);
-    const patched = applySiteWideUx(patchHtml(html), route);
+    const patched = applyShellV2(patchHtml(html), route);
     await writeRoute(PREVIEW_ORIGIN, route, patched);
-    console.log(`Mirrored ${route}`);
+    console.log(`Mirrored ${route} (shell v2)`);
   }
 
   if (!contactHtml) {
     contactHtml = await fetchText(`${PREVIEW_ORIGIN}/contact/`);
   }
+
+  const contactPageV2 = buildContactPageV2(contactHtml);
+  for (const asset of extractAssetPaths(contactPageV2)) assetPaths.add(asset);
+  await writeRoute(PREVIEW_ORIGIN, "/contact/", contactPageV2);
+  console.log("Added /contact/ (shell v2)");
 
   const startHtml = buildStartPage(contactHtml);
   const thankYouHtml = buildThankYouPage(contactHtml);
