@@ -36,6 +36,7 @@ jobs:
       - name: Build production mirror with lead funnel
         env:
           PATHFINDER_PREVIEW_ORIGIN: ${{ github.event.inputs.preview_origin || 'https://9aa49f15.pathfinder-therapy-web.pages.dev' }}
+          PATHFINDER_CALENDLY_URL: ${{ secrets.PATHFINDER_CALENDLY_URL }}
         run: pnpm run build
 
       - name: Deploy to Cloudflare Pages

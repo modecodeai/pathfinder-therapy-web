@@ -16,6 +16,14 @@ import {
 } from "./site-shell-v2.mjs";
 import { buildHomePageV2 } from "./site-sprint2.mjs";
 import { applySprint3Transforms, stripHydrationScripts } from "./site-sprint3.mjs";
+import {
+  BOOK_CONFIRMED_PATH,
+  BOOK_PATH,
+  buildBookConfirmedBody,
+  buildBookPageBody,
+  CALENDLY_CSS,
+  CALENDLY_INLINE_SCRIPT
+} from "./site-calendly.mjs";
 
 const PREVIEW_ORIGIN =
   process.env.PATHFINDER_PREVIEW_ORIGIN ?? "https://9aa49f15.pathfinder-therapy-web.pages.dev";
@@ -476,6 +484,86 @@ ${LANDING_SCRIPT}
   return html;
 }
 
+const BOOK_CONFIRMED_SCRIPT = `<script id="pathfinder-book-confirmed-conversion">
+(function () {
+  var KEY = "pathfinder_calendly_converted";
+  if (sessionStorage.getItem(KEY)) return;
+  if (typeof window.gtag !== "function") return;
+  window.gtag("event", "generate_lead", { event_category: "calendly", event_label: "book_confirmed_page" });
+  sessionStorage.setItem(KEY, "1");
+})();
+</script>`;
+
+function buildBookPage(contactHtml) {
+  const { head, tail } = extractHeadAndTail(contactHtml);
+  const calendlyHead = head.replace(
+    "</head>",
+    `<link href="https://assets.calendly.com/assets/external/widget.css" rel="stylesheet">\n${CALENDLY_CSS}\n</head>`
+  );
+
+  const body = `<body class="lpShell">
+<a class="skipLink" href="#main-content">Skip to main content</a>
+<header class="lpHeader">
+  <a class="lpBrand" href="/" aria-label="Pathfinder Therapy home">
+    <span class="lpBrandWord">PATHFINDER THERAPY</span>
+  </a>
+  <a class="lpHeaderPhone" href="tel:+351914775365" aria-label="Call Pathfinder Therapy">
+    <span>Call</span> +351 914 775 365
+  </a>
+</header>
+<main class="lpMain" id="main-content">
+  ${buildBookPageBody()}
+  <footer class="lpFooter">
+    <span>Pathfinder Therapy · R. Rodrigues Sampaio 76, Lisboa</span>
+    <a href="/privacy/">Privacy</a>
+    <a href="/crisis-support/">Crisis support</a>
+    <span>Non-urgent enquiries only</span>
+  </footer>
+</main>
+<div class="lpStickyCta">
+  <a href="#calendly-booking" data-scroll-target="#calendly-booking">Book initial Zoom call</a>
+</div>
+${tail}
+${LANDING_SCRIPT}
+${CALENDLY_INLINE_SCRIPT}
+</body></html>`;
+
+  let html = `${calendlyHead}${LANDING_CSS}${body}`;
+  html = patchHtml(html, {
+    robots: "noindex, nofollow",
+    title: "Book Initial Zoom Consultation | Pathfinder Therapy Lisbon",
+    description:
+      "Book a confidential initial Zoom consultation with Brent Kelly, psychotherapist in Lisbon and online. Trauma-informed therapy in English.",
+    canonical: `https://www.pathfindertherapy.com${BOOK_PATH}`
+  });
+  return html;
+}
+
+function buildBookConfirmedPage(contactHtml) {
+  const { head, tail } = extractHeadAndTail(contactHtml);
+
+  const body = `<body class="lpShell">
+<a class="skipLink" href="#main-content">Skip to main content</a>
+<header class="lpHeader">
+  <a class="lpBrand" href="/" aria-label="Pathfinder Therapy home"><span class="lpBrandWord">PATHFINDER THERAPY</span></a>
+</header>
+<main class="lpMain" id="main-content">
+  ${buildBookConfirmedBody()}
+</main>
+${tail}
+${BOOK_CONFIRMED_SCRIPT}
+</body></html>`;
+
+  let html = `${head}${LANDING_CSS}${body}`;
+  html = patchHtml(html, {
+    robots: "noindex, nofollow",
+    title: "Zoom Consultation Booked | Pathfinder Therapy",
+    description: "Your initial Zoom consultation with Pathfinder Therapy is confirmed.",
+    canonical: `https://www.pathfindertherapy.com${BOOK_CONFIRMED_PATH}`
+  });
+  return html;
+}
+
 function buildInteriorPageV2(shellHtml, { title, description, canonical, mainInner, schema = "" }) {
   const route = new URL(canonical).pathname;
   const parts = extractPageParts(shellHtml);
@@ -801,7 +889,16 @@ async function main() {
     return url.pathname.endsWith("/") ? url.pathname : `${url.pathname}/`;
   });
 
-  const builtRoutes = new Set(["/start/", "/thank-you/", "/faq/", "/fees/", "/contact/", "/"]);
+  const builtRoutes = new Set([
+    "/start/",
+    "/thank-you/",
+    "/book/",
+    "/book-confirmed/",
+    "/faq/",
+    "/fees/",
+    "/contact/",
+    "/"
+  ]);
   const assetPaths = new Set(["/robots.txt", "/rss.xml", "/sitemap.xml", "/favicon.ico", "/favicon.svg"]);
   let contactHtml = "";
   let homeHtml = "";
@@ -877,11 +974,17 @@ async function main() {
 
   const startHtml = buildStartPage(contactHtml);
   const thankYouHtml = buildThankYouPage(contactHtml);
+  const bookHtml = buildBookPage(contactHtml);
+  const bookConfirmedHtml = buildBookConfirmedPage(contactHtml);
   for (const asset of extractAssetPaths(startHtml)) assetPaths.add(asset);
   for (const asset of extractAssetPaths(thankYouHtml)) assetPaths.add(asset);
+  for (const asset of extractAssetPaths(bookHtml)) assetPaths.add(asset);
+  for (const asset of extractAssetPaths(bookConfirmedHtml)) assetPaths.add(asset);
   await writeRoute(PREVIEW_ORIGIN, "/start/", startHtml);
   await writeRoute(PREVIEW_ORIGIN, "/thank-you/", thankYouHtml);
-  console.log("Added /start/ and /thank-you/");
+  await writeRoute(PREVIEW_ORIGIN, BOOK_PATH, bookHtml);
+  await writeRoute(PREVIEW_ORIGIN, BOOK_CONFIRMED_PATH, bookConfirmedHtml);
+  console.log("Added /start/, /thank-you/, /book/, and /book-confirmed/");
 
   const shellHtml = await fetchText(`${PREVIEW_ORIGIN}/approach/`);
   const faqHtml = stripHydrationScripts(buildFaqPage(shellHtml));

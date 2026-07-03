@@ -170,7 +170,8 @@ export function buildLlmsTxt() {
 - https://www.pathfindertherapy.com/knowledge-library/
 
 ## Booking
-- Consultation enquiry: https://www.pathfindertherapy.com/start/
+- Book initial Zoom consultation: https://www.pathfindertherapy.com/book/
+- Consultation enquiry form: https://www.pathfindertherapy.com/start/
 - Email: hi@pathfindertherapy.com
 - Phone/WhatsApp: +351 914 775 365
 

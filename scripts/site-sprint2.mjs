@@ -67,13 +67,13 @@ const STEPS = `<ol class="lpSteps" aria-label="What happens next">
 export function buildBookingPanel() {
   return `<aside class="lpBookingPanel" aria-label="Arrange a consultation">
   <p class="lpKicker">Next step</p>
-  <h2 class="lpBookingPanelTitle">${BOOKING_LABEL}</h2>
-  <p class="lpBookingPanelText">Brent Kelly responds to non-urgent enquiries within one working day — usually sooner.</p>
+  <h2 class="lpBookingPanelTitle">Book an initial Zoom call</h2>
+  <p class="lpBookingPanelText">Choose a time for a confidential initial consultation via Zoom — or send a brief enquiry first if you prefer.</p>
   ${TRUST_PILLS}
   ${STEPS}
   <div class="lpHeroActions">
-    <a class="lpPrimaryCta" href="${BOOKING_PATH}">${BOOKING_LABEL}</a>
-    <a class="lpSecondaryCta" href="https://wa.me/351914775365">WhatsApp Brent</a>
+    <a class="lpPrimaryCta" href="/book/">Book initial Zoom call</a>
+    <a class="lpSecondaryCta" href="${BOOKING_PATH}">Send a brief enquiry</a>
   </div>
   <p class="lpReassurance">Sessions from €75 · Lisbon clinic or secure online · Non-urgent enquiries only</p>
 </aside>`;
