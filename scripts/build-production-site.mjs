@@ -761,12 +761,24 @@ async function main() {
     return url.pathname.endsWith("/") ? url.pathname : `${url.pathname}/`;
   });
 
+  const builtRoutes = new Set(["/start/", "/thank-you/", "/faq/", "/fees/"]);
   const assetPaths = new Set(["/robots.txt", "/rss.xml", "/sitemap.xml", "/favicon.ico", "/favicon.svg"]);
   let contactHtml = "";
 
   for (const route of routes) {
+    if (builtRoutes.has(route)) {
+      console.log(`Skipping ${route} (built separately)`);
+      continue;
+    }
+
     const previewUrl = `${PREVIEW_ORIGIN}${route}`;
-    const html = await fetchText(previewUrl);
+    let html;
+    try {
+      html = await fetchText(previewUrl);
+    } catch (error) {
+      console.warn(`Skipping unavailable route ${route}: ${error.message}`);
+      continue;
+    }
     if (route === "/contact/") contactHtml = html;
     for (const asset of extractAssetPaths(html)) assetPaths.add(asset);
     const patched = applySiteWideUx(patchHtml(html), route);
