@@ -1,5 +1,7 @@
+const CALENDLY_URL_FALLBACK = "https://calendly.com/pathfindertherapy/initial-consultation";
+
 export const DEFAULT_CALENDLY_URL =
-  process.env.PATHFINDER_CALENDLY_URL ?? "https://calendly.com/pathfindertherapy/initial-consultation";
+  (process.env.PATHFINDER_CALENDLY_URL || "").trim() || CALENDLY_URL_FALLBACK;
 
 export const BOOK_PATH = "/book/";
 export const BOOK_CONFIRMED_PATH = "/book-confirmed/";
