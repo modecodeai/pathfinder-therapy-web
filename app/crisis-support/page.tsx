@@ -1,9 +1,7 @@
 import { PlaceholderPage } from "@/components/PlaceholderPage";
+import { createPageMetadata } from "@/lib/metadata";
 
-export const metadata = {
-  title: "Crisis support",
-  alternates: { canonical: "/crisis-support" }
-};
+export const metadata = createPageMetadata("/crisis-support/", "Crisis support | Pathfinder Therapy");
 
 export default function Page() {
   return (
