@@ -14,6 +14,7 @@ import {
   extractPageParts,
   wrapInShellV2
 } from "./site-shell-v2.mjs";
+import { applySprint2Transforms, buildHomePageV2 } from "./site-sprint2.mjs";
 
 const PREVIEW_ORIGIN =
   process.env.PATHFINDER_PREVIEW_ORIGIN ?? "https://9aa49f15.pathfinder-therapy-web.pages.dev";
@@ -799,12 +800,22 @@ async function main() {
     return url.pathname.endsWith("/") ? url.pathname : `${url.pathname}/`;
   });
 
-  const builtRoutes = new Set(["/start/", "/thank-you/", "/faq/", "/fees/", "/contact/"]);
+  const builtRoutes = new Set(["/start/", "/thank-you/", "/faq/", "/fees/", "/contact/", "/"]);
   const assetPaths = new Set(["/robots.txt", "/rss.xml", "/sitemap.xml", "/favicon.ico", "/favicon.svg"]);
   let contactHtml = "";
+  let homeHtml = "";
 
   for (const route of routes) {
     if (builtRoutes.has(route)) {
+      if (route === "/") {
+        const previewUrl = `${PREVIEW_ORIGIN}${route}`;
+        try {
+          homeHtml = await fetchText(previewUrl);
+          for (const asset of extractAssetPaths(homeHtml)) assetPaths.add(asset);
+        } catch (error) {
+          console.warn(`Skipping unavailable route ${route}: ${error.message}`);
+        }
+      }
       console.log(`Skipping ${route} (built separately)`);
       continue;
     }
@@ -821,10 +832,26 @@ async function main() {
       contactHtml = html;
     }
     for (const asset of extractAssetPaths(html)) assetPaths.add(asset);
-    const patched = applyShellV2(patchHtml(html), route);
+    let patched = applyShellV2(patchHtml(html), route);
+    patched = applySprint2Transforms(patched, route);
     await writeRoute(PREVIEW_ORIGIN, route, patched);
-    console.log(`Mirrored ${route} (shell v2)`);
+    console.log(`Mirrored ${route} (shell v2${route === "/therapy/" || route === "/about/" ? " + booking panel" : ""})`);
   }
+
+  if (!homeHtml) {
+    homeHtml = await fetchText(`${PREVIEW_ORIGIN}/`);
+  }
+
+  let homePageV2 = buildHomePageV2(homeHtml);
+  homePageV2 = patchHtml(homePageV2, {
+    title: "Trauma-Informed Psychotherapy in Lisbon | Pathfinder Therapy",
+    description:
+      "Trauma-informed psychotherapy with Brent Kelly in Lisbon and online. English-speaking therapy for adults and couples. Arrange an initial consultation.",
+    canonical: "https://www.pathfindertherapy.com/"
+  });
+  for (const asset of extractAssetPaths(homePageV2)) assetPaths.add(asset);
+  await writeRoute(PREVIEW_ORIGIN, "/", homePageV2);
+  console.log("Added / (homepage sprint 2 rebuild)");
 
   if (!contactHtml) {
     contactHtml = await fetchText(`${PREVIEW_ORIGIN}/contact/`);
