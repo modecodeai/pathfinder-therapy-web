@@ -6,6 +6,18 @@ This agent works on **Site A: Pathfinder Therapy CIC** at:
 
 **https://pathfindertherapy.org.uk**
 
+### Production deployment
+
+| Setting | Value |
+|---------|-------|
+| Cloudflare Pages project | `pathfinder-therapy-cic-v10` |
+| Branch | `main` |
+| Preview URL | https://d151320e.pathfinder-therapy-cic-v10.pages.dev |
+| Build header | `x-pathfinder-build: pathfinder-v53-seo-navigation` |
+| Source in workspace | `cic-site/` (mirrored from production preview) |
+
+Deploy by copying `cic-site/` contents to the CIC Pages project root (or merge into the private `pathfinder-therapy-cic-v10` repo when connected).
+
 This is a **static HTML site** (flat `.html` URLs) for a veteran-founded Community Interest Company. It is **not** the same as:
 
 | Repo | Site | Domain |
@@ -16,7 +28,7 @@ This is a **static HTML site** (flat `.html` URLs) for a veteran-founded Communi
 
 **Before editing:** confirm you are in the **CIC static HTML source**, not a Next.js repo. Expected files include `about.html`, `veterans.html`, `llms.txt`, `ai-summary.json`, `sitemap.xml`, `robots.txt`.
 
-If the CIC source is not in the workspace, locate it first (Cloudflare Pages deploy files, local static export, or private repo) before making changes.
+The CIC static site source is in **`cic-site/`**. Edit files there, not the Next.js app at repo root.
 
 ---
 
@@ -273,10 +285,11 @@ The live site currently returns **403 challenges** on HTML pages (Bot Fight Mode
 
 ## Reference templates
 
-Starter files in `seo-templates/` (copy into CIC site root when source is located):
+Starter files in `seo-templates/` mirror the fixed files in `cic-site/`:
 
 - `seo-templates/robots.txt` — includes `Disallow: /cdn-cgi/`
-- `seo-templates/sitemap.xml` — all 18 public HTML pages; excludes `llms.txt` and `ai-summary.json`
+- `seo-templates/sitemap.xml` — all 24 public HTML pages; excludes `llms.txt` and `ai-summary.json`
+- `cic-site/functions/_middleware.js` — www → apex 301 redirect
 
 Update `lastmod` dates before deploy.
 
