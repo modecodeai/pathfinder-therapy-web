@@ -14,7 +14,8 @@ import {
   extractPageParts,
   wrapInShellV2
 } from "./site-shell-v2.mjs";
-import { applySprint2Transforms, buildHomePageV2 } from "./site-sprint2.mjs";
+import { buildHomePageV2 } from "./site-sprint2.mjs";
+import { applySprint3Transforms, stripHydrationScripts } from "./site-sprint3.mjs";
 
 const PREVIEW_ORIGIN =
   process.env.PATHFINDER_PREVIEW_ORIGIN ?? "https://9aa49f15.pathfinder-therapy-web.pages.dev";
@@ -833,22 +834,34 @@ async function main() {
     }
     for (const asset of extractAssetPaths(html)) assetPaths.add(asset);
     let patched = applyShellV2(patchHtml(html), route);
-    patched = applySprint2Transforms(patched, route);
+    patched = applySprint3Transforms(patched, route);
+    patched = stripHydrationScripts(patched);
     await writeRoute(PREVIEW_ORIGIN, route, patched);
-    console.log(`Mirrored ${route} (shell v2${route === "/therapy/" || route === "/about/" ? " + booking panel" : ""})`);
+    const sprintNote =
+      route === "/therapy/" || route === "/about/"
+        ? " + booking panel"
+        : route === "/approach/" || route === "/knowledge-library/"
+          ? " + essay/booking panel"
+          : route.startsWith("/knowledge-library/")
+            ? " + article CTA"
+            : ["/journal/", "/retreats/", "/research/"].includes(route)
+              ? " + end CTA"
+              : "";
+    console.log(`Mirrored ${route} (shell v2${sprintNote})`);
   }
 
   if (!homeHtml) {
     homeHtml = await fetchText(`${PREVIEW_ORIGIN}/`);
   }
 
-  let homePageV2 = buildHomePageV2(homeHtml);
-  homePageV2 = patchHtml(homePageV2, {
-    title: "Trauma-Informed Psychotherapy in Lisbon | Pathfinder Therapy",
-    description:
-      "Trauma-informed psychotherapy with Brent Kelly in Lisbon and online. English-speaking therapy for adults and couples. Arrange an initial consultation.",
-    canonical: "https://www.pathfindertherapy.com/"
-  });
+  let homePageV2 = stripHydrationScripts(
+    patchHtml(buildHomePageV2(homeHtml), {
+      title: "Trauma-Informed Psychotherapy in Lisbon | Pathfinder Therapy",
+      description:
+        "Trauma-informed psychotherapy with Brent Kelly in Lisbon and online. English-speaking therapy for adults and couples. Arrange an initial consultation.",
+      canonical: "https://www.pathfindertherapy.com/"
+    })
+  );
   for (const asset of extractAssetPaths(homePageV2)) assetPaths.add(asset);
   await writeRoute(PREVIEW_ORIGIN, "/", homePageV2);
   console.log("Added / (homepage sprint 2 rebuild)");
@@ -857,7 +870,7 @@ async function main() {
     contactHtml = await fetchText(`${PREVIEW_ORIGIN}/contact/`);
   }
 
-  const contactPageV2 = buildContactPageV2(contactHtml);
+  const contactPageV2 = stripHydrationScripts(buildContactPageV2(contactHtml));
   for (const asset of extractAssetPaths(contactPageV2)) assetPaths.add(asset);
   await writeRoute(PREVIEW_ORIGIN, "/contact/", contactPageV2);
   console.log("Added /contact/ (shell v2)");
@@ -871,8 +884,8 @@ async function main() {
   console.log("Added /start/ and /thank-you/");
 
   const shellHtml = await fetchText(`${PREVIEW_ORIGIN}/approach/`);
-  const faqHtml = buildFaqPage(shellHtml);
-  const feesHtml = buildFeesPage(shellHtml);
+  const faqHtml = stripHydrationScripts(buildFaqPage(shellHtml));
+  const feesHtml = stripHydrationScripts(buildFeesPage(shellHtml));
   for (const asset of extractAssetPaths(faqHtml)) assetPaths.add(asset);
   for (const asset of extractAssetPaths(feesHtml)) assetPaths.add(asset);
   await writeRoute(PREVIEW_ORIGIN, "/faq/", faqHtml);

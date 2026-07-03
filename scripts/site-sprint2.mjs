@@ -234,8 +234,8 @@ export function applySprint2Transforms(html, route) {
   const parts = extractPageParts(html);
   const mainInner = wrapWithBookingPanel(parts.mainInner);
   let next = html.replace(
-    /<div class="lpInteriorBody">[\s\S]*?<\/div>\s*<\/main>\s*<footer class="lpSiteFooter"/,
-    `<div class="lpInteriorBody">${mainInner}</div></main><footer class="lpSiteFooter"`
+    /(<main class="lpMain[^"]*" id="main-content" tabindex="-1">\s*<div class="lpInteriorBody">)[\s\S]*(<\/div>\s*<\/main>)/,
+    `$1${mainInner}$2`
   );
   next = next.replace('class="lpMain lpMainInterior"', 'class="lpMain"');
   if (!next.includes("pathfinder-sprint2")) {

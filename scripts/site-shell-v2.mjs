@@ -120,16 +120,22 @@ document.addEventListener("DOMContentLoaded", function () {
 });
 </script>`;
 
+function unwrapInteriorBody(content) {
+  const match = content.match(/^<div class="lpInteriorBody">\s*([\s\S]*)\s*<\/div>\s*$/);
+  return match ? match[1].trim() : content;
+}
+
 export function extractPageParts(html) {
   const headEnd = html.indexOf("</head>") + 7;
   const head = html.slice(0, headEnd);
-  const mainMatch = html.match(/<main id="main-content"[^>]*>([\s\S]*?)<\/main>/);
-  const mainInner = mainMatch ? mainMatch[1].trim() : "";
+  const mainMatch = html.match(/<main[^>]*\bid="main-content"[^>]*>([\s\S]*?)<\/main>/);
+  const mainInner = unwrapInteriorBody(mainMatch ? mainMatch[1].trim() : "");
   const tailMatch = html.match(/<script id="pathfinder-google-tag-loader"[\s\S]*$/);
   const tail = tailMatch ? tailMatch[0].replace("</body></html>", "") : "";
 
   const bodyStart = html.indexOf("<body");
-  const mainStart = html.indexOf('<main id="main-content"');
+  const mainTagMatch = html.match(/<main[^>]*\bid="main-content"[^>]*>/);
+  const mainStart = mainTagMatch ? html.indexOf(mainTagMatch[0]) : -1;
   const bodySchemas = [];
   if (bodyStart >= 0 && mainStart > bodyStart) {
     const bodyOpenEnd = html.indexOf(">", bodyStart) + 1;
