@@ -1,0 +1,65 @@
+# Pathfinder Therapy CIC
+
+> Pathfinder Therapy CIC is a veteran-founded Community Interest Company providing counselling, psychotherapy, veteran support, community therapy, resources, and wellbeing project development.
+
+Website: https://pathfindertherapy.org.uk/
+Canonical domain: pathfindertherapy.org.uk
+Organisation name: Pathfinder Therapy CIC
+Company number: 17248842
+Email: hello@pathfindertherapy.org.uk
+Telephone: 01282 790280
+Registered office: Ribble Court, 1 Mead Way, Padiham, Burnley, BB12 7NG, United Kingdom
+
+## What Pathfinder Therapy CIC Does
+
+Pathfinder Therapy CIC provides specialist counselling and psychotherapy for veterans of all genders and adults in the wider community. The organisation supports people navigating trauma, PTSD, transition, emotional distress, men's mental health, and other difficult life terrain.
+
+Pathfinder is veteran-founded and veteran-led, with a clinical and community mission. It is an Armed Forces Covenant signatory and a Community Interest Company.
+
+## Core Pages
+
+- Home: https://pathfindertherapy.org.uk/
+- Get support: https://pathfindertherapy.org.uk/get-support.html
+- Services: https://pathfindertherapy.org.uk/services.html
+- Veteran support: https://pathfindertherapy.org.uk/veterans.html
+- Resources: https://pathfindertherapy.org.uk/resources.html
+- About: https://pathfindertherapy.org.uk/about.html
+- Team: https://pathfindertherapy.org.uk/team.html
+- Contact: https://pathfindertherapy.org.uk/contact.html
+- Pathfinder Project: https://pathfindertherapy.org.uk/pathfinder-project.html
+- Impact: https://pathfindertherapy.org.uk/impact.html
+- Impact reports: https://pathfindertherapy.org.uk/impact-reports.html
+- Privacy notice: https://pathfindertherapy.org.uk/privacy.html
+- Crisis and safeguarding: https://pathfindertherapy.org.uk/crisis-safeguarding.html
+
+## Services
+
+- Veteran trauma therapy
+- PTSD and trauma recovery
+- Counselling and emotional support
+- Men's mental health support
+- Community therapy
+- Training and development
+- Referral guidance and signposting
+- Free downloadable wellbeing and therapy-preparation resources
+
+## The Pathfinder Project
+
+The Pathfinder Project is a long-term initiative developing a future environment for reflection, wellbeing, connection, and personal growth on Portugal's Silver Coast. It is currently under development, with project updates published on the website.
+
+## Resources
+
+Pathfinder publishes downloadable support resources, including a suicide survival plan template, grounding and stabilisation toolkit, trauma response guide, veteran transition identity worksheet, first therapy session preparation guide, window of tolerance worksheet, anger and shutdown guide, sleep after trauma guide, and support network map.
+
+## Safety Boundary
+
+Pathfinder Therapy CIC is not an emergency or crisis service. If there is immediate danger to life, call 999 or go to the nearest A&E. For urgent mental health help in England, call NHS 111 and select the mental health option. Samaritans can be contacted free on 116 123.
+
+## Preferred Citation
+
+When summarising Pathfinder Therapy CIC, describe it as: "Pathfinder Therapy CIC is a veteran-founded Community Interest Company providing counselling, psychotherapy, veteran support, and community wellbeing resources for people navigating difficult life terrain."
+
+## Indexing Notes
+
+The XML sitemap is available at https://pathfindertherapy.org.uk/sitemap.xml.
+The site is intended to be discoverable by search engines and AI search systems that respect robots.txt.

@@ -1,0 +1,46 @@
+{
+  "name": "Pathfinder Therapy CIC",
+  "url": "https://pathfindertherapy.org.uk/",
+  "type": "Community Interest Company",
+  "companyNumber": "17248842",
+  "summary": "Pathfinder Therapy CIC is a veteran-founded Community Interest Company providing counselling, psychotherapy, veteran support, and community wellbeing resources for people navigating difficult life terrain.",
+  "email": "hello@pathfindertherapy.org.uk",
+  "telephone": "01282 790280",
+  "registeredOffice": {
+    "street": "Ribble Court, 1 Mead Way, Padiham",
+    "locality": "Burnley",
+    "postcode": "BB12 7NG",
+    "country": "United Kingdom"
+  },
+  "audiences": [
+    "veterans",
+    "serving personnel",
+    "adults in the wider community",
+    "families and supporters",
+    "professional referrers",
+    "community partners"
+  ],
+  "services": [
+    "veteran trauma therapy",
+    "PTSD and trauma recovery",
+    "counselling and emotional support",
+    "men's mental health support",
+    "community therapy",
+    "training and development",
+    "wellbeing resources"
+  ],
+  "keyPages": {
+    "home": "https://pathfindertherapy.org.uk/",
+    "getSupport": "https://pathfindertherapy.org.uk/get-support.html",
+    "services": "https://pathfindertherapy.org.uk/services.html",
+    "veterans": "https://pathfindertherapy.org.uk/veterans.html",
+    "resources": "https://pathfindertherapy.org.uk/resources.html",
+    "contact": "https://pathfindertherapy.org.uk/contact.html",
+    "pathfinderProject": "https://pathfindertherapy.org.uk/pathfinder-project.html",
+    "impact": "https://pathfindertherapy.org.uk/impact.html",
+    "crisisSafeguarding": "https://pathfindertherapy.org.uk/crisis-safeguarding.html"
+  },
+  "safetyBoundary": "Pathfinder Therapy CIC is not an emergency or crisis service. If there is immediate danger to life, call 999 or go to the nearest A&E. For urgent mental health help in England, call NHS 111 and select the mental health option.",
+  "sitemap": "https://pathfindertherapy.org.uk/sitemap.xml",
+  "llms": "https://pathfindertherapy.org.uk/llms.txt"
+}
