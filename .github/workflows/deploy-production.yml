@@ -67,4 +67,4 @@ jobs:
           curl -s -X POST \
             -H "Authorization: Bearer ${CLOUDFLARE_API_TOKEN}" \
             "https://api.cloudflare.com/client/v4/accounts/${CLOUDFLARE_ACCOUNT_ID}/pages/projects/pathfinder-therapy-web/deployments/${DEPLOYMENT_ID}/rollback" \
-            | node -e "const p=JSON.parse(require('fs').readFileSync(0,'utf8')); if(!p.success){console.error(JSON.stringify(p,null,2)); process.exit(1)}; console.log('Production updated:', p.result?.url || p.result?.id);"
+            | node -e "const p=JSON.parse(require('fs').readFileSync(0,'utf8')); if(!p.success){const msg=p.errors?.[0]?.message||''; if(msg.includes('currently in production')){console.log('Already serving this deployment on production domains.'); process.exit(0)} console.error(JSON.stringify(p,null,2)); process.exit(1)}; console.log('Production updated:', p.result?.url || p.result?.id);"
