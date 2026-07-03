@@ -4,7 +4,9 @@ import { fileURLToPath } from "node:url";
 
 const PREVIEW_ORIGIN =
   process.env.PATHFINDER_PREVIEW_ORIGIN ?? "https://9aa49f15.pathfinder-therapy-web.pages.dev";
-const LIVE_SITEMAP = process.env.PATHFINDER_SITEMAP_URL ?? "https://www.pathfindertherapy.com/sitemap.xml";
+const LIVE_SITEMAP =
+  process.env.PATHFINDER_SITEMAP_URL ?? "https://www.pathfindertherapy.com/sitemap.xml";
+const FALLBACK_SITEMAP = `${PREVIEW_ORIGIN}/sitemap.xml`;
 const OUT_DIR = path.join(path.dirname(fileURLToPath(import.meta.url)), "..", "out");
 
 const ATTRIBUTION_SCRIPT = `<script id="pathfinder-lead-attribution">
@@ -312,7 +314,13 @@ async function main() {
   await rm(OUT_DIR, { recursive: true, force: true });
   await mkdir(OUT_DIR, { recursive: true });
 
-  const sitemapXml = await fetchText(LIVE_SITEMAP);
+  let sitemapXml;
+  try {
+    sitemapXml = await fetchText(LIVE_SITEMAP);
+  } catch {
+    console.warn(`Primary sitemap unavailable at ${LIVE_SITEMAP}, falling back to preview.`);
+    sitemapXml = await fetchText(FALLBACK_SITEMAP);
+  }
   const routes = [...sitemapXml.matchAll(/<loc>([^<]+)<\/loc>/g)].map((match) => {
     const url = new URL(match[1]);
     return url.pathname.endsWith("/") ? url.pathname : `${url.pathname}/`;

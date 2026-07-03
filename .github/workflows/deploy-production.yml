@@ -39,8 +39,32 @@ jobs:
         run: pnpm run build
 
       - name: Deploy to Cloudflare Pages
+        id: deploy
         uses: cloudflare/wrangler-action@v3
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           command: pages deploy out --project-name=pathfinder-therapy-web --branch=main
+
+      - name: Promote deployment to production domains
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: |
+          DEPLOYMENTS=$(curl -s \
+            -H "Authorization: Bearer ${CLOUDFLARE_API_TOKEN}" \
+            "https://api.cloudflare.com/client/v4/accounts/${CLOUDFLARE_ACCOUNT_ID}/pages/projects/pathfinder-therapy-web/deployments?per_page=10")
+          DEPLOYMENT_ID=$(node -e "
+            const payload = JSON.parse(process.argv[1]);
+            const match = (payload.result || []).find((item) =>
+              item.latest_stage?.status === 'success' &&
+              (item.environment === 'production' || item.deployment_trigger?.type === 'ad_hoc')
+            ) || (payload.result || [])[0];
+            if (!match) process.exit(1);
+            process.stdout.write(match.id);
+          " "${DEPLOYMENTS}")
+          echo "Promoting deployment ${DEPLOYMENT_ID} to production..."
+          curl -s -X POST \
+            -H "Authorization: Bearer ${CLOUDFLARE_API_TOKEN}" \
+            "https://api.cloudflare.com/client/v4/accounts/${CLOUDFLARE_ACCOUNT_ID}/pages/projects/pathfinder-therapy-web/deployments/${DEPLOYMENT_ID}/rollback" \
+            | node -e "const p=JSON.parse(require('fs').readFileSync(0,'utf8')); if(!p.success){console.error(JSON.stringify(p,null,2)); process.exit(1)}; console.log('Production updated:', p.result?.url || p.result?.id);"
