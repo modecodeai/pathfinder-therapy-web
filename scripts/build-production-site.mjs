@@ -22,7 +22,8 @@ import {
   buildBookConfirmedBody,
   buildBookPageBody,
   CALENDLY_CSS,
-  CALENDLY_INLINE_SCRIPT
+  CALENDLY_INLINE_SCRIPT,
+  DEFAULT_CALENDLY_URL
 } from "./site-calendly.mjs";
 
 const PREVIEW_ORIGIN =
@@ -985,6 +986,7 @@ async function main() {
   await writeRoute(PREVIEW_ORIGIN, BOOK_PATH, bookHtml);
   await writeRoute(PREVIEW_ORIGIN, BOOK_CONFIRMED_PATH, bookConfirmedHtml);
   console.log("Added /start/, /thank-you/, /book/, and /book-confirmed/");
+  console.log(`Calendly embed: ${DEFAULT_CALENDLY_URL.replace(/^https?:\/\//, "")}`);
 
   const shellHtml = await fetchText(`${PREVIEW_ORIGIN}/approach/`);
   const faqHtml = stripHydrationScripts(buildFaqPage(shellHtml));

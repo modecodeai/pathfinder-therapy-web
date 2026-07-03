@@ -36,8 +36,14 @@ jobs:
       - name: Build production mirror with lead funnel
         env:
           PATHFINDER_PREVIEW_ORIGIN: ${{ github.event.inputs.preview_origin || 'https://9aa49f15.pathfinder-therapy-web.pages.dev' }}
-          PATHFINDER_CALENDLY_URL: ${{ secrets.PATHFINDER_CALENDLY_URL }}
-        run: pnpm run build
+          PATHFINDER_CALENDLY_URL: ${{ secrets.PATHFINDER_CALENDLY_URL || vars.PATHFINDER_CALENDLY_URL }}
+        run: |
+          if [ -z "$PATHFINDER_CALENDLY_URL" ]; then
+            echo "PATHFINDER_CALENDLY_URL is empty — /book/ will use the fallback placeholder."
+          else
+            echo "PATHFINDER_CALENDLY_URL is set (calendly.com/$(echo "$PATHFINDER_CALENDLY_URL" | sed 's|.*calendly.com/||'))"
+          fi
+          pnpm run build
 
       - name: Deploy to Cloudflare Pages
         id: deploy
