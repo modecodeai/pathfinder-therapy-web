@@ -4,12 +4,14 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "next build --webpack",
+    "build": "node scripts/build-production-site.mjs",
+    "build:next": "next build --webpack",
     "start": "next start",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "lint": "eslint ."
   },
   "dependencies": {
-    "next": "16.0.8",
+    "next": "16.2.9",
     "react": "19.2.1",
     "react-dom": "19.2.1"
   },
@@ -17,6 +19,8 @@
     "@types/node": "^22.10.2",
     "@types/react": "^19.0.2",
     "@types/react-dom": "^19.0.2",
+    "eslint": "^9.39.1",
+    "eslint-config-next": "16.2.9",
     "typescript": "^5.7.2"
   }
 }
