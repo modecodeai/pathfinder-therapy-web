@@ -31,6 +31,15 @@ export const SPRINT2_CSS = `<style id="pathfinder-sprint2">
 .lpPageGrid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(280px, 340px); gap: clamp(24px, 4vw, 40px); align-items: start; padding: clamp(20px, 4vw, 40px) clamp(16px, 3vw, 40px) 64px; max-width: 1280px; margin: 0 auto; }
 .lpPageContent { min-width: 0; }
 .lpPageContent .siteMain, .lpPageContent .interiorMain, .lpPageContent .aboutPage, .lpPageContent .therapyPage { margin: 0 !important; width: 100% !important; }
+.lpPageContent .aboutPage, .lpPageContent .approachPage, .lpPageContent .therapyPage { max-width: none !important; }
+.lpPageContent .aboutHero, .lpPageContent .approachHero, .lpPageContent .aboutFinalCta, .lpPageContent .aboutSectionGrid, .lpPageContent .approachSpread, .lpPageContent .philosophyGrid, .lpPageContent .aboutBrentEditorial { grid-template-columns: 1fr !important; min-height: auto !important; }
+.lpPageContent .aboutHeroCopy, .lpPageContent .approachHeroCopy, .lpPageContent .aboutHeroTitle, .lpPageContent .approachHeroTitle, .lpPageContent .aboutHeroText, .lpPageContent .approachHeroText { max-width: none !important; }
+.lpPageContent .aboutPortrait, .lpPageContent .aboutInlinePortrait, .lpPageContent .approachHeroImage, .lpPageContent .approachSpreadImage, .lpPageContent .aboutCtaPortrait { width: min(100%, 42rem) !important; max-width: 100% !important; justify-self: stretch !important; margin-top: 24px !important; margin-inline: auto !important; }
+.lpPageContent .aboutHero, .lpPageContent .approachHero { padding: clamp(28px, 4vw, 48px) clamp(12px, 2vw, 24px) !important; }
+.lpPageContent .aboutIntro, .lpPageContent .aboutSection, .lpPageContent .aboutFinalCta, .lpPageContent .approachEssay, .lpPageContent .approachSpread, .lpPageContent .approachLifeForce, .lpPageContent .approachBlocksSection, .lpPageContent .approachPrinciplesSection, .lpPageContent .approachFinalCta { padding-inline: clamp(12px, 2vw, 24px) !important; }
+.lpPageContent .relatedPagesGrid { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; }
+.lpArticleContent .aboutHero, .lpArticleContent .approachHero, .lpArticleContent .approachSpread, .lpArticleContent .aboutSectionGrid { grid-template-columns: 1fr !important; min-height: auto !important; }
+.lpArticleContent .approachHeroImage, .lpArticleContent .approachSpreadImage, .lpArticleContent .aboutPortrait { width: min(100%, 42rem) !important; max-width: 100% !important; margin-inline: auto !important; }
 .lpBookingPanel { position: sticky; top: 88px; display: grid; gap: 14px; padding: clamp(18px, 3vw, 22px); border: 1px solid rgba(246,242,234,.12); border-radius: 18px; background: rgba(8,16,15,.78); box-shadow: 0 24px 80px rgba(0,0,0,.24); }
 .lpBookingPanelTitle { margin: 0; font-family: Georgia, serif; font-size: 1.35rem; line-height: 1.2; color: #f6f2ea; font-weight: 600; }
 .lpBookingPanelText { margin: 0; font-size: 14px; line-height: 1.6; color: rgba(246,242,234,.72); }
