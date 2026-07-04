@@ -16,6 +16,8 @@ This ships the full preview site (therapy, knowledge library, contact form, sche
 - `/thank-you/` — conversion confirmation (noindex)
 - UTM/gclid attribution + Google Ads conversion tracking
 
+**Google Ads copy:** See [`docs/google-ads-copy.md`](docs/google-ads-copy.md) before editing Search campaigns. Do not use “First Session Free” — only the initial Zoom **consultation call** is free; therapy sessions are from €75.
+
 ### Deploy via GitHub Actions
 
 Add repository secrets:

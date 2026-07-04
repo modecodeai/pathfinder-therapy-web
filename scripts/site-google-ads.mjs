@@ -1,5 +1,7 @@
 const trim = (value) => (value || "").trim();
 
+/** Ad copy rules: docs/google-ads-copy.md — never use "First Session Free"; sessions are from €75. */
+
 export const GA_ID = trim(process.env.PATHFINDER_GA_ID || process.env.NEXT_PUBLIC_GA_ID) || "G-ERMVWYL4J6";
 export const ADS_ID =
   trim(process.env.PATHFINDER_GOOGLE_ADS_ID || process.env.NEXT_PUBLIC_GOOGLE_ADS_ID) || "AW-10976126920";

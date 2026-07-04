@@ -15,3 +15,4 @@ CONTACT_TO_EMAIL = "hi@pathfindertherapy.com"
 # PATHFINDER_GOOGLE_ADS_LEAD_LABEL = form enquiry conversion label (from Google Ads → Conversions)
 # PATHFINDER_GOOGLE_ADS_BOOKING_LABEL = Calendly booking conversion label
 # Optional: PATHFINDER_GOOGLE_ADS_ID (default AW-10976126920), PATHFINDER_GA_ID (default G-ERMVWYL4J6)
+# Ad copy guidelines: docs/google-ads-copy.md
