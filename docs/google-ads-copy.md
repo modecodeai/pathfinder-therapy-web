@@ -5,6 +5,8 @@ Use this document when writing or editing Search campaigns in Google Ads for **p
 **Google Ads account:** `AW-10976126920`  
 **Site tag:** Already installed via build (`scripts/site-google-ads.mjs`) — do **not** paste the gtag snippet again in Google Ads.
 
+**Ads not converting?** See [`docs/google-ads-optimization.md`](google-ads-optimization.md) — negative keywords, English-only targeting, landing URLs, conversion setup.
+
 ---
 
 ## Fee structure (source of truth)
@@ -58,7 +60,7 @@ If Google auto-suggests copy containing “First Session Free”, **reject or ed
 
 ### Campaign: Trauma-Informed Therapy (Lisbon)
 
-**Final URL (default):** `https://www.pathfindertherapy.com/`  
+**Final URL (default):** `https://www.pathfindertherapy.com/psychotherapy-lisbon/`  
 **Path:** `Lisbon` / `Therapy`
 
 **Headlines (pick 8–15, max 30 chars each where possible):**
