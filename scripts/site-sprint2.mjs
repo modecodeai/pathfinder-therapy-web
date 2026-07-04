@@ -4,6 +4,7 @@ import {
   extractPageParts,
   wrapInShellV2
 } from "./site-shell-v2.mjs";
+import { buildEataBadge, EATA_BADGE_CSS } from "./site-eata.mjs";
 
 export const SPRINT2_CSS = `<style id="pathfinder-sprint2">
 .lpHome { display: grid; gap: 0; }
@@ -79,6 +80,7 @@ export function buildBookingPanel() {
   <h2 class="lpBookingPanelTitle">Book an initial Zoom call</h2>
   <p class="lpBookingPanelText">Choose a time for a confidential initial consultation via Zoom — or send a brief enquiry first if you prefer.</p>
   ${TRUST_PILLS}
+  ${buildEataBadge()}
   ${STEPS}
   <div class="lpHeroActions">
     <a class="lpPrimaryCta" href="/book/">Book initial Zoom call</a>

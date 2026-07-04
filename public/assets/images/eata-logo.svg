@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 220 72" role="img" aria-labelledby="eata-logo-title">
+  <title id="eata-logo-title">EATA  European Association for Transactional Analysis</title>
+  <circle cx="18" cy="16" r="9" fill="none" stroke="#552583" stroke-width="2.8"/>
+  <circle cx="18" cy="36" r="9" fill="none" stroke="#552583" stroke-width="2.8"/>
+  <circle cx="18" cy="56" r="9" fill="none" stroke="#552583" stroke-width="2.8"/>
+  <text x="38" y="30" font-family="Helvetica, Arial, sans-serif" font-size="26" font-weight="700" fill="#552583">eata</text>
+  <text x="38" y="44" font-family="Helvetica, Arial, sans-serif" font-size="10.5" fill="#552583">european association</text>
+  <text x="38" y="58" font-family="Helvetica, Arial, sans-serif" font-size="10.5" fill="#2E75B6">for transactional analysis</text>
+</svg>

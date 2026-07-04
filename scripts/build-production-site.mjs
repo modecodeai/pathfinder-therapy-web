@@ -31,6 +31,7 @@ import {
   logGoogleAdsBuildConfig
 } from "./site-google-ads.mjs";
 import { applyCredentialCopy } from "./site-credentials.mjs";
+import { buildEataBadge, injectEataBadgeStyles } from "./site-eata.mjs";
 
 const PREVIEW_ORIGIN =
   process.env.PATHFINDER_PREVIEW_ORIGIN ?? "https://9aa49f15.pathfinder-therapy-web.pages.dev";
@@ -307,6 +308,7 @@ function patchHtml(html, { robots = null, title = null, canonical = null, descri
   }
 
   next = injectGtag(next);
+  next = injectEataBadgeStyles(next);
   next = injectBeforeBodyClose(next, GOOGLE_ADS_HELPER_SCRIPT);
   next = injectBeforeBodyClose(next, ATTRIBUTION_SCRIPT);
   next = injectBeforeBodyClose(next, FORM_ENHANCEMENT_SCRIPT);
@@ -444,6 +446,7 @@ function buildStartPage(contactHtml) {
         <li>Confidential</li>
         <li>Supervised practice</li>
       </ul>
+      ${buildEataBadge()}
       <ol class="lpSteps" aria-label="What happens next">
         <li><span class="lpStepNum">1</span><span>Send a brief, secure enquiry — no detailed clinical history needed.</span></li>
         <li><span class="lpStepNum">2</span><span>Brent replies within one working day to arrange an initial conversation.</span></li>
@@ -876,6 +879,15 @@ async function main() {
   console.log(`Building production mirror from ${PREVIEW_ORIGIN}`);
   await rm(OUT_DIR, { recursive: true, force: true });
   await mkdir(OUT_DIR, { recursive: true });
+
+  const eataLogoSource = path.join(
+    path.dirname(fileURLToPath(import.meta.url)),
+    "..",
+    "public/assets/images/eata-logo.svg"
+  );
+  const eataLogoTarget = path.join(OUT_DIR, "assets/images/eata-logo.svg");
+  await mkdir(path.dirname(eataLogoTarget), { recursive: true });
+  await cp(eataLogoSource, eataLogoTarget);
 
   let sitemapXml;
   try {
