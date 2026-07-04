@@ -1,4 +1,5 @@
 import { BOOKING_LABEL, BOOKING_PATH } from "./site-ux-layer.mjs";
+import { buildLocationBlock } from "./site-location.mjs";
 
 export { BOOKING_LABEL, BOOKING_PATH };
 
@@ -271,5 +272,6 @@ export function buildContactPageBody(formHtml) {
     ${formHtml}
     <p class="lpReassurance">Sessions from €75 · Lisbon clinic or secure online · Professional indemnity insurance · Clinical supervision in place</p>
   </section>
-</div>`;
+</div>
+${buildLocationBlock({ headingId: "contact-location", compact: true })}`;
 }

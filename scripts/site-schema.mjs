@@ -1,4 +1,7 @@
+import { getClinicGeo } from "./site-location.mjs";
+
 const SITE = "https://www.pathfindertherapy.com";
+const geo = getClinicGeo();
 const LISBON_ADDRESS = {
   "@type": "PostalAddress",
   streetAddress: "R. Rodrigues Sampaio 76 1º Andar",
@@ -76,9 +79,10 @@ export const GLOBAL_SCHEMA = [
     address: LISBON_ADDRESS,
     geo: {
       "@type": "GeoCoordinates",
-      latitude: 38.7223,
-      longitude: -9.1459
+      latitude: geo.latitude,
+      longitude: geo.longitude
     },
+    hasMap: geo.mapsUrl,
     areaServed: [
       { "@type": "City", name: "Lisboa" },
       { "@type": "Country", name: "Portugal" }

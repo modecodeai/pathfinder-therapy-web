@@ -5,6 +5,7 @@ import {
   wrapInShellV2
 } from "./site-shell-v2.mjs";
 import { buildEataBadge, EATA_BADGE_CSS } from "./site-eata.mjs";
+import { enhanceTherapyLocationSection, injectLocationStyles } from "./site-location.mjs";
 
 export const SPRINT2_CSS = `<style id="pathfinder-sprint2">
 .lpHome { display: grid; gap: 0; }
@@ -359,6 +360,7 @@ export function applySprint2Transforms(html, route) {
   }
   if (route === "/therapy/") {
     mainInner = injectTherapyGeoLinks(mainInner);
+    mainInner = enhanceTherapyLocationSection(mainInner);
   }
   mainInner = wrapWithBookingPanel(mainInner);
   let next = html.replace(
@@ -367,6 +369,9 @@ export function applySprint2Transforms(html, route) {
   );
   if (!next.includes("pathfinder-sprint2")) {
     next = next.replace("</head>", `${SPRINT2_CSS}\n</head>`);
+  }
+  if (route === "/therapy/") {
+    next = injectLocationStyles(next);
   }
   return next;
 }

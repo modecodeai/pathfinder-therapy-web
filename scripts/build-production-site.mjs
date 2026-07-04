@@ -40,6 +40,7 @@ import {
   buildLocalLandingPage,
   getLocalLandingRoutes
 } from "./site-local-landings.mjs";
+import { injectLocationStyles } from "./site-location.mjs";
 
 const PREVIEW_ORIGIN =
   process.env.PATHFINDER_PREVIEW_ORIGIN ?? "https://9aa49f15.pathfinder-therapy-web.pages.dev";
@@ -1031,7 +1032,7 @@ async function main() {
     contactHtml = await fetchText(`${PREVIEW_ORIGIN}/contact/`);
   }
 
-  const contactPageV2 = stripHydrationScripts(buildContactPageV2(contactHtml));
+  const contactPageV2 = stripHydrationScripts(injectLocationStyles(buildContactPageV2(contactHtml)));
   for (const asset of extractAssetPaths(contactPageV2)) assetPaths.add(asset);
   await writeRoute(PREVIEW_ORIGIN, "/contact/", contactPageV2);
   console.log("Added /contact/ (shell v2)");
