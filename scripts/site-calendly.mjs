@@ -101,7 +101,7 @@ export function buildBookPageBody() {
     <h1 class="lpTitle" id="book-title">Book a confidential initial Zoom call with Brent Kelly.</h1>
     <p class="lpLead">Choose a time that suits you. This is a short, non-urgent initial conversation to see whether therapy feels like a fit — online via Zoom.</p>
     <ul class="lpTrustList" aria-label="Professional reassurance">
-      <li>NCPS registered</li>
+      <li>EATA registered</li>
       <li>Trauma-informed</li>
       <li>Confidential</li>
       <li>English-speaking</li>

@@ -39,7 +39,7 @@ export const SITE_UX_STICKY = `<div class="pfStickyBook" role="region" aria-labe
 </div>`;
 
 const HOMEPAGE_HERO_INJECTION = `<div class="pfHeroConversion">
-  <p class="pfHeroKicker">English-speaking psychotherapist · Lisbon &amp; online</p>
+  <p class="pfHeroKicker">English-speaking therapist · Lisbon &amp; online</p>
   <p class="pfHeroValue"><strong>Brent Kelly</strong> offers trauma-informed psychotherapy for adults and couples — in person in <strong>Lisbon</strong> or securely <strong>online across Portugal</strong>.</p>
   <ul class="pfHeroTrust" aria-label="Areas of support">
     <li>Trauma &amp; anxiety</li>
@@ -69,7 +69,7 @@ function hasHtmlClass(html, className) {
 }
 
 const BEGIN_SECTION_TRUST = `<div class="pfTrustBand" aria-label="Professional reassurance">
-  <p><strong>NCPS registered</strong> · trauma-informed · EMDR · Transactional Analysis · clinical supervision · professional indemnity insurance · sessions in English</p>
+  <p><strong>EATA registered</strong> · trauma-informed · EMDR · Transactional Analysis · clinical supervision · professional indemnity insurance · sessions in English</p>
   <p>Pathfinder Therapy supports adults and couples navigating trauma, anxiety, attachment, and major life transitions — in person at our Lisbon clinic or securely online.</p>
 </div>`;
 
@@ -182,7 +182,7 @@ Individual therapy, couples therapy, EMDR, online therapy, trauma-informed psych
 Pathfinder Therapy Lisbon Clinic, R. Rodrigues Sampaio 76 1º Andar, 1150-281 Lisboa, Portugal.
 
 ## Clinician
-Brent Kelly — registered psychotherapist (NCPS). Specialities: trauma, EMDR, Transactional Analysis, military veterans, attachment.
+Brent Kelly — therapist (EATA registered). Specialities: trauma, EMDR, Transactional Analysis, military veterans, attachment.
 
 ## Fees
 Sessions from EUR 75. Non-urgent enquiries only — not a crisis service.
@@ -198,8 +198,8 @@ export function buildAiSummaryJson() {
       locale: "en-GB",
       clinician: {
         name: "Brent Kelly",
-        role: "Psychotherapist",
-        registrations: ["NCPS"],
+        role: "Therapist",
+        registrations: ["EATA"],
         specialties: ["Trauma", "EMDR", "Transactional Analysis", "Military veterans", "Couples therapy"]
       },
       locations: [
@@ -218,7 +218,7 @@ export function buildAiSummaryJson() {
         phone: "+351914775365"
       },
       seo_topics: [
-        "Psychotherapist Lisbon",
+        "Therapist Lisbon",
         "Trauma therapist Lisbon",
         "EMDR Lisbon",
         "English speaking therapist Lisbon",

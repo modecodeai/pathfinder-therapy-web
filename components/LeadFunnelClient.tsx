@@ -29,7 +29,7 @@ export function ThankYouContent() {
           <ul className="trust-list">
             <li>Trauma-informed psychotherapy in Lisbon and online</li>
             <li>Individual, couples, EMDR, and online sessions</li>
-            <li>Registered psychotherapist with veterans and complex trauma experience</li>
+            <li>Therapist with veterans and complex trauma experience</li>
           </ul>
           <p className="contact-fallback">
             Need to reach us directly? Email <a href={`mailto:${site.email}`}>{site.email}</a> or WhatsApp{" "}
