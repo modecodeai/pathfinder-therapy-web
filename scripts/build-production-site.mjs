@@ -14,7 +14,7 @@ import {
   extractPageParts,
   wrapInShellV2
 } from "./site-shell-v2.mjs";
-import { buildHomePageV2 } from "./site-sprint2.mjs";
+import { buildHomePageV2, SPRINT2_CSS, wrapWithBookingPanel } from "./site-sprint2.mjs";
 import { applySprint3Transforms, stripHydrationScripts } from "./site-sprint3.mjs";
 import {
   BOOK_CONFIRMED_PATH,
@@ -563,6 +563,27 @@ ${BOOK_CONFIRMED_SCRIPT}
   return html;
 }
 
+function buildInteriorPageWithBookingPanel(shellHtml, { title, description, canonical, mainInner, schema = "" }) {
+  const route = new URL(canonical).pathname;
+  const parts = extractPageParts(shellHtml);
+  let head = parts.head;
+  if (schema) {
+    head = head.replace("</head>", `${schema}\n</head>`);
+  }
+  if (!head.includes("pathfinder-sprint2")) {
+    head = head.replace("</head>", `${SPRINT2_CSS}\n</head>`);
+  }
+  let html = wrapInShellV2({
+    ...parts,
+    head,
+    route,
+    mainInner: wrapWithBookingPanel(mainInner)
+  });
+  html = patchHtml(html, { title, description, canonical });
+  html = html.replace('class="lpMain lpMainInterior"', 'class="lpMain"');
+  return html;
+}
+
 function buildInteriorPageV2(shellHtml, { title, description, canonical, mainInner, schema = "" }) {
   const route = new URL(canonical).pathname;
   const parts = extractPageParts(shellHtml);
@@ -625,7 +646,7 @@ function buildFaqPage(shellHtml) {
     <p class="sectionKicker">Booking</p>
     <h2 class="approachSectionTitle" id="faq-booking">How do I arrange an initial consultation?</h2>
     <div class="approachBody">
-      <p>Use the <a href="${BOOKING_PATH}">consultation enquiry form</a>. It takes about two minutes. Brent replies to non-urgent messages within one working day to arrange an initial conversation.</p>
+      <p>Book an initial Zoom call via <a href="/book/">online booking</a>, or send a brief enquiry via the <a href="${BOOKING_PATH}">consultation form</a>. Brent replies to non-urgent messages within one working day.</p>
       <p>You can also email <a href="mailto:hi@pathfindertherapy.com">hi@pathfindertherapy.com</a> or call/WhatsApp <a href="tel:+351914775365">+351 914 775 365</a>.</p>
     </div>
   </div>
@@ -696,28 +717,18 @@ function buildFaqPage(shellHtml) {
     </div>
   </div>
 </section>
-<section class="approachEssay pfPageCta" aria-label="Book consultation">
-  <div class="approachEssayInner">
-    <h2 class="approachSectionTitle">Ready to take the next step?</h2>
-    <div class="approachBody"><p>${BOOKING_LABEL} — Brent responds within one working day.</p></div>
-    <div class="pfHeroActions" style="margin-top:16px">
-      <a class="pfHeroPrimary" href="${BOOKING_PATH}">${BOOKING_LABEL}</a>
-      <a class="pfHeroSecondary" href="https://wa.me/351914775365">WhatsApp Brent</a>
-    </div>
-  </div>
-</section>
 </article>`;
 
   const schema = `<script type="application/ld+json">
 {"@context":"https://schema.org","@type":"FAQPage","mainEntity":[
-{"@type":"Question","name":"How do I arrange an initial consultation?","acceptedAnswer":{"@type":"Answer","text":"Use the consultation enquiry form at pathfindertherapy.com/start. Brent replies within one working day."}},
+{"@type":"Question","name":"How do I arrange an initial consultation?","acceptedAnswer":{"@type":"Answer","text":"Book an initial Zoom call at pathfindertherapy.com/book or use the consultation enquiry form at pathfindertherapy.com/start. Brent replies within one working day."}},
 {"@type":"Question","name":"Can I see Brent in person or online?","acceptedAnswer":{"@type":"Answer","text":"Yes. Sessions are available at the Lisbon clinic and securely online across Portugal."}},
 {"@type":"Question","name":"How much do sessions cost?","acceptedAnswer":{"@type":"Answer","text":"Individual sessions are from EUR 75 for 50 minutes."}},
 {"@type":"Question","name":"Do you offer EMDR and trauma therapy?","acceptedAnswer":{"@type":"Answer","text":"Yes. Brent offers trauma-informed psychotherapy and EMDR where clinically appropriate."}}
 ]}
 </script>`;
 
-  return buildInteriorPage(shellHtml, {
+  return buildInteriorPageWithBookingPanel(shellHtml, {
     title: "FAQ | Therapist Lisbon | Pathfinder Therapy",
     description:
       "Answers about booking, fees, online therapy, EMDR, trauma therapy, and first sessions with Brent Kelly in Lisbon.",
@@ -760,7 +771,7 @@ function buildFeesPage(shellHtml) {
     <p class="sectionKicker">Initial consultation</p>
     <h2 class="approachSectionTitle" id="fees-consultation">Initial consultation</h2>
     <div class="approachBody">
-      <p>Send a brief enquiry via the <a href="${BOOKING_PATH}">consultation form</a>. Brent will reply within one working day to arrange an initial conversation and confirm fees, format (in person or online), and next steps.</p>
+      <p>Book an initial Zoom call via <a href="/book/">online booking</a>, or send a brief enquiry via the <a href="${BOOKING_PATH}">consultation form</a>. Brent will reply within one working day to arrange an initial conversation and confirm fees, format (in person or online), and next steps.</p>
     </div>
   </div>
 </section>
@@ -774,24 +785,14 @@ function buildFeesPage(shellHtml) {
     </div>
   </div>
 </section>
-<section class="approachEssay pfPageCta" aria-label="Book consultation">
-  <div class="approachEssayInner">
-    <h2 class="approachSectionTitle">Questions about fees or availability?</h2>
-    <div class="approachBody"><p>${BOOKING_LABEL} — no obligation to continue after the initial conversation.</p></div>
-    <div class="pfHeroActions" style="margin-top:16px">
-      <a class="pfHeroPrimary" href="${BOOKING_PATH}">${BOOKING_LABEL}</a>
-      <a class="pfHeroSecondary" href="mailto:hi@pathfindertherapy.com">Email Brent</a>
-    </div>
-  </div>
-</section>
 </article>`;
 
   const schema = `<script type="application/ld+json">
 {"@context":"https://schema.org","@type":"MedicalBusiness","name":"Pathfinder Therapy","url":"https://www.pathfindertherapy.com/fees/","priceRange":"EUR75","makesOffer":{"@type":"Offer","price":"75","priceCurrency":"EUR","description":"Individual psychotherapy session (50 minutes)"}}
 </script>`;
 
-  return buildInteriorPage(shellHtml, {
-    title: "Fees | Psychotherapy Lisbon | Pathfinder Therapy",
+  return buildInteriorPageWithBookingPanel(shellHtml, {
+    title: "Fees | Therapist Lisbon | Pathfinder Therapy",
     description:
       "Session fees for individual and couples therapy with Brent Kelly in Lisbon and online. Individual sessions from €75.",
     canonical: "https://www.pathfindertherapy.com/fees/",
