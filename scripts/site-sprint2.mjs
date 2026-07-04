@@ -281,13 +281,23 @@ export const AD_LANDING_SCRIPT = `<script id="pathfinder-ad-landing">
 })();
 </script>`;
 
+export function trimAboutPagePortraits(html) {
+  return html
+    .replace(/<figure class="aboutInlinePortrait">[\s\S]*?<\/figure>/g, "")
+    .replace(/<figure class="aboutCtaPortrait">[\s\S]*?<\/figure>/g, "");
+}
+
 export function applySprint2Transforms(html, route) {
   if (route !== "/therapy/" && route !== "/about/") {
     return html;
   }
 
   const parts = extractPageParts(html);
-  const mainInner = wrapWithBookingPanel(parts.mainInner);
+  let mainInner = parts.mainInner;
+  if (route === "/about/") {
+    mainInner = trimAboutPagePortraits(mainInner);
+  }
+  mainInner = wrapWithBookingPanel(mainInner);
   let next = html.replace(
     /(<main class="lpMain[^"]*" id="main-content" tabindex="-1">\s*<div class="lpInteriorBody">)[\s\S]*(<\/div>\s*<\/main>)/,
     `$1${mainInner}$2`
