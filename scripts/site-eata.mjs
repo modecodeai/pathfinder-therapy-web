@@ -1,4 +1,4 @@
-export const EATA_URL = "https://www.eata-accreditation.org/";
+export const EATA_URL = "https://eatanews.org/";
 
 const EATA_LOGO_SVG = `<svg class="lpEataLogo" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 220 72" width="168" height="55" aria-hidden="true" focusable="false">
   <circle cx="18" cy="16" r="9" fill="none" stroke="#552583" stroke-width="2.8"/>
