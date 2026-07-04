@@ -37,9 +37,10 @@ export const SPRINT2_CSS = `<style id="pathfinder-sprint2">
 .lpAdLandingCopy { margin: 0; font-size: 14px; line-height: 1.55; color: rgba(246,242,234,.84); max-width: 36rem; }
 .lpAdLandingActions { display: flex; flex-wrap: wrap; gap: 10px; }
 .lpPageGrid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(280px, 340px); gap: clamp(32px, 5vw, 48px); align-items: start; padding: clamp(20px, 4vw, 40px) clamp(16px, 3vw, 40px) 64px; max-width: 1280px; margin: 0 auto; }
-.lpPageContent { min-width: 0; overflow: hidden; }
-.lpLocalLanding { width: 100%; margin: 0; }
-.lpLocalHero { display: grid; gap: 18px; padding-bottom: clamp(28px, 4vw, 40px); border-bottom: 1px solid rgba(246,242,234,.08); }
+.lpPageContent { min-width: 0; }
+.lpLocalLanding { width: 100%; margin: 0; max-width: 100%; }
+.lpLocalHero { display: grid; gap: 18px; padding-bottom: clamp(28px, 4vw, 40px); border-bottom: 1px solid rgba(246,242,234,.08); max-width: 100%; }
+.lpLocalHero .lpTitle { max-width: 100%; overflow-wrap: break-word; }
 .lpLocalSection { padding: clamp(32px, 5vw, 48px) 0; border-bottom: 1px solid rgba(246,242,234,.06); }
 .lpLocalSectionInner { display: grid; gap: 12px; max-width: 42rem; }
 .lpLocalBody p { margin: 0 0 12px; font-size: 15px; line-height: 1.7; color: rgba(246,242,234,.76); }
@@ -57,7 +58,8 @@ export const SPRINT2_CSS = `<style id="pathfinder-sprint2">
 .lpPageContent .siteMain, .lpPageContent .interiorMain, .lpPageContent .aboutPage, .lpPageContent .therapyPage { margin: 0 !important; width: 100% !important; }
 .lpPageContent .aboutPage, .lpPageContent .approachPage, .lpPageContent .therapyPage { max-width: none !important; }
 .lpPageContent .aboutHero, .lpPageContent .approachHero, .lpPageContent .aboutFinalCta, .lpPageContent .aboutSectionGrid, .lpPageContent .approachSpread, .lpPageContent .philosophyGrid, .lpPageContent .aboutBrentEditorial { grid-template-columns: 1fr !important; min-height: auto !important; }
-.lpPageContent .aboutHeroCopy, .lpPageContent .approachHeroCopy, .lpPageContent .aboutHeroTitle, .lpPageContent .approachHeroTitle, .lpPageContent .aboutHeroText, .lpPageContent .approachHeroText { max-width: none !important; }
+.lpPageContent .aboutHeroCopy, .lpPageContent .approachHeroCopy, .lpPageContent .aboutHeroText, .lpPageContent .approachHeroText { max-width: none !important; }
+.lpPageContent .aboutHeroTitle, .lpPageContent .approachHeroTitle { max-width: 100% !important; font-size: clamp(1.75rem, 4.2vw, 3.2rem) !important; line-height: 1.08 !important; overflow-wrap: break-word; }
 .lpPageContent .aboutPortrait, .lpPageContent .aboutInlinePortrait, .lpPageContent .approachHeroImage, .lpPageContent .approachSpreadImage, .lpPageContent .aboutCtaPortrait { width: min(100%, 42rem) !important; max-width: 100% !important; justify-self: stretch !important; margin-top: 24px !important; margin-inline: auto !important; }
 .lpPageContent .aboutHero, .lpPageContent .approachHero { padding: clamp(28px, 4vw, 48px) clamp(12px, 2vw, 24px) !important; }
 .lpPageContent .aboutIntro, .lpPageContent .aboutSection, .lpPageContent .aboutFinalCta, .lpPageContent .approachEssay, .lpPageContent .approachSpread, .lpPageContent .approachLifeForce, .lpPageContent .approachBlocksSection, .lpPageContent .approachPrinciplesSection, .lpPageContent .approachFinalCta { padding-inline: clamp(12px, 2vw, 24px) !important; }
@@ -70,11 +72,13 @@ export const SPRINT2_CSS = `<style id="pathfinder-sprint2">
 .lpAboutStrip { display: grid; grid-template-columns: 120px minmax(0, 1fr); gap: 20px; align-items: center; padding: 24px; border: 1px solid rgba(246,242,234,.1); border-radius: 16px; background: rgba(8,16,15,.4); }
 .lpAboutStrip img { width: 120px; height: 120px; border-radius: 12px; object-fit: cover; }
 .lpAboutStrip p { margin: 0 0 12px; font-size: 15px; line-height: 1.65; color: rgba(246,242,234,.76); }
-@media (max-width: 900px) {
-  .lpCardGrid, .lpServiceGrid, .lpGeoGrid { grid-template-columns: 1fr; }
+@media (max-width: 1024px) {
   .lpPageGrid { grid-template-columns: 1fr; padding-bottom: 24px; }
   .lpBookingPanel { position: static; order: 2; }
   .lpPageContent { order: 1; }
+}
+@media (max-width: 900px) {
+  .lpCardGrid, .lpServiceGrid, .lpGeoGrid { grid-template-columns: 1fr; }
   .lpAboutStrip { grid-template-columns: 1fr; text-align: left; }
   .lpAboutStrip img { width: 88px; height: 88px; border-radius: 50%; }
   .lpHomeHeroWrap .lpGrid { grid-template-columns: 1fr; }
