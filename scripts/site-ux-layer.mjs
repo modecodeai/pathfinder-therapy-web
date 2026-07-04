@@ -167,7 +167,14 @@ export function buildLlmsTxt() {
 - https://www.pathfindertherapy.com/faq/
 - https://www.pathfindertherapy.com/fees/
 - https://www.pathfindertherapy.com/contact/
+- https://www.pathfindertherapy.com/crisis-support/
 - https://www.pathfindertherapy.com/knowledge-library/
+
+## Local service pages (Lisbon)
+- https://www.pathfindertherapy.com/psychotherapy-lisbon/
+- https://www.pathfindertherapy.com/trauma-therapy-lisbon/
+- https://www.pathfindertherapy.com/emdr-therapy-lisbon/
+- https://www.pathfindertherapy.com/english-speaking-therapist-lisbon/
 
 ## Booking
 - Book initial Zoom consultation: https://www.pathfindertherapy.com/book/
@@ -223,7 +230,14 @@ export function buildAiSummaryJson() {
         "EMDR Lisbon",
         "English speaking therapist Lisbon",
         "Online therapy Portugal"
-      ]
+      ],
+      local_pages: [
+        "https://www.pathfindertherapy.com/psychotherapy-lisbon/",
+        "https://www.pathfindertherapy.com/trauma-therapy-lisbon/",
+        "https://www.pathfindertherapy.com/emdr-therapy-lisbon/",
+        "https://www.pathfindertherapy.com/english-speaking-therapist-lisbon/"
+      ],
+      crisis_support: "https://www.pathfindertherapy.com/crisis-support/"
     },
     null,
     2

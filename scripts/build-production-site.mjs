@@ -33,6 +33,13 @@ import {
 import { applyCredentialCopy } from "./site-credentials.mjs";
 import { buildEataBadge, injectEataBadgeStyles } from "./site-eata.mjs";
 import { injectCookieConsent } from "./site-cookie-consent.mjs";
+import { patchGlobalSchema } from "./site-schema.mjs";
+import { buildCrisisPage } from "./site-crisis.mjs";
+import {
+  LOCAL_LANDING_PAGES,
+  buildLocalLandingPage,
+  getLocalLandingRoutes
+} from "./site-local-landings.mjs";
 
 const PREVIEW_ORIGIN =
   process.env.PATHFINDER_PREVIEW_ORIGIN ?? "https://9aa49f15.pathfinder-therapy-web.pages.dev";
@@ -342,6 +349,7 @@ function patchHtml(html, { robots = null, title = null, canonical = null, descri
 
   next = injectGtag(next);
   next = injectEataBadgeStyles(next);
+  next = patchGlobalSchema(next);
   next = injectCookieConsent(next);
   next = injectBeforeBodyClose(next, GOOGLE_ADS_HELPER_SCRIPT);
   next = injectBeforeBodyClose(next, ATTRIBUTION_SCRIPT);
@@ -842,16 +850,22 @@ function buildFeesPage(shellHtml) {
 
 function patchSitemap(sitemapXml) {
   let next = sitemapXml;
+  const today = new Date().toISOString().slice(0, 10);
   const additions = [
     { loc: "https://www.pathfindertherapy.com/faq/", priority: "0.75" },
-    { loc: "https://www.pathfindertherapy.com/fees/", priority: "0.75" }
+    { loc: "https://www.pathfindertherapy.com/fees/", priority: "0.75" },
+    { loc: "https://www.pathfindertherapy.com/crisis-support/", priority: "0.55" },
+    { loc: "https://www.pathfindertherapy.com/psychotherapy-lisbon/", priority: "0.88" },
+    { loc: "https://www.pathfindertherapy.com/trauma-therapy-lisbon/", priority: "0.88" },
+    { loc: "https://www.pathfindertherapy.com/emdr-therapy-lisbon/", priority: "0.88" },
+    { loc: "https://www.pathfindertherapy.com/english-speaking-therapist-lisbon/", priority: "0.88" }
   ];
 
   for (const entry of additions) {
     if (next.includes(entry.loc)) continue;
     next = next.replace(
       "</urlset>",
-      `  <url>\n    <loc>${entry.loc}</loc>\n    <lastmod>${new Date().toISOString().slice(0, 10)}</lastmod>\n    <priority>${entry.priority}</priority>\n  </url>\n</urlset>`
+      `  <url>\n    <loc>${entry.loc}</loc>\n    <lastmod>${today}</lastmod>\n    <priority>${entry.priority}</priority>\n  </url>\n</urlset>`
     );
   }
 
@@ -945,7 +959,9 @@ async function main() {
     "/faq/",
     "/fees/",
     "/contact/",
-    "/"
+    "/crisis-support/",
+    "/",
+    ...getLocalLandingRoutes()
   ]);
   const assetPaths = new Set(["/robots.txt", "/rss.xml", "/sitemap.xml", "/favicon.ico", "/favicon.svg"]);
   let contactHtml = "";
@@ -1045,6 +1061,18 @@ async function main() {
   await writeRoute(PREVIEW_ORIGIN, "/faq/", faqHtml);
   await writeRoute(PREVIEW_ORIGIN, "/fees/", feesHtml);
   console.log("Added /faq/ and /fees/");
+
+  const crisisHtml = stripHydrationScripts(buildCrisisPage(shellHtml, buildInteriorPageV2));
+  await writeRoute(PREVIEW_ORIGIN, "/crisis-support/", crisisHtml);
+  console.log("Added /crisis-support/");
+
+  for (const page of LOCAL_LANDING_PAGES) {
+    const landingHtml = stripHydrationScripts(
+      buildLocalLandingPage(shellHtml, page, buildInteriorPageWithBookingPanel)
+    );
+    await writeRoute(PREVIEW_ORIGIN, page.route, landingHtml);
+    console.log(`Added ${page.route} (local landing)`);
+  }
 
   await writeFile(path.join(OUT_DIR, "llms.txt"), applyCredentialCopy(buildLlmsTxt()), "utf8");
   await writeFile(path.join(OUT_DIR, "ai-summary.json"), applyCredentialCopy(buildAiSummaryJson()), "utf8");
