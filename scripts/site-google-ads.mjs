@@ -25,11 +25,11 @@ gtag("consent", "default", {
   wait_for_update: 500
 });
 </script>
-<script async src="https://www.googletagmanager.com/gtag/js?id=${GA_ID}"></script>
+<script async src="https://www.googletagmanager.com/gtag/js?id=${ADS_ID}&amp;id=${GA_ID}"></script>
 <script id="pathfinder-google-tag-config">
 gtag("js", new Date());
-gtag("config", ${JSON.stringify(GA_ID)}, { anonymize_ip: true });
 gtag("config", ${JSON.stringify(ADS_ID)});
+gtag("config", ${JSON.stringify(GA_ID)}, { anonymize_ip: true });
 </script>`;
 }
 
