@@ -30,6 +30,7 @@ import {
   injectGtag,
   logGoogleAdsBuildConfig
 } from "./site-google-ads.mjs";
+import { applyCredentialCopy } from "./site-credentials.mjs";
 
 const PREVIEW_ORIGIN =
   process.env.PATHFINDER_PREVIEW_ORIGIN ?? "https://9aa49f15.pathfinder-therapy-web.pages.dev";
@@ -275,7 +276,7 @@ function routeToFilePath(route) {
 async function writeRoute(origin, route, html) {
   const filePath = path.join(OUT_DIR, routeToFilePath(route));
   await mkdir(path.dirname(filePath), { recursive: true });
-  await writeFile(filePath, html, "utf8");
+  await writeFile(filePath, applyCredentialCopy(html), "utf8");
 }
 
 function injectBeforeBodyClose(html, snippet) {
@@ -373,7 +374,7 @@ document.addEventListener("DOMContentLoaded", function () {
 </script>`;
 
 const LANDING_SCHEMA = `<script type="application/ld+json">
-{"@context":"https://schema.org","@type":"MedicalWebPage","name":"Arrange an initial psychotherapy consultation in Lisbon","url":"https://www.pathfindertherapy.com/start/","about":{"@type":"MedicalTherapy","name":"Trauma-informed psychotherapy"},"mainEntity":{"@type":"MedicalBusiness","name":"Pathfinder Therapy","url":"https://www.pathfindertherapy.com","telephone":"+351914775365","priceRange":"EUR75","medicalSpecialty":["Psychotherapy","Trauma therapy","EMDR"],"address":{"@type":"PostalAddress","addressLocality":"Lisboa","addressCountry":"PT"}},"provider":{"@type":"Person","name":"Brent Kelly","jobTitle":"Psychotherapist","knowsAbout":["Trauma","EMDR","Transactional Analysis","Military veterans"]}}
+{"@context":"https://schema.org","@type":"MedicalWebPage","name":"Arrange an initial psychotherapy consultation in Lisbon","url":"https://www.pathfindertherapy.com/start/","about":{"@type":"MedicalTherapy","name":"Trauma-informed psychotherapy"},"mainEntity":{"@type":"MedicalBusiness","name":"Pathfinder Therapy","url":"https://www.pathfindertherapy.com","telephone":"+351914775365","priceRange":"EUR75","medicalSpecialty":["Psychotherapy","Trauma therapy","EMDR"],"address":{"@type":"PostalAddress","addressLocality":"Lisboa","addressCountry":"PT"}},"provider":{"@type":"Person","name":"Brent Kelly","jobTitle":"Therapist","knowsAbout":["Trauma","EMDR","Transactional Analysis","Military veterans"]}}
 </script>`;
 
 function prepareLandingForm(formHtml) {
@@ -420,22 +421,22 @@ function buildStartPage(contactHtml) {
 <main class="lpMain" id="main-content">
   <div class="lpGrid">
     <section class="lpHero" aria-labelledby="start-title">
-      <p class="lpKicker">English-speaking psychotherapist · Lisbon clinic &amp; online</p>
-      <h1 class="lpTitle" id="start-title">Find out if therapy is right for you — with a registered psychotherapist in Lisbon or online.</h1>
+      <p class="lpKicker">English-speaking therapist · Lisbon clinic &amp; online</p>
+      <h1 class="lpTitle" id="start-title">Find out if therapy is right for you — with a therapist in Lisbon or online.</h1>
       <p class="lpLead">Trauma-informed psychotherapy for anxiety, trauma, relationships, and life transitions. Brent Kelly responds to non-urgent enquiries within one working day.</p>
       <div class="lpHeroActions">
         <a class="lpPrimaryCta" href="#consultation-form" data-scroll-target="#consultation-form">Arrange an initial consultation</a>
         <a class="lpSecondaryCta" href="https://wa.me/351914775365">WhatsApp Brent</a>
       </div>
       <div class="lpTherapist">
-        <img src="/assets/images/about-brent.webp" width="72" height="72" alt="Brent Kelly, psychotherapist at Pathfinder Therapy Lisbon" loading="eager" decoding="async" />
+        <img src="/assets/images/about-brent.webp" width="72" height="72" alt="Brent Kelly, therapist at Pathfinder Therapy Lisbon" loading="eager" decoding="async" />
         <div>
           <p class="lpTherapistName">Brent Kelly</p>
-          <p class="lpTherapistRole">Registered psychotherapist · trauma, EMDR, veterans, couples &amp; individual therapy · Lisbon &amp; online</p>
+          <p class="lpTherapistRole">Therapist · trauma, EMDR, veterans, couples &amp; individual therapy · Lisbon &amp; online</p>
         </div>
       </div>
       <ul class="lpTrustList" aria-label="Professional reassurance">
-        <li>NCPS registered</li>
+        <li>EATA registered</li>
         <li>Trauma-informed</li>
         <li>EMDR</li>
         <li>Transactional Analysis</li>
@@ -460,7 +461,7 @@ function buildStartPage(contactHtml) {
     <p class="lpKicker">Why people choose Pathfinder</p>
     <p>Pathfinder Therapy offers calm, trauma-informed psychotherapy for adults and couples in Lisbon and across Portugal online. Brent works with trauma, anxiety, attachment, military veterans, and complex life experiences — using EMDR and Transactional Analysis where appropriate.</p>
   </section>
-  <p class="lpLocal">Psychotherapist in Lisbon · trauma therapist Lisbon · EMDR Lisbon · English-speaking therapy in Portugal · online psychotherapy Portugal</p>
+  <p class="lpLocal">Therapist in Lisbon · trauma therapist Lisbon · EMDR Lisbon · English-speaking therapy in Portugal · online psychotherapy Portugal</p>
   <footer class="lpFooter">
     <span>Pathfinder Therapy · R. Rodrigues Sampaio 76, Lisboa</span>
     <a href="/privacy/">Privacy</a>
@@ -478,7 +479,7 @@ ${LANDING_SCRIPT}
   let html = `${head}${LANDING_CSS}${LANDING_SCHEMA}${body}`;
   html = patchHtml(html, {
     robots: "noindex, nofollow",
-    title: "Arrange an Initial Consultation | Psychotherapist Lisbon | Pathfinder Therapy",
+    title: "Arrange an Initial Consultation | Therapist Lisbon | Pathfinder Therapy",
     description:
       "Arrange a confidential initial psychotherapy consultation with Brent Kelly in Lisbon or online. Trauma-informed therapy, EMDR, English-speaking. Response within one working day.",
     canonical: "https://www.pathfindertherapy.com/start/"
@@ -531,7 +532,7 @@ ${CALENDLY_INLINE_SCRIPT}
     robots: "noindex, nofollow",
     title: "Book Initial Zoom Consultation | Pathfinder Therapy Lisbon",
     description:
-      "Book a confidential initial Zoom consultation with Brent Kelly, psychotherapist in Lisbon and online. Trauma-informed therapy in English.",
+      "Book a confidential initial Zoom consultation with Brent Kelly, therapist in Lisbon and online. Trauma-informed therapy in English.",
     canonical: `https://www.pathfindertherapy.com${BOOK_PATH}`
   });
   return html;
@@ -682,7 +683,7 @@ function buildFaqPage(shellHtml) {
     <p class="sectionKicker">Confidentiality</p>
     <h2 class="approachSectionTitle" id="faq-confidential">Is therapy confidential?</h2>
     <div class="approachBody">
-      <p>Yes. Sessions are confidential within ethical and legal limits. Brent is NCPS registered, holds professional indemnity insurance, and receives clinical supervision.</p>
+      <p>Yes. Sessions are confidential within ethical and legal limits. Brent is registered with EATA, holds professional indemnity insurance, and receives clinical supervision.</p>
     </div>
   </div>
 </section>
@@ -717,7 +718,7 @@ function buildFaqPage(shellHtml) {
 </script>`;
 
   return buildInteriorPage(shellHtml, {
-    title: "FAQ | Psychotherapist Lisbon | Pathfinder Therapy",
+    title: "FAQ | Therapist Lisbon | Pathfinder Therapy",
     description:
       "Answers about booking, fees, online therapy, EMDR, trauma therapy, and first sessions with Brent Kelly in Lisbon.",
     canonical: "https://www.pathfindertherapy.com/faq/",
@@ -995,8 +996,8 @@ async function main() {
   await writeRoute(PREVIEW_ORIGIN, "/fees/", feesHtml);
   console.log("Added /faq/ and /fees/");
 
-  await writeFile(path.join(OUT_DIR, "llms.txt"), buildLlmsTxt(), "utf8");
-  await writeFile(path.join(OUT_DIR, "ai-summary.json"), buildAiSummaryJson(), "utf8");
+  await writeFile(path.join(OUT_DIR, "llms.txt"), applyCredentialCopy(buildLlmsTxt()), "utf8");
+  await writeFile(path.join(OUT_DIR, "ai-summary.json"), applyCredentialCopy(buildAiSummaryJson()), "utf8");
   console.log("Added llms.txt and ai-summary.json");
 
   for (const assetPath of assetPaths) {

@@ -246,14 +246,14 @@ export function buildContactPageBody(formHtml) {
       <a class="lpSecondaryCta" href="https://wa.me/351914775365">WhatsApp Brent</a>
     </div>
     <div class="lpTherapist">
-      <img src="/assets/images/about-brent.webp" width="72" height="72" alt="Brent Kelly, psychotherapist at Pathfinder Therapy Lisbon" loading="eager" decoding="async" />
+      <img src="/assets/images/about-brent.webp" width="72" height="72" alt="Brent Kelly, therapist at Pathfinder Therapy Lisbon" loading="eager" decoding="async" />
       <div>
         <p class="lpTherapistName">Brent Kelly</p>
-        <p class="lpTherapistRole">NCPS registered psychotherapist · trauma, EMDR, veterans, couples &amp; individual therapy</p>
+        <p class="lpTherapistRole">Therapist · trauma, EMDR, veterans, couples &amp; individual therapy</p>
       </div>
     </div>
     <ul class="lpTrustList" aria-label="Professional reassurance">
-      <li>NCPS registered</li>
+      <li>EATA registered</li>
       <li>Trauma-informed</li>
       <li>EMDR</li>
       <li>Confidential</li>

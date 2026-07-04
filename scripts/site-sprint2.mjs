@@ -60,7 +60,7 @@ export const SPRINT2_CSS = `<style id="pathfinder-sprint2">
 </style>`;
 
 const TRUST_PILLS = `<ul class="lpTrustList" aria-label="Professional reassurance">
-  <li>NCPS registered</li>
+  <li>EATA registered</li>
   <li>Trauma-informed</li>
   <li>EMDR</li>
   <li>Confidential</li>
@@ -100,7 +100,7 @@ export function buildHomePageBody() {
   <div class="lpHomeHeroWrap">
     <div class="lpGrid">
       <section class="lpHero" aria-labelledby="home-title">
-        <p class="lpKicker">English-speaking psychotherapist · Lisbon clinic &amp; online</p>
+        <p class="lpKicker">English-speaking therapist · Lisbon clinic &amp; online</p>
         <h1 class="lpTitle" id="home-title">Trauma-informed psychotherapy with Brent Kelly in Lisbon and online.</h1>
         <p class="lpLead">Support for adults and couples navigating trauma, anxiety, attachment, and major life transitions — in person at our Lisbon clinic or securely online across Portugal.</p>
         <div class="lpHeroActions">
@@ -108,10 +108,10 @@ export function buildHomePageBody() {
           <a class="lpSecondaryCta" href="https://wa.me/351914775365">WhatsApp Brent</a>
         </div>
         <div class="lpTherapist">
-          <img src="/assets/images/about-brent.webp" width="72" height="72" alt="Brent Kelly, psychotherapist at Pathfinder Therapy Lisbon" loading="eager" decoding="async" />
+          <img src="/assets/images/about-brent.webp" width="72" height="72" alt="Brent Kelly, therapist at Pathfinder Therapy Lisbon" loading="eager" decoding="async" />
           <div>
             <p class="lpTherapistName">Brent Kelly</p>
-            <p class="lpTherapistRole">Registered psychotherapist · trauma, EMDR, veterans, couples &amp; individual therapy</p>
+            <p class="lpTherapistRole">Therapist · trauma, EMDR, veterans, couples &amp; individual therapy</p>
           </div>
         </div>
         ${TRUST_PILLS}
@@ -177,10 +177,10 @@ export function buildHomePageBody() {
       <h2 class="lpSectionTitle" id="home-about">Relationship focused. Personal and authentic.</h2>
     </div>
     <div class="lpAboutStrip">
-      <img src="/assets/images/about-brent.webp" width="120" height="120" alt="Brent Kelly, psychotherapist" loading="lazy" decoding="async" />
+      <img src="/assets/images/about-brent.webp" width="120" height="120" alt="Brent Kelly, therapist" loading="lazy" decoding="async" />
       <div>
         <p>Pathfinder is built around evidence-informed care, real conversation, and a steady therapeutic relationship. Brent works with adults and couples in English — in Lisbon and online.</p>
-        <p><strong>NCPS registered</strong> · EMDR · Transactional Analysis · clinical supervision · military veterans experience</p>
+        <p><strong>EATA registered</strong> · EMDR · Transactional Analysis · clinical supervision · military veterans experience</p>
         <a class="lpSecondaryCta" href="/about/" style="display:inline-flex;margin-top:8px">Meet Brent →</a>
       </div>
     </div>
