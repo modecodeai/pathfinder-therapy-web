@@ -1,31 +1,22 @@
-import { BOOKING_LABEL, BOOKING_PATH } from "./site-ux-layer.mjs";
 import { buildBreadcrumbSchema, buildServiceSchema } from "./site-schema.mjs";
-import { buildEataBadge } from "./site-eata.mjs";
 
 const SITE = "https://www.pathfindertherapy.com";
 
 function section(kicker, title, id, bodyHtml) {
-  return `<section class="approachEssay" aria-labelledby="${id}">
-  <div class="approachEssayInner">
-    <p class="sectionKicker">${kicker}</p>
-    <h2 class="approachSectionTitle" id="${id}">${title}</h2>
-    <div class="approachBody">${bodyHtml}</div>
+  return `<section class="lpLocalSection" aria-labelledby="${id}">
+  <div class="lpLocalSectionInner">
+    <p class="lpKicker">${kicker}</p>
+    <h2 class="lpSectionTitle" id="${id}">${title}</h2>
+    <div class="lpLocalBody">${bodyHtml}</div>
   </div>
 </section>`;
 }
 
 function hero(kicker, title, id, lead) {
-  return `<section class="approachHero" aria-labelledby="${id}">
-  <div class="approachHeroCopy">
-    <p class="sectionKicker">${kicker}</p>
-    <h1 class="approachHeroTitle" id="${id}">${title}</h1>
-    <p class="approachHeroText">${lead}</p>
-    <div class="lpHeroActions" style="margin-top:16px">
-      <a class="lpPrimaryCta" href="/book/">Book initial Zoom call</a>
-      <a class="lpSecondaryCta" href="${BOOKING_PATH}">${BOOKING_LABEL}</a>
-    </div>
-    ${buildEataBadge()}
-  </div>
+  return `<section class="lpLocalHero" aria-labelledby="${id}">
+  <p class="lpKicker">${kicker}</p>
+  <h1 class="lpTitle" id="${id}">${title}</h1>
+  <p class="lpLead">${lead}</p>
 </section>`;
 }
 
@@ -193,14 +184,14 @@ export function buildLocalLandingBody(page) {
   const related = page.links
     .map((l) => `<li><a href="${l.href}">${l.label}</a></li>`)
     .join("");
-  return `<article class="approachPage">
+  return `<article class="lpLocalLanding">
 ${hero(page.hero.kicker, page.hero.title, "local-landing-title", page.hero.lead)}
 ${page.sections.join("\n")}
-<section class="approachEssay" aria-labelledby="local-related">
-  <div class="approachEssayInner">
-    <p class="sectionKicker">Learn more</p>
-    <h2 class="approachSectionTitle" id="local-related">Related reading</h2>
-    <div class="approachBody"><ul>${related}</ul></div>
+<section class="lpLocalSection" aria-labelledby="local-related">
+  <div class="lpLocalSectionInner">
+    <p class="lpKicker">Learn more</p>
+    <h2 class="lpSectionTitle" id="local-related">Related reading</h2>
+    <div class="lpLocalBody"><ul>${related}</ul></div>
   </div>
 </section>
 </article>`;

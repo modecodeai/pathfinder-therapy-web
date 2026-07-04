@@ -627,7 +627,6 @@ function buildInteriorPageWithBookingPanel(shellHtml, { title, description, cano
     mainInner: wrapWithBookingPanel(mainInner)
   });
   html = patchHtml(html, { title, description, canonical });
-  html = html.replace('class="lpMain lpMainInterior"', 'class="lpMain"');
   return html;
 }
 

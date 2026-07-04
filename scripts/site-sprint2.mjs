@@ -36,8 +36,24 @@ export const SPRINT2_CSS = `<style id="pathfinder-sprint2">
 .lpAdLandingInner { max-width: 1180px; margin: 0 auto; display: flex; flex-wrap: wrap; gap: 12px 20px; align-items: center; justify-content: space-between; }
 .lpAdLandingCopy { margin: 0; font-size: 14px; line-height: 1.55; color: rgba(246,242,234,.84); max-width: 36rem; }
 .lpAdLandingActions { display: flex; flex-wrap: wrap; gap: 10px; }
-.lpPageGrid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(280px, 340px); gap: clamp(24px, 4vw, 40px); align-items: start; padding: clamp(20px, 4vw, 40px) clamp(16px, 3vw, 40px) 64px; max-width: 1280px; margin: 0 auto; }
-.lpPageContent { min-width: 0; }
+.lpPageGrid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(280px, 340px); gap: clamp(32px, 5vw, 48px); align-items: start; padding: clamp(20px, 4vw, 40px) clamp(16px, 3vw, 40px) 64px; max-width: 1280px; margin: 0 auto; }
+.lpPageContent { min-width: 0; overflow: hidden; }
+.lpLocalLanding { width: 100%; margin: 0; }
+.lpLocalHero { display: grid; gap: 18px; padding-bottom: clamp(28px, 4vw, 40px); border-bottom: 1px solid rgba(246,242,234,.08); }
+.lpLocalSection { padding: clamp(32px, 5vw, 48px) 0; border-bottom: 1px solid rgba(246,242,234,.06); }
+.lpLocalSectionInner { display: grid; gap: 12px; max-width: 42rem; }
+.lpLocalBody p { margin: 0 0 12px; font-size: 15px; line-height: 1.7; color: rgba(246,242,234,.76); }
+.lpLocalBody p:last-child { margin-bottom: 0; }
+.lpLocalBody ul { margin: 0; padding-left: 1.2rem; display: grid; gap: 8px; }
+.lpLocalBody a { color: #d9b777; text-decoration: none; }
+.lpLocalBody a:hover { text-decoration: underline; }
+.lpGeoGrid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
+.lpGeoCard { padding: 18px; border: 1px solid rgba(200,154,88,.22); border-radius: 14px; background: rgba(200,154,88,.06); display: grid; gap: 8px; }
+.lpGeoCard h3 { margin: 0; font-size: 1rem; font-weight: 600; }
+.lpGeoCard h3 a { color: #f6f2ea; text-decoration: none; }
+.lpGeoCard h3 a:hover { color: #d9b777; }
+.lpGeoCard p { margin: 0; font-size: 14px; line-height: 1.6; color: rgba(246,242,234,.68); }
+.lpGeoSection .lpSectionLead { max-width: 42rem; }
 .lpPageContent .siteMain, .lpPageContent .interiorMain, .lpPageContent .aboutPage, .lpPageContent .therapyPage { margin: 0 !important; width: 100% !important; }
 .lpPageContent .aboutPage, .lpPageContent .approachPage, .lpPageContent .therapyPage { max-width: none !important; }
 .lpPageContent .aboutHero, .lpPageContent .approachHero, .lpPageContent .aboutFinalCta, .lpPageContent .aboutSectionGrid, .lpPageContent .approachSpread, .lpPageContent .philosophyGrid, .lpPageContent .aboutBrentEditorial { grid-template-columns: 1fr !important; min-height: auto !important; }
@@ -55,7 +71,7 @@ export const SPRINT2_CSS = `<style id="pathfinder-sprint2">
 .lpAboutStrip img { width: 120px; height: 120px; border-radius: 12px; object-fit: cover; }
 .lpAboutStrip p { margin: 0 0 12px; font-size: 15px; line-height: 1.65; color: rgba(246,242,234,.76); }
 @media (max-width: 900px) {
-  .lpCardGrid, .lpServiceGrid { grid-template-columns: 1fr; }
+  .lpCardGrid, .lpServiceGrid, .lpGeoGrid { grid-template-columns: 1fr; }
   .lpPageGrid { grid-template-columns: 1fr; padding-bottom: 24px; }
   .lpBookingPanel { position: static; order: 2; }
   .lpPageContent { order: 1; }
@@ -110,6 +126,20 @@ export function wrapWithBookingPanel(mainInner) {
   ${buildBookingPanel()}
 </div>`;
 }
+
+const LISBON_GEO_LINKS = `<section class="lpSection" aria-labelledby="home-lisbon">
+    <div class="lpSectionHead">
+      <p class="lpKicker">Lisbon &amp; online</p>
+      <h2 class="lpSectionTitle" id="home-lisbon">Therapy in Lisbon</h2>
+      <p class="lpSectionLead">English-speaking psychotherapy in central Lisbon and securely online across Portugal.</p>
+    </div>
+    <div class="lpGeoGrid">
+      <article class="lpGeoCard"><h3><a href="/psychotherapy-lisbon/">Psychotherapy Lisbon</a></h3><p>Trauma-informed psychotherapy for adults and couples — in person or online.</p></article>
+      <article class="lpGeoCard"><h3><a href="/trauma-therapy-lisbon/">Trauma therapy Lisbon</a></h3><p>Support for PTSD, complex trauma, and anxiety — EMDR where appropriate.</p></article>
+      <article class="lpGeoCard"><h3><a href="/emdr-therapy-lisbon/">EMDR therapy Lisbon</a></h3><p>Eye Movement Desensitisation and Reprocessing within trauma-informed care.</p></article>
+      <article class="lpGeoCard"><h3><a href="/english-speaking-therapist-lisbon/">English-speaking therapist</a></h3><p>Therapy in English for expats and international clients in Lisbon.</p></article>
+    </div>
+  </section>`;
 
 export function buildHomePageBody() {
   return `<div class="lpAdLandingStrip" id="lpAdLandingStrip" aria-label="Get started">
@@ -229,6 +259,8 @@ export function buildHomePageBody() {
     </div>
   </section>
 
+  ${LISBON_GEO_LINKS}
+
   <section class="lpSection" aria-labelledby="home-faq">
     <div class="lpSectionHead">
       <p class="lpKicker">Common questions</p>
@@ -281,6 +313,30 @@ export const AD_LANDING_SCRIPT = `<script id="pathfinder-ad-landing">
 })();
 </script>`;
 
+const THERAPY_GEO_LINKS = `<section class="lpLocalSection lpGeoSection" aria-labelledby="therapy-lisbon">
+  <div class="lpLocalSectionInner">
+    <p class="lpKicker">Lisbon &amp; online</p>
+    <h2 class="lpSectionTitle" id="therapy-lisbon">Therapy in Lisbon</h2>
+    <p class="lpSectionLead">English-speaking psychotherapy in central Lisbon and securely online across Portugal.</p>
+  </div>
+  <div class="lpGeoGrid" style="margin-top:20px">
+    <article class="lpGeoCard"><h3><a href="/psychotherapy-lisbon/">Psychotherapy Lisbon</a></h3><p>Trauma-informed psychotherapy for adults and couples.</p></article>
+    <article class="lpGeoCard"><h3><a href="/trauma-therapy-lisbon/">Trauma therapy Lisbon</a></h3><p>Support for PTSD, complex trauma, and anxiety.</p></article>
+    <article class="lpGeoCard"><h3><a href="/emdr-therapy-lisbon/">EMDR therapy Lisbon</a></h3><p>EMDR within broader trauma-informed psychotherapy.</p></article>
+    <article class="lpGeoCard"><h3><a href="/english-speaking-therapist-lisbon/">English-speaking therapist</a></h3><p>Therapy in English for expats and international clients.</p></article>
+  </div>
+</section>`;
+
+export function injectTherapyGeoLinks(mainInner) {
+  if (mainInner.includes("therapy-lisbon")) {
+    return mainInner;
+  }
+  if (mainInner.includes('class="relatedPages"')) {
+    return mainInner.replace('<aside class="relatedPages"', `${THERAPY_GEO_LINKS}<aside class="relatedPages"`);
+  }
+  return mainInner.replace("</article>", `${THERAPY_GEO_LINKS}</article>`);
+}
+
 export function trimAboutPagePortraits(html) {
   return html
     .replace(/<figure class="aboutInlinePortrait">[\s\S]*?<\/figure>/g, "")
@@ -297,12 +353,14 @@ export function applySprint2Transforms(html, route) {
   if (route === "/about/") {
     mainInner = trimAboutPagePortraits(mainInner);
   }
+  if (route === "/therapy/") {
+    mainInner = injectTherapyGeoLinks(mainInner);
+  }
   mainInner = wrapWithBookingPanel(mainInner);
   let next = html.replace(
     /(<main class="lpMain[^"]*" id="main-content" tabindex="-1">\s*<div class="lpInteriorBody">)[\s\S]*(<\/div>\s*<\/main>)/,
     `$1${mainInner}$2`
   );
-  next = next.replace('class="lpMain lpMainInterior"', 'class="lpMain"');
   if (!next.includes("pathfinder-sprint2")) {
     next = next.replace("</head>", `${SPRINT2_CSS}\n</head>`);
   }

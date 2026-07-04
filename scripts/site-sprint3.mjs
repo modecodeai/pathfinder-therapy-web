@@ -56,7 +56,6 @@ function applyBookingPanelLayout(html) {
   const parts = extractPageParts(html);
   const mainInner = wrapWithBookingPanel(parts.mainInner);
   let next = replaceInteriorBody(html, mainInner);
-  next = next.replace('class="lpMain lpMainInterior"', 'class="lpMain"');
   return injectStyles(next);
 }
 
@@ -90,7 +89,6 @@ function applyArticleLayout(html) {
 </div>`;
 
   let next = replaceInteriorBody(html, mainInner);
-  next = next.replace('class="lpMain lpMainInterior"', 'class="lpMain"');
   return injectStyles(next);
 }
 
