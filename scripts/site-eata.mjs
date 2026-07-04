@@ -1,5 +1,13 @@
 export const EATA_URL = "https://www.eata-accreditation.org/";
-export const EATA_LOGO_PATH = "/assets/images/eata-logo.svg";
+
+const EATA_LOGO_SVG = `<svg class="lpEataLogo" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 220 72" width="168" height="55" aria-hidden="true" focusable="false">
+  <circle cx="18" cy="16" r="9" fill="none" stroke="#552583" stroke-width="2.8"/>
+  <circle cx="18" cy="36" r="9" fill="none" stroke="#552583" stroke-width="2.8"/>
+  <circle cx="18" cy="56" r="9" fill="none" stroke="#552583" stroke-width="2.8"/>
+  <text x="38" y="30" font-family="Helvetica, Arial, sans-serif" font-size="26" font-weight="700" fill="#552583">eata</text>
+  <text x="38" y="44" font-family="Helvetica, Arial, sans-serif" font-size="10.5" fill="#552583">european association</text>
+  <text x="38" y="58" font-family="Helvetica, Arial, sans-serif" font-size="10.5" fill="#2E75B6">for transactional analysis</text>
+</svg>`;
 
 export const EATA_BADGE_CSS = `<style id="pathfinder-eata-badge">
 .lpEataBadge {
@@ -17,7 +25,8 @@ export const EATA_BADGE_CSS = `<style id="pathfinder-eata-badge">
   border-color: rgba(85,37,131,.35);
   box-shadow: 0 8px 24px rgba(0,0,0,.18);
 }
-.lpEataBadge img {
+.lpEataBadge svg,
+.lpEataBadge .lpEataLogo {
   display: block;
   width: min(100%, 168px);
   height: auto;
@@ -33,7 +42,7 @@ export const EATA_BADGE_CSS = `<style id="pathfinder-eata-badge">
 export function buildEataBadge() {
   return `<div class="lpEataWrap">
   <a class="lpEataBadge" href="${EATA_URL}" target="_blank" rel="noopener noreferrer" aria-label="Brent Kelly is registered with EATA, the European Association for Transactional Analysis">
-    <img src="${EATA_LOGO_PATH}" width="168" height="55" alt="EATA — European Association for Transactional Analysis" loading="lazy" decoding="async" />
+    ${EATA_LOGO_SVG}
   </a>
   <p class="lpEataNote">Brent Kelly is registered with EATA.</p>
 </div>`;
