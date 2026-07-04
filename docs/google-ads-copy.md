@@ -134,7 +134,7 @@ Configure in Google Ads → **Goals → Conversions**. The site fires tags autom
 
 ## Google Business Profile alignment
 
-Keep ads and GBP consistent with the website:
+Keep ads and GBP consistent with the website. **Full copy-paste GBP description and services:** [`docs/google-business-profile.md`](google-business-profile.md)
 
 | Field | Correct value |
 |-------|---------------|
