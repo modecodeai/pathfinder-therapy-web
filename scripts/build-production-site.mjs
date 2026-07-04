@@ -14,7 +14,7 @@ import {
   extractPageParts,
   wrapInShellV2
 } from "./site-shell-v2.mjs";
-import { buildHomePageV2, SPRINT2_CSS, wrapWithBookingPanel } from "./site-sprint2.mjs";
+import { buildHomePageV2, SPRINT2_CSS, wrapWithBookingPanel, AD_LANDING_SCRIPT } from "./site-sprint2.mjs";
 import { applySprint3Transforms, stripHydrationScripts } from "./site-sprint3.mjs";
 import {
   BOOK_CONFIRMED_PATH,
@@ -32,6 +32,7 @@ import {
 } from "./site-google-ads.mjs";
 import { applyCredentialCopy } from "./site-credentials.mjs";
 import { buildEataBadge, injectEataBadgeStyles } from "./site-eata.mjs";
+import { injectCookieConsent } from "./site-cookie-consent.mjs";
 
 const PREVIEW_ORIGIN =
   process.env.PATHFINDER_PREVIEW_ORIGIN ?? "https://9aa49f15.pathfinder-therapy-web.pages.dev";
@@ -285,7 +286,35 @@ function injectBeforeBodyClose(html, snippet) {
   return html.replace("</body>", `${snippet}\n</body>`);
 }
 
-function patchHtml(html, { robots = null, title = null, canonical = null, description = null } = {}) {
+function patchOpenGraph(html, { title, description, canonical, ogImage }) {
+  let next = html;
+  const ogTitle = title;
+  const ogDescription = description;
+  const ogUrl = canonical;
+  const image =
+    ogImage || "https://www.pathfindertherapy.com/assets/images/hero-01.webp";
+
+  next = next.replace(/<meta property="og:title" content="[^"]*"\/>/g, "");
+  next = next.replace(/<meta property="og:description" content="[^"]*"\/>/g, "");
+  next = next.replace(/<meta property="og:url" content="[^"]*"\/>/g, "");
+  next = next.replace(/<meta name="twitter:title" content="[^"]*"\/>/g, "");
+  next = next.replace(/<meta name="twitter:description" content="[^"]*"\/>/g, "");
+
+  const ogBlock = `<meta property="og:type" content="website"/>
+<meta property="og:site_name" content="Pathfinder Therapy"/>
+<meta property="og:title" content="${ogTitle}"/>
+<meta property="og:description" content="${ogDescription}"/>
+<meta property="og:url" content="${ogUrl}"/>
+<meta property="og:image" content="${image}"/>
+<meta name="twitter:card" content="summary_large_image"/>
+<meta name="twitter:title" content="${ogTitle}"/>
+<meta name="twitter:description" content="${ogDescription}"/>
+<meta name="twitter:image" content="${image}"/>`;
+
+  return next.replace("</head>", `${ogBlock}\n</head>`);
+}
+
+function patchHtml(html, { robots = null, title = null, canonical = null, description = null, ogImage = null } = {}) {
   let next = html;
 
   if (robots) {
@@ -307,8 +336,13 @@ function patchHtml(html, { robots = null, title = null, canonical = null, descri
     next = next.replace("</head>", `<link rel="canonical" href="${canonical}"/>\n</head>`);
   }
 
+  if (title && description && canonical) {
+    next = patchOpenGraph(next, { title, description, canonical, ogImage });
+  }
+
   next = injectGtag(next);
   next = injectEataBadgeStyles(next);
+  next = injectCookieConsent(next);
   next = injectBeforeBodyClose(next, GOOGLE_ADS_HELPER_SCRIPT);
   next = injectBeforeBodyClose(next, ATTRIBUTION_SCRIPT);
   next = injectBeforeBodyClose(next, FORM_ENHANCEMENT_SCRIPT);
@@ -469,6 +503,7 @@ function buildStartPage(contactHtml) {
     <span>Pathfinder Therapy · R. Rodrigues Sampaio 76, Lisboa</span>
     <a href="/privacy/">Privacy</a>
     <a href="/crisis-support/">Crisis support</a>
+    <a href="#" data-cookie-manage>Manage cookies</a>
     <span>Non-urgent enquiries only</span>
   </footer>
 </main>
@@ -519,6 +554,7 @@ function buildBookPage(contactHtml) {
     <span>Pathfinder Therapy · R. Rodrigues Sampaio 76, Lisboa</span>
     <a href="/privacy/">Privacy</a>
     <a href="/crisis-support/">Crisis support</a>
+    <a href="#" data-cookie-manage>Manage cookies</a>
     <span>Non-urgent enquiries only</span>
   </footer>
 </main>
@@ -971,6 +1007,7 @@ async function main() {
       canonical: "https://www.pathfindertherapy.com/"
     })
   );
+  homePageV2 = injectBeforeBodyClose(homePageV2, AD_LANDING_SCRIPT);
   for (const asset of extractAssetPaths(homePageV2)) assetPaths.add(asset);
   await writeRoute(PREVIEW_ORIGIN, "/", homePageV2);
   console.log("Added / (homepage sprint 2 rebuild)");

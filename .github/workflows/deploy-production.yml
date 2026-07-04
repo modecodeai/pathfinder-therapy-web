@@ -47,6 +47,12 @@ jobs:
           else
             echo "PATHFINDER_CALENDLY_URL is set (calendly.com/$(echo "$PATHFINDER_CALENDLY_URL" | sed 's|.*calendly.com/||'))"
           fi
+          if [ -z "$PATHFINDER_GOOGLE_ADS_LEAD_LABEL" ]; then
+            echo "::warning::PATHFINDER_GOOGLE_ADS_LEAD_LABEL is empty — /thank-you/ form conversions will not fire in Google Ads."
+          fi
+          if [ -z "$PATHFINDER_GOOGLE_ADS_BOOKING_LABEL" ]; then
+            echo "::warning::PATHFINDER_GOOGLE_ADS_BOOKING_LABEL is empty — /book-confirmed/ Calendly conversions will not fire in Google Ads."
+          fi
           pnpm run build
 
       - name: Deploy to Cloudflare Pages

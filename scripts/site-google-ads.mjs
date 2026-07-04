@@ -14,18 +14,27 @@ export const ADS_BOOKING_SEND_TO = ADS_BOOKING_LABEL ? `${ADS_ID}/${ADS_BOOKING_
 export const ADS_PHONE_SEND_TO = `${ADS_ID}/${ADS_PHONE_LABEL}`;
 
 export function buildGtagHeadSnippet() {
-  return `<script async src="https://www.googletagmanager.com/gtag/js?id=${GA_ID}"></script>
-<script id="pathfinder-google-tag-config">
+  return `<script id="pathfinder-consent-defaults">
 window.dataLayer = window.dataLayer || [];
 function gtag(){dataLayer.push(arguments);}
+gtag("consent", "default", {
+  analytics_storage: "denied",
+  ad_storage: "denied",
+  ad_user_data: "denied",
+  ad_personalization: "denied",
+  wait_for_update: 500
+});
+</script>
+<script async src="https://www.googletagmanager.com/gtag/js?id=${GA_ID}"></script>
+<script id="pathfinder-google-tag-config">
 gtag("js", new Date());
-gtag("config", ${JSON.stringify(GA_ID)});
+gtag("config", ${JSON.stringify(GA_ID)}, { anonymize_ip: true });
 gtag("config", ${JSON.stringify(ADS_ID)});
 </script>`;
 }
 
 export function injectGtag(html) {
-  if (html.includes('id="pathfinder-google-tag-config"')) {
+  if (html.includes('id="pathfinder-google-tag-config"') || html.includes('id="pathfinder-consent-defaults"')) {
     return html;
   }
 
@@ -84,7 +93,13 @@ export const GOOGLE_ADS_HELPER_SCRIPT = `<script id="pathfinder-google-ads">
 
 export function logGoogleAdsBuildConfig() {
   console.log(`Google Ads account: ${ADS_ID}`);
-  console.log(`Google Ads lead conversion: ${ADS_LEAD_SEND_TO || "not configured"}`);
-  console.log(`Google Ads booking conversion: ${ADS_BOOKING_SEND_TO || "not configured"}`);
+  console.log(`Google Analytics: ${GA_ID}`);
+  console.log(`Google Ads lead conversion: ${ADS_LEAD_SEND_TO || "NOT CONFIGURED — set PATHFINDER_GOOGLE_ADS_LEAD_LABEL"}`);
+  console.log(`Google Ads booking conversion: ${ADS_BOOKING_SEND_TO || "NOT CONFIGURED — set PATHFINDER_GOOGLE_ADS_BOOKING_LABEL"}`);
   console.log(`Google Ads phone conversion: ${ADS_PHONE_SEND_TO}`);
+  if (!ADS_LEAD_SEND_TO || !ADS_BOOKING_SEND_TO) {
+    console.warn(
+      "Google Ads conversion labels missing. Add PATHFINDER_GOOGLE_ADS_LEAD_LABEL and PATHFINDER_GOOGLE_ADS_BOOKING_LABEL as GitHub Actions secrets, then redeploy."
+    );
+  }
 }
