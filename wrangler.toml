@@ -7,6 +7,9 @@ CONTACT_TO_EMAIL = "hi@pathfindertherapy.com"
 # Set in Cloudflare dashboard → Settings → Environment variables:
 # PATHFINDER_CALENDLY_URL = https://calendly.com/your-account/initial-consultation
 # Secret: CALENDLY_WEBHOOK_SIGNING_KEY (for /api/calendly-webhook)
+# Secret: RESEND_API_KEY (shared with /api/contact — required for booking emails)
+# Optional: CALENDLY_NOTIFY_EMAIL (defaults to CONTACT_TO_EMAIL)
+# Optional: CONTACT_FROM_EMAIL (verified sender in Resend)
 #
 # Google Ads conversion labels (GitHub Actions secrets at build time):
 # PATHFINDER_GOOGLE_ADS_LEAD_LABEL = form enquiry conversion label (from Google Ads → Conversions)
