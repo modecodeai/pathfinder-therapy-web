@@ -29,6 +29,13 @@ export const SPRINT2_CSS = `<style id="pathfinder-sprint2">
 .lpFaqList summary::-webkit-details-marker { display: none; }
 .lpFaqList p { margin: 12px 0 0; font-size: 14px; line-height: 1.65; color: rgba(246,242,234,.72); }
 .lpPullQuote { margin: 0; padding: 48px clamp(16px, 3vw, 40px) 64px; text-align: center; font-family: Georgia, serif; font-size: clamp(1.4rem, 3vw, 1.9rem); font-style: italic; color: rgba(246,242,234,.58); max-width: 1180px; margin-inline: auto; }
+.lpTrustStrip { display: grid; gap: 12px; margin-top: 4px; }
+.lpTrustStripNote { margin: 0; font-size: 13px; line-height: 1.65; color: rgba(246,242,234,.62); max-width: 38rem; }
+.lpAdLandingStrip { display: none; padding: 14px clamp(16px, 3vw, 40px); border-bottom: 1px solid rgba(200,154,88,.28); background: rgba(200,154,88,.08); }
+.lpAdLandingStrip.isVisible { display: block; }
+.lpAdLandingInner { max-width: 1180px; margin: 0 auto; display: flex; flex-wrap: wrap; gap: 12px 20px; align-items: center; justify-content: space-between; }
+.lpAdLandingCopy { margin: 0; font-size: 14px; line-height: 1.55; color: rgba(246,242,234,.84); max-width: 36rem; }
+.lpAdLandingActions { display: flex; flex-wrap: wrap; gap: 10px; }
 .lpPageGrid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(280px, 340px); gap: clamp(24px, 4vw, 40px); align-items: start; padding: clamp(20px, 4vw, 40px) clamp(16px, 3vw, 40px) 64px; max-width: 1280px; margin: 0 auto; }
 .lpPageContent { min-width: 0; }
 .lpPageContent .siteMain, .lpPageContent .interiorMain, .lpPageContent .aboutPage, .lpPageContent .therapyPage { margin: 0 !important; width: 100% !important; }
@@ -64,9 +71,16 @@ const TRUST_PILLS = `<ul class="lpTrustList" aria-label="Professional reassuranc
   <li>EATA registered</li>
   <li>Trauma-informed</li>
   <li>EMDR</li>
+  <li>Transactional Analysis</li>
+  <li>Supervised practice</li>
   <li>Confidential</li>
   <li>English-speaking</li>
 </ul>`;
+
+const TRUST_STRIP = `<div class="lpTrustStrip" aria-label="Professional credentials">
+  ${buildEataBadge()}
+  <p class="lpTrustStripNote">EATA registered therapist · clinical supervision · professional indemnity insurance · sessions from €75 · Lisbon clinic or secure online</p>
+</div>`;
 
 const STEPS = `<ol class="lpSteps" aria-label="What happens next">
   <li><span class="lpStepNum">1</span><span>Send a brief secure enquiry — no detailed history needed.</span></li>
@@ -98,7 +112,16 @@ export function wrapWithBookingPanel(mainInner) {
 }
 
 export function buildHomePageBody() {
-  return `<div class="lpHome">
+  return `<div class="lpAdLandingStrip" id="lpAdLandingStrip" aria-label="Get started">
+  <div class="lpAdLandingInner">
+    <p class="lpAdLandingCopy"><strong>Ready to begin?</strong> Choose the path that suits you — book a Zoom call now or send a brief enquiry first.</p>
+    <div class="lpAdLandingActions">
+      <a class="lpPrimaryCta" href="/book/">Book Zoom call</a>
+      <a class="lpSecondaryCta" href="${BOOKING_PATH}">Send enquiry</a>
+    </div>
+  </div>
+</div>
+<div class="lpHome">
   <div class="lpHomeHeroWrap">
     <div class="lpGrid">
       <section class="lpHero" aria-labelledby="home-title">
@@ -106,8 +129,8 @@ export function buildHomePageBody() {
         <h1 class="lpTitle" id="home-title">Trauma-informed psychotherapy with Brent Kelly in Lisbon and online.</h1>
         <p class="lpLead">Support for adults and couples navigating trauma, anxiety, attachment, and major life transitions — in person at our Lisbon clinic or securely online across Portugal.</p>
         <div class="lpHeroActions">
-          <a class="lpPrimaryCta" href="${BOOKING_PATH}">${BOOKING_LABEL}</a>
-          <a class="lpSecondaryCta" href="https://wa.me/351914775365">WhatsApp Brent</a>
+          <a class="lpPrimaryCta" href="/book/">Book initial Zoom call</a>
+          <a class="lpSecondaryCta" href="${BOOKING_PATH}">${BOOKING_LABEL}</a>
         </div>
         <div class="lpTherapist">
           <img src="/assets/images/about-brent.webp" width="72" height="72" alt="Brent Kelly, therapist at Pathfinder Therapy Lisbon" loading="eager" decoding="async" />
@@ -117,6 +140,7 @@ export function buildHomePageBody() {
           </div>
         </div>
         ${TRUST_PILLS}
+        ${TRUST_STRIP}
         ${STEPS}
       </section>
       ${buildBookingPanel()}
@@ -236,6 +260,26 @@ export function buildHomePageV2(homeHtml) {
     interior: false
   });
 }
+
+export const AD_LANDING_SCRIPT = `<script id="pathfinder-ad-landing">
+(function () {
+  if (window.location.pathname !== "/") return;
+  var params = new URLSearchParams(window.location.search);
+  var paid =
+    params.has("gclid") ||
+    params.has("fbclid") ||
+    params.get("utm_medium") === "cpc" ||
+    params.get("utm_medium") === "ppc" ||
+    params.get("utm_source") === "google";
+  if (!paid) return;
+  var strip = document.getElementById("lpAdLandingStrip");
+  if (strip) strip.classList.add("isVisible");
+  if (window.pathfinderLead) window.pathfinderLead.capture();
+  if (typeof window.gtag === "function") {
+    window.gtag("event", "ad_landing_view", { event_category: "paid_traffic", event_label: "homepage" });
+  }
+})();
+</script>`;
 
 export function applySprint2Transforms(html, route) {
   if (route !== "/therapy/" && route !== "/about/") {

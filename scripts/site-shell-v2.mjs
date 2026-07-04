@@ -191,7 +191,7 @@ export function buildSiteFooter() {
       <nav class="lpSiteFooterNav" aria-label="Footer navigation">${primary}</nav>
       <nav class="lpSiteFooterExplore" aria-label="Explore">${explore}</nav>
     </div>
-    <p class="lpSiteFooterMeta">Pathfinder Therapy · R. Rodrigues Sampaio 76, Lisboa · <a href="/privacy/">Privacy</a> · <a href="/terms/">Terms</a> · <a href="/crisis-support/">Crisis support</a> · Non-urgent enquiries only</p>
+    <p class="lpSiteFooterMeta">Pathfinder Therapy · R. Rodrigues Sampaio 76, Lisboa · <a href="/privacy/">Privacy</a> · <a href="/terms/">Terms</a> · <a href="/crisis-support/">Crisis support</a> · <a href="#" data-cookie-manage>Manage cookies</a> · Non-urgent enquiries only</p>
   </div>
 </footer>`;
 }
