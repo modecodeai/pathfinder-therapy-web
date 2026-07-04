@@ -1,3 +1,5 @@
+import { buildEataBadge } from "./site-eata.mjs";
+
 const CALENDLY_URL_FALLBACK = "https://calendly.com/pathfindertherapy/initial-consultation";
 
 export const DEFAULT_CALENDLY_URL =
@@ -107,6 +109,7 @@ export function buildBookPageBody() {
       <li>English-speaking</li>
       <li>Zoom link sent automatically</li>
     </ul>
+    ${buildEataBadge()}
     <ol class="lpSteps" aria-label="What happens next">
       <li><span class="lpStepNum">1</span><span>Choose a time below and enter your details securely via Calendly.</span></li>
       <li><span class="lpStepNum">2</span><span>You receive Zoom meeting details by email.</span></li>
