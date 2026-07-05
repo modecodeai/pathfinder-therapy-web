@@ -930,14 +930,20 @@ async function main() {
   await rm(OUT_DIR, { recursive: true, force: true });
   await mkdir(OUT_DIR, { recursive: true });
 
-  const eataLogoSource = path.join(
-    path.dirname(fileURLToPath(import.meta.url)),
-    "..",
-    "public/assets/images/eata-logo.svg"
-  );
-  const eataLogoTarget = path.join(OUT_DIR, "assets/images/eata-logo.svg");
-  await mkdir(path.dirname(eataLogoTarget), { recursive: true });
-  await cp(eataLogoSource, eataLogoTarget);
+  const repoRoot = path.join(path.dirname(fileURLToPath(import.meta.url)), "..");
+  const staticAssets = [
+    ["public/assets/images/eata-logo.svg", "assets/images/eata-logo.svg"],
+    [
+      "public/assets/images/locallista-lisbon-member-2026.png",
+      "assets/images/locallista-lisbon-member-2026.png"
+    ]
+  ];
+  for (const [sourceRel, targetRel] of staticAssets) {
+    const source = path.join(repoRoot, sourceRel);
+    const target = path.join(OUT_DIR, targetRel);
+    await mkdir(path.dirname(target), { recursive: true });
+    await cp(source, target);
+  }
 
   let sitemapXml;
   try {

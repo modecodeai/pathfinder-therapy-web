@@ -2,18 +2,14 @@ export const GBP_PLACE_ID = "ChIJtw3iKwwzGQ0R4etcENFtq88";
 
 export const GBP_MAPS_URL = `https://www.google.com/maps/place/?q=place_id:${GBP_PLACE_ID}`;
 
-/** Locallista support ID (dashboard) — not used in embed attributes */
-export const LOCALLISTA_BUSINESS_ID = "1768931301";
-/** Widget ID from Locallista “Manage my business” → data-business-widget-id */
-export const LOCALLISTA_BUSINESS_WIDGET_ID = "72d389bf-99b4-43b9-a8f7-a4c539e8d5aa";
-/** Chosen widget type from Locallista embed code → data-widget-type-id */
-export const LOCALLISTA_WIDGET_TYPE_ID = "db9caa98-41ae-47fa-b656-468b6014fde2";
+export const LOCALLISTA_URL = "https://www.locallista.com";
+export const LOCALLISTA_BADGE_PATH = "/assets/images/locallista-lisbon-member-2026.png";
 
 export const REVIEWS_CSS = `<style id="pathfinder-public-feedback">
 .lpFeedbackSection { display: grid; gap: 24px; }
 .lpFeedbackLead { margin: 0; font-size: 1.05rem; line-height: 1.7; color: rgba(246,242,234,.72); max-width: 42rem; }
-.lpFeedbackWidget { min-height: 140px; display: flex; justify-content: center; align-items: center; width: 100%; }
-.lpFeedbackWidget a { font-size: 12px; color: rgba(246,242,234,.42); text-decoration: none; }
+.lpLocallistaBadge { display: block; width: fit-content; max-width: min(100%, 360px); margin: 0; }
+.lpLocallistaBadge img { display: block; width: 100%; height: auto; border-radius: 12px; }
 .lpFeedbackActions { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; }
 .lpFeedbackDisclaimer { margin: 0; font-size: 13px; line-height: 1.65; color: rgba(246,242,234,.52); max-width: 42rem; }
 .lpFeedbackThemes { margin: 0; padding: 0; list-style: none; display: grid; gap: 8px; max-width: 42rem; }
@@ -21,6 +17,7 @@ export const REVIEWS_CSS = `<style id="pathfinder-public-feedback">
 .lpFeedbackThemes li::before { content: ""; position: absolute; left: 0; top: .55em; width: 5px; height: 5px; border-radius: 50%; background: rgba(200,154,88,.55); }
 .lpFeedbackCompact .lpFeedbackLead { font-size: 15px; }
 .lpFeedbackCompact .lpFeedbackDisclaimer { font-size: 12px; }
+.lpFeedbackCompact .lpLocallistaBadge { max-width: min(100%, 300px); }
 </style>`;
 
 const FEEDBACK_THEMES = `<ul class="lpFeedbackThemes" aria-label="Themes sometimes mentioned in public feedback">
@@ -30,14 +27,10 @@ const FEEDBACK_THEMES = `<ul class="lpFeedbackThemes" aria-label="Themes sometim
   <li>Fair pricing relative to private therapy in the UK and Portugal</li>
 </ul>`;
 
-function buildLocallistaWidget() {
-  return `<div id="locallista-widget" class="lpFeedbackWidget" aria-label="Locallista quality badge"></div>
-<script
-  src="https://widget.locallista.com/static/widget-locallista.js"
-  defer
-  data-business-widget-id="${LOCALLISTA_BUSINESS_WIDGET_ID}"
-  data-widget-type-id="${LOCALLISTA_WIDGET_TYPE_ID}">
-</script>`;
+function buildLocallistaBadge() {
+  return `<a class="lpLocallistaBadge" href="${LOCALLISTA_URL}" target="_blank" rel="noopener noreferrer" aria-label="Pathfinder Therapy — Locallista Lisbon member business, trusted by expats">
+  <img src="${LOCALLISTA_BADGE_PATH}" width="360" height="240" alt="Locallista Lisbon member business 2026 — trusted by expats" loading="lazy" decoding="async" />
+</a>`;
 }
 
 export function buildPublicFeedbackSection({ compact = false } = {}) {
@@ -56,7 +49,7 @@ export function buildPublicFeedbackSection({ compact = false } = {}) {
     <h2 class="lpSectionTitle" id="${titleId}">${heading}</h2>
     <p class="lpFeedbackLead">Some people choose to leave feedback on independent platforms. We do not confirm whether any reviewer was a client, and we do not ask current clients for reviews.</p>
   </div>
-  ${buildLocallistaWidget()}
+  ${buildLocallistaBadge()}
   ${FEEDBACK_THEMES}
   <div class="lpFeedbackActions">
     <a class="lpSecondaryCta" href="${GBP_MAPS_URL}" rel="noopener noreferrer" target="_blank">Read public feedback on Google</a>
