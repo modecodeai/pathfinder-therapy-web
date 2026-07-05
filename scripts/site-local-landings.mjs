@@ -1,3 +1,4 @@
+import { BOOKING_PATH } from "./site-ux-layer.mjs";
 import { buildBreadcrumbSchema, buildServiceSchema } from "./site-schema.mjs";
 import { buildPublicFeedbackSection } from "./site-reviews.mjs";
 import { getClinicDirectionsUrl } from "./site-location.mjs";
@@ -20,6 +21,10 @@ function hero(kicker, title, id, lead) {
   <p class="lpKicker">${kicker}</p>
   <h1 class="lpTitle" id="${id}">${title}</h1>
   <p class="lpLead">${lead}</p>
+  <div class="lpHeroActions">
+    <a class="lpPrimaryCta" href="/book/">Book initial Zoom call</a>
+    <a class="lpSecondaryCta" href="${BOOKING_PATH}">Send a brief enquiry</a>
+  </div>
 </section>`;
 }
 
