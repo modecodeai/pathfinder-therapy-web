@@ -41,6 +41,11 @@ import {
   getLocalLandingRoutes
 } from "./site-local-landings.mjs";
 import { injectLocationStyles } from "./site-location.mjs";
+import {
+  buildKnowledgeArticlePage,
+  getKnowledgeArticleRoutes,
+  loadKnowledgeArticles
+} from "./site-knowledge-articles.mjs";
 
 const PREVIEW_ORIGIN =
   process.env.PATHFINDER_PREVIEW_ORIGIN ?? "https://9aa49f15.pathfinder-therapy-web.pages.dev";
@@ -631,7 +636,7 @@ function buildInteriorPageWithBookingPanel(shellHtml, { title, description, cano
   return html;
 }
 
-function buildInteriorPageV2(shellHtml, { title, description, canonical, mainInner, schema = "" }) {
+function buildInteriorPageV2(shellHtml, { title, description, canonical, mainInner, schema = "", ogImage = null }) {
   const route = new URL(canonical).pathname;
   const parts = extractPageParts(shellHtml);
   let head = parts.head;
@@ -639,7 +644,7 @@ function buildInteriorPageV2(shellHtml, { title, description, canonical, mainInn
     head = head.replace("</head>", `${schema}\n</head>`);
   }
   let html = wrapInShellV2({ ...parts, head, route, mainInner });
-  html = patchHtml(html, { title, description, canonical });
+  html = patchHtml(html, { title, description, canonical, ogImage });
   return html;
 }
 
@@ -967,7 +972,8 @@ async function main() {
     "/contact/",
     "/crisis-support/",
     "/",
-    ...getLocalLandingRoutes()
+    ...getLocalLandingRoutes(),
+    ...getKnowledgeArticleRoutes()
   ]);
   const assetPaths = new Set(["/robots.txt", "/rss.xml", "/sitemap.xml", "/favicon.ico", "/favicon.svg"]);
   let contactHtml = "";
@@ -1078,6 +1084,16 @@ async function main() {
     );
     await writeRoute(PREVIEW_ORIGIN, page.route, landingHtml);
     console.log(`Added ${page.route} (local landing)`);
+  }
+
+  const knowledgeArticles = await loadKnowledgeArticles();
+  for (const article of knowledgeArticles) {
+    let articleHtml = buildKnowledgeArticlePage(shellHtml, article, buildInteriorPageV2);
+    articleHtml = applySprint3Transforms(articleHtml, article.route);
+    articleHtml = stripHydrationScripts(articleHtml);
+    for (const asset of extractAssetPaths(articleHtml)) assetPaths.add(asset);
+    await writeRoute(PREVIEW_ORIGIN, article.route, articleHtml);
+    console.log(`Added ${article.route} (knowledge article)`);
   }
 
   await writeFile(path.join(OUT_DIR, "llms.txt"), applyCredentialCopy(buildLlmsTxt()), "utf8");
