@@ -75,6 +75,7 @@ export const SPRINT2_CSS = `${REVIEWS_CSS}
 .lpAboutStrip { display: grid; grid-template-columns: 120px minmax(0, 1fr); gap: 20px; align-items: center; padding: 24px; border: 1px solid rgba(246,242,234,.1); border-radius: 16px; background: rgba(8,16,15,.4); }
 .lpAboutStrip img { width: 120px; height: 120px; border-radius: 12px; object-fit: cover; }
 .lpAboutStrip p { margin: 0 0 12px; font-size: 15px; line-height: 1.65; color: rgba(246,242,234,.76); }
+.lpAboutStrip .lpEataWrap { margin-top: 4px; }
 @media (max-width: 1024px) {
   .lpPageGrid { grid-template-columns: 1fr; padding-bottom: 24px; }
   .lpBookingPanel { position: static; order: 2; }
@@ -89,6 +90,15 @@ export const SPRINT2_CSS = `${REVIEWS_CSS}
   .lpHomeHeroWrap .lpBookingPanel { order: 2; }
 }
 </style>`;
+
+const HERO_TRUST_PILLS = `<ul class="lpTrustList" aria-label="Professional reassurance">
+  <li>EATA registered</li>
+  <li>Trauma-informed</li>
+  <li>Confidential</li>
+  <li>English-speaking</li>
+</ul>`;
+
+const HERO_CREDENTIALS = `<p class="lpTrustStripNote">Clinical supervision · professional indemnity insurance · sessions from €75 · Lisbon clinic or secure online</p>`;
 
 const TRUST_PILLS = `<ul class="lpTrustList" aria-label="Professional reassurance">
   <li>EATA registered</li>
@@ -111,7 +121,20 @@ const STEPS = `<ol class="lpSteps" aria-label="What happens next">
   <li><span class="lpStepNum">3</span><span>Arrange your first session in Lisbon or online (from €75).</span></li>
 </ol>`;
 
-export function buildBookingPanel() {
+export function buildBookingPanel({ slim = false } = {}) {
+  if (slim) {
+    return `<aside class="lpBookingPanel" aria-label="Arrange a consultation">
+  <p class="lpKicker">Next step</p>
+  <h2 class="lpBookingPanelTitle">Book an initial Zoom call</h2>
+  <p class="lpBookingPanelText">Choose a time for a confidential initial consultation via Zoom — or send a brief enquiry first if you prefer.</p>
+  <div class="lpHeroActions">
+    <a class="lpPrimaryCta" href="/book/">Book initial Zoom call</a>
+    <a class="lpSecondaryCta" href="${BOOKING_PATH}">Send a brief enquiry</a>
+  </div>
+  <p class="lpReassurance">Sessions from €75 · Lisbon clinic or secure online · Non-urgent enquiries only</p>
+</aside>`;
+  }
+
   return `<aside class="lpBookingPanel" aria-label="Arrange a consultation">
   <p class="lpKicker">Next step</p>
   <h2 class="lpBookingPanelTitle">Book an initial Zoom call</h2>
@@ -165,10 +188,6 @@ export function buildHomePageBody() {
         <p class="lpKicker">English-speaking therapist · Lisbon clinic &amp; online</p>
         <h1 class="lpTitle" id="home-title">Trauma-informed psychotherapy with Brent Kelly in Lisbon and online.</h1>
         <p class="lpLead">Support for adults and couples navigating trauma, anxiety, attachment, and major life transitions — in person at our Lisbon clinic or securely online across Portugal.</p>
-        <div class="lpHeroActions">
-          <a class="lpPrimaryCta" href="/book/">Book initial Zoom call</a>
-          <a class="lpSecondaryCta" href="${BOOKING_PATH}">${BOOKING_LABEL}</a>
-        </div>
         <div class="lpTherapist">
           <img src="/assets/images/about-brent.webp" width="72" height="72" alt="Brent Kelly, therapist at Pathfinder Therapy Lisbon" loading="eager" decoding="async" />
           <div>
@@ -176,11 +195,10 @@ export function buildHomePageBody() {
             <p class="lpTherapistRole">Therapist · trauma, EMDR, veterans, couples &amp; individual therapy</p>
           </div>
         </div>
-        ${TRUST_PILLS}
-        ${TRUST_STRIP}
-        ${STEPS}
+        ${HERO_TRUST_PILLS}
+        ${HERO_CREDENTIALS}
       </section>
-      ${buildBookingPanel()}
+      ${buildBookingPanel({ slim: true })}
     </div>
   </div>
 
@@ -244,6 +262,7 @@ export function buildHomePageBody() {
       <div>
         <p>Pathfinder is built around evidence-informed care, real conversation, and a steady therapeutic relationship. Brent works with adults and couples in English — in Lisbon and online.</p>
         <p><strong>EATA registered</strong> · EMDR · Transactional Analysis · clinical supervision · military veterans experience</p>
+        ${buildEataBadge()}
         <a class="lpSecondaryCta" href="/about/" style="display:inline-flex;margin-top:8px">Meet Brent →</a>
       </div>
     </div>
