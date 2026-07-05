@@ -611,7 +611,7 @@ ${BOOK_CONFIRMED_SCRIPT}
   return html;
 }
 
-function buildInteriorPageWithBookingPanel(shellHtml, { title, description, canonical, mainInner, schema = "" }) {
+function buildInteriorPageWithBookingPanel(shellHtml, { title, description, canonical, mainInner, schema = "", slimBookingPanel = false }) {
   const route = new URL(canonical).pathname;
   const parts = extractPageParts(shellHtml);
   let head = parts.head;
@@ -625,7 +625,7 @@ function buildInteriorPageWithBookingPanel(shellHtml, { title, description, cano
     ...parts,
     head,
     route,
-    mainInner: wrapWithBookingPanel(mainInner)
+    mainInner: wrapWithBookingPanel(mainInner, { slim: slimBookingPanel })
   });
   html = patchHtml(html, { title, description, canonical });
   return html;
@@ -1074,7 +1074,7 @@ async function main() {
 
   for (const page of LOCAL_LANDING_PAGES) {
     const landingHtml = stripHydrationScripts(
-      buildLocalLandingPage(shellHtml, page, buildInteriorPageWithBookingPanel)
+      injectLocationStyles(buildLocalLandingPage(shellHtml, page, buildInteriorPageWithBookingPanel))
     );
     await writeRoute(PREVIEW_ORIGIN, page.route, landingHtml);
     console.log(`Added ${page.route} (local landing)`);

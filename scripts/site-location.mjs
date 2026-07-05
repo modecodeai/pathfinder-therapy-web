@@ -37,6 +37,10 @@ export function getClinicGeo() {
   };
 }
 
+export function getClinicDirectionsUrl() {
+  return CLINIC.directionsUrl;
+}
+
 export function buildLocationBlock({ headingId = "clinic-location", compact = false } = {}) {
   const title = compact ? "Find the Lisbon clinic" : "Pathfinder Therapy — Lisbon clinic";
   return `<section class="lpLocalSection lpLocationSection" aria-labelledby="${headingId}">

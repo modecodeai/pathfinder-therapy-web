@@ -1,7 +1,9 @@
 import { buildBreadcrumbSchema, buildServiceSchema } from "./site-schema.mjs";
 import { buildPublicFeedbackSection } from "./site-reviews.mjs";
+import { getClinicDirectionsUrl } from "./site-location.mjs";
 
 const SITE = "https://www.pathfindertherapy.com";
+const DIRECTIONS_LINK = `<p><a class="lpLocationMapLink" href="${getClinicDirectionsUrl()}" target="_blank" rel="noopener noreferrer">Get directions on Google Maps →</a></p>`;
 
 function section(kicker, title, id, bodyHtml) {
   return `<section class="lpLocalSection" aria-labelledby="${id}">
@@ -39,21 +41,15 @@ export const LOCAL_LANDING_PAGES = [
         "Location",
         "Therapy in central Lisbon",
         "psy-location",
-        `<p>Pathfinder Therapy is based at <strong>R. Rodrigues Sampaio 76</strong>, Lisboa — accessible from Avenidas Novas and central Lisbon. Secure online sessions are available across Portugal if travel or schedule makes in-person sessions difficult.</p>`
+        `<p>Pathfinder Therapy is based at <strong>R. Rodrigues Sampaio 76</strong>, Lisboa — accessible from Avenidas Novas and central Lisbon. Secure online sessions are available across Portugal if travel or schedule makes in-person sessions difficult.</p>
+        ${DIRECTIONS_LINK}`
       ),
       section(
         "Approach",
         "Trauma-informed and relational",
         "psy-approach",
         `<p>Brent Kelly works with trauma, anxiety, attachment, relationships, and major life transitions — using EMDR and Transactional Analysis where clinically appropriate. Therapy is paced carefully and shaped around your life, not a formula.</p>
-        <p><a href="/approach/">Read about the approach</a> · <a href="/therapy/">View therapy services</a></p>`
-      ),
-      section(
-        "Next step",
-        "Arrange an initial consultation",
-        "psy-next",
-        `<p>Book an initial Zoom call or send a brief enquiry. Brent replies within one working day to non-urgent messages.</p>
-        <p><a href="/faq/">FAQ</a> · <a href="/fees/">Fees from €75</a></p>`
+        <p><a href="/approach/">Read about the approach</a> · <a href="/therapy/">View therapy services</a> · <a href="/faq/">FAQ</a> · <a href="/fees/">Fees from €75</a></p>`
       )
     ],
     links: [
@@ -92,7 +88,8 @@ export const LOCAL_LANDING_PAGES = [
         "Location",
         "Lisbon clinic and online",
         "trauma-location",
-        `<p>Sessions at the Lisbon clinic (R. Rodrigues Sampaio 76) or securely online across Portugal. English-speaking throughout.</p>`
+        `<p>Sessions at the Lisbon clinic (R. Rodrigues Sampaio 76) or securely online across Portugal. English-speaking throughout.</p>
+        ${DIRECTIONS_LINK}`
       )
     ],
     links: [
@@ -131,7 +128,8 @@ export const LOCAL_LANDING_PAGES = [
         "Practical details",
         "Sessions in English — Lisbon or online",
         "emdr-practical",
-        `<p>EMDR sessions are available in English at the Lisbon clinic or online. Individual sessions from €75 for 50 minutes. <a href="/fees/">See fees</a>.</p>`
+        `<p>EMDR sessions are available in English at the Lisbon clinic or online. Individual sessions from €75 for 50 minutes. <a href="/fees/">See fees</a>.</p>
+        ${DIRECTIONS_LINK}`
       )
     ],
     links: [
@@ -171,7 +169,8 @@ export const LOCAL_LANDING_PAGES = [
         "Central Lisbon clinic",
         "en-location",
         `<p><strong>Pathfinder Therapy</strong><br>R. Rodrigues Sampaio 76 1º Andar<br>1150-281 Lisboa, Portugal</p>
-        <p>Near Avenidas Novas. Online sessions available if you are elsewhere in Portugal.</p>`
+        <p>Near Avenidas Novas. Online sessions available if you are elsewhere in Portugal.</p>
+        ${DIRECTIONS_LINK}`
       )
     ],
     links: [
@@ -218,7 +217,8 @@ ${buildBreadcrumbSchema([
     description: page.description,
     canonical: canonicalUrl,
     mainInner: buildLocalLandingBody(page),
-    schema
+    schema,
+    slimBookingPanel: true
   });
 }
 

@@ -150,10 +150,10 @@ export function buildBookingPanel({ slim = false } = {}) {
 </aside>`;
 }
 
-export function wrapWithBookingPanel(mainInner) {
+export function wrapWithBookingPanel(mainInner, { slim = false } = {}) {
   return `<div class="lpPageGrid">
   <div class="lpPageContent">${mainInner}</div>
-  ${buildBookingPanel()}
+  ${buildBookingPanel({ slim })}
 </div>`;
 }
 
