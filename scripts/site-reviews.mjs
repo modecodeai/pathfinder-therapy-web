@@ -8,7 +8,7 @@ export const LOCALLISTA_BADGE_PATH = "/assets/images/locallista-lis-signature-de
 export const REVIEWS_CSS = `<style id="pathfinder-public-feedback">
 .lpFeedbackSection { display: grid; gap: 24px; }
 .lpFeedbackLead { margin: 0; font-size: 1.05rem; line-height: 1.7; color: rgba(246,242,234,.72); max-width: 42rem; }
-.lpLocallistaBadge { display: block; width: fit-content; max-width: min(100%, 360px); margin: 0; }
+.lpLocallistaBadge { display: block; width: fit-content; max-width: min(100%, 420px); margin: 0; }
 .lpLocallistaBadge img { display: block; width: 100%; height: auto; border-radius: 12px; }
 .lpFeedbackActions { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; }
 .lpFeedbackDisclaimer { margin: 0; font-size: 13px; line-height: 1.65; color: rgba(246,242,234,.52); max-width: 42rem; }
@@ -17,7 +17,7 @@ export const REVIEWS_CSS = `<style id="pathfinder-public-feedback">
 .lpFeedbackThemes li::before { content: ""; position: absolute; left: 0; top: .55em; width: 5px; height: 5px; border-radius: 50%; background: rgba(200,154,88,.55); }
 .lpFeedbackCompact .lpFeedbackLead { font-size: 15px; }
 .lpFeedbackCompact .lpFeedbackDisclaimer { font-size: 12px; }
-.lpFeedbackCompact .lpLocallistaBadge { max-width: min(100%, 300px); }
+.lpFeedbackCompact .lpLocallistaBadge { max-width: min(100%, 340px); }
 </style>`;
 
 const FEEDBACK_THEMES = `<ul class="lpFeedbackThemes" aria-label="Themes sometimes mentioned in public feedback">
@@ -29,7 +29,7 @@ const FEEDBACK_THEMES = `<ul class="lpFeedbackThemes" aria-label="Themes sometim
 
 function buildLocallistaBadge() {
   return `<a class="lpLocallistaBadge" href="${LOCALLISTA_URL}" target="_blank" rel="noopener noreferrer" aria-label="Pathfinder Therapy — Locallista Lisbon member business, trusted by expats">
-  <img src="${LOCALLISTA_BADGE_PATH}" width="360" height="120" alt="Locallista Lisbon member business 2026 — trusted by expats" loading="lazy" decoding="async" />
+  <img src="${LOCALLISTA_BADGE_PATH}" width="420" height="140" alt="Locallista Lisbon member business 2026 — trusted by expats" loading="lazy" decoding="async" />
 </a>`;
 }
 
