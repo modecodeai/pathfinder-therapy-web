@@ -30,11 +30,29 @@ export const SPRINT3_CSS = `<style id="pathfinder-sprint3">
 .lpArticleContent .relatedPages { padding-bottom: 0 !important; }
 .lpArticleContent .relatedPagesGrid { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; gap: 12px !important; }
 .lpArticleContent .knowledgeInlineLinks a { font-size: 1rem !important; }
+.lpPageContent .journalPage { max-width: none !important; width: 100% !important; margin: 0 !important; animation: none !important; }
+.lpPageContent .journalHero { min-height: auto !important; padding: 0 0 clamp(24px, 4vw, 36px) !important; grid-template-columns: 1fr !important; border-bottom: 1px solid rgba(246,242,234,.08); }
+.lpPageContent .journalHeroCopy { max-width: 42rem !important; display: grid; gap: 12px; }
+.lpPageContent .journalHeroTitle { font-size: clamp(1.6rem, 3.2vw, 2.35rem) !important; line-height: 1.12 !important; font-weight: 600 !important; max-width: 100% !important; overflow-wrap: break-word; }
+.lpPageContent .journalHeroText { font-size: 1.05rem !important; line-height: 1.7 !important; max-width: 38rem !important; margin-top: 0 !important; }
+.lpPageContent .breadcrumbs { margin: 0 0 4px; font-size: 13px; }
+.lpPageContent .sectionKicker { font-size: 12px; margin: 0; }
+.lpPageContent .journalLatest, .lpPageContent .journalTopics, .lpPageContent .journalPhilosophy, .lpPageContent .relatedPages { padding: clamp(28px, 4vw, 40px) 0 !important; min-height: auto !important; border-bottom: 1px solid rgba(246,242,234,.06); }
+.lpPageContent .journalSectionTitle { font-size: clamp(1.35rem, 2.4vw, 1.75rem) !important; line-height: 1.15 !important; max-width: 100% !important; }
+.lpPageContent .journalBody p { font-size: 15px !important; line-height: 1.75 !important; }
+.lpPageContent .knowledgeArticleItem { padding: 18px 0 !important; }
+.lpPageContent .knowledgeArticleItem h3 { font-size: 1.05rem !important; line-height: 1.3 !important; }
+.lpPageContent .knowledgeArticleItem > p:not(.journalEssayCategory) { font-size: 14px !important; line-height: 1.65 !important; }
+.lpPageContent .knowledgeArticleItem small { font-size: 13px !important; }
+.lpPageContent .knowledgeCategory span { font-size: clamp(1.15rem, 2vw, 1.45rem) !important; line-height: 1.2 !important; }
+.lpPageContent .knowledgeCategory small { font-size: 13px !important; line-height: 1.6 !important; }
+.lpPageContent .relatedPages { padding-bottom: 0 !important; }
 @media (max-width: 900px) {
   .lpArticleGrid { grid-template-columns: 1fr; padding-bottom: 16px; }
   .lpArticleGrid .lpBookingPanel { order: 2; }
   .lpArticleContent { order: 1; }
   .lpArticleContent .approachHeroTitle { font-size: clamp(1.5rem, 6vw, 2rem) !important; }
+  .lpPageContent .journalHeroTitle { font-size: clamp(1.5rem, 6vw, 2rem) !important; }
 }
 </style>`;
 
@@ -74,9 +92,9 @@ function replaceInteriorBody(html, mainInner) {
   );
 }
 
-function applyBookingPanelLayout(html) {
+function applyBookingPanelLayout(html, { slim = false } = {}) {
   const parts = extractPageParts(html);
-  const mainInner = wrapWithBookingPanel(parts.mainInner);
+  const mainInner = wrapWithBookingPanel(parts.mainInner, { slim });
   let next = replaceInteriorBody(html, mainInner);
   return injectStyles(next);
 }
@@ -136,7 +154,11 @@ export function applySprint3Transforms(html, route) {
     return applySprint2Transforms(html, route);
   }
 
-  if (route === "/approach/" || route === "/knowledge-library/") {
+  if (route === "/knowledge-library/") {
+    return applyBookingPanelLayout(html, { slim: true });
+  }
+
+  if (route === "/approach/") {
     return applyBookingPanelLayout(html);
   }
 
