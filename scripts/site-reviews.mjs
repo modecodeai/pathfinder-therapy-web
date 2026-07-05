@@ -2,8 +2,12 @@ export const GBP_PLACE_ID = "ChIJtw3iKwwzGQ0R4etcENFtq88";
 
 export const GBP_MAPS_URL = `https://www.google.com/maps/place/?q=place_id:${GBP_PLACE_ID}`;
 
+/** Locallista support ID (dashboard) — not used in embed attributes */
 export const LOCALLISTA_BUSINESS_ID = "1768931301";
-export const LOCALLISTA_WIDGET_TYPE_ID = "72d389bf-99b4-43b9-a8f7-a4c539e8d5aa";
+/** Widget ID from Locallista “Manage my business” → data-business-widget-id */
+export const LOCALLISTA_BUSINESS_WIDGET_ID = "72d389bf-99b4-43b9-a8f7-a4c539e8d5aa";
+/** Chosen widget type from Locallista embed code → data-widget-type-id */
+export const LOCALLISTA_WIDGET_TYPE_ID = "db9caa98-41ae-47fa-b656-468b6014fde2";
 
 export const REVIEWS_CSS = `<style id="pathfinder-public-feedback">
 .lpFeedbackSection { display: grid; gap: 24px; }
@@ -27,13 +31,11 @@ const FEEDBACK_THEMES = `<ul class="lpFeedbackThemes" aria-label="Themes sometim
 </ul>`;
 
 function buildLocallistaWidget() {
-  return `<div id="locallista-widget" class="lpFeedbackWidget" aria-label="Locallista quality badge">
-  <a href="https://www.locallista.com" title="Find Trusted English-Speaking Professionals for Expats">Powered by Locallista</a>
-</div>
+  return `<div id="locallista-widget" class="lpFeedbackWidget" aria-label="Locallista quality badge"></div>
 <script
   src="https://widget.locallista.com/static/widget-locallista.js"
   defer
-  data-business-widget-id="${LOCALLISTA_BUSINESS_ID}"
+  data-business-widget-id="${LOCALLISTA_BUSINESS_WIDGET_ID}"
   data-widget-type-id="${LOCALLISTA_WIDGET_TYPE_ID}">
 </script>`;
 }
