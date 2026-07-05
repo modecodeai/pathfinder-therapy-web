@@ -1,4 +1,5 @@
 import { buildBreadcrumbSchema, buildServiceSchema } from "./site-schema.mjs";
+import { buildPublicFeedbackSection } from "./site-reviews.mjs";
 
 const SITE = "https://www.pathfindertherapy.com";
 
@@ -187,6 +188,7 @@ export function buildLocalLandingBody(page) {
   return `<article class="lpLocalLanding">
 ${hero(page.hero.kicker, page.hero.title, "local-landing-title", page.hero.lead)}
 ${page.sections.join("\n")}
+${buildPublicFeedbackSection({ compact: true })}
 <section class="lpLocalSection" aria-labelledby="local-related">
   <div class="lpLocalSectionInner">
     <p class="lpKicker">Learn more</p>

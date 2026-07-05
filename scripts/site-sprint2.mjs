@@ -6,8 +6,10 @@ import {
 } from "./site-shell-v2.mjs";
 import { buildEataBadge, EATA_BADGE_CSS } from "./site-eata.mjs";
 import { enhanceTherapyLocationSection, injectLocationStyles } from "./site-location.mjs";
+import { buildPublicFeedbackSection, REVIEWS_CSS } from "./site-reviews.mjs";
 
-export const SPRINT2_CSS = `<style id="pathfinder-sprint2">
+export const SPRINT2_CSS = `${REVIEWS_CSS}
+<style id="pathfinder-sprint2">
 .lpHome { display: grid; gap: 0; }
 .lpHomeHeroWrap { padding: clamp(24px, 4vw, 48px) clamp(16px, 3vw, 40px); border-bottom: 1px solid rgba(246,242,234,.08); background: linear-gradient(180deg, rgba(8,16,15,.2), rgba(8,16,15,.75)), url(/assets/images/hero-01.webp) center/cover no-repeat; }
 .lpHomeHeroWrap .lpGrid { max-width: 1180px; margin: 0 auto; }
@@ -246,6 +248,8 @@ export function buildHomePageBody() {
       </div>
     </div>
   </section>
+
+  ${buildPublicFeedbackSection()}
 
   <section class="lpSection" aria-labelledby="home-services">
     <div class="lpSectionHead">

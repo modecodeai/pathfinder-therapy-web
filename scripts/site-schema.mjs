@@ -21,7 +21,11 @@ export const GLOBAL_SCHEMA = [
     url: SITE,
     email: "hi@pathfindertherapy.com",
     telephone: "+351 914 775 365",
-    sameAs: ["https://www.instagram.com/pathfinder.therapy/"],
+    sameAs: [
+      "https://www.instagram.com/pathfinder.therapy/",
+      "https://www.google.com/maps/place/?q=place_id:ChIJtw3iKwwzGQ0R4etcENFtq88",
+      "https://www.locallista.com"
+    ],
     address: LISBON_ADDRESS,
     areaServed: [
       { "@type": "City", name: "Lisboa" },
