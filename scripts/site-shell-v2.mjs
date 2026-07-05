@@ -20,6 +20,7 @@ export const EXPLORE_LINKS = [
 
 export const SHELL_V2_CSS = `<style id="pathfinder-shell-v2">
 .lpShell { min-height: 100vh; background: var(--color-forest-deep, #08100f); color: var(--color-linen, #f6f2ea); }
+body.lpBody { overflow-x: hidden; overflow-y: auto; min-height: 100vh; }
 .lpHeader { position: sticky; top: 0; z-index: 40; background: rgba(8,16,15,.94); border-bottom: 1px solid rgba(246,242,234,.08); backdrop-filter: blur(10px); }
 .lpHeaderInner { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 14px clamp(16px, 3vw, 32px); max-width: 1280px; margin: 0 auto; }
 .lpBrand { color: var(--color-bronze, #c89a58); font-family: Georgia, serif; letter-spacing: .08em; font-size: 13px; text-decoration: none; white-space: nowrap; }

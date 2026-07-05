@@ -41,18 +41,19 @@ export function buildPublicFeedbackSection({ compact = false } = {}) {
     ? "Third-party feedback"
     : "What people have shared publicly";
 
+  const innerClass = compact ? "lpLocalSectionInner" : "lpSectionHead";
   return `<section class="${sectionClass}" aria-labelledby="${titleId}">
-  <div class="lpSectionHead">
+  <div class="${innerClass}">
     <p class="lpKicker">${kicker}</p>
     <h2 class="lpSectionTitle" id="${titleId}">${heading}</h2>
     <p class="lpFeedbackLead">Some people choose to leave feedback on independent platforms. We do not confirm whether any reviewer was a client, and we do not ask current clients for reviews.</p>
+    ${buildLocallistaBadge()}
+    ${FEEDBACK_THEMES}
+    <div class="lpFeedbackActions">
+      <a class="lpSecondaryCta" href="${GOOGLE_FEEDBACK_URL}" rel="noopener noreferrer" target="_blank">Read public feedback on Google</a>
+    </div>
+    <p class="lpFeedbackDisclaimer">Feedback reflects individual experiences only — not clinical outcomes or guarantees. Reviews are published by third parties; Pathfinder Therapy does not confirm any therapeutic relationship.</p>
   </div>
-  ${buildLocallistaBadge()}
-  ${FEEDBACK_THEMES}
-  <div class="lpFeedbackActions">
-    <a class="lpSecondaryCta" href="${GOOGLE_FEEDBACK_URL}" rel="noopener noreferrer" target="_blank">Read public feedback on Google</a>
-  </div>
-  <p class="lpFeedbackDisclaimer">Feedback reflects individual experiences only — not clinical outcomes or guarantees. Reviews are published by third parties; Pathfinder Therapy does not confirm any therapeutic relationship.</p>
 </section>`;
 }
 
