@@ -7,6 +7,8 @@ const CLINIC = {
   latitude: 38.7324,
   longitude: -9.1458,
   mapsUrl: "https://maps.google.com/?q=R.+Rodrigues+Sampaio+76,+1150-281+Lisboa,+Portugal",
+  directionsUrl:
+    "https://www.google.com/maps/dir//Pathfinder+Therapy,+R.+Rodrigues+Sampaio+76+1st+floor,+1150-281+Lisboa/@39.4892942,-8.9907968,14z/data=!4m8!4m7!1m0!1m5!1m1!1s0xd19330c2be20db7:0xcfab6dd1105cebe1!2m2!1d-9.1462559!2d38.722773?hl=en-PT&entry=ttu&g_ep=EgoyMDI2MDYyOS4wIKXMDSoASAFQAw%3D%3D",
   embedUrl:
     "https://maps.google.com/maps?q=R.+Rodrigues+Sampaio+76,+1150-281+Lisboa,+Portugal&z=16&output=embed"
 };
@@ -51,7 +53,7 @@ export function buildLocationBlock({ headingId = "clinic-location", compact = fa
           <li><strong>Bus:</strong> Avenida da República and nearby stops on the main north–south routes</li>
           <li><strong>Online:</strong> Secure sessions across Portugal if travel or schedule makes in-person sessions difficult</li>
         </ul>
-        <p><a class="lpLocationMapLink" href="${CLINIC.mapsUrl}" target="_blank" rel="noopener noreferrer">Open in Google Maps →</a></p>
+        <p><a class="lpLocationMapLink" href="${CLINIC.directionsUrl}" target="_blank" rel="noopener noreferrer">Get directions on Google Maps →</a></p>
       </div>
       <div class="lpLocationMap" aria-label="Map showing Pathfinder Therapy clinic in Lisbon">
         <iframe

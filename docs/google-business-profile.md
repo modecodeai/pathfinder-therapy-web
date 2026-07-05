@@ -29,7 +29,8 @@ If the profile is named **Pathfinder Psychotherapy**, consider renaming to **Pat
 | Purpose | URL |
 |---------|-----|
 | **Place ID** | `ChIJtw3iKwwzGQ0R4etcENFtq88` |
-| **View on Google Maps** (on-site “Read public feedback”) | https://www.google.com/maps/place/?q=place_id:ChIJtw3iKwwzGQ0R4etcENFtq88 |
+| **Read public feedback** (on-site link) | https://share.google/9avIEL6pz3bn4kETg |
+| **Get directions** (contact page) | https://www.google.com/maps/dir//Pathfinder+Therapy,+R.+Rodrigues+Sampaio+76+1st+floor,+1150-281+Lisboa/ |
 | **Short Maps link** | https://maps.app.goo.gl/LCSLmT9mz6u7Zm3g7 |
 
 Do **not** place the Google `writereview` solicitation URL on the website — the practice does not ask current clients for public reviews.

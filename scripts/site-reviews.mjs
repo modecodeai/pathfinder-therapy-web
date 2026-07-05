@@ -1,6 +1,4 @@
-export const GBP_PLACE_ID = "ChIJtw3iKwwzGQ0R4etcENFtq88";
-
-export const GBP_MAPS_URL = `https://www.google.com/maps/place/?q=place_id:${GBP_PLACE_ID}`;
+export const GOOGLE_FEEDBACK_URL = "https://share.google/9avIEL6pz3bn4kETg";
 
 export const LOCALLISTA_URL = "https://www.locallista.com";
 export const LOCALLISTA_BADGE_PATH = "/assets/images/locallista-lis-signature-default.svg";
@@ -52,7 +50,7 @@ export function buildPublicFeedbackSection({ compact = false } = {}) {
   ${buildLocallistaBadge()}
   ${FEEDBACK_THEMES}
   <div class="lpFeedbackActions">
-    <a class="lpSecondaryCta" href="${GBP_MAPS_URL}" rel="noopener noreferrer" target="_blank">Read public feedback on Google</a>
+    <a class="lpSecondaryCta" href="${GOOGLE_FEEDBACK_URL}" rel="noopener noreferrer" target="_blank">Read public feedback on Google</a>
   </div>
   <p class="lpFeedbackDisclaimer">Feedback reflects individual experiences only — not clinical outcomes or guarantees. Reviews are published by third parties; Pathfinder Therapy does not confirm any therapeutic relationship.</p>
 </section>`;

@@ -23,7 +23,7 @@ export const GLOBAL_SCHEMA = [
     telephone: "+351 914 775 365",
     sameAs: [
       "https://www.instagram.com/pathfinder.therapy/",
-      "https://www.google.com/maps/place/?q=place_id:ChIJtw3iKwwzGQ0R4etcENFtq88",
+      "https://share.google/9avIEL6pz3bn4kETg",
       "https://www.locallista.com"
     ],
     address: LISBON_ADDRESS,
