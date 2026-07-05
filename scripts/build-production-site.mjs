@@ -934,8 +934,8 @@ async function main() {
   const staticAssets = [
     ["public/assets/images/eata-logo.svg", "assets/images/eata-logo.svg"],
     [
-      "public/assets/images/locallista-lisbon-member-2026.png",
-      "assets/images/locallista-lisbon-member-2026.png"
+      "public/assets/images/locallista-lis-signature-default.svg",
+      "assets/images/locallista-lis-signature-default.svg"
     ]
   ];
   for (const [sourceRel, targetRel] of staticAssets) {

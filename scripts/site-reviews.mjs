@@ -3,7 +3,7 @@ export const GBP_PLACE_ID = "ChIJtw3iKwwzGQ0R4etcENFtq88";
 export const GBP_MAPS_URL = `https://www.google.com/maps/place/?q=place_id:${GBP_PLACE_ID}`;
 
 export const LOCALLISTA_URL = "https://www.locallista.com";
-export const LOCALLISTA_BADGE_PATH = "/assets/images/locallista-lisbon-member-2026.png";
+export const LOCALLISTA_BADGE_PATH = "/assets/images/locallista-lis-signature-default.svg";
 
 export const REVIEWS_CSS = `<style id="pathfinder-public-feedback">
 .lpFeedbackSection { display: grid; gap: 24px; }
@@ -29,7 +29,7 @@ const FEEDBACK_THEMES = `<ul class="lpFeedbackThemes" aria-label="Themes sometim
 
 function buildLocallistaBadge() {
   return `<a class="lpLocallistaBadge" href="${LOCALLISTA_URL}" target="_blank" rel="noopener noreferrer" aria-label="Pathfinder Therapy — Locallista Lisbon member business, trusted by expats">
-  <img src="${LOCALLISTA_BADGE_PATH}" width="360" height="240" alt="Locallista Lisbon member business 2026 — trusted by expats" loading="lazy" decoding="async" />
+  <img src="${LOCALLISTA_BADGE_PATH}" width="360" height="120" alt="Locallista Lisbon member business 2026 — trusted by expats" loading="lazy" decoding="async" />
 </a>`;
 }
 
