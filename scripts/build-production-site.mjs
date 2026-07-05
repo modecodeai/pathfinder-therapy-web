@@ -43,7 +43,8 @@ import {
 import { injectLocationStyles } from "./site-location.mjs";
 import {
   buildKnowledgeArticlePage,
-  getKnowledgeArticleRoutes,
+  buildKnowledgeLibraryIndexPage,
+  getKnowledgeLibraryBuiltRoutes,
   loadKnowledgeArticles
 } from "./site-knowledge-articles.mjs";
 
@@ -973,7 +974,7 @@ async function main() {
     "/crisis-support/",
     "/",
     ...getLocalLandingRoutes(),
-    ...getKnowledgeArticleRoutes()
+    ...getKnowledgeLibraryBuiltRoutes()
   ]);
   const assetPaths = new Set(["/robots.txt", "/rss.xml", "/sitemap.xml", "/favicon.ico", "/favicon.svg"]);
   let contactHtml = "";
@@ -1087,6 +1088,14 @@ async function main() {
   }
 
   const knowledgeArticles = await loadKnowledgeArticles();
+
+  let libraryIndexHtml = buildKnowledgeLibraryIndexPage(shellHtml, knowledgeArticles, buildInteriorPageV2);
+  libraryIndexHtml = applySprint3Transforms(libraryIndexHtml, "/knowledge-library/");
+  libraryIndexHtml = stripHydrationScripts(libraryIndexHtml);
+  for (const asset of extractAssetPaths(libraryIndexHtml)) assetPaths.add(asset);
+  await writeRoute(PREVIEW_ORIGIN, "/knowledge-library/", libraryIndexHtml);
+  console.log("Added /knowledge-library/ (knowledge library index)");
+
   for (const article of knowledgeArticles) {
     let articleHtml = buildKnowledgeArticlePage(shellHtml, article, buildInteriorPageV2);
     articleHtml = applySprint3Transforms(articleHtml, article.route);

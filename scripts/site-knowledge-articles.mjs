@@ -6,6 +6,7 @@ const SITE = "https://www.pathfindertherapy.com";
 const CONTENT_DIR = path.join(path.dirname(fileURLToPath(import.meta.url)), "..", "content", "knowledge-library");
 const ARTICLE_IMAGE = `${SITE}/assets/images/hero-01.webp`;
 const OG_IMAGE = `${SITE}/assets/images/journal.webp`;
+const KNOWLEDGE_LIBRARY_ROUTE = "/knowledge-library/";
 
 const RELATED_PAGES = `<aside class="relatedPages" aria-labelledby="related-pages-title"><p class="sectionKicker" id="related-pages-title">Related pages</p><div class="relatedPagesGrid"><a class="relatedPage" href="/therapy/"><span>Therapy</span><small>Individual therapy with Brent online or in Lisbon.</small></a><a class="relatedPage" href="/about/"><span>About Brent</span><small>Learn about Brent&#x27;s background and clinical approach.</small></a><a class="relatedPage" href="/knowledge-library/"><span>Knowledge Library</span><small>Clear writing on trauma, emotion, relationships and growth.</small></a><a class="relatedPage" href="/contact/"><span>Contact</span><small>Make a non-urgent enquiry with Pathfinder Therapy.</small></a></div></aside>`;
 
@@ -241,6 +242,33 @@ export function buildKnowledgeArticleSchema(article) {
   return `<script id="knowledge-article-schema" type="application/ld+json">${JSON.stringify([breadcrumb, articleSchema, faqSchema])}</script>`;
 }
 
+const LIBRARY_TOPICS = `<section class="journalTopics" aria-labelledby="library-topics"><p class="sectionKicker">Browse by Topic</p><h2 class="journalSectionTitle" id="library-topics">The library is built around subject depth, not keywords.</h2><div class="knowledgeCategoryGrid"><a class="knowledgeCategory" href="/knowledge-library/?topic=trauma"><span>Trauma</span><small>Understanding survival, adaptation and recovery.</small></a><a class="knowledgeCategory" href="/knowledge-library/?topic=relationships"><span>Relationships</span><small>How attachment, safety and repeated patterns shape us.</small></a><a class="knowledgeCategory" href="/knowledge-library/?topic=emotions"><span>Emotions</span><small>Feelings as information, not interruptions.</small></a><a class="knowledgeCategory" href="/knowledge-library/?topic=attachment"><span>Attachment</span><small>The psychology of connection, distance and belonging.</small></a><a class="knowledgeCategory" href="/knowledge-library/?topic=neuroscience"><span>Neuroscience</span><small>Plain-language ideas about the brain and nervous system.</small></a><a class="knowledgeCategory" href="/knowledge-library/?topic=veterans"><span>Veterans</span><small>Military experience, transition, identity and trauma.</small></a><a class="knowledgeCategory" href="/knowledge-library/?topic=transactional-analysis"><span>Transactional Analysis</span><small>Readable introductions to TA ideas and language.</small></a><a class="knowledgeCategory" href="/knowledge-library/?topic=polyvagal-theory"><span>Polyvagal Theory</span><small>Nervous system states, safety and regulation.</small></a><a class="knowledgeCategory" href="/knowledge-library/?topic=self-development"><span>Self Development</span><small>Growth, authenticity and the movement towards freedom.</small></a><a class="knowledgeCategory" href="/knowledge-library/?topic=therapy-explained"><span>Therapy Explained</span><small>Clear answers to common questions about therapy.</small></a></div></section>`;
+
+const LIBRARY_PHILOSOPHY = `<section class="journalPhilosophy" aria-labelledby="library-why"><div class="journalPhilosophyCopy"><p class="sectionKicker">Why This Exists</p><h2 class="journalSectionTitle" id="library-why">Understanding should not begin only when therapy starts.</h2><div class="journalBody"><p>Sometimes one sentence gives a person enough language to stop blaming themselves.</p><p>Sometimes one idea helps someone recognise that a pattern was once protection.</p><p>The Knowledge Library is built for those moments: careful, readable psychological writing that points back towards lived experience.</p></div></div></section>`;
+
+function buildLibraryArticleListItem(article) {
+  const readTimeLabel = article.readTime ? `${article.readTime} read` : "";
+  return `<li class="knowledgeArticleItem"><p class="journalEssayCategory">${escapeHtml(article.category)}</p><h3><a href="/knowledge-library/${article.slug}/">${escapeHtml(article.title)}</a></h3><p>${escapeHtml(article.description)}</p>${readTimeLabel ? `<small>${escapeHtml(readTimeLabel)}</small>` : ""}</li>`;
+}
+
+export function buildKnowledgeLibraryIndexBody(articles) {
+  const articleList = articles.map(buildLibraryArticleListItem).join("");
+  const breadcrumbSchema = `<script id="knowledge-library-breadcrumb-schema" type="application/ld+json">{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Home","item":"${SITE}/"},{"@type":"ListItem","position":2,"name":"Knowledge Library","item":"${SITE}/knowledge-library"}]}</script>`;
+
+  return `${breadcrumbSchema}<article class="journalPage"><section class="journalHero" aria-labelledby="library-title"><div class="journalHeroCopy"><nav class="breadcrumbs" aria-label="Breadcrumb"><ol><li><a href="/">Home</a></li><li><span aria-current="page">Knowledge Library</span></li></ol></nav><p class="sectionKicker">Knowledge Library</p><h1 class="journalHeroTitle" id="library-title">Clear ideas for difficult human things.</h1><p class="journalHeroText">A growing library of trauma-informed writing on emotion, relationships, attachment, the body, veterans, therapy and the psychology of being human.</p></div></section><section class="journalLatest" aria-labelledby="library-articles"><div class="journalSectionIntro"><p class="sectionKicker">Articles</p><h2 class="journalSectionTitle" id="library-articles">Start with the questions people ask most often.</h2></div><ol class="knowledgeArticleList">${articleList}</ol></section>${LIBRARY_TOPICS}${LIBRARY_PHILOSOPHY}${RELATED_PAGES}</article>`;
+}
+
+export function buildKnowledgeLibraryIndexPage(shellHtml, articles, buildInteriorPageV2) {
+  return buildInteriorPageV2(shellHtml, {
+    title: "Knowledge Library | Pathfinder Therapy",
+    description:
+      "A Pathfinder Therapy knowledge library on trauma, emotions, attachment, neuroscience, veterans, relationships and therapy.",
+    canonical: `${SITE}${KNOWLEDGE_LIBRARY_ROUTE}`,
+    mainInner: buildKnowledgeLibraryIndexBody(articles),
+    ogImage: OG_IMAGE
+  });
+}
+
 export function buildKnowledgeArticleBody(article) {
   const readTimeLabel = article.readTime ? `${article.readTime} read` : "";
   const hero = `<section class="approachHero" aria-labelledby="article-title"><div class="approachHeroCopy"><nav class="breadcrumbs" aria-label="Breadcrumb"><ol><li><a href="/">Home</a></li><li><a href="/knowledge-library/">Knowledge Library</a></li><li><span aria-current="page">${escapeHtml(article.title)}</span></li></ol></nav><p class="sectionKicker">${escapeHtml(article.category)}</p><h1 class="approachHeroTitle" id="article-title">${escapeHtml(article.title)}</h1><div class="approachHeroText"><p>${escapeHtml(article.description)}</p>${readTimeLabel ? `<p>${escapeHtml(readTimeLabel)}</p>` : ""}</div></div></section>`;
@@ -280,4 +308,8 @@ export function buildKnowledgeArticlePage(shellHtml, article, buildInteriorPageV
 
 export function getKnowledgeArticleRoutes() {
   return KNOWLEDGE_ARTICLE_META.map((article) => `/knowledge-library/${article.slug}/`);
+}
+
+export function getKnowledgeLibraryBuiltRoutes() {
+  return [KNOWLEDGE_LIBRARY_ROUTE, ...getKnowledgeArticleRoutes()];
 }
