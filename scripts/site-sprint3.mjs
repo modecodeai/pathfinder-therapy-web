@@ -9,10 +9,32 @@ export const SPRINT3_CSS = `<style id="pathfinder-sprint3">
 .lpEndCtaInner { max-width: 40rem; display: grid; gap: 14px; }
 .lpArticleGrid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(260px, 300px); gap: clamp(24px, 4vw, 36px); align-items: start; padding: clamp(12px, 2vw, 24px) clamp(16px, 3vw, 40px) 48px; max-width: 1180px; margin: 0 auto; }
 .lpArticleContent { min-width: 0; }
+.lpArticleContent .approachPage { max-width: none !important; width: 100% !important; margin: 0 !important; animation: none !important; }
+.lpArticleContent .approachHero { min-height: auto !important; padding: 0 0 clamp(24px, 4vw, 36px) !important; border-bottom: 1px solid rgba(246,242,234,.08); grid-template-columns: 1fr !important; }
+.lpArticleContent .approachHeroCopy { max-width: 42rem !important; display: grid; gap: 12px; }
+.lpArticleContent .approachHeroTitle { font-size: clamp(1.6rem, 3.2vw, 2.35rem) !important; line-height: 1.12 !important; max-width: 100% !important; overflow-wrap: break-word; font-weight: 600 !important; }
+.lpArticleContent .approachHeroText { max-width: 38rem !important; font-size: 1.05rem !important; line-height: 1.7 !important; margin-top: 0 !important; }
+.lpArticleContent .approachHeroText p { margin: 0 0 8px; color: rgba(246,242,234,.78); font-size: inherit !important; line-height: inherit !important; }
+.lpArticleContent .approachHeroText p:last-child { margin-bottom: 0; color: rgba(246,242,234,.52); font-size: 14px !important; }
+.lpArticleContent .breadcrumbs { margin: 0 0 4px; font-size: 13px; }
+.lpArticleContent .sectionKicker { font-size: 12px; margin: 0; }
+.lpArticleContent .approachEssay, .lpArticleContent .approachLifeForce, .lpArticleContent .approachFinalCta, .lpArticleContent .relatedPages { padding: clamp(28px, 4vw, 40px) 0 !important; border-bottom: 1px solid rgba(246,242,234,.06); min-height: auto !important; }
+.lpArticleContent .approachEssayInner, .lpArticleContent .approachLifeForceInner { max-width: 42rem; }
+.lpArticleContent .approachSectionTitle { font-size: clamp(1.35rem, 2.4vw, 1.75rem) !important; line-height: 1.15 !important; max-width: 100% !important; }
+.lpArticleContent .approachBody { margin-top: 12px !important; max-width: 42rem; }
+.lpArticleContent .approachBody p { font-size: 15px !important; line-height: 1.75 !important; }
+.lpArticleContent .authorityList li { font-size: 15px !important; line-height: 1.7 !important; }
+.lpArticleContent .approachFinalCta { display: block !important; grid-template-columns: 1fr !important; }
+.lpArticleContent .approachFinalCta .approachSectionTitle { font-size: clamp(1.4rem, 2.5vw, 1.85rem) !important; }
+.lpArticleContent .approachFinalCta p { font-size: 15px !important; line-height: 1.75 !important; }
+.lpArticleContent .relatedPages { padding-bottom: 0 !important; }
+.lpArticleContent .relatedPagesGrid { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; gap: 12px !important; }
+.lpArticleContent .knowledgeInlineLinks a { font-size: 1rem !important; }
 @media (max-width: 900px) {
   .lpArticleGrid { grid-template-columns: 1fr; padding-bottom: 16px; }
   .lpArticleGrid .lpBookingPanel { order: 2; }
   .lpArticleContent { order: 1; }
+  .lpArticleContent .approachHeroTitle { font-size: clamp(1.5rem, 6vw, 2rem) !important; }
 }
 </style>`;
 
@@ -85,7 +107,7 @@ function applyArticleLayout(html) {
   const articleContent = injectArticleCta(parts.mainInner);
   const mainInner = `<div class="lpArticleGrid">
   <div class="lpArticleContent">${articleContent}</div>
-  ${buildBookingPanel()}
+  ${buildBookingPanel({ slim: true })}
 </div>`;
 
   let next = replaceInteriorBody(html, mainInner);
