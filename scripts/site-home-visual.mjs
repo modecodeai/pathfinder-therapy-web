@@ -31,7 +31,7 @@ export const HOMEPAGE_VISUAL_CSS = `<style id="pathfinder-home-visual">
 .pfProcessStage:nth-child(odd) .pfProcessSpacer { grid-column: 3; }
 .pfProcessStage:nth-child(even) .pfProcessSpacer { grid-column: 1; }
 .pfProcessNode { width: 56px; height: 56px; border-radius: 50%; border: 1px solid rgba(200,154,88,.5); display: grid; place-items: center; font-family: var(--pf-font-sans); font-size: 0.875rem; font-weight: 700; color: var(--pf-bronze-soft); background: var(--pf-forest-elevated); }
-.pfProcessContent { padding: 20px 22px; border: 1px solid var(--pf-border-dark); border-radius: var(--pf-radius-md); background: rgba(15,24,22,.72); }
+.pfProcessContent { padding: 20px 22px; border: 1px solid var(--pf-border-dark); border-radius: var(--pf-radius-md); background: rgba(15,24,22,.72); min-width: 0; }
 .pfProcessContent h3 { margin: 0 0 8px; font-family: var(--pf-font-serif); font-size: 1.25rem; color: var(--pf-linen); }
 .pfProcessContent p { margin: 0; font-family: var(--pf-font-sans); font-size: var(--pf-text-body-sm); line-height: var(--pf-leading-body); color: var(--pf-linen-muted); }
 .pfAboutSplit { display: grid; grid-template-columns: minmax(280px, .95fr) minmax(0, 1.05fr); gap: clamp(28px, 5vw, 48px); align-items: center; }
@@ -73,9 +73,24 @@ export const HOMEPAGE_VISUAL_CSS = `<style id="pathfinder-home-visual">
   .pfHeroMark { display: none; }
   .pfConcernGrid { grid-template-columns: 1fr; }
   .pfProcessPath { display: none; }
-  .pfProcessStage, .pfProcessStage:nth-child(even) { grid-template-columns: 56px minmax(0, 1fr); }
-  .pfProcessStage .pfProcessContent, .pfProcessStage:nth-child(even) .pfProcessContent { grid-column: 2; }
-  .pfProcessStage .pfProcessNode, .pfProcessStage:nth-child(even) .pfProcessNode { grid-column: 1; }
+  .pfProcessStage,
+  .pfProcessStage:nth-child(odd),
+  .pfProcessStage:nth-child(even) {
+    grid-template-columns: 56px minmax(0, 1fr);
+    align-items: start;
+  }
+  .pfProcessStage .pfProcessNode,
+  .pfProcessStage:nth-child(odd) .pfProcessNode,
+  .pfProcessStage:nth-child(even) .pfProcessNode {
+    grid-column: 1;
+    grid-row: 1;
+  }
+  .pfProcessStage .pfProcessContent,
+  .pfProcessStage:nth-child(odd) .pfProcessContent,
+  .pfProcessStage:nth-child(even) .pfProcessContent {
+    grid-column: 2;
+    grid-row: 1;
+  }
   .pfProcessSpacer { display: none; }
   .pfAboutSplit { grid-template-columns: 1fr; }
   .pfAboutPortrait { max-width: 320px; }
