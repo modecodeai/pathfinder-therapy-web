@@ -30,6 +30,17 @@ async function checkOverflow(page, label) {
   else pass(`${label} no horizontal overflow`, `${page.viewportSize()?.width}px`);
 }
 
+async function checkInteriorTextInset(page, route, selector, minInset = 12) {
+  await page.goto(`${baseUrl}${route}`, { waitUntil: "domcontentloaded" });
+  const inset = await page.evaluate((sel) => {
+    const el = document.querySelector(sel);
+    return el ? Math.round(el.getBoundingClientRect().left) : null;
+  }, selector);
+  if (inset == null) fail(`${route} interior inset`, `missing ${selector}`);
+  else if (inset < minInset) fail(`${route} interior inset`, `${inset}px < ${minInset}px (${selector})`);
+  else pass(`${route} interior inset`, `${inset}px (${selector})`);
+}
+
 async function runDesktop(browser) {
   const context = await browser.newContext({ viewport: { width: 1280, height: 900 } });
   const page = await context.newPage();
@@ -156,12 +167,23 @@ async function runResponsive(browser) {
   }
 }
 
+async function runInteriorPadding(browser) {
+  const context = await browser.newContext({ viewport: { width: 320, height: 800 } });
+  const page = await context.newPage();
+  await checkInteriorTextInset(page, "/therapy/", ".lpLocationSection h2");
+  await checkInteriorTextInset(page, "/therapy/", ".lpLocationDetails p");
+  await checkInteriorTextInset(page, "/about/", ".aboutHeroTitle");
+  await checkInteriorTextInset(page, "/approach/", ".approachEssayInner h2");
+  await context.close();
+}
+
 async function main() {
   console.log(`Browser QA base URL: ${baseUrl}`);
   const browser = await chromium.launch({ headless: true });
   try {
     await runDesktop(browser);
     await runResponsive(browser);
+    await runInteriorPadding(browser);
   } finally {
     await browser.close();
   }
