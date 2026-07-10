@@ -383,7 +383,7 @@ export function buildSiteFooter() {
     </div>
     <div class="pfFooterBottom">
       <p>© ${new Date().getFullYear()} Pathfinder Therapy · Brent Kelly, Lisboa · <a href="/privacy/">Privacy</a> · <a href="/terms/">Terms</a> · <a href="/crisis-support/">Crisis support</a> · <a href="#" data-cookie-manage>Manage cookies</a> · Non-urgent enquiries only</p>
-      <a class="pfFooterCta" href="${BOOKING_PATH}">${BOOKING_LABEL}</a>
+      <a class="pfFooterCta" href="${BOOKING_PATH}" aria-label="${BOOKING_LABEL} — opens booking page">${BOOKING_LABEL}</a>
     </div>
   </div>
 </footer>`;
@@ -405,6 +405,7 @@ export function wrapInShellV2({ head, route, mainInner, tail, bodySchemas = [], 
     route !== "/book-confirmed/";
   const floatMarkup = showFloat ? buildFloatingCta(BOOKING_PATH, BOOKING_LABEL) : "";
   const floatScript = showFloat ? FLOATING_CTA_SCRIPT : "";
+  const stickyMarkup = showFloat ? "" : buildStickyBar();
 
   return `${head}${SHELL_V2_CSS}
 </head><body class="lpShell lpBody">
@@ -417,7 +418,7 @@ ${mainInner}
 </div>
 </main>
 ${buildSiteFooter()}
-${buildStickyBar()}
+${stickyMarkup}
 ${floatMarkup}
 ${tail}
 ${SHELL_V2_SCRIPT}

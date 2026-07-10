@@ -269,7 +269,7 @@ function buildServicesSection() {
   <div class="pfSectionInner">
     <div class="pfSectionHead">
       <p class="pfKicker">Therapy services</p>
-      <h2 class="pfSectionTitle" id="home-services">Ways we can walk this together</h2>
+      <h2 class="pfSectionTitle" id="home-services">How we can work together</h2>
       <p class="pfSectionLead">Therapy shaped around your life — in person at our Lisbon clinic or securely online.</p>
     </div>
     <div class="pfServiceList">${rows}</div>

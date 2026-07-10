@@ -170,6 +170,13 @@ function main() {
       }
       if (!html.includes("Explore more")) errors.push(`${route} missing related services section`);
       if (!html.includes("pfServiceHero")) errors.push(`${route} missing image-led hero`);
+      if (!html.includes("pfPanelCta")) errors.push(`${route} missing subdued panel CTA`);
+    }
+    if (route === "/contact/") {
+      if (!html.includes("pfContactDetails")) errors.push("/contact/ missing refined contact hierarchy");
+    }
+    if (route === "/") {
+      if (html.includes("lpFeedbackQuote")) errors.push("Homepage still uses unverified quoted feedback");
     }
   }
 

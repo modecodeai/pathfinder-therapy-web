@@ -25,7 +25,8 @@ export const SERVICE_PAGE_CSS = `<style id="pathfinder-service-pages">
 .pfServicePanelList svg { margin-top: 2px; color: var(--pf-bronze); flex-shrink: 0; }
 .pfServicePanelMeta { margin: 0; padding-top: 12px; border-top: 1px solid var(--pf-border-light); font-family: var(--pf-font-sans); font-size: var(--pf-text-body-sm); line-height: 1.55; color: var(--pf-stone-muted); }
 .pfServicePanelActions { display: grid; gap: 10px; }
-.pfServicePanelActions .lpSecondaryCta { width: 100%; text-align: center; }
+.pfServicePanelActions .pfPanelCta { display: inline-flex; align-items: center; justify-content: center; min-height: 44px; font-family: var(--pf-font-sans); font-size: var(--pf-text-body-sm); font-weight: 600; color: var(--pf-bronze); text-decoration: underline; text-underline-offset: 3px; }
+.pfServicePanelActions .pfPanelCta:hover { color: var(--pf-stone); }
 .pfServiceDark { padding: clamp(40px, 6vw, 64px) var(--pf-space-inline); background: var(--pf-forest-deep); color: var(--pf-linen); }
 .pfServiceDarkInner { max-width: 1180px; margin: 0 auto; display: grid; gap: 20px; }
 .pfServiceSteps { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; margin: 0; padding: 0; list-style: none; }
@@ -36,7 +37,7 @@ export const SERVICE_PAGE_CSS = `<style id="pathfinder-service-pages">
 .pfExploreGrid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; max-width: 1180px; margin: 0 auto; }
 .pfExploreCard { position: relative; display: block; min-height: 200px; border-radius: var(--pf-radius-md); overflow: hidden; text-decoration: none; color: var(--pf-linen); border: 1px solid var(--pf-border-light); }
 .pfExploreCard img { width: 100%; height: 100%; object-fit: cover; position: absolute; inset: 0; }
-.pfExploreCardOverlay { position: absolute; inset: 0; background: linear-gradient(180deg, transparent 35%, rgba(10,15,13,.88) 100%); }
+.pfExploreCardOverlay { position: absolute; inset: 0; background: linear-gradient(180deg, rgba(10,15,13,.15) 20%, rgba(10,15,13,.92) 100%); }
 .pfExploreCardTitle { position: absolute; left: 16px; right: 16px; bottom: 16px; margin: 0; font-family: var(--pf-font-serif); font-size: 1.25rem; font-weight: 600; z-index: 1; }
 .pfExploreCard:hover .pfExploreCardOverlay, .pfExploreCard:focus-visible .pfExploreCardOverlay { background: linear-gradient(180deg, transparent 20%, rgba(10,15,13,.92) 100%); }
 .pfExploreCard:focus-visible { outline: 2px solid var(--pf-bronze-soft); outline-offset: 3px; }
@@ -208,7 +209,7 @@ function buildRelatedServices(currentSlug) {
   <div class="pfSectionInner" style="max-width:1180px;margin:0 auto">
     <div class="pfSectionHead">
       <p class="pfKicker">Explore more</p>
-      <h2 class="pfSectionTitle" id="explore-more" style="color:var(--pf-stone)">Other ways we can work together</h2>
+      <h2 class="pfSectionTitle" id="explore-more" style="color:var(--pf-stone)">Related therapy services</h2>
     </div>
     <div class="pfExploreGrid">${cards}</div>
   </div>
@@ -273,7 +274,7 @@ export function buildServicePageBody(service) {
         ${buildHelpsList(service.helpsWith)}
         <p class="pfServicePanelMeta"><strong>${service.duration}</strong> · ${service.format}<br><strong>${service.fee}</strong> per session · <a href="/fees/">See fees</a></p>
         <div class="pfServicePanelActions">
-          <a class="lpSecondaryCta" href="${BOOKING_PATH}">${BOOKING_LABEL}</a>
+          <a class="pfPanelCta" href="${BOOKING_PATH}">${BOOKING_LABEL}</a>
           <a class="pfHeroTextLink" href="${ENQUIRY_PATH}" style="justify-content:center;min-height:44px">${ENQUIRY_LABEL}</a>
         </div>
       </aside>

@@ -15,33 +15,26 @@ export const CONTACT_VISUAL_CSS = `<style id="pathfinder-contact-visual">
 .pfContactHero { padding: clamp(40px, 6vw, 72px) var(--pf-space-inline); background: var(--pf-forest-deep); color: var(--pf-linen); }
 .pfContactHeroInner { max-width: 1180px; margin: 0 auto; display: grid; gap: 18px; }
 .pfContactGrid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(300px, 1fr); gap: clamp(28px, 4vw, 40px); max-width: 1180px; margin: 0 auto; padding: clamp(40px, 6vw, 64px) var(--pf-space-inline); background: var(--pf-parchment); }
-.pfContactCards { display: grid; gap: 12px; align-content: start; }
-.pfContactCard { display: grid; grid-template-columns: 44px minmax(0, 1fr); gap: 14px; padding: 16px 18px; border: 1px solid var(--pf-border-light); border-radius: var(--pf-radius-md); background: #fff; }
-.pfContactCardIcon { width: 44px; height: 44px; border-radius: 50%; display: grid; place-items: center; background: rgba(200,154,88,.12); color: var(--pf-bronze); font-size: 1rem; }
-.pfContactCard h2 { margin: 0 0 4px; font-family: var(--pf-font-sans); font-size: 0.8125rem; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; color: var(--pf-stone-muted); }
-.pfContactCard p { margin: 0; font-family: var(--pf-font-sans); font-size: var(--pf-text-body); line-height: var(--pf-leading-body); color: var(--pf-stone); }
-.pfContactCard a { color: var(--pf-bronze); font-weight: 600; text-decoration: none; }
-.pfContactCard a:hover { text-decoration: underline; }
+.pfContactDetails { display: grid; gap: 20px; align-content: start; }
+.pfContactDetails h2 { margin: 0 0 10px; font-family: var(--pf-font-sans); font-size: 0.75rem; font-weight: 600; letter-spacing: .12em; text-transform: uppercase; color: var(--pf-stone-muted); }
+.pfContactList { margin: 0; padding: 0; list-style: none; display: grid; gap: 8px; }
+.pfContactList li { font-family: var(--pf-font-sans); font-size: var(--pf-text-body-sm); line-height: var(--pf-leading-body); color: var(--pf-stone-muted); }
+.pfContactList a { color: var(--pf-stone); font-weight: 500; text-decoration: none; }
+.pfContactList a:hover { color: var(--pf-bronze); text-decoration: underline; }
+.pfContactTertiaryNote { margin: 0; font-family: var(--pf-font-sans); font-size: 0.8125rem; line-height: var(--pf-leading-body); color: var(--pf-stone-muted); }
+.pfContactTertiaryNote a { color: var(--pf-stone-muted); text-decoration: underline; text-underline-offset: 2px; }
+.pfContactTertiaryNote a:hover { color: var(--pf-bronze); }
 .pfContactMap { border: 1px solid var(--pf-border-light); border-radius: var(--pf-radius-lg); overflow: hidden; background: #fff; min-height: 360px; }
 .pfContactMap iframe { display: block; width: 100%; height: 100%; min-height: 360px; border: 0; }
 .pfContactFormSection { padding: clamp(32px, 5vw, 48px) var(--pf-space-inline); background: var(--pf-parchment-muted); }
 .pfContactFormInner { max-width: 40rem; margin: 0 auto; }
 .pfContactFormInner .contactForm { max-width: none; }
-.pfContactTertiary { margin: 12px 0 0; font-size: var(--pf-text-body-sm); }
-.pfContactTertiary a { color: var(--pf-stone-muted); text-decoration: underline; }
 @media (max-width: 900px) {
   .pfContactGrid { grid-template-columns: 1fr; }
   .pfContactMap { min-height: 280px; }
   .pfContactMap iframe { min-height: 280px; }
 }
 </style>`;
-
-const CARD_ICON = {
-  phone: "☎",
-  email: "✉",
-  location: "◎",
-  sessions: "◷"
-};
 
 export function buildContactVisualBody(formHtml) {
   return `<div class="pfContactPage">
@@ -54,39 +47,27 @@ export function buildContactVisualBody(formHtml) {
         <a class="lpPrimaryCta" href="${BOOKING_PATH}">${BOOKING_LABEL}</a>
         <a class="lpSecondaryCta" href="${ENQUIRY_PATH}">${ENQUIRY_LABEL}</a>
       </div>
-      <p class="pfContactTertiary"><a href="https://wa.me/351914775365">Prefer WhatsApp? Message Pathfinder Therapy.</a></p>
     </div>
   </section>
   <div class="pfContactGrid">
-    <div class="pfContactCards">
-      <article class="pfContactCard">
-        <div class="pfContactCardIcon" aria-hidden="true">${CARD_ICON.phone}</div>
-        <div>
-          <h2>Call or WhatsApp</h2>
-          <p><a href="tel:+351914775365">+351 914 775 365</a></p>
-        </div>
-      </article>
-      <article class="pfContactCard">
-        <div class="pfContactCardIcon" aria-hidden="true">${CARD_ICON.email}</div>
-        <div>
-          <h2>Email</h2>
-          <p><a href="mailto:hi@pathfindertherapy.com">hi@pathfindertherapy.com</a></p>
-        </div>
-      </article>
-      <article class="pfContactCard">
-        <div class="pfContactCardIcon" aria-hidden="true">${CARD_ICON.location}</div>
-        <div>
-          <h2>The clinic</h2>
-          <p>${CLINIC.street}<br>${CLINIC.postalCode} ${CLINIC.locality}<br><a href="${CLINIC.directionsUrl}" target="_blank" rel="noopener noreferrer">Get directions →</a></p>
-        </div>
-      </article>
-      <article class="pfContactCard">
-        <div class="pfContactCardIcon" aria-hidden="true">${CARD_ICON.sessions}</div>
-        <div>
-          <h2>Sessions</h2>
-          <p>In person at the Lisbon clinic or securely online · from €75 for 50 minutes · non-urgent enquiries only</p>
-        </div>
-      </article>
+    <div class="pfContactDetails">
+      <div>
+        <h2>Clinic &amp; sessions</h2>
+        <ul class="pfContactList">
+          <li>${CLINIC.street}, ${CLINIC.postalCode} ${CLINIC.locality}</li>
+          <li><a href="${CLINIC.directionsUrl}" target="_blank" rel="noopener noreferrer">Get directions</a></li>
+          <li>In person at the Lisbon clinic or securely online · from €75 for 50 minutes</li>
+        </ul>
+      </div>
+      <div>
+        <h2>Other ways to reach Brent</h2>
+        <ul class="pfContactList">
+          <li><a href="tel:+351914775365">+351 914 775 365</a></li>
+          <li><a href="mailto:hi@pathfindertherapy.com">hi@pathfindertherapy.com</a></li>
+          <li><a href="https://wa.me/351914775365">WhatsApp</a></li>
+        </ul>
+        <p class="pfContactTertiaryNote">Phone, email and WhatsApp are for non-urgent contact. For crisis support, see our <a href="/crisis-support/">crisis page</a>.</p>
+      </div>
     </div>
     <div class="pfContactMap" aria-label="Map showing Pathfinder Therapy clinic in Lisbon">
       <iframe title="Pathfinder Therapy clinic location — R. Rodrigues Sampaio 76, Lisboa" loading="lazy" referrerpolicy="no-referrer-when-downgrade" src="${CLINIC.embedUrl}"></iframe>

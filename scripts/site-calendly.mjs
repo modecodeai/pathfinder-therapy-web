@@ -49,11 +49,13 @@ export const CALENDLY_CSS = `<style id="pathfinder-calendly">
 .lpCalendlyPanel { position: relative; border: 1px solid rgba(246,242,234,.12); border-radius: 18px; overflow: hidden; background: rgba(8,16,15,.72); min-height: 680px; }
 .lpCalendlyWidget { min-width: 0; width: 100%; min-height: 680px; height: 680px; }
 .lpCalendlyLoading { position: absolute; inset: 0; display: grid; place-items: center; padding: 24px; text-align: center; font-size: 14px; color: rgba(246,242,234,.72); background: rgba(8,16,15,.92); z-index: 1; }
-.lpCalendlyLoading[hidden] { display: none; }
-.lpCalendlyError { display: none; padding: 24px; gap: 12px; text-align: center; }
+.lpCalendlyLoading[hidden] { display: none !important; }
+.lpCalendlyError { display: none; padding: 24px; gap: 12px; text-align: center; min-height: 280px; align-content: center; }
+.lpCalendlyPanel.isLoaded .lpCalendlyLoading { display: none; }
+.lpCalendlyPanel.isError .lpCalendlyLoading { display: none; }
 .lpCalendlyPanel.isError .lpCalendlyWidget { display: none; }
 .lpCalendlyPanel.isError .lpCalendlyError { display: grid; }
-.lpCalendlyFallback, .lpCalendlyError { font-size: 14px; line-height: 1.65; color: rgba(246,242,234,.76); }
+.lpCalendlyFallback { font-size: 14px; line-height: 1.65; color: rgba(246,242,234,.76); padding: 24px; }
 .lpCalendlyFallback a, .lpCalendlyError a { color: #d9b777; font-weight: 600; }
 .lpBookPrivacy { margin: 0; font-size: 13px; line-height: 1.65; color: rgba(246,242,234,.62); max-width: 40rem; }
 @media (max-width: 900px) {
@@ -93,18 +95,35 @@ export const CALENDLY_INLINE_SCRIPT = `<script id="pathfinder-calendly-inline">
     var panel = document.querySelector(".lpCalendlyPanel");
     var widget = document.querySelector(".calendly-inline-widget");
     var loading = document.querySelector(".lpCalendlyLoading");
-    if (!widget) return;
+    if (!widget || !panel) return;
 
     widget.setAttribute("data-url", buildCalendlyUrl(CALENDLY_URL));
+
+    var loaded = false;
+    var failed = false;
+    var loadTimeout;
 
     function hideLoading() {
       if (loading) loading.hidden = true;
       if (panel) panel.setAttribute("aria-busy", "false");
     }
 
-    function showError() {
+    function markLoaded() {
+      if (loaded || failed) return;
+      loaded = true;
+      clearTimeout(loadTimeout);
       hideLoading();
-      if (panel) panel.classList.add("isError");
+      panel.classList.add("isLoaded");
+      panel.classList.remove("isError");
+    }
+
+    function showError() {
+      if (loaded || failed) return;
+      failed = true;
+      clearTimeout(loadTimeout);
+      hideLoading();
+      panel.classList.add("isError");
+      panel.classList.remove("isLoaded");
     }
 
     function loadCalendly() {
@@ -114,7 +133,6 @@ export const CALENDLY_INLINE_SCRIPT = `<script id="pathfinder-calendly-inline">
           url: buildCalendlyUrl(CALENDLY_URL),
           parentElement: widget
         });
-        hideLoading();
         return true;
       } catch (error) {
         showError();
@@ -133,6 +151,13 @@ export const CALENDLY_INLINE_SCRIPT = `<script id="pathfinder-calendly-inline">
       document.head.appendChild(script);
     }
 
+    loadTimeout = window.setTimeout(function () {
+      if (!loaded && !failed) {
+        var iframe = widget.querySelector("iframe");
+        if (!iframe || iframe.clientHeight < 40) showError();
+      }
+    }, 20000);
+
     if (window.Calendly) {
       loadCalendly();
     } else {
@@ -142,7 +167,15 @@ export const CALENDLY_INLINE_SCRIPT = `<script id="pathfinder-calendly-inline">
     window.addEventListener("message", function (event) {
       if (event.origin.indexOf("calendly.com") === -1) return;
       if (!event.data || !event.data.event) return;
+      if (
+        event.data.event === "calendly.event_type_viewed" ||
+        event.data.event === "calendly.profile_page_viewed" ||
+        event.data.event === "calendly.page_height"
+      ) {
+        markLoaded();
+      }
       if (event.data.event === "calendly.event_scheduled") {
+        markLoaded();
         track("calendly_event_scheduled", "inline_widget");
         setTimeout(function () {
           window.location.href = "/book-confirmed/";
@@ -161,9 +194,12 @@ export function buildCalendlyEmbedMarkup() {
     <p>The booking calendar could not be loaded. You can open Calendly directly instead:</p>
     <a href="${DEFAULT_CALENDLY_URL}" rel="noopener noreferrer">${BOOKING_LABEL}</a>
   </div>
-  <noscript class="lpCalendlyFallback">
-    <p>Online booking requires JavaScript. Open Calendly directly instead:</p>
-    <a href="${DEFAULT_CALENDLY_URL}" rel="noopener noreferrer">${BOOKING_LABEL}</a>
+  <noscript>
+    <style>.lpCalendlyLoading, .lpCalendlyWidget, .lpCalendlyError { display: none !important; }</style>
+    <div class="lpCalendlyFallback">
+      <p>Online booking requires JavaScript. Open Calendly directly instead:</p>
+      <a href="${DEFAULT_CALENDLY_URL}" rel="noopener noreferrer">${BOOKING_LABEL}</a>
+    </div>
   </noscript>
 </div>`;
 }

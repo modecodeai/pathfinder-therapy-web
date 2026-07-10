@@ -91,7 +91,7 @@ export const FONT_LINKS = `<link rel="preconnect" href="https://fonts.googleapis
 export const FLOATING_CTA_SCRIPT = `<script id="pathfinder-floating-cta">
 document.addEventListener("DOMContentLoaded", function () {
   var floatCta = document.querySelector(".pfFloatCta");
-  var hero = document.querySelector(".pfHero, .lpHomeHeroWrap, .pfServiceHero");
+  var hero = document.querySelector(".pfHero, .lpHomeHeroWrap, .pfServiceHero, .pfContactHero");
   var footer = document.querySelector(".pfFooter, .lpSiteFooter");
   var enquiryOpen = document.querySelector(".lpStartEnquiryPanel.isOpen, #enquiry.isOpen");
   if (!floatCta) return;
@@ -103,15 +103,20 @@ document.addEventListener("DOMContentLoaded", function () {
   function isVisible(el) {
     if (!el) return false;
     var rect = el.getBoundingClientRect();
-    return rect.top < window.innerHeight * 0.85 && rect.bottom > 0;
+    return rect.top < window.innerHeight * 0.88 && rect.bottom > 0;
   }
   function update() {
     var scrolled = window.scrollY > 480;
     var hideForHero = isVisible(hero);
-    var hideForFooter = footer && footer.getBoundingClientRect().top < window.innerHeight + 40;
-    var hideForMajorCta = Array.prototype.some.call(document.querySelectorAll(".lpFinalCta, .lpEndCta, .pfFinalCta, .pfServiceFinal, #calendly-booking"), isVisible);
+    var hideForReassurance = isVisible(document.querySelector(".pfReassuranceStrip"));
+    var hideForFooterCta = isVisible(document.querySelector(".pfFooterCta"));
+    var hideForFooter = footer && footer.getBoundingClientRect().top < window.innerHeight + 48;
+    var hideForMajorCta = Array.prototype.some.call(
+      document.querySelectorAll(".lpFinalCta, .lpEndCta, .pfFinalCta, .pfServiceFinal, #home-final-cta"),
+      isVisible
+    );
     var hideForEnquiry = enquiryOpen || (window.location.hash === "#enquiry" && document.getElementById("enquiry"));
-    var show = scrolled && !hideForHero && !hideForFooter && !hideForMajorCta && !hideForEnquiry;
+    var show = scrolled && !hideForHero && !hideForReassurance && !hideForFooterCta && !hideForFooter && !hideForMajorCta && !hideForEnquiry;
     floatCta.classList.toggle("isVisible", show);
     floatCta.setAttribute("aria-hidden", show ? "false" : "true");
     floatCta.tabIndex = show ? 0 : -1;
@@ -124,7 +129,7 @@ document.addEventListener("DOMContentLoaded", function () {
 </script>`;
 
 export function buildFloatingCta(href, label) {
-  return `<a class="pfFloatCta" href="${href}" aria-hidden="true" tabindex="-1">
+  return `<a class="pfFloatCta" href="${href}" aria-label="Initial consultation — shortcut to booking" aria-hidden="true" tabindex="-1">
   <span class="pfFloatCtaLong">${label}</span>
   <span class="pfFloatCtaShort">Initial consultation</span>
 </a>`;
