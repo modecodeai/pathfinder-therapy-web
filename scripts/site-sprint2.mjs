@@ -171,11 +171,11 @@ const TRUST_STRIP = `<div class="lpTrustStrip" aria-label="Professional credenti
   <p class="lpTrustStripNote">EATA registered therapist · clinical supervision · professional indemnity insurance · sessions from €75 · Lisbon clinic or secure online</p>
 </div>`;
 
-const STEPS = `<ol class="lpSteps" aria-label="What happens next">
-  <li><span class="lpStepNum">1</span><span>Send a brief secure enquiry — no detailed history needed.</span></li>
-  <li><span class="lpStepNum">2</span><span>Brent replies within one working day.</span></li>
-  <li><span class="lpStepNum">3</span><span>Arrange your first session in Lisbon or online (from €75).</span></li>
-</ol>`;
+const BOOKING_FIRST_STEPS = `<ul class="lpSteps" aria-label="What happens next">
+  <li><span class="lpStepNum" aria-hidden="true">1</span><span><strong>Choose a consultation time</strong> — select a convenient time through the secure booking page.</span></li>
+  <li><span class="lpStepNum" aria-hidden="true">2</span><span><strong>Meet Brent by Zoom</strong> — use the initial conversation to briefly discuss what brings you to therapy and ask questions.</span></li>
+  <li><span class="lpStepNum" aria-hidden="true">3</span><span><strong>Decide on the next step</strong> — there is no obligation to continue unless the working relationship feels appropriate.</span></li>
+</ul>`;
 
 export function buildBookingPanel({ slim = false } = {}) {
   if (slim) {
@@ -197,7 +197,7 @@ export function buildBookingPanel({ slim = false } = {}) {
   <p class="lpBookingPanelText">Choose a convenient time for a confidential initial conversation by Zoom — or send an enquiry first if you prefer.</p>
   ${TRUST_PILLS}
   ${buildEataBadge()}
-  ${STEPS}
+  ${BOOKING_FIRST_STEPS}
   <div class="lpHeroActions">
     <a class="lpPrimaryCta" href="${BOOKING_PATH}">${BOOKING_LABEL}</a>
     <a class="lpSecondaryCta" href="${ENQUIRY_PATH}">${ENQUIRY_LABEL}</a>

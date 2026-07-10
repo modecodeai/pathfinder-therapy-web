@@ -223,11 +223,11 @@ export function buildBookConfirmedBody() {
   <p class="lpKicker">Booking confirmed</p>
   <h1 class="lpTitle" id="book-confirmed-title">Your initial Zoom consultation is booked.</h1>
   <p class="lpLead">Calendly has sent your confirmation and Zoom details by email. If you do not see it within a few minutes, check your spam folder.</p>
-  <ol class="lpSteps">
-    <li><span class="lpStepNum">✓</span><span>Your initial consultation time is reserved.</span></li>
-    <li><span class="lpStepNum">2</span><span>Open the Zoom link from your confirmation email at the scheduled time.</span></li>
-    <li><span class="lpStepNum">3</span><span>If ongoing therapy feels right, Brent will explain fees and next steps.</span></li>
-  </ol>
+  <ul class="lpSteps">
+    <li><span class="lpStepNum" aria-hidden="true">✓</span><span>Your initial consultation time is reserved.</span></li>
+    <li><span class="lpStepNum" aria-hidden="true">2</span><span>Open the Zoom link from your confirmation email at the scheduled time.</span></li>
+    <li><span class="lpStepNum" aria-hidden="true">3</span><span>If ongoing therapy feels right, Brent will explain fees and next steps.</span></li>
+  </ul>
   <div class="lpHeroActions">
     <a class="lpSecondaryCta" href="/">Return to homepage</a>
     <a class="lpSecondaryCta" href="https://wa.me/351914775365">WhatsApp Brent</a>

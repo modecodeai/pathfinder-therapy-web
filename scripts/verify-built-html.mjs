@@ -54,6 +54,118 @@ function collectHtmlFiles(dir, files = []) {
   return files;
 }
 
+const LEGACY_MARKERS = [
+  "More ▾",
+  "Every path is different.But",
+  "Make an enquiry",
+  "Book a session",
+  "Send a brief secure enquiry"
+];
+
+const AUDIT_ROUTES = [
+  "/about/",
+  "/approach/",
+  "/fees/",
+  "/faq/",
+  "/contact/",
+  "/therapy/",
+  "/psychotherapy-lisbon/",
+  "/trauma-therapy-lisbon/",
+  "/emdr-therapy-lisbon/",
+  "/english-speaking-therapist-lisbon/",
+  "/knowledge-library/",
+  "/journal/",
+  "/retreats/"
+];
+
+function auditLegacyMarkers() {
+  const files = collectHtmlFiles(OUT_DIR);
+  const issues = [];
+
+  for (const file of files) {
+    const rel = path.relative(OUT_DIR, file);
+    const html = fs.readFileSync(file, "utf8");
+
+    for (const marker of LEGACY_MARKERS) {
+      if (html.includes(marker)) {
+        issues.push(`${rel}: legacy marker "${marker}"`);
+      }
+    }
+
+    if (/<p class="sectionKicker">Begin<\/p>/.test(html)) {
+      issues.push(`${rel}: legacy Begin section kicker`);
+    }
+
+    if (/<ol class="lpSteps"/.test(html)) {
+      issues.push(`${rel}: ol.lpSteps combines ordered-list numbering with manual step numbers`);
+    }
+
+    if (/enquiry first \./.test(html)) {
+      issues.push(`${rel}: enquiry note has space before full stop`);
+    }
+
+    const duplicateKicker = html.match(
+      /<p class="sectionKicker">([^<]+)<\/p>[\s\S]{0,800}?<h2 class="aboutSectionTitle"[^>]*>\1<\/h2>/i
+    );
+    if (duplicateKicker) {
+      issues.push(`${rel}: duplicated eyebrow and H2 "${duplicateKicker[1]}"`);
+    }
+  }
+
+  return issues;
+}
+
+function auditPriorityRoutes() {
+  const issues = [];
+
+  for (const route of AUDIT_ROUTES) {
+    const file = path.join(OUT_DIR, routeToFile(route));
+    if (!fs.existsSync(file)) {
+      issues.push(`Missing audit route: ${route}`);
+      continue;
+    }
+
+    const html = fs.readFileSync(file, "utf8");
+    const rel = routeToFile(route);
+
+    if (["/about/", "/approach/", "/therapy/"].includes(route)) {
+      const endCtaCount = (html.match(/class="lpEndCta"/g) ?? []).length;
+      if (endCtaCount !== 1) {
+        issues.push(`${rel}: expected 1 closing CTA, found ${endCtaCount}`);
+      }
+    }
+
+    if (route === "/about/") {
+      if (!html.includes("Every path is different. <span>But")) {
+        issues.push(`${rel}: about hero punctuation not corrected`);
+      }
+      if (html.includes('class="lpBookingPanel"')) {
+        issues.push(`${rel}: about page still has booking sidebar`);
+      }
+    }
+
+    if (route === "/approach/") {
+      if (html.includes('class="approachFinalCta"')) {
+        issues.push(`${rel}: approach page still has legacy final CTA section`);
+      }
+      if (html.includes('class="lpBookingPanel"')) {
+        issues.push(`${rel}: approach page still has booking sidebar`);
+      }
+    }
+
+    if (route === "/therapy/") {
+      if (!html.includes("Choose a consultation time")) {
+        issues.push(`${rel}: therapy page missing booking-first process copy`);
+      }
+      if (!html.includes('<ul class="lpSteps"')) {
+        issues.push(`${rel}: therapy process steps should use ul.lpSteps`);
+      }
+    }
+  }
+
+  return issues;
+}
+
 function auditCtas() {
   const files = collectHtmlFiles(OUT_DIR);
   const issues = [];
@@ -181,6 +293,8 @@ function main() {
   }
 
   errors.push(...auditCtas());
+  errors.push(...auditLegacyMarkers());
+  errors.push(...auditPriorityRoutes());
 
   if (errors.length) {
     console.error("Built HTML verification failed:");

@@ -133,17 +133,22 @@ function applyArticleLayout(html) {
   return injectStyles(next);
 }
 
+function stripLegacyFinalCtas(mainInner) {
+  return mainInner
+    .replace(/<section class="journalFinalCta"[\s\S]*?<\/section>/g, "")
+    .replace(/<section class="approachFinalCta"[\s\S]*?<\/section>/g, "");
+}
+
 function applyEndCtaLayout(html) {
   const parts = extractPageParts(html);
-  if (parts.mainInner.includes("lpEndCta")) {
-    return injectStyles(html);
-  }
+  let mainInner = stripLegacyFinalCtas(parts.mainInner);
 
-  let mainInner = parts.mainInner;
-  if (mainInner.includes("</article>")) {
-    mainInner = mainInner.replace("</article>", `${END_CTA}</article>`);
-  } else {
-    mainInner = `${mainInner}${END_CTA}`;
+  if (!mainInner.includes("lpEndCta")) {
+    if (mainInner.includes("</article>")) {
+      mainInner = mainInner.replace("</article>", `${END_CTA}</article>`);
+    } else {
+      mainInner = `${mainInner}${END_CTA}`;
+    }
   }
 
   let next = replaceInteriorBody(html, mainInner);
@@ -161,7 +166,7 @@ export function applySprint3Transforms(html, route) {
 
   if (route === "/approach/") {
     const parts = extractPageParts(html);
-    const mainInner = wrapWithBookingPanel(fixApproachPageContent(applyContentFixes(parts.mainInner, route)));
+    const mainInner = fixApproachPageContent(applyContentFixes(parts.mainInner, route));
     let next = replaceInteriorBody(html, mainInner);
     return injectStyles(next);
   }

@@ -30,6 +30,17 @@ async function checkOverflow(page, label) {
   else pass(`${label} no horizontal overflow`, `${page.viewportSize()?.width}px`);
 }
 
+async function checkInteriorTextInset(page, route, selector, minInset = 12) {
+  await page.goto(`${baseUrl}${route}`, { waitUntil: "domcontentloaded" });
+  const inset = await page.evaluate((sel) => {
+    const el = document.querySelector(sel);
+    return el ? Math.round(el.getBoundingClientRect().left) : null;
+  }, selector);
+  if (inset == null) fail(`${route} interior inset`, `missing ${selector}`);
+  else if (inset < minInset) fail(`${route} interior inset`, `${inset}px < ${minInset}px (${selector})`);
+  else pass(`${route} interior inset`, `${inset}px (${selector})`);
+}
+
 async function runDesktop(browser) {
   const context = await browser.newContext({ viewport: { width: 1280, height: 900 } });
   const page = await context.newPage();
@@ -156,12 +167,67 @@ async function runResponsive(browser) {
   }
 }
 
+async function runLegacyMigrationChecks(browser) {
+  const routes = [
+    { route: "/therapy/", selector: ".lpLocationSection h2" },
+    { route: "/about/", selector: ".aboutHeroTitle" },
+    { route: "/approach/", selector: ".approachEssayInner h2" }
+  ];
+
+  const mobile = await browser.newContext({ viewport: { width: 320, height: 800 } });
+  const mobilePage = await mobile.newPage();
+  for (const { route, selector } of routes) {
+    await checkInteriorTextInset(mobilePage, route, selector);
+  }
+  await mobile.close();
+
+  const desktop = await browser.newContext({ viewport: { width: 1280, height: 900 } });
+  const page = await desktop.newPage();
+
+  for (const route of ["/therapy/", "/about/", "/approach/"]) {
+    await page.goto(`${baseUrl}${route}`, { waitUntil: "domcontentloaded" });
+    const html = await page.content();
+
+    if (html.includes("More ▾")) fail(`${route} legacy More navigation`);
+    else pass(`${route} no legacy More navigation`);
+
+    if (/<p class="sectionKicker">Begin<\/p>/.test(html)) fail(`${route} legacy Begin label`);
+    else pass(`${route} no Begin label`);
+
+    if (html.includes("Every path is different.But")) fail(`${route} missing hero punctuation space`);
+    else pass(`${route} hero punctuation ok`);
+
+    if (html.includes("Send a brief secure enquiry")) fail(`${route} enquiry-first process copy`);
+    else pass(`${route} no enquiry-first sidebar steps`);
+
+    if (/<ol class="lpSteps"/.test(html)) fail(`${route} ordered list combined with manual step numbers`);
+    else pass(`${route} no ol.lpSteps markup`);
+
+    const endCtas = await page.locator(".lpEndCta").count();
+    if (endCtas === 1) pass(`${route} single closing CTA`, `${endCtas}`);
+    else fail(`${route} single closing CTA`, `count=${endCtas}`);
+
+    const stepNums = await page.locator("#therapy-process .lpStepNum, .lpSteps .lpStepNum").count();
+    if (route === "/therapy/" && stepNums === 3) pass("/therapy/ three process steps", `${stepNums}`);
+    else if (route === "/therapy/") fail("/therapy/ three process steps", `count=${stepNums}`);
+
+    if (route === "/therapy/") {
+      const note = await page.textContent(".lpTherapyEnquiryNote");
+      if (note?.includes("first .")) fail("/therapy/ enquiry note spacing", note);
+      else pass("/therapy/ enquiry note spacing");
+    }
+  }
+
+  await desktop.close();
+}
+
 async function main() {
   console.log(`Browser QA base URL: ${baseUrl}`);
   const browser = await chromium.launch({ headless: true });
   try {
     await runDesktop(browser);
     await runResponsive(browser);
+    await runLegacyMigrationChecks(browser);
   } finally {
     await browser.close();
   }
