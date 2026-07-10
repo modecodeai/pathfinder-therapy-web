@@ -1,4 +1,4 @@
-import { mkdir, readFile, writeFile, cp, rm } from "node:fs/promises";
+import { mkdir, readFile, writeFile, cp, rm, readdir } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import {
@@ -295,6 +295,34 @@ async function writeRoute(origin, route, html) {
   const filePath = path.join(OUT_DIR, routeToFilePath(route));
   await mkdir(path.dirname(filePath), { recursive: true });
   await writeFile(filePath, applyCredentialCopy(html), "utf8");
+}
+
+async function walkHtmlFiles(dir) {
+  const entries = await readdir(dir, { withFileTypes: true });
+  const files = [];
+  for (const entry of entries) {
+    const fullPath = path.join(dir, entry.name);
+    if (entry.isDirectory()) {
+      files.push(...(await walkHtmlFiles(fullPath)));
+    } else if (entry.name === "index.html") {
+      files.push(fullPath);
+    }
+  }
+  return files;
+}
+
+async function embedBuildProvenance() {
+  const sha = process.env.PATHFINDER_BUILD_SHA || process.env.GITHUB_SHA || "local";
+  const marker = `<meta name="x-pathfinder-build-sha" content="${sha}"/>`;
+  const htmlFiles = await walkHtmlFiles(OUT_DIR);
+  for (const filePath of htmlFiles) {
+    let html = await readFile(filePath, "utf8");
+    html = html.replace(/<meta name="x-pathfinder-build-sha" content="[^"]*"\/?>\n?/g, "");
+    if (!html.includes("</head>")) continue;
+    html = html.replace("</head>", `${marker}\n</head>`);
+    await writeFile(filePath, html, "utf8");
+  }
+  console.log(`Embedded build SHA ${sha} in ${htmlFiles.length} HTML files`);
 }
 
 function injectBeforeBodyClose(html, snippet) {
@@ -1090,6 +1118,8 @@ async function main() {
   } catch {
     // Optional redirects file.
   }
+
+  await embedBuildProvenance();
 
   console.log(`Production build written to ${OUT_DIR}`);
 }
