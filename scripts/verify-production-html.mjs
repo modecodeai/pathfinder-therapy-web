@@ -3,7 +3,7 @@ import process from "node:process";
 
 const sha = process.env.PATHFINDER_BUILD_SHA || "";
 const baseUrl = process.env.PATHFINDER_VERIFY_BASE_URL || "https://www.pathfindertherapy.com";
-const routes = ["/", "/start/", "/book/", "/fees/", "/about/", "/approach/", "/therapy/", "/contact/"];
+const routes = ["/", "/start/", "/book/", "/fees/", "/about/", "/approach/", "/therapy/", "/contact/", "/faq/"];
 
 if (!sha) {
   console.error("PATHFINDER_BUILD_SHA is required");
@@ -13,11 +13,33 @@ if (!sha) {
 const contentChecks = [
   {
     route: "/",
-    test: (html) => html.includes("Choose the route that suits you")
+    test: (html) =>
+      html.includes("Trauma-informed psychotherapy in Lisbon and online") &&
+      !html.includes("Choose the route that suits you") &&
+      html.includes("Not sure where to begin?") &&
+      html.includes('href="/book/"') &&
+      html.includes('href="/start/#enquiry"')
   },
   {
     route: "/start/",
-    test: (html) => html.includes("lpStartPathways")
+    test: (html) =>
+      html.includes("lpStartPathways") &&
+      html.includes("Arrange a consultation directly") &&
+      html.includes('id="enquiry"')
+  },
+  {
+    route: "/book/",
+    test: (html) =>
+      html.includes("initial consultation") &&
+      html.includes("calendly-inline-widget") &&
+      !html.includes("Choose the route")
+  },
+  {
+    route: "/therapy/",
+    test: (html) =>
+      html.includes("Take the next step") &&
+      html.includes("Choose a consultation time") &&
+      !html.includes("Begin with a conversation")
   },
   {
     route: "/fees/",

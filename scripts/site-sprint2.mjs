@@ -40,6 +40,12 @@ export const SPRINT2_CSS = `${REVIEWS_CSS}
 .lpReassuranceStrip h2 { margin: 0; font-family: Georgia, serif; font-size: clamp(1.15rem, 2.4vw, 1.35rem); line-height: 1.2; color: #f6f2ea; font-weight: 600; }
 .lpReassuranceStrip p { margin: 0; font-size: 15px; line-height: 1.65; color: rgba(246,242,234,.76); }
 .lpReassuranceStrip .lpHeroActions { margin-top: 4px; }
+.lpTertiaryLink { margin: 0; font-size: 14px; line-height: 1.6; }
+.lpTertiaryLink a { color: rgba(246,242,234,.62); text-decoration: underline; text-underline-offset: 3px; }
+.lpTertiaryLink a:hover { color: #d9b777; }
+.lpTherapyEnquiryNote { margin: 16px 0 0; font-size: 14px; line-height: 1.65; color: rgba(246,242,234,.72); }
+.lpTherapyEnquiryNote a { color: #d9b777; font-weight: 600; text-decoration: none; }
+.lpTherapyEnquiryNote a:hover { text-decoration: underline; }
 .lpStepsSection { display: grid; gap: 20px; }
 .lpStepsGrid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; margin: 0; padding: 0; list-style: none; }
 .lpStepCard { padding: 20px; border: 1px solid rgba(246,242,234,.1); border-radius: 14px; background: rgba(8,16,15,.35); display: grid; gap: 8px; }
@@ -211,16 +217,13 @@ function buildWhatHappensNextSection() {
         <p>There is no obligation to continue unless the working relationship feels appropriate.</p>
       </li>
     </ol>
-    <div class="lpHeroActions" style="margin-top:8px">
-      <a class="lpPrimaryCta" href="${BOOKING_PATH}">${BOOKING_LABEL}</a>
-    </div>
   </section>`;
 }
 
 function buildHomeReassuranceStrip() {
   return `<section class="lpReassuranceStrip" aria-labelledby="home-reassurance">
   <h2 id="home-reassurance">Not sure where to begin?</h2>
-  <p>Arrange a confidential initial conversation or send an enquiry first.</p>
+  <p>Arrange a confidential initial conversation directly, or send an enquiry first if you would prefer to ask a question.</p>
   <div class="lpHeroActions">
     <a class="lpPrimaryCta" href="${BOOKING_PATH}">${BOOKING_LABEL}</a>
     <a class="lpSecondaryCta" href="${ENQUIRY_PATH}">${ENQUIRY_LABEL}</a>
@@ -242,27 +245,18 @@ function buildFinalCtaSection() {
 }
 
 export function buildHomePageBody() {
-  return `<div class="lpAdLandingStrip" id="lpAdLandingStrip" aria-label="Get started">
-  <div class="lpAdLandingInner">
-    <p class="lpAdLandingCopy"><strong>Ready to begin?</strong> Choose the route that suits you.</p>
-  </div>
-</div>
-<div class="lpHome">
+  return `<div class="lpHome">
   <div class="lpHomeHeroWrap">
     <section class="lpHero" aria-labelledby="home-title">
       <p class="lpKicker">English-speaking therapy · Lisbon and online</p>
       <h1 class="lpTitle" id="home-title">Trauma-informed psychotherapy in Lisbon and online</h1>
-      <p class="lpLead">Support for adults and couples navigating trauma, anxiety, attachment difficulties and significant life transitions.</p>
+      <p class="lpLead">Therapy for adults and couples navigating trauma, anxiety, attachment difficulties and significant life transitions.</p>
       <div class="lpHeroActions">
         <a class="lpPrimaryCta" href="${BOOKING_PATH}">${BOOKING_LABEL}</a>
         <a class="lpHeroTextLink" href="/therapy/">Explore therapy</a>
       </div>
       <p class="lpHeroTrustLine">EATA registered · Confidential · Sessions from €75</p>
     </section>
-  </div>
-
-  <div class="lpSection" style="padding-top:0;padding-bottom:32px">
-    ${buildHomeReassuranceStrip()}
   </div>
 
   <section class="lpSection" aria-labelledby="home-who">
@@ -322,12 +316,16 @@ export function buildHomePageBody() {
       <img src="/assets/images/about-brent.webp" width="120" height="120" alt="Brent Kelly, therapist at Pathfinder Therapy Lisbon" loading="lazy" decoding="async" />
       <div>
         <p>Pathfinder is built around evidence-informed care, real conversation, and a steady therapeutic relationship. Brent Kelly works with adults and couples in English — in Lisbon and online.</p>
-        <p><strong>EATA registered</strong> · EMDR · Transactional Analysis · clinical supervision · military veterans experience</p>
+        <p><strong>EATA registered</strong> · EMDR · Transactional Analysis · clinical supervision</p>
         ${buildEataBadge()}
         <a class="lpSecondaryCta" href="/about/" style="display:inline-flex;margin-top:8px">Meet Brent →</a>
       </div>
     </div>
   </section>
+
+  <div class="lpSection" style="padding-top:0;padding-bottom:32px">
+    ${buildHomeReassuranceStrip()}
+  </div>
 
   <section class="lpSection" aria-labelledby="home-services">
     <div class="lpSectionHead">
@@ -345,30 +343,13 @@ export function buildHomePageBody() {
     </div>
   </section>
 
-  ${buildPublicFeedbackSection()}
-
   ${buildWhatHappensNextSection()}
 
-  <section class="lpSection" aria-labelledby="home-faq">
-    <div class="lpSectionHead">
-      <h2 class="lpSectionTitle" id="home-faq">Selected FAQs</h2>
-    </div>
-    <ul class="lpFaqList">
-      <li><details><summary>How do I arrange an initial consultation?</summary><p>You can <a href="${BOOKING_PATH}">arrange an initial consultation directly</a> or <a href="${ENQUIRY_PATH}">send an enquiry first</a> if you would prefer to ask a question. Initial consultations take place securely by Zoom.</p></details></li>
-      <li><details><summary>Can I see Brent in person or online?</summary><p>Yes — sessions are available at the Lisbon clinic (R. Rodrigues Sampaio 76) and securely online across Portugal.</p></details></li>
-      <li><details><summary>How much do sessions cost?</summary><p>Individual sessions are from €75 for 50 minutes. See the <a href="/fees/">fees page</a> for details.</p></details></li>
-      <li><details><summary>Do you offer EMDR and trauma therapy?</summary><p>Yes. Brent offers trauma-informed psychotherapy and EMDR where clinically appropriate.</p></details></li>
-    </ul>
-    <div class="lpHeroActions" style="margin-top:20px">
-      <a class="lpSecondaryCta" href="/faq/">Read all FAQs</a>
-    </div>
-  </section>
+  ${buildPublicFeedbackSection()}
 
   ${buildFinalCtaSection()}
 
   ${LISBON_GEO_LINKS}
-
-  <p class="lpPullQuote">Every life leaves a trail.</p>
 </div>`;
 }
 
@@ -450,7 +431,6 @@ export function applySprint2Transforms(html, route) {
   if (route === "/therapy/") {
     mainInner = injectTherapyGeoLinks(mainInner);
     mainInner = enhanceTherapyLocationSection(mainInner);
-    mainInner = wrapWithBookingPanel(mainInner);
   }
 
   let next = html.replace(

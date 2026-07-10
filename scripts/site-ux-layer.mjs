@@ -1,5 +1,5 @@
 export const CONSULTATION_PATH = "/book/";
-export const ENQUIRY_PATH = "/start/";
+export const ENQUIRY_PATH = "/start/#enquiry";
 /** Primary CTA — consultation booking (Calendly). */
 export const BOOKING_PATH = CONSULTATION_PATH;
 export const BOOKING_LABEL = "Arrange an initial consultation";
@@ -162,7 +162,7 @@ export function buildLlmsTxt() {
 
 ## Booking
 - Arrange an initial consultation: https://www.pathfindertherapy.com/book/
-- Send an enquiry: https://www.pathfindertherapy.com/start/
+- Send an enquiry: https://www.pathfindertherapy.com/start/#enquiry
 - Email: hi@pathfindertherapy.com
 - Phone/WhatsApp: +351 914 775 365
 
@@ -204,7 +204,7 @@ export function buildAiSummaryJson() {
       languages: ["English"],
       fees: { currency: "EUR", from: 75 },
       booking: {
-        enquiry_url: "https://www.pathfindertherapy.com/start/",
+        enquiry_url: "https://www.pathfindertherapy.com/start/#enquiry",
         email: "hi@pathfindertherapy.com",
         phone: "+351914775365"
       },
