@@ -1,6 +1,12 @@
 import { BOOKING_LABEL, BOOKING_PATH, ENQUIRY_LABEL, ENQUIRY_PATH } from "./site-ux-layer.mjs";
-import { buildLocationBlock } from "./site-location.mjs";
 import { applyContentFixes, applyContentFixesToPage, stripLegacyMarkup } from "./site-content-fixes.mjs";
+import {
+  DESIGN_TOKENS_CSS,
+  FLOATING_CTA_SCRIPT,
+  FONT_LINKS,
+  buildFloatingCta
+} from "./site-design-tokens.mjs";
+import { buildContactVisualBody } from "./site-contact-visual.mjs";
 
 export { BOOKING_LABEL, BOOKING_PATH, ENQUIRY_LABEL, ENQUIRY_PATH };
 
@@ -19,11 +25,13 @@ export const RESOURCES_LINKS = [
   { href: "/retreats/", label: "Retreats" }
 ];
 
-export const SHELL_V2_CSS = `<style id="pathfinder-shell-v2">
-.lpShell { min-height: 100vh; background: var(--color-forest-deep, #08100f); color: var(--color-linen, #f6f2ea); font-size: 16px; }
+export const SHELL_V2_CSS = `${FONT_LINKS}
+${DESIGN_TOKENS_CSS}
+<style id="pathfinder-shell-v2">
+.lpShell { min-height: 100vh; background: var(--pf-forest-deep); color: var(--pf-linen); font-family: var(--pf-font-sans); font-size: 16px; overflow-x: clip; }
 .lpHeader { position: sticky; top: 0; z-index: 40; background: rgba(8,16,15,.94); border-bottom: 1px solid rgba(246,242,234,.08); backdrop-filter: blur(10px); }
 .lpHeaderInner { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 14px clamp(16px, 3vw, 32px); max-width: 1280px; margin: 0 auto; }
-.lpBrand { color: var(--color-bronze, #c89a58); font-family: Georgia, serif; letter-spacing: .08em; font-size: 13px; text-decoration: none; white-space: nowrap; }
+.lpBrand { color: var(--pf-bronze); font-family: var(--pf-font-serif); letter-spacing: .08em; font-size: 13px; text-decoration: none; white-space: nowrap; }
 .lpTopNav { display: none; gap: 2px; align-items: center; }
 .lpTopNav a { padding: 8px 12px; border-radius: 999px; font-size: 13px; font-weight: 500; color: rgba(246,242,234,.78); text-decoration: none; min-height: 44px; display: inline-flex; align-items: center; }
 .lpTopNav a:hover { color: #d9b777; background: rgba(200,154,88,.08); }
@@ -65,11 +73,10 @@ body.lpMenuOpen { overflow: hidden; }
 .lpStickyCta a { display: flex; align-items: center; justify-content: center; min-height: 48px; border-radius: 999px; background: rgba(200,154,88,.18); border: 1px solid rgba(200,154,88,.75); color: #d9b777; font-weight: 600; text-decoration: none; font-size: 14px; }
 .lpGrid { display: grid; grid-template-columns: minmax(0, 1.05fr) minmax(320px, .95fr); gap: clamp(24px, 4vw, 40px); align-items: start; }
 .lpHero { display: grid; gap: 18px; }
-.lpKicker { margin: 0; color: #d9b777; font-size: 12px; letter-spacing: .18em; text-transform: uppercase; }
-.lpTitle { margin: 0; font-family: Georgia, "Times New Roman", serif; font-size: clamp(2rem, 4.8vw, 3.2rem); line-height: 1.05; font-weight: 600; color: #f6f2ea; text-wrap: balance; }
-.lpLead { margin: 0; font-size: clamp(1.05rem, 2.2vw, 1.22rem); line-height: 1.65; color: rgba(246,242,234,.84); max-width: 38rem; }
-.lpHeroActions { display: flex; flex-wrap: wrap; gap: 12px; }
-.lpPrimaryCta, .lpSecondaryCta { display: inline-flex; align-items: center; justify-content: center; min-height: 48px; padding: 0 20px; border-radius: 999px; font-size: 14px; font-weight: 600; text-decoration: none; letter-spacing: .04em; }
+.lpTitle { margin: 0; font-family: var(--pf-font-serif); font-size: clamp(2rem, 4.8vw, 3.2rem); line-height: 1.05; font-weight: 600; color: #f6f2ea; text-wrap: balance; }
+.lpLead { margin: 0; font-family: var(--pf-font-sans); font-size: clamp(1.05rem, 2.2vw, 1.22rem); line-height: 1.65; color: rgba(246,242,234,.84); max-width: 38rem; }
+.lpKicker { margin: 0; color: #d9b777; font-family: var(--pf-font-sans); font-size: 12px; letter-spacing: .18em; text-transform: uppercase; }
+.lpPrimaryCta, .lpSecondaryCta { display: inline-flex; align-items: center; justify-content: center; min-height: 48px; padding: 0 20px; border-radius: 999px; font-family: var(--pf-font-sans); font-size: 14px; font-weight: 600; text-decoration: none; letter-spacing: .04em; }
 .lpPrimaryCta { background: rgba(200,154,88,.18); border: 1px solid rgba(200,154,88,.75); color: #d9b777; }
 .lpSecondaryCta { border: 1px solid rgba(246,242,234,.18); color: rgba(246,242,234,.88); }
 .lpTherapist { display: grid; grid-template-columns: 72px minmax(0, 1fr); gap: 14px; align-items: center; padding: 16px; border: 1px solid rgba(246,242,234,.1); border-radius: 16px; background: rgba(8,16,15,.45); }
@@ -97,6 +104,11 @@ a:focus-visible, button:focus-visible, summary:focus-visible, input:focus-visibl
   .lpMobileNav { display: none !important; }
   .lpStickyCta { display: none; }
   body.lpBody { padding-bottom: 0; }
+}
+@media (min-width: 901px) and (max-width: 1200px) {
+  .lpHeaderPhone { display: none !important; }
+  .lpTopNav a, .lpMoreBtn { padding: 8px 8px; font-size: 12px; }
+  .lpHeaderCta { font-size: 12px; padding: 0 12px; }
 }
 @media (max-width: 900px) {
   .lpGrid { grid-template-columns: 1fr; }
@@ -273,7 +285,9 @@ export function extractPageParts(html) {
 }
 
 function navLink(item, route) {
-  const current = route === item.href ? ' aria-current="page"' : "";
+  const isCurrent =
+    route === item.href || (item.href === "/therapy/" && route.startsWith("/therapy/"));
+  const current = isCurrent ? ' aria-current="page"' : "";
   return `<a href="${item.href}"${current}>${item.label}</a>`;
 }
 
@@ -327,16 +341,50 @@ export function buildHeader(route) {
 }
 
 export function buildSiteFooter() {
-  const primary = NAV_ITEMS.map((item) => `<a href="${item.href}">${item.label}</a>`).join("");
-  const resources = RESOURCES_LINKS.map((item) => `<a href="${item.href}">${item.label}</a>`).join("");
+  const therapyLinks = [
+    { href: "/therapy/individual/", label: "Individual therapy" },
+    { href: "/therapy/couples/", label: "Couples therapy" },
+    { href: "/therapy/emdr/", label: "EMDR" },
+    { href: "/therapy/online/", label: "Online therapy" }
+  ];
+  const exploreLinks = [
+    { href: "/about/", label: "About Brent" },
+    { href: "/approach/", label: "Approach" },
+    { href: "/fees/", label: "Fees" },
+    ...RESOURCES_LINKS,
+    { href: "/contact/", label: "Contact" }
+  ];
+  const therapyNav = therapyLinks.map((item) => `<a href="${item.href}">${item.label}</a>`).join("");
+  const exploreNav = exploreLinks.map((item) => `<a href="${item.href}">${item.label}</a>`).join("");
 
-  return `<footer class="lpSiteFooter">
-  <div class="lpSiteFooterInner">
-    <div class="lpSiteFooterTop">
-      <nav class="lpSiteFooterNav" aria-label="Footer navigation">${primary}</nav>
-      <nav class="lpSiteFooterExplore" aria-label="Resources">${resources}</nav>
+  return `<footer class="pfFooter">
+  <div class="pfFooterInner">
+    <div class="pfFooterGrid">
+      <div class="pfFooterBrand">
+        <div class="pfFooterLogo">Pathfinder<small>Psychotherapy</small></div>
+        <p>Trauma-informed psychotherapy with Brent Kelly for English-speaking adults and couples — in Lisbon and securely online across Portugal.</p>
+        <p style="margin-top:12px"><a href="https://www.instagram.com/pathfinder.therapy/" rel="noopener noreferrer" target="_blank">Instagram</a></p>
+      </div>
+      <div class="pfFooterCol">
+        <h2>Therapy</h2>
+        <nav aria-label="Therapy services">${therapyNav}</nav>
+      </div>
+      <div class="pfFooterCol">
+        <h2>Explore</h2>
+        <nav aria-label="Explore">${exploreNav}</nav>
+      </div>
+      <div class="pfFooterCol pfFooterContact">
+        <h2>Get in touch</h2>
+        <p><a href="tel:+351914775365">+351 914 775 365</a></p>
+        <p><a href="mailto:hi@pathfindertherapy.com">hi@pathfindertherapy.com</a></p>
+        <p>R. Rodrigues Sampaio 76 1º Andar<br>1150-281 Lisboa, Portugal</p>
+        <p><a href="https://www.google.com/maps/dir//Pathfinder+Therapy,+R.+Rodrigues+Sampaio+76+1st+floor,+1150-281+Lisboa">Get directions →</a></p>
+      </div>
     </div>
-    <p class="lpSiteFooterMeta">Pathfinder Therapy · R. Rodrigues Sampaio 76, Lisboa · <a href="/privacy/">Privacy</a> · <a href="/terms/">Terms</a> · <a href="/crisis-support/">Crisis support</a> · <a href="#" data-cookie-manage>Manage cookies</a> · Non-urgent enquiries only</p>
+    <div class="pfFooterBottom">
+      <p>© ${new Date().getFullYear()} Pathfinder Therapy · Brent Kelly, Lisboa · <a href="/privacy/">Privacy</a> · <a href="/terms/">Terms</a> · <a href="/crisis-support/">Crisis support</a> · <a href="#" data-cookie-manage>Manage cookies</a> · Non-urgent enquiries only</p>
+      <a class="pfFooterCta" href="${BOOKING_PATH}" aria-label="${BOOKING_LABEL} — opens booking page">${BOOKING_LABEL}</a>
+    </div>
   </div>
 </footer>`;
 }
@@ -350,6 +398,14 @@ export function buildStickyBar(href = BOOKING_PATH, label = BOOKING_LABEL) {
 export function wrapInShellV2({ head, route, mainInner, tail, bodySchemas = [], interior = true }) {
   const mainClass = interior ? "lpMain lpMainInterior" : "lpMain";
   const schemas = bodySchemas.join("\n");
+  const showFloat =
+    route !== "/start/" &&
+    route !== "/thank-you/" &&
+    route !== "/book/" &&
+    route !== "/book-confirmed/";
+  const floatMarkup = showFloat ? buildFloatingCta(BOOKING_PATH, BOOKING_LABEL) : "";
+  const floatScript = showFloat ? FLOATING_CTA_SCRIPT : "";
+  const stickyMarkup = showFloat ? "" : buildStickyBar();
 
   return `${head}${SHELL_V2_CSS}
 </head><body class="lpShell lpBody">
@@ -362,9 +418,11 @@ ${mainInner}
 </div>
 </main>
 ${buildSiteFooter()}
-${buildStickyBar()}
+${stickyMarkup}
+${floatMarkup}
 ${tail}
 ${SHELL_V2_SCRIPT}
+${floatScript}
 </body></html>`;
 }
 
@@ -387,41 +445,5 @@ export function applyShellV2(html, route) {
 }
 
 export function buildContactPageBody(formHtml) {
-  return `<div class="lpGrid">
-  <section class="lpHero" aria-labelledby="contact-title">
-    <p class="lpKicker">Contact · Lisbon clinic &amp; online</p>
-    <h1 class="lpTitle" id="contact-title">Arrange an initial consultation with Brent Kelly.</h1>
-    <p class="lpLead">Send a brief, secure enquiry — Brent responds to non-urgent messages within one working day. No detailed clinical history needed at this stage.</p>
-    <div class="lpHeroActions">
-      <a class="lpPrimaryCta" href="${BOOKING_PATH}">${BOOKING_LABEL}</a>
-      <a class="lpSecondaryCta" href="${ENQUIRY_PATH}">${ENQUIRY_LABEL}</a>
-    </div>
-    <div class="lpTherapist">
-      <img src="/assets/images/about-brent.webp" width="72" height="72" alt="Brent Kelly, therapist at Pathfinder Therapy Lisbon" loading="eager" decoding="async" />
-      <div>
-        <p class="lpTherapistName">Brent Kelly</p>
-        <p class="lpTherapistRole">Therapist · trauma, EMDR, veterans, couples &amp; individual therapy</p>
-      </div>
-    </div>
-    <ul class="lpTrustList" aria-label="Professional reassurance">
-      <li>EATA registered</li>
-      <li>Trauma-informed</li>
-      <li>EMDR</li>
-      <li>Confidential</li>
-      <li>Supervised practice</li>
-    </ul>
-    <ol class="lpSteps" aria-label="What happens next">
-      <li><span class="lpStepNum">1</span><span>Send your enquiry using the secure form.</span></li>
-      <li><span class="lpStepNum">2</span><span>Brent replies within one working day.</span></li>
-      <li><span class="lpStepNum">3</span><span>Arrange your first session in Lisbon or online (from €75).</span></li>
-    </ol>
-  </section>
-  <section class="lpFormPanel" id="consultation-form" aria-labelledby="consultation-form-intro">
-    <p class="lpKicker">Confidential enquiry</p>
-    <p class="lpFormIntro" id="consultation-form-intro">This takes about two minutes. Your details are sent securely to Brent — for non-urgent enquiries only.</p>
-    ${formHtml}
-    <p class="lpReassurance">Sessions from €75 · Lisbon clinic or secure online · Professional indemnity insurance · Clinical supervision in place</p>
-  </section>
-</div>
-${buildLocationBlock({ headingId: "contact-location", compact: true })}`;
+  return buildContactVisualBody(formHtml);
 }

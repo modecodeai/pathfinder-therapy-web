@@ -10,6 +10,7 @@ import { buildEataBadge, EATA_BADGE_CSS } from "./site-eata.mjs";
 import { enhanceTherapyLocationSection, injectLocationStyles } from "./site-location.mjs";
 import { buildPublicFeedbackSection, REVIEWS_CSS } from "./site-reviews.mjs";
 import { applyContentFixes, fixAboutPageContent } from "./site-content-fixes.mjs";
+import { buildVisualHomePageBody, HOMEPAGE_VISUAL_CSS } from "./site-home-visual.mjs";
 
 export const SPRINT2_CSS = `${REVIEWS_CSS}
 <style id="pathfinder-sprint2">
@@ -355,12 +356,12 @@ export function buildHomePageBody() {
 
 export function buildHomePageV2(homeHtml) {
   const parts = extractPageParts(homeHtml);
-  let head = parts.head.replace("</head>", `${SPRINT2_CSS}\n</head>`);
+  let head = parts.head.replace("</head>", `${HOMEPAGE_VISUAL_CSS}\n${REVIEWS_CSS}\n</head>`);
   return wrapInShellV2({
     ...parts,
     head,
     route: "/",
-    mainInner: buildHomePageBody(),
+    mainInner: buildVisualHomePageBody(),
     interior: false
   });
 }
