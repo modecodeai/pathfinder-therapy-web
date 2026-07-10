@@ -9,6 +9,7 @@ import {
 import { buildEataBadge, EATA_BADGE_CSS } from "./site-eata.mjs";
 import { enhanceTherapyLocationSection, injectLocationStyles } from "./site-location.mjs";
 import { buildPublicFeedbackSection, REVIEWS_CSS } from "./site-reviews.mjs";
+import { applyContentFixes, fixAboutPageContent } from "./site-content-fixes.mjs";
 
 export const SPRINT2_CSS = `${REVIEWS_CSS}
 <style id="pathfinder-sprint2">
@@ -35,9 +36,10 @@ export const SPRINT2_CSS = `${REVIEWS_CSS}
 .lpServiceCardLink { color: #d9b777; font-size: 13px; font-weight: 600; }
 .lpHeroTrustLine { margin: 0; font-size: 13px; letter-spacing: .04em; color: rgba(246,242,234,.62); }
 .lpHeroTextLink { display: inline-flex; align-items: center; min-height: 44px; color: #d9b777; font-size: 14px; font-weight: 500; text-decoration: underline; text-underline-offset: 3px; }
-.lpReassuranceStrip { margin: 0; padding: 16px 20px; border: 1px solid rgba(246,242,234,.1); border-radius: 12px; background: rgba(8,16,15,.5); font-size: 15px; line-height: 1.65; color: rgba(246,242,234,.76); max-width: 42rem; }
-.lpReassuranceStrip a { color: #d9b777; font-weight: 600; text-decoration: none; }
-.lpReassuranceStrip a:hover { text-decoration: underline; }
+.lpReassuranceStrip { margin: 0; padding: 20px; border: 1px solid rgba(246,242,234,.1); border-radius: 14px; background: rgba(8,16,15,.5); display: grid; gap: 14px; max-width: 42rem; }
+.lpReassuranceStrip h2 { margin: 0; font-family: Georgia, serif; font-size: clamp(1.15rem, 2.4vw, 1.35rem); line-height: 1.2; color: #f6f2ea; font-weight: 600; }
+.lpReassuranceStrip p { margin: 0; font-size: 15px; line-height: 1.65; color: rgba(246,242,234,.76); }
+.lpReassuranceStrip .lpHeroActions { margin-top: 4px; }
 .lpStepsSection { display: grid; gap: 20px; }
 .lpStepsGrid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; margin: 0; padding: 0; list-style: none; }
 .lpStepCard { padding: 20px; border: 1px solid rgba(246,242,234,.1); border-radius: 14px; background: rgba(8,16,15,.35); display: grid; gap: 8px; }
@@ -215,10 +217,20 @@ function buildWhatHappensNextSection() {
   </section>`;
 }
 
+function buildHomeReassuranceStrip() {
+  return `<section class="lpReassuranceStrip" aria-labelledby="home-reassurance">
+  <h2 id="home-reassurance">Not sure where to begin?</h2>
+  <p>Arrange a confidential initial conversation or send an enquiry first.</p>
+  <div class="lpHeroActions">
+    <a class="lpPrimaryCta" href="${BOOKING_PATH}">${BOOKING_LABEL}</a>
+    <a class="lpSecondaryCta" href="${ENQUIRY_PATH}">${ENQUIRY_LABEL}</a>
+  </div>
+</section>`;
+}
+
 function buildFinalCtaSection() {
   return `<section class="lpSection lpFinalCta" aria-labelledby="home-final-cta">
     <div class="lpSectionHead" style="text-align:center;margin-inline:auto">
-      <p class="lpKicker">Begin</p>
       <h2 class="lpSectionTitle" id="home-final-cta">${BOOKING_LABEL}</h2>
       <p class="lpSectionLead">Choose a convenient time for a confidential initial conversation by Zoom — or send an enquiry first if you would prefer to ask a question.</p>
     </div>
@@ -232,11 +244,7 @@ function buildFinalCtaSection() {
 export function buildHomePageBody() {
   return `<div class="lpAdLandingStrip" id="lpAdLandingStrip" aria-label="Get started">
   <div class="lpAdLandingInner">
-    <p class="lpAdLandingCopy"><strong>Ready to begin?</strong> Arrange an initial consultation or send an enquiry first.</p>
-    <div class="lpAdLandingActions">
-      <a class="lpPrimaryCta" href="${BOOKING_PATH}">${BOOKING_LABEL}</a>
-      <a class="lpSecondaryCta" href="${ENQUIRY_PATH}">${ENQUIRY_LABEL}</a>
-    </div>
+    <p class="lpAdLandingCopy"><strong>Ready to begin?</strong> Choose the route that suits you.</p>
   </div>
 </div>
 <div class="lpHome">
@@ -250,8 +258,11 @@ export function buildHomePageBody() {
         <a class="lpHeroTextLink" href="/therapy/">Explore therapy</a>
       </div>
       <p class="lpHeroTrustLine">EATA registered · Confidential · Sessions from €75</p>
-      <p class="lpReassuranceStrip">Not sure where to begin? <a href="${BOOKING_PATH}">Arrange a confidential initial conversation</a> or <a href="${ENQUIRY_PATH}">send an enquiry first</a>.</p>
     </section>
+  </div>
+
+  <div class="lpSection" style="padding-top:0;padding-bottom:32px">
+    ${buildHomeReassuranceStrip()}
   </div>
 
   <section class="lpSection" aria-labelledby="home-who">
@@ -343,7 +354,7 @@ export function buildHomePageBody() {
       <h2 class="lpSectionTitle" id="home-faq">Selected FAQs</h2>
     </div>
     <ul class="lpFaqList">
-      <li><details><summary>How do I arrange an initial consultation?</summary><p>You can <a href="${BOOKING_PATH}">arrange an initial consultation directly</a> or <a href="${ENQUIRY_PATH}">send an enquiry first</a> if you would prefer to ask a question. Brent replies within one working day.</p></details></li>
+      <li><details><summary>How do I arrange an initial consultation?</summary><p>You can <a href="${BOOKING_PATH}">arrange an initial consultation directly</a> or <a href="${ENQUIRY_PATH}">send an enquiry first</a> if you would prefer to ask a question. Initial consultations take place securely by Zoom.</p></details></li>
       <li><details><summary>Can I see Brent in person or online?</summary><p>Yes — sessions are available at the Lisbon clinic (R. Rodrigues Sampaio 76) and securely online across Portugal.</p></details></li>
       <li><details><summary>How much do sessions cost?</summary><p>Individual sessions are from €75 for 50 minutes. See the <a href="/fees/">fees page</a> for details.</p></details></li>
       <li><details><summary>Do you offer EMDR and trauma therapy?</summary><p>Yes. Brent offers trauma-informed psychotherapy and EMDR where clinically appropriate.</p></details></li>
@@ -429,15 +440,19 @@ export function applySprint2Transforms(html, route) {
   }
 
   const parts = extractPageParts(html);
-  let mainInner = parts.mainInner;
+  let mainInner = applyContentFixes(parts.mainInner, route);
+
   if (route === "/about/") {
     mainInner = trimAboutPagePortraits(mainInner);
+    mainInner = fixAboutPageContent(mainInner);
   }
+
   if (route === "/therapy/") {
     mainInner = injectTherapyGeoLinks(mainInner);
     mainInner = enhanceTherapyLocationSection(mainInner);
+    mainInner = wrapWithBookingPanel(mainInner);
   }
-  mainInner = wrapWithBookingPanel(mainInner);
+
   let next = html.replace(
     /(<main class="lpMain[^"]*" id="main-content" tabindex="-1">\s*<div class="lpInteriorBody">)[\s\S]*(<\/div>\s*<\/main>)/,
     `$1${mainInner}$2`

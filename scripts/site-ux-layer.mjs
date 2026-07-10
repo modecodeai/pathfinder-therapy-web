@@ -95,6 +95,8 @@ export function applySiteWideUx(html, route) {
   next = next.replaceAll("Book an initial Zoom call", BOOKING_LABEL);
   next = next.replaceAll("Send a brief enquiry", ENQUIRY_LABEL);
   next = next.replaceAll("Send enquiry", ENQUIRY_LABEL);
+  next = next.replaceAll("Make an enquiry", ENQUIRY_LABEL);
+  next = next.replaceAll("Make an Enquiry", ENQUIRY_LABEL);
   next = next.replaceAll('href="/contact/#contact-form"', `href="${ENQUIRY_PATH}"`);
   next = next.replaceAll("href=\"/contact/#contact-form\"", `href="${ENQUIRY_PATH}"`);
 
@@ -109,39 +111,11 @@ export function applySiteWideUx(html, route) {
     );
   }
 
-  if (["/therapy/", "/about/", "/approach/"].includes(route)) {
-    next = injectPageCta(next);
-  }
-
   if (!hasHtmlClass(next, "pfStickyBook")) {
     next = next.replace("</body>", `${SITE_UX_STICKY}\n</body>`);
   }
 
-  if (route !== "/" && !hasHtmlClass(next, "pfDesktopBook")) {
-    next = next.replace(
-      '<div class="sidebarCta">',
-      `<a class="pfDesktopBook" href="${BOOKING_PATH}">${BOOKING_LABEL}</a><div class="sidebarCta">`
-    );
-  }
-
   return next;
-}
-
-const PAGE_CTA_BLOCK = `<section class="approachEssay pfPageCta" aria-label="Arrange a consultation">
-  <div class="approachEssayInner">
-    ${BEGIN_SECTION_TRUST}
-    <div class="pfHeroActions" style="margin-top:16px">
-      <a class="pfHeroPrimary" href="${BOOKING_PATH}">${BOOKING_LABEL}</a>
-      <a class="pfHeroSecondary" href="tel:+351914775365">Call +351 914 775 365</a>
-    </div>
-  </div>
-</section>`;
-
-function injectPageCta(html) {
-  if (hasHtmlClass(html, "pfPageCta")) {
-    return html;
-  }
-  return html.replace("</main>", `${PAGE_CTA_BLOCK}\n</main>`);
 }
 
 function applyHomepageUx(html) {

@@ -1,5 +1,6 @@
 import { BOOKING_LABEL, BOOKING_PATH, ENQUIRY_LABEL, ENQUIRY_PATH } from "./site-ux-layer.mjs";
 import { buildLocationBlock } from "./site-location.mjs";
+import { applyContentFixes, applyContentFixesToPage, stripLegacyMarkup } from "./site-content-fixes.mjs";
 
 export { BOOKING_LABEL, BOOKING_PATH, ENQUIRY_LABEL, ENQUIRY_PATH };
 
@@ -334,18 +335,21 @@ ${SHELL_V2_SCRIPT}
 }
 
 export function applyShellV2(html, route) {
-  if (route === "/start/" || route === "/thank-you/") {
+  if (route === "/start/" || route === "/thank-you/" || route === "/book/" || route === "/book-confirmed/") {
     return html;
   }
 
   const parts = extractPageParts(html);
-  let next = wrapInShellV2({ ...parts, route });
+  const mainInner = stripLegacyMarkup(applyContentFixes(parts.mainInner, route));
+  let next = wrapInShellV2({ ...parts, mainInner: mainInner, route });
   next = next.replaceAll("Book a consultation", BOOKING_LABEL);
   next = next.replaceAll("Book initial Zoom call", BOOKING_LABEL);
   next = next.replaceAll("Book Zoom call", BOOKING_LABEL);
+  next = next.replaceAll("Book an initial Zoom call", BOOKING_LABEL);
   next = next.replaceAll("Send a brief enquiry", ENQUIRY_LABEL);
+  next = next.replaceAll("Make an enquiry", ENQUIRY_LABEL);
   next = next.replaceAll('href="/contact/#contact-form"', `href="${ENQUIRY_PATH}"`);
-  return next;
+  return applyContentFixesToPage(next, route);
 }
 
 export function buildContactPageBody(formHtml) {
