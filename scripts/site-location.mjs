@@ -14,8 +14,8 @@ const CLINIC = {
 };
 
 export const LOCATION_CSS = `<style id="pathfinder-location">
-.lpLocationBlock { display: grid; gap: 20px; margin-top: 24px; }
-.lpLocationDetails { display: grid; gap: 14px; font-size: 15px; line-height: 1.65; color: rgba(246,242,234,.76); }
+.lpLocationBlock { display: grid; gap: 20px; margin-top: 24px; width: 100%; }
+.lpLocationDetails { display: grid; gap: 14px; font-size: 15px; line-height: 1.65; color: rgba(246,242,234,.76); min-width: 0; }
 .lpLocationDetails p { margin: 0; }
 .lpLocationDetails strong { color: #f6f2ea; }
 .lpLocationList { margin: 0; padding-left: 1.1rem; display: grid; gap: 6px; }

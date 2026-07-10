@@ -76,8 +76,9 @@ export const SPRINT2_CSS = `${REVIEWS_CSS}
 .lpLocalLanding { width: 100%; margin: 0; max-width: 100%; }
 .lpLocalHero { display: grid; gap: 18px; padding-bottom: clamp(28px, 4vw, 40px); border-bottom: 1px solid rgba(246,242,234,.08); max-width: 100%; }
 .lpLocalHero .lpTitle { max-width: 100%; overflow-wrap: break-word; }
-.lpLocalSection { padding: clamp(32px, 5vw, 48px) 0; border-bottom: 1px solid rgba(246,242,234,.06); }
+.lpLocalSection { padding: clamp(32px, 5vw, 48px) clamp(16px, 3vw, 40px); border-bottom: 1px solid rgba(246,242,234,.06); }
 .lpLocalSectionInner { display: grid; gap: 12px; max-width: 42rem; }
+.lpLocationSection .lpLocalSectionInner { max-width: 1180px; }
 .lpLocalBody p { margin: 0 0 12px; font-size: 15px; line-height: 1.7; color: rgba(246,242,234,.76); }
 .lpLocalBody p:last-child { margin-bottom: 0; }
 .lpLocalBody ul { margin: 0; padding-left: 1.2rem; display: grid; gap: 8px; }
@@ -99,6 +100,34 @@ export const SPRINT2_CSS = `${REVIEWS_CSS}
 .lpPageContent .aboutHero, .lpPageContent .approachHero { padding: clamp(28px, 4vw, 48px) clamp(12px, 2vw, 24px) !important; }
 .lpPageContent .aboutIntro, .lpPageContent .aboutSection, .lpPageContent .aboutFinalCta, .lpPageContent .approachEssay, .lpPageContent .approachSpread, .lpPageContent .approachLifeForce, .lpPageContent .approachBlocksSection, .lpPageContent .approachPrinciplesSection, .lpPageContent .approachFinalCta { padding-inline: clamp(12px, 2vw, 24px) !important; }
 .lpPageContent .relatedPagesGrid { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; }
+.lpInteriorBody > article.approachPage > section,
+.lpInteriorBody > article.approachPage > aside,
+.lpInteriorBody > article.aboutPage > section,
+.lpInteriorBody > article.aboutPage > aside {
+  padding-inline: clamp(16px, 3vw, 40px);
+  box-sizing: border-box;
+}
+.lpInteriorBody > article.approachPage > .approachHero,
+.lpInteriorBody > article.aboutPage > .aboutHero {
+  padding-block: clamp(28px, 4vw, 48px);
+  padding-inline: clamp(16px, 3vw, 40px);
+}
+.lpInteriorBody .lpEndCta {
+  padding-block: clamp(28px, 4vw, 40px);
+  padding-inline: clamp(16px, 3vw, 40px);
+}
+.lpInteriorBody .relatedPages {
+  padding-block: clamp(28px, 4vw, 40px);
+  padding-inline: clamp(16px, 3vw, 40px);
+}
+.lpInteriorBody .approachEssayInner,
+.lpInteriorBody .approachLifeForceInner,
+.lpInteriorBody .lpEndCtaInner,
+.lpInteriorBody .lpLocalSectionInner {
+  max-width: 1180px;
+  margin-inline: auto;
+  width: 100%;
+}
 .lpArticleContent .aboutHero, .lpArticleContent .approachHero, .lpArticleContent .approachSpread, .lpArticleContent .aboutSectionGrid { grid-template-columns: 1fr !important; min-height: auto !important; }
 .lpArticleContent .approachHeroImage, .lpArticleContent .approachSpreadImage, .lpArticleContent .aboutPortrait { width: min(100%, 42rem) !important; max-width: 100% !important; margin-inline: auto !important; }
 .lpBookingPanel { position: sticky; top: 88px; display: grid; gap: 14px; padding: clamp(18px, 3vw, 22px); border: 1px solid rgba(246,242,234,.12); border-radius: 18px; background: rgba(8,16,15,.78); box-shadow: 0 24px 80px rgba(0,0,0,.24); }
