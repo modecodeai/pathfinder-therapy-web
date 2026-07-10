@@ -161,6 +161,18 @@ function auditPriorityRoutes() {
         issues.push(`${rel}: therapy process steps should use ul.lpSteps`);
       }
     }
+
+    if (route.startsWith("/knowledge-library/") && route !== "/knowledge-library/") {
+      if (html.includes('class="lpEndCta"')) {
+        issues.push(`${rel}: knowledge article should not include lpEndCta when booking panel is present`);
+      }
+      if (!html.includes('class="lpBookingPanel"')) {
+        issues.push(`${rel}: knowledge article missing booking panel`);
+      }
+      if (html.includes('class="approachFinalCta"')) {
+        issues.push(`${rel}: knowledge article still has legacy approachFinalCta`);
+      }
+    }
   }
 
   return issues;

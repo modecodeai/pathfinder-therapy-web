@@ -101,22 +101,20 @@ function applyBookingPanelLayout(html, { slim = false } = {}) {
 }
 
 function injectArticleCta(mainInner) {
-  if (mainInner.includes("lpInlineCta")) {
-    return mainInner;
+  let injected = stripLegacyFinalCtas(mainInner);
+
+  if (injected.includes("lpInlineCta")) {
+    return injected;
   }
 
   let sectionCount = 0;
-  let injected = mainInner.replace(/<\/section>/g, (match) => {
+  injected = injected.replace(/<\/section>/g, (match) => {
     sectionCount += 1;
     if (sectionCount === 2) {
       return `${match}${INLINE_CTA}`;
     }
     return match;
   });
-
-  if (!injected.includes("lpEndCta") && injected.includes("</article>")) {
-    injected = injected.replace("</article>", `${END_CTA}</article>`);
-  }
 
   return injected;
 }
