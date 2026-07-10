@@ -10,8 +10,6 @@ const KNOWLEDGE_LIBRARY_ROUTE = "/knowledge-library/";
 
 const RELATED_PAGES = `<aside class="relatedPages" aria-labelledby="related-pages-title"><p class="sectionKicker" id="related-pages-title">Related pages</p><div class="relatedPagesGrid"><a class="relatedPage" href="/therapy/"><span>Therapy</span><small>Individual therapy with Brent online or in Lisbon.</small></a><a class="relatedPage" href="/about/"><span>About Brent</span><small>Learn about Brent&#x27;s background and clinical approach.</small></a><a class="relatedPage" href="/knowledge-library/"><span>Knowledge Library</span><small>Clear writing on trauma, emotion, relationships and growth.</small></a><a class="relatedPage" href="/contact/"><span>Contact</span><small>Make a non-urgent enquiry with Pathfinder Therapy.</small></a></div></aside>`;
 
-const FINAL_CTA = `<section class="approachFinalCta" aria-labelledby="article-final"><div><h2 class="approachSectionTitle" id="article-final">Understanding can be the first step towards change.</h2><p>If this article speaks to something in your life, therapy offers a steady place to explore it with care.</p><div class="approachCtaAction"><a class="button" href="/book/"><span>Arrange an initial consultation</span><svg aria-hidden="true" class="buttonIcon" viewBox="0 0 24 24" fill="none"><path d="M5 12h13m-5-5 5 5-5 5" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path></svg></a></div></div></section>`;
-
 export const KNOWLEDGE_ARTICLE_META = [
   {
     slug: "what-is-trauma-therapy",
@@ -276,7 +274,7 @@ export function buildKnowledgeArticleBody(article) {
     .map((section) => buildEssaySection(article.slug, section))
     .join("");
 
-  return `<article class="approachPage">${hero}${buildIntroSection(article.intro)}${contentSections}${buildFaqSection(article.faqs)}${buildRelatedSection(article.related)}${FINAL_CTA}${RELATED_PAGES}</article>`;
+  return `<article class="approachPage">${hero}${buildIntroSection(article.intro)}${contentSections}${buildFaqSection(article.faqs)}${buildRelatedSection(article.related)}${RELATED_PAGES}</article>`;
 }
 
 export async function loadKnowledgeArticles() {

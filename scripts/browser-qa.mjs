@@ -219,6 +219,18 @@ async function runLegacyMigrationChecks(browser) {
   }
 
   await desktop.close();
+
+  const articleContext = await browser.newContext({ viewport: { width: 390, height: 844 } });
+  const articlePage = await articleContext.newPage();
+  await articlePage.goto(`${baseUrl}/knowledge-library/what-is-trauma-therapy/`, { waitUntil: "domcontentloaded" });
+  const articleEndCtas = await articlePage.locator(".lpEndCta").count();
+  const articlePanels = await articlePage.locator(".lpBookingPanel").count();
+  if (articleEndCtas === 0 && articlePanels === 1) {
+    pass("/knowledge-library/what-is-trauma-therapy/ single booking CTA");
+  } else {
+    fail("/knowledge-library/what-is-trauma-therapy/ single booking CTA", `lpEndCta=${articleEndCtas}, lpBookingPanel=${articlePanels}`);
+  }
+  await articleContext.close();
 }
 
 async function main() {
