@@ -96,6 +96,31 @@ async function main() {
       url: "/contact/",
       viewport: { width: 1440, height: 900 }
     });
+    await capturePage(browser, {
+      name: "therapy-mobile",
+      url: "/therapy/",
+      device: "iPhone 13"
+    });
+    await capturePage(browser, {
+      name: "about-desktop",
+      url: "/about/",
+      viewport: { width: 1440, height: 900 }
+    });
+    await capturePage(browser, {
+      name: "about-mobile",
+      url: "/about/",
+      device: "iPhone 13"
+    });
+    await capturePage(browser, {
+      name: "approach-desktop",
+      url: "/approach/",
+      viewport: { width: 1440, height: 900 }
+    });
+    await capturePage(browser, {
+      name: "approach-mobile",
+      url: "/approach/",
+      device: "iPhone 13"
+    });
     await captureBookLoading(browser);
     await captureBookError(browser);
     await captureFooterHiddenFloat(browser);

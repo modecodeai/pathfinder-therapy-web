@@ -945,11 +945,11 @@ function buildThankYouPage(contactHtml) {
     <p class="lpKicker">Enquiry received</p>
     <h1 class="lpTitle">Thank you — Brent will be in touch soon.</h1>
     <p class="lpLead">Your enquiry was sent securely. Brent responds to non-urgent messages within one working day, usually sooner.</p>
-    <ol class="lpSteps">
-      <li><span class="lpStepNum">✓</span><span>Your message has been received confidentially.</span></li>
-      <li><span class="lpStepNum">2</span><span>Brent will reply by email to arrange an initial conversation.</span></li>
-      <li><span class="lpStepNum">3</span><span>If you both agree it feels right, your first session can be booked in Lisbon or online.</span></li>
-    </ol>
+    <ul class="lpSteps">
+      <li><span class="lpStepNum" aria-hidden="true">✓</span><span>Your message has been received confidentially.</span></li>
+      <li><span class="lpStepNum" aria-hidden="true">2</span><span>Brent will reply by email to arrange an initial conversation.</span></li>
+      <li><span class="lpStepNum" aria-hidden="true">3</span><span>If you both agree it feels right, your first session can be booked in Lisbon or online.</span></li>
+    </ul>
     <div class="lpHeroActions">
       <a class="lpSecondaryCta" href="/">Return to homepage</a>
       <a class="lpSecondaryCta" href="${BOOKING_PATH}">${BOOKING_LABEL}</a>
