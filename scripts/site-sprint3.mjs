@@ -1,6 +1,7 @@
 import { BOOKING_LABEL, BOOKING_PATH, ENQUIRY_LABEL, ENQUIRY_PATH } from "./site-ux-layer.mjs";
 import { extractPageParts } from "./site-shell-v2.mjs";
 import { SPRINT2_CSS, applySprint2Transforms, buildBookingPanel, wrapWithBookingPanel } from "./site-sprint2.mjs";
+import { applyContentFixes, fixApproachPageContent } from "./site-content-fixes.mjs";
 
 export const SPRINT3_CSS = `<style id="pathfinder-sprint3">
 .lpInlineCta { margin: 32px 0; padding: 22px; border: 1px solid rgba(200,154,88,.28); border-radius: 16px; background: rgba(200,154,88,.08); display: grid; gap: 12px; }
@@ -159,7 +160,10 @@ export function applySprint3Transforms(html, route) {
   }
 
   if (route === "/approach/") {
-    return applyBookingPanelLayout(html);
+    const parts = extractPageParts(html);
+    const mainInner = wrapWithBookingPanel(fixApproachPageContent(applyContentFixes(parts.mainInner, route)));
+    let next = replaceInteriorBody(html, mainInner);
+    return injectStyles(next);
   }
 
   if (route.startsWith("/knowledge-library/")) {

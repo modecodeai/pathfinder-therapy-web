@@ -455,83 +455,67 @@ function extractHeadAndTail(contactHtml) {
   return { head, tail };
 }
 
+const START_PAGE_CSS = `<style id="pathfinder-start-pathways">
+.lpStartIntro { display: grid; gap: 18px; max-width: 44rem; margin-bottom: clamp(24px, 4vw, 36px); }
+.lpStartPathways { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: clamp(20px, 4vw, 28px); align-items: start; }
+.lpStartPathCard { padding: clamp(20px, 3vw, 24px); border: 1px solid rgba(246,242,234,.12); border-radius: 16px; background: rgba(8,16,15,.45); display: grid; gap: 14px; }
+.lpStartPathCard h2 { margin: 0; font-family: Georgia, serif; font-size: clamp(1.2rem, 2.4vw, 1.45rem); line-height: 1.2; color: #f6f2ea; font-weight: 600; }
+.lpStartPathCard ol { margin: 0; padding: 0; list-style: none; display: grid; gap: 10px; }
+.lpStartPathCard li { font-size: 14px; line-height: 1.65; color: rgba(246,242,234,.76); padding-left: 18px; position: relative; }
+.lpStartPathCard li:before { content: ""; position: absolute; left: 0; top: .55em; width: 6px; height: 6px; border-radius: 50%; background: rgba(200,154,88,.55); }
+.lpStartPathCard .contactForm { margin-top: 4px; max-width: none; }
+.lpStartPathCard .contactSubmit { width: 100%; }
+@media (max-width: 900px) {
+  .lpStartPathways { grid-template-columns: 1fr; }
+  .lpHeroActions { flex-direction: column; align-items: stretch; }
+  .lpHeroActions .lpPrimaryCta, .lpHeroActions .lpSecondaryCta { width: 100%; }
+}
+</style>`;
+
+function buildStartPageBody(formHtml) {
+  return `<section class="lpStartIntro" aria-labelledby="start-title">
+  <p class="lpKicker">Getting started · Lisbon and online</p>
+  <h1 class="lpTitle" id="start-title">Two ways to begin with Pathfinder Therapy</h1>
+  <p class="lpLead">You can arrange an initial consultation directly or send an enquiry first — whichever feels easier. Both routes are confidential and non-urgent.</p>
+</section>
+<div class="lpStartPathways">
+  <article class="lpStartPathCard" aria-labelledby="start-book-direct">
+    <h2 id="start-book-direct">Arrange a consultation directly</h2>
+    <ol>
+      <li>Choose a convenient consultation time.</li>
+      <li>Receive the secure Zoom details automatically.</li>
+      <li>Meet Brent and decide whether ongoing therapy feels appropriate.</li>
+    </ol>
+    <a class="lpPrimaryCta" href="${BOOKING_PATH}">${BOOKING_LABEL}</a>
+  </article>
+  <article class="lpStartPathCard" id="consultation-form" aria-labelledby="start-enquiry">
+    <h2 id="start-enquiry">Send an enquiry first</h2>
+    <ol>
+      <li>Send a brief secure enquiry without detailed clinical history.</li>
+      <li>Brent responds within one working day.</li>
+      <li>Arrange a consultation if the service appears suitable.</li>
+    </ol>
+    <p class="lpFormIntro" id="consultation-form-intro">This takes about two minutes. Your details are sent securely to Brent — for non-urgent enquiries only.</p>
+    ${formHtml}
+  </article>
+</div>`;
+}
+
 function buildStartPage(contactHtml) {
-  const { head, tail } = extractHeadAndTail(contactHtml);
+  const parts = extractPageParts(contactHtml);
   const formHtml = prepareLandingForm(
     contactHtml.match(/<form class="contactForm"[\s\S]*?<\/form>/)?.[0] ?? ""
   );
-
-  const body = `<body class="lpShell">
-<a class="skipLink" href="#main-content">Skip to main content</a>
-<header class="lpHeader">
-  <a class="lpBrand" href="/" aria-label="Pathfinder Therapy home">
-    <span class="lpBrandWord">PATHFINDER THERAPY</span>
-  </a>
-  <a class="lpHeaderPhone" href="tel:+351914775365" aria-label="Call Pathfinder Therapy">
-    <span>Call</span> +351 914 775 365
-  </a>
-</header>
-<main class="lpMain" id="main-content">
-  <div class="lpGrid">
-    <section class="lpHero" aria-labelledby="start-title">
-      <p class="lpKicker">English-speaking therapist · Lisbon clinic &amp; online</p>
-      <h1 class="lpTitle" id="start-title">Find out if therapy is right for you — with a therapist in Lisbon or online.</h1>
-      <p class="lpLead">Trauma-informed psychotherapy for anxiety, trauma, relationships, and life transitions. Brent Kelly responds to non-urgent enquiries within one working day.</p>
-      <div class="lpHeroActions">
-        <a class="lpPrimaryCta" href="#consultation-form" data-scroll-target="#consultation-form">${ENQUIRY_LABEL}</a>
-        <a class="lpSecondaryCta" href="${BOOKING_PATH}">${BOOKING_LABEL}</a>
-      </div>
-      <div class="lpTherapist">
-        <img src="/assets/images/about-brent.webp" width="72" height="72" alt="Brent Kelly, therapist at Pathfinder Therapy Lisbon" loading="eager" decoding="async" />
-        <div>
-          <p class="lpTherapistName">Brent Kelly</p>
-          <p class="lpTherapistRole">Therapist · trauma, EMDR, veterans, couples &amp; individual therapy · Lisbon &amp; online</p>
-        </div>
-      </div>
-      <ul class="lpTrustList" aria-label="Professional reassurance">
-        <li>EATA registered</li>
-        <li>Trauma-informed</li>
-        <li>EMDR</li>
-        <li>Transactional Analysis</li>
-        <li>Veterans experience</li>
-        <li>Confidential</li>
-        <li>Supervised practice</li>
-      </ul>
-      ${buildEataBadge()}
-      <ol class="lpSteps" aria-label="What happens next">
-        <li><span class="lpStepNum">1</span><span>Send a brief, secure enquiry — no detailed clinical history needed.</span></li>
-        <li><span class="lpStepNum">2</span><span>Brent replies within one working day to arrange an initial conversation.</span></li>
-        <li><span class="lpStepNum">3</span><span>If it feels like a fit, book your first session in Lisbon or online.</span></li>
-      </ol>
-    </section>
-    <section class="lpFormPanel" id="consultation-form" aria-labelledby="consultation-form-intro">
-      <p class="lpKicker">Confidential enquiry</p>
-      <p class="lpFormIntro" id="consultation-form-intro">This takes about two minutes. Your details are sent securely to Brent — for non-urgent enquiries only.</p>
-      ${formHtml}
-      <p class="lpReassurance">Sessions from €75 · Lisbon clinic or secure online · Professional indemnity insurance · Clinical supervision in place</p>
-    </section>
-  </div>
-  <section class="lpTrustStrip" aria-label="Why Pathfinder Therapy">
-    <p class="lpKicker">Why people choose Pathfinder</p>
-    <p>Pathfinder Therapy offers calm, trauma-informed psychotherapy for adults and couples in Lisbon and across Portugal online. Brent works with trauma, anxiety, attachment, military veterans, and complex life experiences — using EMDR and Transactional Analysis where appropriate.</p>
-  </section>
-  <p class="lpLocal">Therapist in Lisbon · trauma therapist Lisbon · EMDR Lisbon · English-speaking therapy in Portugal · online psychotherapy Portugal</p>
-  <footer class="lpFooter">
-    <span>Pathfinder Therapy · R. Rodrigues Sampaio 76, Lisboa</span>
-    <a href="/privacy/">Privacy</a>
-    <a href="/crisis-support/">Crisis support</a>
-    <a href="#" data-cookie-manage>Manage cookies</a>
-    <span>Non-urgent enquiries only</span>
-  </footer>
-</main>
-<div class="lpStickyCta">
-  <a href="#consultation-form" data-scroll-target="#consultation-form">${ENQUIRY_LABEL}</a>
-</div>
-${tail}
-${LANDING_SCRIPT}
-</body></html>`;
-
-  let html = `${head}${LANDING_CSS}${LANDING_SCHEMA}${body}`;
+  let head = parts.head.replace("</head>", `${START_PAGE_CSS}\n</head>`);
+  let html = wrapInShellV2({
+    ...parts,
+    head,
+    route: "/start/",
+    mainInner: buildStartPageBody(formHtml),
+    interior: false
+  });
+  html = html.replace("</head>", `${LANDING_SCHEMA}\n</head>`);
+  html = html.replace(buildStickyBar(), buildStickyBar(ENQUIRY_PATH, ENQUIRY_LABEL));
   html = patchHtml(html, {
     robots: "noindex, nofollow",
     title: "Arrange an Initial Consultation | Therapist Lisbon | Pathfinder Therapy",
@@ -549,67 +533,39 @@ document.addEventListener("DOMContentLoaded", function () {
 </script>`;
 
 function buildBookPage(contactHtml) {
-  const { head, tail } = extractHeadAndTail(contactHtml);
-  const calendlyHead = head.replace(
+  const parts = extractPageParts(contactHtml);
+  let head = parts.head.replace(
     "</head>",
     `<link href="https://assets.calendly.com/assets/external/widget.css" rel="stylesheet">\n${CALENDLY_CSS}\n</head>`
   );
-
-  const body = `<body class="lpShell">
-<a class="skipLink" href="#main-content">Skip to main content</a>
-<header class="lpHeader">
-  <a class="lpBrand" href="/" aria-label="Pathfinder Therapy home">
-    <span class="lpBrandWord">PATHFINDER THERAPY</span>
-  </a>
-  <a class="lpHeaderPhone" href="tel:+351914775365" aria-label="Call Pathfinder Therapy">
-    <span>Call</span> +351 914 775 365
-  </a>
-</header>
-<main class="lpMain" id="main-content">
-  ${buildBookPageBody()}
-  <footer class="lpFooter">
-    <span>Pathfinder Therapy · R. Rodrigues Sampaio 76, Lisboa</span>
-    <a href="/privacy/">Privacy</a>
-    <a href="/crisis-support/">Crisis support</a>
-    <a href="#" data-cookie-manage>Manage cookies</a>
-    <span>Non-urgent enquiries only</span>
-  </footer>
-</main>
-<div class="lpStickyCta">
-  <a href="#calendly-booking" data-scroll-target="#calendly-booking">${BOOKING_LABEL}</a>
-</div>
-${tail}
-${LANDING_SCRIPT}
-${CALENDLY_INLINE_SCRIPT}
-</body></html>`;
-
-  let html = `${calendlyHead}${LANDING_CSS}${body}`;
+  let html = wrapInShellV2({
+    ...parts,
+    head,
+    route: BOOK_PATH,
+    mainInner: buildBookPageBody(),
+    interior: false
+  });
+  html = html.replace(buildStickyBar(), buildStickyBar("#calendly-booking", BOOKING_LABEL));
+  html = injectBeforeBodyClose(html, `${LANDING_SCRIPT}\n${CALENDLY_INLINE_SCRIPT}`);
   html = patchHtml(html, {
     robots: "noindex, nofollow",
-    title: "Book Initial Zoom Consultation | Pathfinder Therapy Lisbon",
+    title: "Arrange an Initial Consultation | Pathfinder Therapy Lisbon",
     description:
-      "Book a confidential initial Zoom consultation with Brent Kelly, therapist in Lisbon and online. Trauma-informed therapy in English.",
+      "Arrange a confidential initial consultation with Brent Kelly by secure Zoom. Trauma-informed therapy in English — Lisbon and online.",
     canonical: `https://www.pathfindertherapy.com${BOOK_PATH}`
   });
   return html;
 }
 
 function buildBookConfirmedPage(contactHtml) {
-  const { head, tail } = extractHeadAndTail(contactHtml);
-
-  const body = `<body class="lpShell">
-<a class="skipLink" href="#main-content">Skip to main content</a>
-<header class="lpHeader">
-  <a class="lpBrand" href="/" aria-label="Pathfinder Therapy home"><span class="lpBrandWord">PATHFINDER THERAPY</span></a>
-</header>
-<main class="lpMain" id="main-content">
-  ${buildBookConfirmedBody()}
-</main>
-${tail}
-${BOOK_CONFIRMED_SCRIPT}
-</body></html>`;
-
-  let html = `${head}${LANDING_CSS}${body}`;
+  const parts = extractPageParts(contactHtml);
+  let html = wrapInShellV2({
+    ...parts,
+    route: BOOK_CONFIRMED_PATH,
+    mainInner: buildBookConfirmedBody(),
+    interior: false
+  });
+  html = injectBeforeBodyClose(html, BOOK_CONFIRMED_SCRIPT);
   html = patchHtml(html, {
     robots: "noindex, nofollow",
     title: "Zoom Consultation Booked | Pathfinder Therapy",
@@ -701,7 +657,7 @@ function buildFaqPage(shellHtml) {
     <p class="sectionKicker">Booking</p>
     <h2 class="approachSectionTitle" id="faq-booking">How do I arrange an initial consultation?</h2>
     <div class="approachBody">
-      <p>You can <a href="${BOOKING_PATH}">arrange an initial consultation directly</a> or <a href="${ENQUIRY_PATH}">send an enquiry first</a> if you would prefer to ask a question. Brent replies to non-urgent messages within one working day.</p>
+      <p>You can <a href="${BOOKING_PATH}">arrange an initial consultation directly</a> or <a href="${ENQUIRY_PATH}">send an enquiry first</a> if you would prefer to ask a question. Initial consultations take place securely by Zoom. Brent replies to non-urgent messages within one working day.</p>
       <p>You can also email <a href="mailto:hi@pathfindertherapy.com">hi@pathfindertherapy.com</a> or call/WhatsApp <a href="tel:+351914775365">+351 914 775 365</a>.</p>
     </div>
   </div>
@@ -804,26 +760,33 @@ function buildFeesPage(shellHtml) {
 </section>
 <section class="approachEssay" aria-labelledby="fees-individual">
   <div class="approachEssayInner">
-    <p class="sectionKicker">Individual</p>
     <h2 class="approachSectionTitle" id="fees-individual">Individual therapy</h2>
     <div class="approachBody">
-      <p><strong>From €75</strong> per 50-minute session.</p>
+      <p><strong>€75</strong> for a 50-minute session.</p>
       <p>Trauma-informed psychotherapy for adults — in person at our Lisbon clinic or securely online.</p>
+    </div>
+  </div>
+</section>
+<section class="approachEssay" aria-labelledby="fees-emdr">
+  <div class="approachEssayInner">
+    <h2 class="approachSectionTitle" id="fees-emdr">EMDR</h2>
+    <div class="approachBody">
+      <p><strong>€95</strong> for a 60-minute session.</p>
+      <p>Eye Movement Desensitisation and Reprocessing within broader trauma-informed psychotherapy, where clinically appropriate.</p>
     </div>
   </div>
 </section>
 <section class="approachEssay" aria-labelledby="fees-couples">
   <div class="approachEssayInner">
-    <p class="sectionKicker">Couples</p>
     <h2 class="approachSectionTitle" id="fees-couples">Couples therapy</h2>
     <div class="approachBody">
-      <p>Fees for couples sessions may differ from individual work. Brent will confirm the rate when you enquire and before your first appointment.</p>
+      <p><strong>€120</strong> for a 90-minute session.</p>
+      <p>Relational therapy for couples navigating conflict, disconnection, and repeating patterns — in person or online.</p>
     </div>
   </div>
 </section>
 <section class="approachEssay" aria-labelledby="fees-consultation">
   <div class="approachEssayInner">
-    <p class="sectionKicker">Initial consultation</p>
     <h2 class="approachSectionTitle" id="fees-consultation">Initial consultation</h2>
     <div class="approachBody">
       <p>You can <a href="${BOOKING_PATH}">arrange an initial consultation directly</a> or <a href="${ENQUIRY_PATH}">send an enquiry first</a>. Brent will reply within one working day to confirm fees, format (in person or online), and next steps.</p>
@@ -832,7 +795,6 @@ function buildFeesPage(shellHtml) {
 </section>
 <section class="approachEssay" aria-labelledby="fees-payment">
   <div class="approachEssayInner">
-    <p class="sectionKicker">Payment</p>
     <h2 class="approachSectionTitle" id="fees-payment">Payment and cancellation</h2>
     <div class="approachBody">
       <p>Payment arrangements are agreed before sessions begin. Cancellation terms are shared at booking so expectations are clear for both parties.</p>
@@ -843,16 +805,21 @@ function buildFeesPage(shellHtml) {
 </article>`;
 
   const schema = `<script type="application/ld+json">
-{"@context":"https://schema.org","@type":"MedicalBusiness","name":"Pathfinder Therapy","url":"https://www.pathfindertherapy.com/fees/","priceRange":"EUR75","makesOffer":{"@type":"Offer","price":"75","priceCurrency":"EUR","description":"Individual psychotherapy session (50 minutes)"}}
+{"@context":"https://schema.org","@type":"MedicalBusiness","name":"Pathfinder Therapy","url":"https://www.pathfindertherapy.com/fees/","priceRange":"EUR75","makesOffer":[
+{"@type":"Offer","price":"75","priceCurrency":"EUR","description":"Individual psychotherapy session (50 minutes)"},
+{"@type":"Offer","price":"95","priceCurrency":"EUR","description":"EMDR session (60 minutes)"},
+{"@type":"Offer","price":"120","priceCurrency":"EUR","description":"Couples therapy session (90 minutes)"}
+]}
 </script>`;
 
   return buildInteriorPageWithBookingPanel(shellHtml, {
     title: "Fees | Therapist Lisbon | Pathfinder Therapy",
     description:
-      "Session fees for individual and couples therapy with Brent Kelly in Lisbon and online. Individual sessions from €75.",
+      "Session fees: individual therapy €75 (50 min), EMDR €95 (60 min), couples therapy €120 (90 min). Lisbon and online with Brent Kelly.",
     canonical: "https://www.pathfindertherapy.com/fees/",
     mainInner,
-    schema
+    schema,
+    slimBookingPanel: true
   });
 }
 
@@ -881,15 +848,8 @@ function patchSitemap(sitemapXml) {
 }
 
 function buildThankYouPage(contactHtml) {
-  const { head, tail } = extractHeadAndTail(contactHtml);
-
-  const body = `<body class="lpShell">
-<a class="skipLink" href="#main-content">Skip to main content</a>
-<header class="lpHeader">
-  <a class="lpBrand" href="/" aria-label="Pathfinder Therapy home"><span class="lpBrandWord">PATHFINDER THERAPY</span></a>
-</header>
-<main class="lpMain" id="main-content">
-  <section class="lpHero" style="max-width:42rem">
+  const parts = extractPageParts(contactHtml);
+  const mainInner = `<section class="lpHero" style="max-width:42rem">
     <p class="lpKicker">Enquiry received</p>
     <h1 class="lpTitle">Thank you — Brent will be in touch soon.</h1>
     <p class="lpLead">Your enquiry was sent securely. Brent responds to non-urgent messages within one working day, usually sooner.</p>
@@ -900,15 +860,16 @@ function buildThankYouPage(contactHtml) {
     </ol>
     <div class="lpHeroActions">
       <a class="lpSecondaryCta" href="/">Return to homepage</a>
-      <a class="lpSecondaryCta" href="https://wa.me/351914775365">WhatsApp +351 914 775 365</a>
+      <a class="lpSecondaryCta" href="${BOOKING_PATH}">${BOOKING_LABEL}</a>
     </div>
     <p class="lpReassurance">If you are in crisis or immediate danger, contact local emergency services. This service is for non-urgent enquiries only.</p>
-  </section>
-</main>
-${tail}
-</body></html>`;
-
-  let html = `${head}${LANDING_CSS}${body}`;
+  </section>`;
+  let html = wrapInShellV2({
+    ...parts,
+    route: "/thank-you/",
+    mainInner,
+    interior: false
+  });
   html = patchHtml(html, {
     robots: "noindex, nofollow",
     title: "Thank You | Pathfinder Therapy",
