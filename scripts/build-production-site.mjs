@@ -49,6 +49,8 @@ import {
   getKnowledgeLibraryBuiltRoutes,
   loadKnowledgeArticles
 } from "./site-knowledge-articles.mjs";
+import { buildAllServicePages, getServicePageRoutes } from "./site-service-pages.mjs";
+import { CONTACT_VISUAL_CSS } from "./site-contact-visual.mjs";
 
 const PREVIEW_ORIGIN =
   process.env.PATHFINDER_PREVIEW_ORIGIN ?? "https://9aa49f15.pathfinder-therapy-web.pages.dev";
@@ -697,8 +699,10 @@ function buildContactPageV2(contactHtml) {
     contactHtml.match(/<form class="contactForm"[\s\S]*?<\/form>/)?.[0] ?? ""
   );
   const mainInner = buildContactPageBody(formHtml);
+  let head = parts.head.replace("</head>", `${CONTACT_VISUAL_CSS}\n</head>`);
   let html = wrapInShellV2({
     ...parts,
+    head,
     route: "/contact/",
     mainInner,
     interior: false
@@ -914,6 +918,10 @@ function patchSitemap(sitemapXml) {
     { loc: "https://www.pathfindertherapy.com/faq/", priority: "0.75" },
     { loc: "https://www.pathfindertherapy.com/fees/", priority: "0.75" },
     { loc: "https://www.pathfindertherapy.com/crisis-support/", priority: "0.55" },
+    { loc: "https://www.pathfindertherapy.com/therapy/individual/", priority: "0.9" },
+    { loc: "https://www.pathfindertherapy.com/therapy/couples/", priority: "0.9" },
+    { loc: "https://www.pathfindertherapy.com/therapy/emdr/", priority: "0.9" },
+    { loc: "https://www.pathfindertherapy.com/therapy/online/", priority: "0.9" },
     { loc: "https://www.pathfindertherapy.com/psychotherapy-lisbon/", priority: "0.88" },
     { loc: "https://www.pathfindertherapy.com/trauma-therapy-lisbon/", priority: "0.88" },
     { loc: "https://www.pathfindertherapy.com/emdr-therapy-lisbon/", priority: "0.88" },
@@ -1020,6 +1028,7 @@ async function main() {
     "/contact/",
     "/crisis-support/",
     "/",
+    ...getServicePageRoutes(),
     ...getLocalLandingRoutes(),
     ...getKnowledgeLibraryBuiltRoutes()
   ]);
@@ -1121,6 +1130,19 @@ async function main() {
   await writeRoute(PREVIEW_ORIGIN, "/faq/", faqHtml);
   await writeRoute(PREVIEW_ORIGIN, "/fees/", feesHtml);
   console.log("Added /faq/ and /fees/");
+
+  for (const page of buildAllServicePages(shellHtml)) {
+    let serviceHtml = stripHydrationScripts(
+      patchHtml(page.html, {
+        title: page.meta.title,
+        description: page.meta.description,
+        canonical: page.meta.canonical
+      })
+    );
+    for (const asset of extractAssetPaths(serviceHtml)) assetPaths.add(asset);
+    await writeRoute(PREVIEW_ORIGIN, page.route, serviceHtml);
+    console.log(`Added ${page.route} (service page)`);
+  }
 
   const crisisHtml = stripHydrationScripts(buildCrisisPage(shellHtml, buildInteriorPageV2));
   await writeRoute(PREVIEW_ORIGIN, "/crisis-support/", crisisHtml);

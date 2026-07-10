@@ -5,15 +5,17 @@ export const LOCALLISTA_BADGE_PATH = "/assets/images/locallista-lis-signature-de
 
 export const REVIEWS_CSS = `<style id="pathfinder-public-feedback">
 .lpFeedbackSection { display: grid; gap: 24px; }
-.lpFeedbackLead { margin: 0; font-size: 1.05rem; line-height: 1.7; color: rgba(246,242,234,.72); max-width: 42rem; }
+.pfFeedbackSection.pfSection { padding-top: clamp(40px, 6vw, 72px); padding-bottom: clamp(40px, 6vw, 72px); }
+.pfFeedbackSection .pfSectionInner { display: grid; gap: 24px; }
+.lpFeedbackLead { margin: 0; font-family: var(--pf-font-sans); font-size: var(--pf-text-body); line-height: var(--pf-leading-body); color: rgba(246,242,234,.72); max-width: 42rem; }
 .lpFeedbackQuotes { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; margin: 0; padding: 0; list-style: none; }
-.lpFeedbackQuote { margin: 0; padding: 18px 20px; border: 1px solid rgba(246,242,234,.1); border-radius: 14px; background: rgba(8,16,15,.35); font-family: Georgia, "Times New Roman", serif; font-size: 15px; line-height: 1.65; font-style: italic; color: rgba(246,242,234,.78); }
+.lpFeedbackQuote { margin: 0; padding: 18px 20px; border: 1px solid rgba(246,242,234,.1); border-radius: var(--pf-radius-md); background: rgba(15,24,22,.55); font-family: var(--pf-font-serif); font-size: var(--pf-text-body-sm); line-height: var(--pf-leading-body); font-style: italic; color: rgba(246,242,234,.78); }
 .lpLocallistaBadge { display: block; width: fit-content; max-width: min(100%, 420px); margin: 0; }
-.lpLocallistaBadge img { display: block; width: 100%; height: auto; border-radius: 12px; }
+.lpLocallistaBadge img { display: block; width: 100%; height: auto; border-radius: var(--pf-radius-md); }
 .lpFeedbackActions { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; }
-.lpFeedbackDisclaimer { margin: 0; font-size: 12px; line-height: 1.65; color: rgba(246,242,234,.48); max-width: 42rem; }
-.lpFeedbackCompact .lpFeedbackLead { font-size: 15px; }
-.lpFeedbackCompact .lpFeedbackDisclaimer { font-size: 12px; }
+.lpFeedbackDisclaimer { margin: 0; font-family: var(--pf-font-sans); font-size: 0.8125rem; line-height: var(--pf-leading-body); color: rgba(246,242,234,.48); max-width: 42rem; }
+.lpFeedbackCompact .lpFeedbackLead { font-size: var(--pf-text-body-sm); }
+.lpFeedbackCompact .lpFeedbackDisclaimer { font-size: 0.8125rem; }
 .lpFeedbackCompact .lpLocallistaBadge { max-width: min(100%, 340px); }
 @media (max-width: 768px) {
   .lpFeedbackQuotes { grid-template-columns: 1fr; }
@@ -33,16 +35,21 @@ function buildLocallistaBadge() {
 </a>`;
 }
 
-export function buildPublicFeedbackSection({ compact = false } = {}) {
-  const sectionClass = compact
-    ? "lpLocalSection lpFeedbackSection lpFeedbackCompact"
-    : "lpSection lpFeedbackSection";
+export function buildPublicFeedbackSection({ compact = false, visual = false } = {}) {
+  const sectionClass = visual
+    ? "pfSection pfSection--dark lpFeedbackSection pfFeedbackSection"
+    : compact
+      ? "lpLocalSection lpFeedbackSection lpFeedbackCompact"
+      : "lpSection lpFeedbackSection";
   const titleId = compact ? "local-feedback" : "home-feedback";
+  const innerOpen = visual ? '<div class="pfSectionInner">' : "";
+  const innerClose = visual ? "</div>" : "";
 
   return `<section class="${sectionClass}" aria-labelledby="${titleId}">
+  ${innerOpen}
   <div class="lpSectionHead">
-    <p class="lpKicker">Independent feedback</p>
-    <h2 class="lpSectionTitle" id="${titleId}">What people have shared publicly</h2>
+    <p class="pfKicker">Independent feedback</p>
+    <h2 class="${visual ? "pfSectionTitle" : "lpSectionTitle"}" id="${titleId}">What people have shared publicly</h2>
     <p class="lpFeedbackLead">Some people choose to leave feedback on independent platforms. Pathfinder does not confirm whether any reviewer was a client, and current clients are not asked for reviews.</p>
   </div>
   ${FEEDBACK_QUOTES}
@@ -51,6 +58,7 @@ export function buildPublicFeedbackSection({ compact = false } = {}) {
     <a class="lpSecondaryCta" href="${GOOGLE_FEEDBACK_URL}" rel="noopener noreferrer" target="_blank">Read public feedback on Google</a>
   </div>
   <p class="lpFeedbackDisclaimer">Feedback reflects individual experiences only — not clinical outcomes or guarantees. Reviews are published by third parties; Pathfinder Therapy does not confirm any therapeutic relationship.</p>
+  ${innerClose}
 </section>`;
 }
 

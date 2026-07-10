@@ -7,6 +7,10 @@ const OUT_DIR = process.env.PATHFINDER_OUT_DIR || path.join(process.cwd(), "out"
 const ROUTES = [
   "/",
   "/therapy/",
+  "/therapy/individual/",
+  "/therapy/couples/",
+  "/therapy/emdr/",
+  "/therapy/online/",
   "/start/",
   "/book/",
   "/fees/",
@@ -150,6 +154,22 @@ function main() {
       if (!html.includes("lpStartPathways")) errors.push("/start/ missing pathway cards");
       if (!html.includes('id="enquiry"')) errors.push("/start/ missing enquiry panel");
       if (!html.includes("pathfinder-start-enquiry")) errors.push("/start/ missing enquiry script");
+    }
+    if (route.startsWith("/therapy/") && route !== "/therapy/") {
+      if (!html.includes("This may help with")) errors.push(`${route} missing help panel`);
+      if (route === "/therapy/individual/") {
+        if (!html.includes("regular, confidential space")) {
+          errors.push(`${route} missing approved individual therapy wording`);
+        }
+        if (html.includes("confidential hour")) {
+          errors.push(`${route} uses outdated session length wording`);
+        }
+      }
+      if (html.includes("Book a session") || html.includes("Book now")) {
+        errors.push(`${route} has disallowed booking label`);
+      }
+      if (!html.includes("Explore more")) errors.push(`${route} missing related services section`);
+      if (!html.includes("pfServiceHero")) errors.push(`${route} missing image-led hero`);
     }
   }
 

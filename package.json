@@ -10,7 +10,8 @@
     "typecheck": "tsc --noEmit",
     "lint": "eslint .",
     "verify:built": "node scripts/verify-built-html.mjs",
-    "qa:browser": "node scripts/browser-qa.mjs"
+    "qa:browser": "node scripts/browser-qa.mjs",
+    "qa:visual": "node scripts/capture-visual-qa.mjs"
   },
   "dependencies": {
     "next": "16.2.9",
