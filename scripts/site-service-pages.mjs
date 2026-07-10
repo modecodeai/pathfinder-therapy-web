@@ -84,7 +84,7 @@ export const SERVICE_PAGES = [
       "Grief, loss and periods of change"
     ],
     paragraphs: [
-      "Individual therapy offers a regular, confidential space that belongs to you. Brent works relationally and trauma-informed — drawing on Transactional Analysis, EMDR where appropriate, and steady attention to what your mind and body may still be protecting.",
+      "Individual therapy offers a regular, confidential space that belongs to you. Brent works relationally and in a trauma-informed way — drawing on Transactional Analysis, EMDR where appropriate, and steady attention to what your mind and body may still be protecting.",
       "Sessions are 50 minutes, in person at the Lisbon clinic or securely online across Portugal and internationally where appropriate. Therapy is paced carefully; you do not need a diagnosis to begin.",
       "Brent works with adults navigating trauma, anxiety, attachment difficulties, military experiences, expatriation, and significant life transitions — always in English."
     ],
