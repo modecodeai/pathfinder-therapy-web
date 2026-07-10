@@ -493,8 +493,10 @@ const START_PAGE_CSS = `<style id="pathfinder-start-pathways">
 .lpStartPathCard p { margin: 0; font-size: 14px; line-height: 1.65; color: rgba(246,242,234,.76); }
 .lpStartPathCard .contactForm { margin-top: 4px; max-width: none; }
 .lpStartPathCard .contactSubmit { width: 100%; }
+#enquiry { scroll-margin-top: calc(var(--lp-header-offset, 72px) + 12px); }
 .lpStartEnquiryPanel { display: none; margin-top: clamp(28px, 4vw, 36px); padding-top: clamp(24px, 4vw, 32px); border-top: 1px solid rgba(246,242,234,.08); max-width: 40rem; }
 .lpStartEnquiryPanel.isOpen { display: grid; gap: 14px; }
+.lpStartEnquiryPanel:target { display: grid; gap: 14px; }
 @media (max-width: 900px) {
   .lpStartPathways { grid-template-columns: 1fr; }
   .lpHeroActions { flex-direction: column; align-items: stretch; }
@@ -505,27 +507,52 @@ const START_PAGE_CSS = `<style id="pathfinder-start-pathways">
 const START_ENQUIRY_SCRIPT = `<script id="pathfinder-start-enquiry">
 document.addEventListener("DOMContentLoaded", function () {
   var panel = document.getElementById("enquiry");
-  function openEnquiry() {
+  var header = document.querySelector(".lpHeader");
+  function headerOffset() {
+    return header ? Math.ceil(header.getBoundingClientRect().height) + 12 : 84;
+  }
+  function scrollToPanel() {
+    if (!panel) return;
+    var top = panel.getBoundingClientRect().top + window.scrollY - headerOffset();
+    window.scrollTo({
+      top: Math.max(0, top),
+      behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth"
+    });
+  }
+  function focusEnquiry() {
+    if (!panel) return;
+    var first = panel.querySelector('input:not([type="hidden"]):not([tabindex="-1"]), textarea, select');
+    var heading = document.getElementById("start-enquiry");
+    requestAnimationFrame(function () {
+      if (first) first.focus();
+      else if (heading) {
+        heading.setAttribute("tabindex", "-1");
+        heading.focus();
+      }
+    });
+  }
+  function openEnquiry(options) {
     if (!panel) return;
     panel.classList.add("isOpen");
-    panel.removeAttribute("hidden");
-    var first = panel.querySelector('input:not([type="hidden"]):not([tabindex="-1"]), textarea, select, button');
-    if (first) first.focus();
+    if (options && options.scroll) scrollToPanel();
+    if (!options || options.focus !== false) focusEnquiry();
   }
   document.querySelectorAll("[data-open-enquiry]").forEach(function (trigger) {
     trigger.addEventListener("click", function (event) {
       event.preventDefault();
-      openEnquiry();
-      if (panel) {
-        panel.scrollIntoView({
-          behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth",
-          block: "start"
-        });
+      if (window.history && window.history.pushState) {
+        window.history.pushState(null, "", "#enquiry");
+      } else {
+        window.location.hash = "enquiry";
       }
+      openEnquiry({ scroll: true });
     });
   });
+  window.addEventListener("hashchange", function () {
+    if (window.location.hash === "#enquiry") openEnquiry({ scroll: true });
+  });
   if (window.location.hash === "#enquiry") {
-    openEnquiry();
+    openEnquiry({ scroll: true });
   }
 });
 </script>`;
@@ -534,7 +561,7 @@ function buildStartPageBody(formHtml) {
   return `<section class="lpStartIntro" aria-labelledby="start-title">
   <p class="lpKicker">Getting started · Lisbon and online</p>
   <h1 class="lpTitle" id="start-title">Begin with Pathfinder Therapy</h1>
-  <p class="lpLead">Book a consultation directly or send an enquiry first — whichever feels easier. Both routes are confidential and non-urgent.</p>
+  <p class="lpLead">Arrange a consultation directly or send an enquiry first — whichever feels easier. Both routes are confidential and non-urgent.</p>
 </section>
 <div class="lpStartPathways">
   <article class="lpStartPathCard lpStartPathCard--primary" aria-labelledby="start-book-direct">
@@ -549,8 +576,9 @@ function buildStartPageBody(formHtml) {
     <a class="lpSecondaryCta" href="#enquiry" data-open-enquiry>Open the enquiry form</a>
   </article>
 </div>
-<section class="lpStartEnquiryPanel" id="enquiry" aria-labelledby="start-enquiry" hidden>
-  <h2 class="lpSectionTitle" id="start-enquiry">Confidential enquiry</h2>
+<noscript><style>.lpStartEnquiryPanel { display: grid !important; gap: 14px; }</style></noscript>
+<section class="lpStartEnquiryPanel" id="enquiry" aria-labelledby="start-enquiry">
+  <h2 class="lpSectionTitle" id="start-enquiry" tabindex="-1">Confidential enquiry</h2>
   <p class="lpFormIntro" id="consultation-form-intro">This takes about two minutes. Your details are sent securely to Brent — for non-urgent enquiries only.</p>
   ${formHtml}
 </section>`;
@@ -592,7 +620,7 @@ function buildBookPage(contactHtml) {
   const parts = extractPageParts(contactHtml);
   let head = parts.head.replace(
     "</head>",
-    `<link href="https://assets.calendly.com/assets/external/widget.css" rel="stylesheet">\n${CALENDLY_CSS}\n</head>`
+    `<link href="https://assets.calendly.com/assets/external/widget.css" rel="stylesheet">\n<script src="https://assets.calendly.com/assets/external/widget.js" async></script>\n${CALENDLY_CSS}\n</head>`
   );
   let html = wrapInShellV2({
     ...parts,

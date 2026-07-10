@@ -1,18 +1,40 @@
 import { BOOKING_LABEL, ENQUIRY_LABEL, ENQUIRY_PATH } from "./site-ux-layer.mjs";
 
-const CALENDLY_URL_FALLBACK = "https://calendly.com/pathfindertherapy/initial-consultation";
+/** Live production event — verified from www.pathfindertherapy.com/book/ embed URL. */
+const CALENDLY_URL_FALLBACK = "https://calendly.com/hi-pathfindertherapy/30min";
 
 export const DEFAULT_CALENDLY_URL =
   (process.env.PATHFINDER_CALENDLY_URL || "").trim() || CALENDLY_URL_FALLBACK;
 
-/** Documented in docs/google-ads-copy.md — confirm exact duration in Calendly dashboard. */
-export const CALENDLY_CONSULTATION_DURATION =
-  (process.env.PATHFINDER_CALENDLY_DURATION_MINUTES || "").trim() || "15–30-minute";
+function durationFromCalendlyUrl(url) {
+  const match = String(url).match(/\/(\d+)min\/?(?:\?|#|$)/i);
+  return match ? `${match[1]}-minute` : "";
+}
+
+function resolveConsultationDuration() {
+  const env = (process.env.PATHFINDER_CALENDLY_DURATION_MINUTES || "").trim();
+  if (env) {
+    const digits = env.replace(/[^\d]/g, "");
+    if (digits) return `${digits}-minute`;
+    return env.endsWith("-minute") ? env : "";
+  }
+  return durationFromCalendlyUrl(DEFAULT_CALENDLY_URL);
+}
+
+/** Exact duration derived from live Calendly event slug (`30min`) unless overridden by env. */
+export const CALENDLY_CONSULTATION_DURATION = resolveConsultationDuration();
 export const CALENDLY_CONSULTATION_PRICE =
   (process.env.PATHFINDER_CALENDLY_PRICE_LABEL || "").trim() || "Free";
 
 export function buildConsultationMetaLine() {
-  return `${CALENDLY_CONSULTATION_DURATION} initial consultation · ${CALENDLY_CONSULTATION_PRICE} · Zoom`;
+  const parts = [];
+  if (CALENDLY_CONSULTATION_DURATION) {
+    parts.push(`${CALENDLY_CONSULTATION_DURATION} initial consultation`);
+  } else {
+    parts.push("Initial consultation");
+  }
+  parts.push(CALENDLY_CONSULTATION_PRICE, "Zoom");
+  return parts.join(" · ");
 }
 
 export const BOOK_PATH = "/book/";
@@ -24,12 +46,15 @@ export const CALENDLY_CSS = `<style id="pathfinder-calendly">
 .lpBookIntro { display: grid; gap: 12px; max-width: 40rem; }
 .lpBookIntro .lpTitle { font-size: clamp(1.75rem, 3.6vw, 2.4rem); }
 .lpBookIntro .lpLead { max-width: 38rem; font-size: 1rem; }
-.lpCalendlyPanel { border: 1px solid rgba(246,242,234,.12); border-radius: 18px; overflow: hidden; background: rgba(8,16,15,.72); min-height: 680px; }
-.lpCalendlyWidget { min-width: 320px; min-height: 680px; height: 680px; }
-.lpCalendlyFallback { padding: 24px; display: grid; gap: 12px; }
-.lpCalendlyFallback a { color: #d9b777; font-weight: 600; }
-.lpCalendlyAlt { margin: 0; font-size: 14px; line-height: 1.6; color: rgba(246,242,234,.68); }
-.lpCalendlyAlt a { color: #d9b777; }
+.lpCalendlyPanel { position: relative; border: 1px solid rgba(246,242,234,.12); border-radius: 18px; overflow: hidden; background: rgba(8,16,15,.72); min-height: 680px; }
+.lpCalendlyWidget { min-width: 0; width: 100%; min-height: 680px; height: 680px; }
+.lpCalendlyLoading { position: absolute; inset: 0; display: grid; place-items: center; padding: 24px; text-align: center; font-size: 14px; color: rgba(246,242,234,.72); background: rgba(8,16,15,.92); z-index: 1; }
+.lpCalendlyLoading[hidden] { display: none; }
+.lpCalendlyError { display: none; padding: 24px; gap: 12px; text-align: center; }
+.lpCalendlyPanel.isError .lpCalendlyWidget { display: none; }
+.lpCalendlyPanel.isError .lpCalendlyError { display: grid; }
+.lpCalendlyFallback, .lpCalendlyError { font-size: 14px; line-height: 1.65; color: rgba(246,242,234,.76); }
+.lpCalendlyFallback a, .lpCalendlyError a { color: #d9b777; font-weight: 600; }
 .lpBookPrivacy { margin: 0; font-size: 13px; line-height: 1.65; color: rgba(246,242,234,.62); max-width: 40rem; }
 @media (max-width: 900px) {
   .lpCalendlyWidget, .lpCalendlyPanel { min-height: 640px; height: 640px; }
@@ -65,34 +90,54 @@ export const CALENDLY_INLINE_SCRIPT = `<script id="pathfinder-calendly-inline">
 
   document.addEventListener("DOMContentLoaded", function () {
     track("calendly_page_view", "book");
+    var panel = document.querySelector(".lpCalendlyPanel");
     var widget = document.querySelector(".calendly-inline-widget");
+    var loading = document.querySelector(".lpCalendlyLoading");
     if (!widget) return;
+
     widget.setAttribute("data-url", buildCalendlyUrl(CALENDLY_URL));
 
-    function loadCalendly() {
-      if (typeof window.Calendly === "undefined") return;
-      window.Calendly.initInlineWidget({
-        url: buildCalendlyUrl(CALENDLY_URL),
-        parentElement: widget
-      });
+    function hideLoading() {
+      if (loading) loading.hidden = true;
+      if (panel) panel.setAttribute("aria-busy", "false");
     }
 
-    var observer = new IntersectionObserver(function (entries) {
-      entries.forEach(function (entry) {
-        if (!entry.isIntersecting) return;
-        observer.disconnect();
-        if (window.Calendly) {
-          loadCalendly();
-        } else {
-          var script = document.createElement("script");
-          script.src = "https://assets.calendly.com/assets/external/widget.js";
-          script.async = true;
-          script.onload = loadCalendly;
-          document.head.appendChild(script);
-        }
-      });
-    }, { rootMargin: "200px 0px" });
-    observer.observe(widget);
+    function showError() {
+      hideLoading();
+      if (panel) panel.classList.add("isError");
+    }
+
+    function loadCalendly() {
+      if (typeof window.Calendly === "undefined") return false;
+      try {
+        window.Calendly.initInlineWidget({
+          url: buildCalendlyUrl(CALENDLY_URL),
+          parentElement: widget
+        });
+        hideLoading();
+        return true;
+      } catch (error) {
+        showError();
+        return false;
+      }
+    }
+
+    function loadScript() {
+      var script = document.createElement("script");
+      script.src = "https://assets.calendly.com/assets/external/widget.js";
+      script.async = true;
+      script.onload = function () {
+        if (!loadCalendly()) showError();
+      };
+      script.onerror = showError;
+      document.head.appendChild(script);
+    }
+
+    if (window.Calendly) {
+      loadCalendly();
+    } else {
+      loadScript();
+    }
 
     window.addEventListener("message", function (event) {
       if (event.origin.indexOf("calendly.com") === -1) return;
@@ -109,8 +154,13 @@ export const CALENDLY_INLINE_SCRIPT = `<script id="pathfinder-calendly-inline">
 </script>`;
 
 export function buildCalendlyEmbedMarkup() {
-  return `<div class="lpCalendlyPanel" id="calendly-booking">
-  <div class="calendly-inline-widget lpCalendlyWidget" data-url="${DEFAULT_CALENDLY_URL}"></div>
+  return `<div class="lpCalendlyPanel" id="calendly-booking" aria-busy="true" aria-labelledby="calendly-booking-label">
+  <p class="lpCalendlyLoading" id="calendly-booking-label" aria-live="polite">Loading calendar…</p>
+  <div class="calendly-inline-widget lpCalendlyWidget" data-url="${DEFAULT_CALENDLY_URL}" title="Calendly scheduling"></div>
+  <div class="lpCalendlyError" role="alert">
+    <p>The booking calendar could not be loaded. You can open Calendly directly instead:</p>
+    <a href="${DEFAULT_CALENDLY_URL}" rel="noopener noreferrer">${BOOKING_LABEL}</a>
+  </div>
   <noscript class="lpCalendlyFallback">
     <p>Online booking requires JavaScript. Open Calendly directly instead:</p>
     <a href="${DEFAULT_CALENDLY_URL}" rel="noopener noreferrer">${BOOKING_LABEL}</a>

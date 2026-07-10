@@ -5,6 +5,17 @@ const sha = process.env.PATHFINDER_BUILD_SHA || "";
 const baseUrl = process.env.PATHFINDER_VERIFY_BASE_URL || "https://www.pathfindertherapy.com";
 const routes = ["/", "/start/", "/book/", "/fees/", "/about/", "/approach/", "/therapy/", "/contact/", "/faq/"];
 
+const LEGACY_LABELS = [
+  "Book Zoom call",
+  "Book an initial Zoom call",
+  "Book initial Zoom call",
+  "Book a consultation",
+  "Make an enquiry",
+  "Send a brief enquiry",
+  "Begin with a conversation",
+  "Choose the route that suits you"
+];
+
 if (!sha) {
   console.error("PATHFINDER_BUILD_SHA is required");
   process.exit(1);
@@ -30,16 +41,18 @@ const contentChecks = [
   {
     route: "/book/",
     test: (html) =>
-      html.includes("initial consultation") &&
+      html.includes("30-minute initial consultation · Free · Zoom") &&
+      html.includes("hi-pathfindertherapy/30min") &&
       html.includes("calendly-inline-widget") &&
-      !html.includes("Choose the route")
+      html.includes("lpCalendlyLoading")
   },
   {
     route: "/therapy/",
     test: (html) =>
       html.includes("Take the next step") &&
       html.includes("Choose a consultation time") &&
-      !html.includes("Begin with a conversation")
+      !html.includes("Begin with a conversation") &&
+      !html.includes('<aside class="lpBookingPanel"')
   },
   {
     route: "/fees/",
@@ -65,6 +78,13 @@ async function fetchHtml(route) {
   return response.text();
 }
 
+function auditLegacyLabels(html, route) {
+  const hits = LEGACY_LABELS.filter((label) => html.includes(label));
+  if (hits.length) {
+    throw new Error(`Legacy labels on ${baseUrl}${route}: ${hits.join(", ")}`);
+  }
+}
+
 async function verifyOnce() {
   for (const route of routes) {
     const html = await fetchHtml(route);
@@ -72,6 +92,7 @@ async function verifyOnce() {
     if (!html.includes(marker)) {
       throw new Error(`Missing build SHA marker on ${baseUrl}${route}`);
     }
+    auditLegacyLabels(html, route);
   }
 
   for (const check of contentChecks) {

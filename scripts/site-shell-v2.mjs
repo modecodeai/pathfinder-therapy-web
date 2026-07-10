@@ -176,9 +176,9 @@ document.addEventListener("DOMContentLoaded", function () {
     var btn = wrap.querySelector(".lpMoreBtn");
     var menu = wrap.querySelector(".lpMoreMenu");
     if (!btn || !menu) return;
-    btn.addEventListener("click", function (event) {
-      event.stopPropagation();
-      var open = !wrap.classList.contains("isOpen");
+    var links = Array.prototype.slice.call(menu.querySelectorAll("a[href]"));
+
+    function setOpen(open) {
       document.querySelectorAll("[data-resources-nav].isOpen").forEach(function (other) {
         if (other !== wrap) {
           other.classList.remove("isOpen");
@@ -188,17 +188,46 @@ document.addEventListener("DOMContentLoaded", function () {
       });
       wrap.classList.toggle("isOpen", open);
       btn.setAttribute("aria-expanded", open ? "true" : "false");
+    }
+
+    btn.addEventListener("click", function (event) {
+      event.stopPropagation();
+      var open = !wrap.classList.contains("isOpen");
+      setOpen(open);
+      if (open && links[0]) links[0].focus();
+    });
+    btn.addEventListener("keydown", function (event) {
+      if (event.key === "ArrowDown" || event.key === "Enter" || event.key === " ") {
+        event.preventDefault();
+        setOpen(true);
+        if (links[0]) links[0].focus();
+      }
+    });
+    menu.addEventListener("keydown", function (event) {
+      var idx = links.indexOf(document.activeElement);
+      if (event.key === "Escape") {
+        event.preventDefault();
+        setOpen(false);
+        btn.focus();
+      } else if (event.key === "ArrowDown" && links.length) {
+        event.preventDefault();
+        links[(idx + 1 + links.length) % links.length].focus();
+      } else if (event.key === "ArrowUp" && links.length) {
+        event.preventDefault();
+        links[(idx - 1 + links.length) % links.length].focus();
+      }
+    });
+    menu.addEventListener("focusin", function () {
+      setOpen(true);
     });
     document.addEventListener("click", function (event) {
       if (!wrap.classList.contains("isOpen")) return;
       if (event.target.closest("[data-resources-nav]")) return;
-      wrap.classList.remove("isOpen");
-      btn.setAttribute("aria-expanded", "false");
+      setOpen(false);
     });
     document.addEventListener("keydown", function (event) {
       if (event.key === "Escape" && wrap.classList.contains("isOpen")) {
-        wrap.classList.remove("isOpen");
-        btn.setAttribute("aria-expanded", "false");
+        setOpen(false);
         btn.focus();
       }
     });
@@ -365,7 +394,7 @@ export function buildContactPageBody(formHtml) {
     <p class="lpLead">Send a brief, secure enquiry — Brent responds to non-urgent messages within one working day. No detailed clinical history needed at this stage.</p>
     <div class="lpHeroActions">
       <a class="lpPrimaryCta" href="${BOOKING_PATH}">${BOOKING_LABEL}</a>
-      <a class="lpSecondaryCta" href="#consultation-form" data-scroll-target="#consultation-form">${ENQUIRY_LABEL}</a>
+      <a class="lpSecondaryCta" href="${ENQUIRY_PATH}">${ENQUIRY_LABEL}</a>
     </div>
     <div class="lpTherapist">
       <img src="/assets/images/about-brent.webp" width="72" height="72" alt="Brent Kelly, therapist at Pathfinder Therapy Lisbon" loading="eager" decoding="async" />

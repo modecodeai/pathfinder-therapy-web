@@ -5,7 +5,8 @@ pages_build_output_dir = "out"
 [vars]
 CONTACT_TO_EMAIL = "hi@pathfindertherapy.com"
 # Set in Cloudflare dashboard → Settings → Environment variables:
-# PATHFINDER_CALENDLY_URL = https://calendly.com/your-account/initial-consultation
+# PATHFINDER_CALENDLY_URL = https://calendly.com/hi-pathfindertherapy/30min
+# Optional: PATHFINDER_CALENDLY_DURATION_MINUTES = 30
 # Secret: CALENDLY_WEBHOOK_SIGNING_KEY (for /api/calendly-webhook)
 # Secret: RESEND_API_KEY (shared with /api/contact — required for booking emails)
 # Optional: CALENDLY_NOTIFY_EMAIL (defaults to CONTACT_TO_EMAIL)
