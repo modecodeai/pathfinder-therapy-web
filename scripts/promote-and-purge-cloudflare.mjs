@@ -115,17 +115,22 @@ async function main() {
     console.log(`Promoted deployment ${deployment.id} to production domains (${promotion.url}).`);
   }
 
-  const zoneId = await resolveZoneId();
-  const purgeId = await purgeProductionCache(zoneId);
-  console.log(`Purged Cloudflare cache for hosts: ${PRODUCTION_HOSTS.join(", ")} (purge id: ${purgeId})`);
+  try {
+    const zoneId = await resolveZoneId();
+    const purgeId = await purgeProductionCache(zoneId);
+    console.log(`Purged Cloudflare cache for hosts: ${PRODUCTION_HOSTS.join(", ")} (purge id: ${purgeId})`);
+  } catch (error) {
+    console.warn(
+      `Cache purge skipped or failed (${error.message}). Add Zone.Cache Purge + Zone.Read permissions to CLOUDFLARE_API_TOKEN or purge manually.`
+    );
+  }
 
   console.log(
     JSON.stringify({
       deploymentId: deployment.id,
       deploymentShortId: deployment.shortId,
       deploymentUrl: deployment.url,
-      productionHosts: PRODUCTION_HOSTS,
-      purgeId
+      productionHosts: PRODUCTION_HOSTS
     })
   );
 }
