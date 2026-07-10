@@ -24,7 +24,7 @@ export function Sidebar() {
 
       <div className="sidebar-lower">
         <LeadCtaLink href={leadFunnel.defaultCtaPath} className="sidebar-cta" label="sidebar_book_consultation">
-          Book a Consultation
+          Arrange an initial consultation
         </LeadCtaLink>
         <p className="sidebar-philosophy">{site.description}</p>
         <Compass />

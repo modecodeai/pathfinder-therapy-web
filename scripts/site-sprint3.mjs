@@ -1,4 +1,4 @@
-import { BOOKING_LABEL, BOOKING_PATH } from "./site-ux-layer.mjs";
+import { BOOKING_LABEL, BOOKING_PATH, ENQUIRY_LABEL, ENQUIRY_PATH } from "./site-ux-layer.mjs";
 import { extractPageParts } from "./site-shell-v2.mjs";
 import { SPRINT2_CSS, applySprint2Transforms, buildBookingPanel, wrapWithBookingPanel } from "./site-sprint2.mjs";
 
@@ -58,8 +58,8 @@ export const SPRINT3_CSS = `<style id="pathfinder-sprint3">
 
 const INLINE_CTA = `<aside class="lpInlineCta" aria-label="Therapy enquiry">
   <p class="lpKicker">Wondering if therapy could help?</p>
-  <p class="lpInlineCtaText">You do not need a diagnosis to begin. Send a brief enquiry — Brent replies within one working day.</p>
-  <a class="lpPrimaryCta" href="${BOOKING_PATH}">${BOOKING_LABEL}</a>
+  <p class="lpInlineCtaText">You do not need a diagnosis to begin. ${ENQUIRY_LABEL} — Brent replies within one working day.</p>
+  <a class="lpPrimaryCta" href="${ENQUIRY_PATH}">${ENQUIRY_LABEL}</a>
 </aside>`;
 
 const END_CTA = `<section class="lpEndCta" aria-label="Arrange a consultation">
@@ -69,7 +69,7 @@ const END_CTA = `<section class="lpEndCta" aria-label="Arrange a consultation">
     <p class="lpSectionLead">Trauma-informed psychotherapy with Brent Kelly in Lisbon and online. Non-urgent enquiries only.</p>
     <div class="lpHeroActions">
       <a class="lpPrimaryCta" href="${BOOKING_PATH}">${BOOKING_LABEL}</a>
-      <a class="lpSecondaryCta" href="https://wa.me/351914775365">WhatsApp Brent</a>
+      <a class="lpSecondaryCta" href="${ENQUIRY_PATH}">${ENQUIRY_LABEL}</a>
     </div>
   </div>
 </section>`;

@@ -1,4 +1,5 @@
 import { buildBreadcrumbSchema } from "./site-schema.mjs";
+import { BOOKING_LABEL, BOOKING_PATH, ENQUIRY_LABEL, ENQUIRY_PATH } from "./site-ux-layer.mjs";
 
 const SITE = "https://www.pathfindertherapy.com";
 
@@ -53,7 +54,7 @@ export function buildCrisisPageBody() {
     <h2 class="approachSectionTitle" id="crisis-pathfinder">When to contact Pathfinder</h2>
     <div class="approachBody">
       <p>Contact Pathfinder for <strong>non-urgent</strong> enquiries about starting therapy — anxiety, trauma, relationships, life transitions, and similar concerns that do not require immediate emergency response.</p>
-      <p><a href="/start/">Send a brief enquiry</a> · <a href="/book/">Book an initial Zoom call</a> · <a href="tel:+351914775365">+351 914 775 365</a></p>
+      <p><a href="${ENQUIRY_PATH}">${ENQUIRY_LABEL}</a> · <a href="${BOOKING_PATH}">${BOOKING_LABEL}</a> · <a href="tel:+351914775365">+351 914 775 365</a></p>
       <p>Brent responds within one working day. If you are in crisis, please use the emergency contacts above first.</p>
     </div>
   </div>

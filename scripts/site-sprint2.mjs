@@ -1,6 +1,8 @@
 import {
   BOOKING_LABEL,
   BOOKING_PATH,
+  ENQUIRY_LABEL,
+  ENQUIRY_PATH,
   extractPageParts,
   wrapInShellV2
 } from "./site-shell-v2.mjs";
@@ -18,14 +20,35 @@ export const SPRINT2_CSS = `${REVIEWS_CSS}
 .lpSectionTitle { margin: 0; font-family: Georgia, serif; font-size: clamp(1.6rem, 3vw, 2.2rem); line-height: 1.12; color: #f6f2ea; font-weight: 600; }
 .lpSectionLead { margin: 0; font-size: 1.05rem; line-height: 1.7; color: rgba(246,242,234,.72); }
 .lpCardGrid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; }
-.lpCard { padding: 20px; border: 1px solid rgba(246,242,234,.1); border-radius: 16px; background: rgba(8,16,15,.45); display: grid; gap: 10px; }
+.lpCard { padding: 20px; border: 1px solid rgba(246,242,234,.1); border-radius: 16px; background: rgba(8,16,15,.45); display: grid; gap: 10px; align-content: start; min-height: 100%; }
 .lpCard h3 { margin: 0; font-size: 1.05rem; color: #f6f2ea; font-weight: 600; }
 .lpCard p { margin: 0; font-size: 14px; line-height: 1.65; color: rgba(246,242,234,.72); }
 .lpCard a { color: #d9b777; font-size: 13px; font-weight: 600; text-decoration: none; }
-.lpServiceGrid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
-.lpServiceCard { padding: 18px; border: 1px solid rgba(200,154,88,.22); border-radius: 14px; background: rgba(200,154,88,.06); }
-.lpServiceCard h3 { margin: 0 0 8px; font-size: 1rem; color: #f6f2ea; }
+.lpCard a:hover, .lpCard a:focus-visible { text-decoration: underline; }
+.lpServiceGrid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; align-items: stretch; }
+.lpServiceCard { padding: 18px; border: 1px solid rgba(200,154,88,.22); border-radius: 14px; background: rgba(200,154,88,.06); display: grid; gap: 8px; align-content: start; min-height: 100%; transition: border-color .2s ease, background .2s ease; }
+.lpServiceCard:hover, .lpServiceCard:focus-within { border-color: rgba(200,154,88,.45); background: rgba(200,154,88,.1); }
+.lpServiceCard h3 { margin: 0; font-size: 1rem; color: #f6f2ea; }
 .lpServiceCard p { margin: 0; font-size: 14px; line-height: 1.6; color: rgba(246,242,234,.68); }
+.lpServiceCard a { display: grid; gap: 8px; color: inherit; text-decoration: none; min-height: 100%; }
+.lpServiceCard a:focus-visible { outline: 2px solid #d9b777; outline-offset: 2px; border-radius: 12px; }
+.lpServiceCardLink { color: #d9b777; font-size: 13px; font-weight: 600; }
+.lpHeroTrustLine { margin: 0; font-size: 13px; letter-spacing: .04em; color: rgba(246,242,234,.62); }
+.lpHeroTextLink { display: inline-flex; align-items: center; min-height: 44px; color: #d9b777; font-size: 14px; font-weight: 500; text-decoration: underline; text-underline-offset: 3px; }
+.lpReassuranceStrip { margin: 0; padding: 16px 20px; border: 1px solid rgba(246,242,234,.1); border-radius: 12px; background: rgba(8,16,15,.5); font-size: 15px; line-height: 1.65; color: rgba(246,242,234,.76); max-width: 42rem; }
+.lpReassuranceStrip a { color: #d9b777; font-weight: 600; text-decoration: none; }
+.lpReassuranceStrip a:hover { text-decoration: underline; }
+.lpStepsSection { display: grid; gap: 20px; }
+.lpStepsGrid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; margin: 0; padding: 0; list-style: none; }
+.lpStepCard { padding: 20px; border: 1px solid rgba(246,242,234,.1); border-radius: 14px; background: rgba(8,16,15,.35); display: grid; gap: 8px; }
+.lpStepCard h3 { margin: 0; font-size: 1rem; color: #f6f2ea; font-weight: 600; }
+.lpStepCard p { margin: 0; font-size: 14px; line-height: 1.65; color: rgba(246,242,234,.72); }
+.lpFinalCta { text-align: center; display: grid; gap: 16px; justify-items: center; }
+.lpFinalCta .lpSectionLead { max-width: 36rem; }
+.lpGeoSectionQuiet { opacity: .92; }
+.lpGeoSectionQuiet .lpSectionTitle { font-size: clamp(1.25rem, 2.2vw, 1.5rem); font-weight: 500; }
+.lpGeoSectionQuiet .lpSectionLead { font-size: 14px; }
+.lpGeoSectionQuiet .lpGeoCard { padding: 14px; background: rgba(8,16,15,.35); border-color: rgba(246,242,234,.08); }
 .lpFaqList { display: grid; gap: 12px; margin: 0; padding: 0; list-style: none; }
 .lpFaqList details { border: 1px solid rgba(246,242,234,.1); border-radius: 12px; padding: 14px 16px; background: rgba(8,16,15,.35); }
 .lpFaqList summary { cursor: pointer; font-weight: 600; color: #f6f2ea; list-style: none; }
@@ -82,23 +105,18 @@ export const SPRINT2_CSS = `${REVIEWS_CSS}
   .lpPageContent { order: 1; }
 }
 @media (max-width: 900px) {
-  .lpCardGrid, .lpServiceGrid, .lpGeoGrid { grid-template-columns: 1fr; }
+  .lpCardGrid, .lpServiceGrid, .lpGeoGrid, .lpStepsGrid { grid-template-columns: 1fr; }
   .lpAboutStrip { grid-template-columns: 1fr; text-align: left; }
   .lpAboutStrip img { width: 88px; height: 88px; border-radius: 50%; }
-  .lpHomeHeroWrap .lpGrid { grid-template-columns: 1fr; }
-  .lpHomeHeroWrap .lpHero { order: 1; }
-  .lpHomeHeroWrap .lpBookingPanel { order: 2; }
+  .lpHomeHeroWrap .lpHero { max-width: none; }
+  .lpHeroActions { flex-direction: column; align-items: stretch; }
+  .lpHeroActions .lpPrimaryCta { width: 100%; }
+}
+@media (max-width: 320px) {
+  .lpSection { padding-inline: 16px; }
+  .lpHomeHeroWrap { padding-inline: 16px; }
 }
 </style>`;
-
-const HERO_TRUST_PILLS = `<ul class="lpTrustList" aria-label="Professional reassurance">
-  <li>EATA registered</li>
-  <li>Trauma-informed</li>
-  <li>Confidential</li>
-  <li>English-speaking</li>
-</ul>`;
-
-const HERO_CREDENTIALS = `<p class="lpTrustStripNote">Clinical supervision · professional indemnity insurance · sessions from €75 · Lisbon clinic or secure online</p>`;
 
 const TRUST_PILLS = `<ul class="lpTrustList" aria-label="Professional reassurance">
   <li>EATA registered</li>
@@ -125,11 +143,11 @@ export function buildBookingPanel({ slim = false } = {}) {
   if (slim) {
     return `<aside class="lpBookingPanel" aria-label="Arrange a consultation">
   <p class="lpKicker">Next step</p>
-  <h2 class="lpBookingPanelTitle">Book an initial Zoom call</h2>
-  <p class="lpBookingPanelText">Choose a time for a confidential initial consultation via Zoom — or send a brief enquiry first if you prefer.</p>
+  <h2 class="lpBookingPanelTitle">${BOOKING_LABEL}</h2>
+  <p class="lpBookingPanelText">Choose a convenient time for a confidential initial conversation by Zoom — or send an enquiry first if you prefer.</p>
   <div class="lpHeroActions">
-    <a class="lpPrimaryCta" href="/book/">Book initial Zoom call</a>
-    <a class="lpSecondaryCta" href="${BOOKING_PATH}">Send a brief enquiry</a>
+    <a class="lpPrimaryCta" href="${BOOKING_PATH}">${BOOKING_LABEL}</a>
+    <a class="lpSecondaryCta" href="${ENQUIRY_PATH}">${ENQUIRY_LABEL}</a>
   </div>
   <p class="lpReassurance">Sessions from €75 · Lisbon clinic or secure online · Non-urgent enquiries only</p>
 </aside>`;
@@ -137,14 +155,14 @@ export function buildBookingPanel({ slim = false } = {}) {
 
   return `<aside class="lpBookingPanel" aria-label="Arrange a consultation">
   <p class="lpKicker">Next step</p>
-  <h2 class="lpBookingPanelTitle">Book an initial Zoom call</h2>
-  <p class="lpBookingPanelText">Choose a time for a confidential initial consultation via Zoom — or send a brief enquiry first if you prefer.</p>
+  <h2 class="lpBookingPanelTitle">${BOOKING_LABEL}</h2>
+  <p class="lpBookingPanelText">Choose a convenient time for a confidential initial conversation by Zoom — or send an enquiry first if you prefer.</p>
   ${TRUST_PILLS}
   ${buildEataBadge()}
   ${STEPS}
   <div class="lpHeroActions">
-    <a class="lpPrimaryCta" href="/book/">Book initial Zoom call</a>
-    <a class="lpSecondaryCta" href="${BOOKING_PATH}">Send a brief enquiry</a>
+    <a class="lpPrimaryCta" href="${BOOKING_PATH}">${BOOKING_LABEL}</a>
+    <a class="lpSecondaryCta" href="${ENQUIRY_PATH}">${ENQUIRY_LABEL}</a>
   </div>
   <p class="lpReassurance">Sessions from €75 · Lisbon clinic or secure online · Non-urgent enquiries only</p>
 </aside>`;
@@ -157,9 +175,9 @@ export function wrapWithBookingPanel(mainInner, { slim = false } = {}) {
 </div>`;
 }
 
-const LISBON_GEO_LINKS = `<section class="lpSection" aria-labelledby="home-lisbon">
+const LISBON_GEO_LINKS = `<section class="lpSection lpGeoSectionQuiet" aria-labelledby="home-lisbon">
     <div class="lpSectionHead">
-      <p class="lpKicker">Lisbon &amp; online</p>
+      <p class="lpKicker">Further reading</p>
       <h2 class="lpSectionTitle" id="home-lisbon">Therapy in Lisbon</h2>
       <p class="lpSectionLead">English-speaking psychotherapy in central Lisbon and securely online across Portugal.</p>
     </div>
@@ -171,40 +189,73 @@ const LISBON_GEO_LINKS = `<section class="lpSection" aria-labelledby="home-lisbo
     </div>
   </section>`;
 
+function buildWhatHappensNextSection() {
+  return `<section class="lpSection lpStepsSection" aria-labelledby="home-next">
+    <div class="lpSectionHead">
+      <p class="lpKicker">Getting started</p>
+      <h2 class="lpSectionTitle" id="home-next">What happens next</h2>
+    </div>
+    <ol class="lpStepsGrid">
+      <li class="lpStepCard">
+        <h3>Choose an initial consultation</h3>
+        <p>Select a convenient time for a short confidential conversation.</p>
+      </li>
+      <li class="lpStepCard">
+        <h3>Talk about what brings you here</h3>
+        <p>You can ask questions and briefly explain what you are looking for.</p>
+      </li>
+      <li class="lpStepCard">
+        <h3>Decide whether it feels right</h3>
+        <p>There is no obligation to continue unless the working relationship feels appropriate.</p>
+      </li>
+    </ol>
+    <div class="lpHeroActions" style="margin-top:8px">
+      <a class="lpPrimaryCta" href="${BOOKING_PATH}">${BOOKING_LABEL}</a>
+    </div>
+  </section>`;
+}
+
+function buildFinalCtaSection() {
+  return `<section class="lpSection lpFinalCta" aria-labelledby="home-final-cta">
+    <div class="lpSectionHead" style="text-align:center;margin-inline:auto">
+      <p class="lpKicker">Begin</p>
+      <h2 class="lpSectionTitle" id="home-final-cta">${BOOKING_LABEL}</h2>
+      <p class="lpSectionLead">Choose a convenient time for a confidential initial conversation by Zoom — or send an enquiry first if you would prefer to ask a question.</p>
+    </div>
+    <div class="lpHeroActions" style="justify-content:center">
+      <a class="lpPrimaryCta" href="${BOOKING_PATH}">${BOOKING_LABEL}</a>
+      <a class="lpSecondaryCta" href="${ENQUIRY_PATH}">${ENQUIRY_LABEL}</a>
+    </div>
+  </section>`;
+}
+
 export function buildHomePageBody() {
   return `<div class="lpAdLandingStrip" id="lpAdLandingStrip" aria-label="Get started">
   <div class="lpAdLandingInner">
-    <p class="lpAdLandingCopy"><strong>Ready to begin?</strong> Choose the path that suits you — book a Zoom call now or send a brief enquiry first.</p>
+    <p class="lpAdLandingCopy"><strong>Ready to begin?</strong> Arrange an initial consultation or send an enquiry first.</p>
     <div class="lpAdLandingActions">
-      <a class="lpPrimaryCta" href="/book/">Book Zoom call</a>
-      <a class="lpSecondaryCta" href="${BOOKING_PATH}">Send enquiry</a>
+      <a class="lpPrimaryCta" href="${BOOKING_PATH}">${BOOKING_LABEL}</a>
+      <a class="lpSecondaryCta" href="${ENQUIRY_PATH}">${ENQUIRY_LABEL}</a>
     </div>
   </div>
 </div>
 <div class="lpHome">
   <div class="lpHomeHeroWrap">
-    <div class="lpGrid">
-      <section class="lpHero" aria-labelledby="home-title">
-        <p class="lpKicker">English-speaking therapist · Lisbon clinic &amp; online</p>
-        <h1 class="lpTitle" id="home-title">Trauma-informed psychotherapy with Brent Kelly in Lisbon and online.</h1>
-        <p class="lpLead">Support for adults and couples navigating trauma, anxiety, attachment, and major life transitions — in person at our Lisbon clinic or securely online across Portugal.</p>
-        <div class="lpTherapist">
-          <img src="/assets/images/about-brent.webp" width="72" height="72" alt="Brent Kelly, therapist at Pathfinder Therapy Lisbon" loading="eager" decoding="async" />
-          <div>
-            <p class="lpTherapistName">Brent Kelly</p>
-            <p class="lpTherapistRole">Therapist · trauma, EMDR, veterans, couples &amp; individual therapy</p>
-          </div>
-        </div>
-        ${HERO_TRUST_PILLS}
-        ${HERO_CREDENTIALS}
-      </section>
-      ${buildBookingPanel({ slim: true })}
-    </div>
+    <section class="lpHero" aria-labelledby="home-title">
+      <p class="lpKicker">English-speaking therapy · Lisbon and online</p>
+      <h1 class="lpTitle" id="home-title">Trauma-informed psychotherapy in Lisbon and online</h1>
+      <p class="lpLead">Support for adults and couples navigating trauma, anxiety, attachment difficulties and significant life transitions.</p>
+      <div class="lpHeroActions">
+        <a class="lpPrimaryCta" href="${BOOKING_PATH}">${BOOKING_LABEL}</a>
+        <a class="lpHeroTextLink" href="/therapy/">Explore therapy</a>
+      </div>
+      <p class="lpHeroTrustLine">EATA registered · Confidential · Sessions from €75</p>
+      <p class="lpReassuranceStrip">Not sure where to begin? <a href="${BOOKING_PATH}">Arrange a confidential initial conversation</a> or <a href="${ENQUIRY_PATH}">send an enquiry first</a>.</p>
+    </section>
   </div>
 
   <section class="lpSection" aria-labelledby="home-who">
     <div class="lpSectionHead">
-      <p class="lpKicker">Who this is for</p>
       <h2 class="lpSectionTitle" id="home-who">You do not need to have everything figured out.</h2>
       <p class="lpSectionLead">Many people begin with a feeling, a pattern, or a sense that something needs attention — not a diagnosis.</p>
     </div>
@@ -229,9 +280,8 @@ export function buildHomePageBody() {
 
   <section class="lpSection" aria-labelledby="home-approach">
     <div class="lpSectionHead">
-      <p class="lpKicker">How therapy helps</p>
-      <h2 class="lpSectionTitle" id="home-approach">What if your patterns make sense?</h2>
-      <p class="lpSectionLead">Pathfinder is a space to understand what has shaped you, what still protects you, and what might now be ready to change. Therapy begins by listening carefully to the ways you have adapted — not by asking what is wrong with you.</p>
+      <h2 class="lpSectionTitle" id="home-approach">Understand · Heal · Move forward</h2>
+      <p class="lpSectionLead">Pathfinder is a space to understand what has shaped you, what still protects you, and what might now be ready to change.</p>
     </div>
     <div class="lpCardGrid">
       <article class="lpCard">
@@ -248,7 +298,7 @@ export function buildHomePageBody() {
       </article>
     </div>
     <div class="lpHeroActions" style="margin-top:24px">
-      <a class="lpSecondaryCta" href="/approach/">Read about the approach</a>
+      <a class="lpHeroTextLink" href="/approach/">Read about the approach</a>
     </div>
   </section>
 
@@ -258,9 +308,9 @@ export function buildHomePageBody() {
       <h2 class="lpSectionTitle" id="home-about">Relationship focused. Personal and authentic.</h2>
     </div>
     <div class="lpAboutStrip">
-      <img src="/assets/images/about-brent.webp" width="120" height="120" alt="Brent Kelly, therapist" loading="lazy" decoding="async" />
+      <img src="/assets/images/about-brent.webp" width="120" height="120" alt="Brent Kelly, therapist at Pathfinder Therapy Lisbon" loading="lazy" decoding="async" />
       <div>
-        <p>Pathfinder is built around evidence-informed care, real conversation, and a steady therapeutic relationship. Brent works with adults and couples in English — in Lisbon and online.</p>
+        <p>Pathfinder is built around evidence-informed care, real conversation, and a steady therapeutic relationship. Brent Kelly works with adults and couples in English — in Lisbon and online.</p>
         <p><strong>EATA registered</strong> · EMDR · Transactional Analysis · clinical supervision · military veterans experience</p>
         ${buildEataBadge()}
         <a class="lpSecondaryCta" href="/about/" style="display:inline-flex;margin-top:8px">Meet Brent →</a>
@@ -268,34 +318,32 @@ export function buildHomePageBody() {
     </div>
   </section>
 
-  ${buildPublicFeedbackSection()}
-
   <section class="lpSection" aria-labelledby="home-services">
     <div class="lpSectionHead">
-      <p class="lpKicker">Services</p>
-      <h2 class="lpSectionTitle" id="home-services">Therapy shaped around your life.</h2>
+      <h2 class="lpSectionTitle" id="home-services">Therapy services</h2>
+      <p class="lpSectionLead">Therapy shaped around your life — in person at our Lisbon clinic or securely online.</p>
     </div>
     <div class="lpServiceGrid">
-      <article class="lpServiceCard"><h3>Individual therapy</h3><p>Trauma-informed psychotherapy for adults — anxiety, trauma, attachment, and life transitions.</p></article>
-      <article class="lpServiceCard"><h3>Couples therapy</h3><p>Relational work for couples navigating conflict, disconnection, and repeating patterns.</p></article>
-      <article class="lpServiceCard"><h3>EMDR</h3><p>Eye Movement Desensitisation and Reprocessing where clinically appropriate for trauma processing.</p></article>
-      <article class="lpServiceCard"><h3>Online therapy</h3><p>Secure online sessions across Portugal and internationally where appropriate.</p></article>
+      <article class="lpServiceCard"><a href="/therapy/" aria-label="Individual therapy — learn more"><h3>Individual therapy</h3><p>Trauma-informed psychotherapy for adults — anxiety, trauma, attachment, and life transitions.</p><span class="lpServiceCardLink">Learn more →</span></a></article>
+      <article class="lpServiceCard"><a href="/therapy/" aria-label="Couples therapy — learn more"><h3>Couples therapy</h3><p>Relational work for couples navigating conflict, disconnection, and repeating patterns.</p><span class="lpServiceCardLink">Learn more →</span></a></article>
+      <article class="lpServiceCard"><a href="/therapy/" aria-label="EMDR — learn more"><h3>EMDR</h3><p>Eye Movement Desensitisation and Reprocessing where clinically appropriate for trauma processing.</p><span class="lpServiceCardLink">Learn more →</span></a></article>
+      <article class="lpServiceCard"><a href="/therapy/" aria-label="Online therapy — learn more"><h3>Online therapy</h3><p>Secure online sessions across Portugal and internationally where appropriate.</p><span class="lpServiceCardLink">Learn more →</span></a></article>
     </div>
     <div class="lpHeroActions" style="margin-top:24px">
-      <a class="lpPrimaryCta" href="/therapy/">View therapy services</a>
       <a class="lpSecondaryCta" href="/fees/">See fees</a>
     </div>
   </section>
 
-  ${LISBON_GEO_LINKS}
+  ${buildPublicFeedbackSection()}
+
+  ${buildWhatHappensNextSection()}
 
   <section class="lpSection" aria-labelledby="home-faq">
     <div class="lpSectionHead">
-      <p class="lpKicker">Common questions</p>
-      <h2 class="lpSectionTitle" id="home-faq">Clear answers before you reach out</h2>
+      <h2 class="lpSectionTitle" id="home-faq">Selected FAQs</h2>
     </div>
     <ul class="lpFaqList">
-      <li><details><summary>How do I arrange an initial consultation?</summary><p>Use the <a href="${BOOKING_PATH}">consultation enquiry form</a>. Brent replies within one working day to arrange an initial conversation.</p></details></li>
+      <li><details><summary>How do I arrange an initial consultation?</summary><p>You can <a href="${BOOKING_PATH}">arrange an initial consultation directly</a> or <a href="${ENQUIRY_PATH}">send an enquiry first</a> if you would prefer to ask a question. Brent replies within one working day.</p></details></li>
       <li><details><summary>Can I see Brent in person or online?</summary><p>Yes — sessions are available at the Lisbon clinic (R. Rodrigues Sampaio 76) and securely online across Portugal.</p></details></li>
       <li><details><summary>How much do sessions cost?</summary><p>Individual sessions are from €75 for 50 minutes. See the <a href="/fees/">fees page</a> for details.</p></details></li>
       <li><details><summary>Do you offer EMDR and trauma therapy?</summary><p>Yes. Brent offers trauma-informed psychotherapy and EMDR where clinically appropriate.</p></details></li>
@@ -304,6 +352,10 @@ export function buildHomePageBody() {
       <a class="lpSecondaryCta" href="/faq/">Read all FAQs</a>
     </div>
   </section>
+
+  ${buildFinalCtaSection()}
+
+  ${LISBON_GEO_LINKS}
 
   <p class="lpPullQuote">Every life leaves a trail.</p>
 </div>`;

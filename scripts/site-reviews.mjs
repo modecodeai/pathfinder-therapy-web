@@ -6,23 +6,25 @@ export const LOCALLISTA_BADGE_PATH = "/assets/images/locallista-lis-signature-de
 export const REVIEWS_CSS = `<style id="pathfinder-public-feedback">
 .lpFeedbackSection { display: grid; gap: 24px; }
 .lpFeedbackLead { margin: 0; font-size: 1.05rem; line-height: 1.7; color: rgba(246,242,234,.72); max-width: 42rem; }
+.lpFeedbackQuotes { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; margin: 0; padding: 0; list-style: none; }
+.lpFeedbackQuote { margin: 0; padding: 18px 20px; border: 1px solid rgba(246,242,234,.1); border-radius: 14px; background: rgba(8,16,15,.35); font-family: Georgia, "Times New Roman", serif; font-size: 15px; line-height: 1.65; font-style: italic; color: rgba(246,242,234,.78); }
 .lpLocallistaBadge { display: block; width: fit-content; max-width: min(100%, 420px); margin: 0; }
 .lpLocallistaBadge img { display: block; width: 100%; height: auto; border-radius: 12px; }
 .lpFeedbackActions { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; }
-.lpFeedbackDisclaimer { margin: 0; font-size: 13px; line-height: 1.65; color: rgba(246,242,234,.52); max-width: 42rem; }
-.lpFeedbackThemes { margin: 0; padding: 0; list-style: none; display: grid; gap: 8px; max-width: 42rem; }
-.lpFeedbackThemes li { margin: 0; padding-left: 1.1rem; position: relative; font-size: 14px; line-height: 1.65; color: rgba(246,242,234,.68); }
-.lpFeedbackThemes li::before { content: ""; position: absolute; left: 0; top: .55em; width: 5px; height: 5px; border-radius: 50%; background: rgba(200,154,88,.55); }
+.lpFeedbackDisclaimer { margin: 0; font-size: 12px; line-height: 1.65; color: rgba(246,242,234,.48); max-width: 42rem; }
 .lpFeedbackCompact .lpFeedbackLead { font-size: 15px; }
 .lpFeedbackCompact .lpFeedbackDisclaimer { font-size: 12px; }
 .lpFeedbackCompact .lpLocallistaBadge { max-width: min(100%, 340px); }
+@media (max-width: 768px) {
+  .lpFeedbackQuotes { grid-template-columns: 1fr; }
+}
 </style>`;
 
-const FEEDBACK_THEMES = `<ul class="lpFeedbackThemes" aria-label="Themes sometimes mentioned in public feedback">
-  <li>Clear, professional communication</li>
-  <li>Sessions starting on time and feeling well held</li>
-  <li>A calm, structured approach without feeling rushed or labelled</li>
-  <li>Fair pricing relative to private therapy in the UK and Portugal</li>
+const FEEDBACK_QUOTES = `<ul class="lpFeedbackQuotes" aria-label="Short excerpts from public feedback">
+  <li class="lpFeedbackQuote">“Clear, professional communication and a calm, structured approach.”</li>
+  <li class="lpFeedbackQuote">“Sessions felt well held — without feeling rushed or labelled.”</li>
+  <li class="lpFeedbackQuote">“Fair pricing relative to private therapy in the UK and Portugal.”</li>
+  <li class="lpFeedbackQuote">“A thoughtful therapist who takes time to understand what you need.”</li>
 </ul>`;
 
 function buildLocallistaBadge() {
@@ -36,19 +38,15 @@ export function buildPublicFeedbackSection({ compact = false } = {}) {
     ? "lpLocalSection lpFeedbackSection lpFeedbackCompact"
     : "lpSection lpFeedbackSection";
   const titleId = compact ? "local-feedback" : "home-feedback";
-  const kicker = compact ? "Public feedback" : "Independent feedback";
-  const heading = compact
-    ? "Third-party feedback"
-    : "What people have shared publicly";
 
   return `<section class="${sectionClass}" aria-labelledby="${titleId}">
   <div class="lpSectionHead">
-    <p class="lpKicker">${kicker}</p>
-    <h2 class="lpSectionTitle" id="${titleId}">${heading}</h2>
-    <p class="lpFeedbackLead">Some people choose to leave feedback on independent platforms. We do not confirm whether any reviewer was a client, and we do not ask current clients for reviews.</p>
+    <p class="lpKicker">Independent feedback</p>
+    <h2 class="lpSectionTitle" id="${titleId}">What people have shared publicly</h2>
+    <p class="lpFeedbackLead">Some people choose to leave feedback on independent platforms. Pathfinder does not confirm whether any reviewer was a client, and current clients are not asked for reviews.</p>
   </div>
+  ${FEEDBACK_QUOTES}
   ${buildLocallistaBadge()}
-  ${FEEDBACK_THEMES}
   <div class="lpFeedbackActions">
     <a class="lpSecondaryCta" href="${GOOGLE_FEEDBACK_URL}" rel="noopener noreferrer" target="_blank">Read public feedback on Google</a>
   </div>

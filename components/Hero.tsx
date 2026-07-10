@@ -25,7 +25,7 @@ export function Hero() {
         <p className="hero-support muted">You don’t even need to know the questions.</p>
         <p className="hero-body">Some paths bring us closer to ourselves. Others lead us away.</p>
         <LeadCtaLink href={leadFunnel.defaultCtaPath} className="hero-cta" label="hero_book_consultation">
-          Book a consultation
+          Arrange an initial consultation
         </LeadCtaLink>
         <a className="scroll-cue" href="#begin">Scroll to begin <span>↓</span></a>
       </section>
