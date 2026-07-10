@@ -487,12 +487,16 @@ const START_PAGE_CSS = `<style id="pathfinder-start-pathways">
 .lpStartIntro { display: grid; gap: 18px; max-width: 44rem; margin-bottom: clamp(24px, 4vw, 36px); }
 .lpStartPathways { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: clamp(20px, 4vw, 28px); align-items: start; }
 .lpStartPathCard { padding: clamp(20px, 3vw, 24px); border: 1px solid rgba(246,242,234,.12); border-radius: 16px; background: rgba(8,16,15,.45); display: grid; gap: 14px; }
+.lpStartPathCard--primary { border-color: rgba(200,154,88,.42); background: rgba(200,154,88,.08); }
+.lpStartPathLabel { margin: 0; font-size: 11px; letter-spacing: .12em; text-transform: uppercase; color: #d9b777; }
 .lpStartPathCard h2 { margin: 0; font-family: Georgia, serif; font-size: clamp(1.2rem, 2.4vw, 1.45rem); line-height: 1.2; color: #f6f2ea; font-weight: 600; }
-.lpStartPathCard ol { margin: 0; padding: 0; list-style: none; display: grid; gap: 10px; }
-.lpStartPathCard li { font-size: 14px; line-height: 1.65; color: rgba(246,242,234,.76); padding-left: 18px; position: relative; }
-.lpStartPathCard li:before { content: ""; position: absolute; left: 0; top: .55em; width: 6px; height: 6px; border-radius: 50%; background: rgba(200,154,88,.55); }
+.lpStartPathCard p { margin: 0; font-size: 14px; line-height: 1.65; color: rgba(246,242,234,.76); }
 .lpStartPathCard .contactForm { margin-top: 4px; max-width: none; }
 .lpStartPathCard .contactSubmit { width: 100%; }
+#enquiry { scroll-margin-top: calc(var(--lp-header-offset, 72px) + 12px); }
+.lpStartEnquiryPanel { display: none; margin-top: clamp(28px, 4vw, 36px); padding-top: clamp(24px, 4vw, 32px); border-top: 1px solid rgba(246,242,234,.08); max-width: 40rem; }
+.lpStartEnquiryPanel.isOpen { display: grid; gap: 14px; }
+.lpStartEnquiryPanel:target { display: grid; gap: 14px; }
 @media (max-width: 900px) {
   .lpStartPathways { grid-template-columns: 1fr; }
   .lpHeroActions { flex-direction: column; align-items: stretch; }
@@ -500,33 +504,84 @@ const START_PAGE_CSS = `<style id="pathfinder-start-pathways">
 }
 </style>`;
 
+const START_ENQUIRY_SCRIPT = `<script id="pathfinder-start-enquiry">
+document.addEventListener("DOMContentLoaded", function () {
+  var panel = document.getElementById("enquiry");
+  var header = document.querySelector(".lpHeader");
+  function headerOffset() {
+    return header ? Math.ceil(header.getBoundingClientRect().height) + 12 : 84;
+  }
+  function scrollToPanel() {
+    if (!panel) return;
+    var top = panel.getBoundingClientRect().top + window.scrollY - headerOffset();
+    window.scrollTo({
+      top: Math.max(0, top),
+      behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth"
+    });
+  }
+  function focusEnquiry() {
+    if (!panel) return;
+    var first = panel.querySelector('input:not([type="hidden"]):not([tabindex="-1"]), textarea, select');
+    var heading = document.getElementById("start-enquiry");
+    requestAnimationFrame(function () {
+      if (first) first.focus();
+      else if (heading) {
+        heading.setAttribute("tabindex", "-1");
+        heading.focus();
+      }
+    });
+  }
+  function openEnquiry(options) {
+    if (!panel) return;
+    panel.classList.add("isOpen");
+    if (options && options.scroll) scrollToPanel();
+    if (!options || options.focus !== false) focusEnquiry();
+  }
+  document.querySelectorAll("[data-open-enquiry]").forEach(function (trigger) {
+    trigger.addEventListener("click", function (event) {
+      event.preventDefault();
+      if (window.history && window.history.pushState) {
+        window.history.pushState(null, "", "#enquiry");
+      } else {
+        window.location.hash = "enquiry";
+      }
+      openEnquiry({ scroll: true });
+    });
+  });
+  window.addEventListener("hashchange", function () {
+    if (window.location.hash === "#enquiry") openEnquiry({ scroll: true });
+  });
+  if (window.location.hash === "#enquiry") {
+    openEnquiry({ scroll: true });
+  }
+});
+</script>`;
+
 function buildStartPageBody(formHtml) {
   return `<section class="lpStartIntro" aria-labelledby="start-title">
   <p class="lpKicker">Getting started · Lisbon and online</p>
-  <h1 class="lpTitle" id="start-title">Two ways to begin with Pathfinder Therapy</h1>
-  <p class="lpLead">You can arrange an initial consultation directly or send an enquiry first — whichever feels easier. Both routes are confidential and non-urgent.</p>
+  <h1 class="lpTitle" id="start-title">Begin with Pathfinder Therapy</h1>
+  <p class="lpLead">Arrange a consultation directly or send an enquiry first — whichever feels easier. Both routes are confidential and non-urgent.</p>
 </section>
 <div class="lpStartPathways">
-  <article class="lpStartPathCard" aria-labelledby="start-book-direct">
+  <article class="lpStartPathCard lpStartPathCard--primary" aria-labelledby="start-book-direct">
+    <p class="lpStartPathLabel">Fastest route</p>
     <h2 id="start-book-direct">Arrange a consultation directly</h2>
-    <ol>
-      <li>Choose a convenient consultation time.</li>
-      <li>Receive the secure Zoom details automatically.</li>
-      <li>Meet Brent and decide whether ongoing therapy feels appropriate.</li>
-    </ol>
+    <p>Choose a convenient time for a confidential initial conversation by Zoom.</p>
     <a class="lpPrimaryCta" href="${BOOKING_PATH}">${BOOKING_LABEL}</a>
   </article>
-  <article class="lpStartPathCard" id="consultation-form" aria-labelledby="start-enquiry">
-    <h2 id="start-enquiry">Send an enquiry first</h2>
-    <ol>
-      <li>Send a brief secure enquiry without detailed clinical history.</li>
-      <li>Brent responds within one working day.</li>
-      <li>Arrange a consultation if the service appears suitable.</li>
-    </ol>
-    <p class="lpFormIntro" id="consultation-form-intro">This takes about two minutes. Your details are sent securely to Brent — for non-urgent enquiries only.</p>
-    ${formHtml}
+  <article class="lpStartPathCard" aria-labelledby="start-enquiry-card">
+    <h2 id="start-enquiry-card">Send an enquiry first</h2>
+    <p>Ask a question or briefly explain what you are looking for before choosing a time.</p>
+    <a class="lpSecondaryCta" href="#enquiry" data-open-enquiry>Open the enquiry form</a>
   </article>
-</div>`;
+</div>
+<noscript><style>.lpStartEnquiryPanel { display: grid !important; gap: 14px; }</style></noscript>
+<section class="lpStartEnquiryPanel" id="enquiry" aria-labelledby="start-enquiry">
+  <h2 class="lpSectionTitle" id="start-enquiry" tabindex="-1">Confidential enquiry</h2>
+  <p class="lpFormIntro" id="consultation-form-intro">This takes about two minutes. Your details are sent securely to Brent — for non-urgent enquiries only.</p>
+  ${formHtml}
+</section>`;
 }
 
 function buildStartPage(contactHtml) {
@@ -543,7 +598,8 @@ function buildStartPage(contactHtml) {
     interior: false
   });
   html = html.replace("</head>", `${LANDING_SCHEMA}\n</head>`);
-  html = html.replace(buildStickyBar(), buildStickyBar(ENQUIRY_PATH, ENQUIRY_LABEL));
+  html = html.replace(buildStickyBar(), buildStickyBar("#enquiry", ENQUIRY_LABEL));
+  html = injectBeforeBodyClose(html, START_ENQUIRY_SCRIPT);
   html = patchHtml(html, {
     robots: "noindex, nofollow",
     title: "Arrange an Initial Consultation | Therapist Lisbon | Pathfinder Therapy",
@@ -564,7 +620,7 @@ function buildBookPage(contactHtml) {
   const parts = extractPageParts(contactHtml);
   let head = parts.head.replace(
     "</head>",
-    `<link href="https://assets.calendly.com/assets/external/widget.css" rel="stylesheet">\n${CALENDLY_CSS}\n</head>`
+    `<link href="https://assets.calendly.com/assets/external/widget.css" rel="stylesheet">\n<script src="https://assets.calendly.com/assets/external/widget.js" async></script>\n${CALENDLY_CSS}\n</head>`
   );
   let html = wrapInShellV2({
     ...parts,

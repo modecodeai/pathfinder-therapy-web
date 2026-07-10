@@ -6,18 +6,17 @@ export { BOOKING_LABEL, BOOKING_PATH, ENQUIRY_LABEL, ENQUIRY_PATH };
 
 export const NAV_ITEMS = [
   { href: "/therapy/", label: "Therapy" },
-  { href: "/approach/", label: "Approach" },
   { href: "/about/", label: "About" },
+  { href: "/approach/", label: "Approach" },
   { href: "/fees/", label: "Fees" },
-  { href: "/knowledge-library/", label: "Resources" },
   { href: "/contact/", label: "Contact" }
 ];
 
-export const MORE_LINKS = [
+export const RESOURCES_LINKS = [
   { href: "/knowledge-library/", label: "Knowledge Library" },
   { href: "/journal/", label: "Journal" },
-  { href: "/retreats/", label: "Retreats" },
-  { href: "/faq/", label: "FAQ" }
+  { href: "/faq/", label: "FAQ" },
+  { href: "/retreats/", label: "Retreats" }
 ];
 
 export const SHELL_V2_CSS = `<style id="pathfinder-shell-v2">
@@ -173,14 +172,14 @@ document.addEventListener("DOMContentLoaded", function () {
     });
   }
 
-  document.querySelectorAll("[data-more-nav]").forEach(function (wrap) {
+  document.querySelectorAll("[data-resources-nav]").forEach(function (wrap) {
     var btn = wrap.querySelector(".lpMoreBtn");
     var menu = wrap.querySelector(".lpMoreMenu");
     if (!btn || !menu) return;
-    btn.addEventListener("click", function (event) {
-      event.stopPropagation();
-      var open = !wrap.classList.contains("isOpen");
-      document.querySelectorAll("[data-more-nav].isOpen").forEach(function (other) {
+    var links = Array.prototype.slice.call(menu.querySelectorAll("a[href]"));
+
+    function setOpen(open) {
+      document.querySelectorAll("[data-resources-nav].isOpen").forEach(function (other) {
         if (other !== wrap) {
           other.classList.remove("isOpen");
           var otherBtn = other.querySelector(".lpMoreBtn");
@@ -189,17 +188,46 @@ document.addEventListener("DOMContentLoaded", function () {
       });
       wrap.classList.toggle("isOpen", open);
       btn.setAttribute("aria-expanded", open ? "true" : "false");
+    }
+
+    btn.addEventListener("click", function (event) {
+      event.stopPropagation();
+      var open = !wrap.classList.contains("isOpen");
+      setOpen(open);
+      if (open && links[0]) links[0].focus();
+    });
+    btn.addEventListener("keydown", function (event) {
+      if (event.key === "ArrowDown" || event.key === "Enter" || event.key === " ") {
+        event.preventDefault();
+        setOpen(true);
+        if (links[0]) links[0].focus();
+      }
+    });
+    menu.addEventListener("keydown", function (event) {
+      var idx = links.indexOf(document.activeElement);
+      if (event.key === "Escape") {
+        event.preventDefault();
+        setOpen(false);
+        btn.focus();
+      } else if (event.key === "ArrowDown" && links.length) {
+        event.preventDefault();
+        links[(idx + 1 + links.length) % links.length].focus();
+      } else if (event.key === "ArrowUp" && links.length) {
+        event.preventDefault();
+        links[(idx - 1 + links.length) % links.length].focus();
+      }
+    });
+    menu.addEventListener("focusin", function () {
+      setOpen(true);
     });
     document.addEventListener("click", function (event) {
       if (!wrap.classList.contains("isOpen")) return;
-      if (event.target.closest("[data-more-nav]")) return;
-      wrap.classList.remove("isOpen");
-      btn.setAttribute("aria-expanded", "false");
+      if (event.target.closest("[data-resources-nav]")) return;
+      setOpen(false);
     });
     document.addEventListener("keydown", function (event) {
       if (event.key === "Escape" && wrap.classList.contains("isOpen")) {
-        wrap.classList.remove("isOpen");
-        btn.setAttribute("aria-expanded", "false");
+        setOpen(false);
         btn.focus();
       }
     });
@@ -249,27 +277,32 @@ function navLink(item, route) {
   return `<a href="${item.href}"${current}>${item.label}</a>`;
 }
 
-function isMoreRouteActive(route) {
-  return MORE_LINKS.some((item) => item.href === route);
+function isResourcesRouteActive(route) {
+  return RESOURCES_LINKS.some((item) => item.href === route);
 }
 
-function buildMoreDropdown(route) {
-  const links = MORE_LINKS.map((item) => navLink(item, route)).join("");
-  const active = isMoreRouteActive(route) ? ' aria-current="page"' : "";
-  return `<div class="lpMoreNav" data-more-nav>
-    <button class="lpMoreBtn" type="button" aria-expanded="false" aria-haspopup="true" aria-controls="lpMoreMenu"${active}>More <span aria-hidden="true">▾</span></button>
-    <div class="lpMoreMenu" id="lpMoreMenu" role="menu">${links}</div>
+function buildResourcesDropdown(route) {
+  const links = RESOURCES_LINKS.map((item) => navLink(item, route)).join("");
+  const active = isResourcesRouteActive(route) ? ' aria-current="page"' : "";
+  return `<div class="lpMoreNav" data-resources-nav>
+    <button class="lpMoreBtn" type="button" aria-expanded="false" aria-haspopup="true" aria-controls="lpResourcesMenu"${active}>Resources <span aria-hidden="true">▾</span></button>
+    <div class="lpMoreMenu" id="lpResourcesMenu" role="menu">${links}</div>
   </div>`;
 }
 
 export function buildHeader(route) {
-  const primary = NAV_ITEMS.map((item) => navLink(item, route)).join("");
-  const moreMobile = MORE_LINKS.map((item) => navLink(item, route)).join("");
+  const contactItem = NAV_ITEMS.find((item) => item.href === "/contact/");
+  const mainItems = NAV_ITEMS.filter((item) => item.href !== "/contact/");
+  const primary =
+    mainItems.map((item) => navLink(item, route)).join("") +
+    buildResourcesDropdown(route) +
+    (contactItem ? navLink(contactItem, route) : "");
+  const resourcesMobile = RESOURCES_LINKS.map((item) => navLink(item, route)).join("");
 
   return `<header class="lpHeader">
   <div class="lpHeaderInner">
     <a class="lpBrand" href="/" aria-label="Pathfinder Therapy home">PATHFINDER THERAPY</a>
-    <nav class="lpTopNav" aria-label="Main navigation">${primary}${buildMoreDropdown(route)}</nav>
+    <nav class="lpTopNav" aria-label="Main navigation">${primary}</nav>
     <div class="lpHeaderActions">
       <a class="lpHeaderPhone" href="tel:+351914775365" aria-label="Call Pathfinder Therapy">+351 914 775 365</a>
       <a class="lpHeaderCta" href="${BOOKING_PATH}">${BOOKING_LABEL}</a>
@@ -279,11 +312,12 @@ export function buildHeader(route) {
     </div>
   </div>
   <nav class="lpMobileNav" id="lpMobileNav" aria-label="Mobile navigation">
-    ${primary}
+    ${mainItems.map((item) => navLink(item, route)).join("")}
     <div class="lpMobileNavMore">
-      <p>More</p>
-      ${moreMobile}
+      <p>Resources</p>
+      ${resourcesMobile}
     </div>
+    ${contactItem ? navLink(contactItem, route) : ""}
     <a class="lpMobileNavPhone" href="tel:+351914775365">Call +351 914 775 365</a>
     <div class="lpMobileNavCta">
       <a href="${BOOKING_PATH}">${BOOKING_LABEL}</a>
@@ -294,13 +328,13 @@ export function buildHeader(route) {
 
 export function buildSiteFooter() {
   const primary = NAV_ITEMS.map((item) => `<a href="${item.href}">${item.label}</a>`).join("");
-  const more = MORE_LINKS.map((item) => `<a href="${item.href}">${item.label}</a>`).join("");
+  const resources = RESOURCES_LINKS.map((item) => `<a href="${item.href}">${item.label}</a>`).join("");
 
   return `<footer class="lpSiteFooter">
   <div class="lpSiteFooterInner">
     <div class="lpSiteFooterTop">
       <nav class="lpSiteFooterNav" aria-label="Footer navigation">${primary}</nav>
-      <nav class="lpSiteFooterExplore" aria-label="More pages">${more}</nav>
+      <nav class="lpSiteFooterExplore" aria-label="Resources">${resources}</nav>
     </div>
     <p class="lpSiteFooterMeta">Pathfinder Therapy · R. Rodrigues Sampaio 76, Lisboa · <a href="/privacy/">Privacy</a> · <a href="/terms/">Terms</a> · <a href="/crisis-support/">Crisis support</a> · <a href="#" data-cookie-manage>Manage cookies</a> · Non-urgent enquiries only</p>
   </div>
@@ -360,7 +394,7 @@ export function buildContactPageBody(formHtml) {
     <p class="lpLead">Send a brief, secure enquiry — Brent responds to non-urgent messages within one working day. No detailed clinical history needed at this stage.</p>
     <div class="lpHeroActions">
       <a class="lpPrimaryCta" href="${BOOKING_PATH}">${BOOKING_LABEL}</a>
-      <a class="lpSecondaryCta" href="#consultation-form" data-scroll-target="#consultation-form">${ENQUIRY_LABEL}</a>
+      <a class="lpSecondaryCta" href="${ENQUIRY_PATH}">${ENQUIRY_LABEL}</a>
     </div>
     <div class="lpTherapist">
       <img src="/assets/images/about-brent.webp" width="72" height="72" alt="Brent Kelly, therapist at Pathfinder Therapy Lisbon" loading="eager" decoding="async" />

@@ -1,24 +1,63 @@
 import { BOOKING_LABEL, ENQUIRY_LABEL, ENQUIRY_PATH } from "./site-ux-layer.mjs";
-import { buildEataBadge } from "./site-eata.mjs";
 
-const CALENDLY_URL_FALLBACK = "https://calendly.com/pathfindertherapy/initial-consultation";
+/** Live production event — verified from www.pathfindertherapy.com/book/ embed URL. */
+const CALENDLY_URL_FALLBACK = "https://calendly.com/hi-pathfindertherapy/30min";
 
 export const DEFAULT_CALENDLY_URL =
   (process.env.PATHFINDER_CALENDLY_URL || "").trim() || CALENDLY_URL_FALLBACK;
+
+function durationFromCalendlyUrl(url) {
+  const match = String(url).match(/\/(\d+)min\/?(?:\?|#|$)/i);
+  return match ? `${match[1]}-minute` : "";
+}
+
+function resolveConsultationDuration() {
+  const env = (process.env.PATHFINDER_CALENDLY_DURATION_MINUTES || "").trim();
+  if (env) {
+    const digits = env.replace(/[^\d]/g, "");
+    if (digits) return `${digits}-minute`;
+    return env.endsWith("-minute") ? env : "";
+  }
+  return durationFromCalendlyUrl(DEFAULT_CALENDLY_URL);
+}
+
+/** Exact duration derived from live Calendly event slug (`30min`) unless overridden by env. */
+export const CALENDLY_CONSULTATION_DURATION = resolveConsultationDuration();
+export const CALENDLY_CONSULTATION_PRICE =
+  (process.env.PATHFINDER_CALENDLY_PRICE_LABEL || "").trim() || "Free";
+
+export function buildConsultationMetaLine() {
+  const parts = [];
+  if (CALENDLY_CONSULTATION_DURATION) {
+    parts.push(`${CALENDLY_CONSULTATION_DURATION} initial consultation`);
+  } else {
+    parts.push("Initial consultation");
+  }
+  parts.push(CALENDLY_CONSULTATION_PRICE, "Zoom");
+  return parts.join(" · ");
+}
 
 export const BOOK_PATH = "/book/";
 export const BOOK_CONFIRMED_PATH = "/book-confirmed/";
 
 export const CALENDLY_CSS = `<style id="pathfinder-calendly">
-.lpCalendlyIntro { display: grid; gap: 16px; max-width: 40rem; margin-bottom: 24px; }
-.lpCalendlyPanel { border: 1px solid rgba(246,242,234,.12); border-radius: 18px; overflow: hidden; background: rgba(8,16,15,.72); min-height: 720px; }
-.lpCalendlyWidget { min-width: 320px; min-height: 720px; height: 720px; }
-.lpCalendlyFallback { padding: 24px; display: grid; gap: 12px; }
-.lpCalendlyFallback a { color: #d9b777; font-weight: 600; }
-.lpCalendlyAlt { margin-top: 20px; font-size: 14px; line-height: 1.6; color: rgba(246,242,234,.68); }
-.lpCalendlyAlt a { color: #d9b777; }
+.lpBookPage { display: grid; gap: 20px; max-width: 920px; margin: 0 auto; }
+.lpConsultMeta { margin: 0; font-size: 14px; letter-spacing: .04em; color: #d9b777; font-weight: 600; }
+.lpBookIntro { display: grid; gap: 12px; max-width: 40rem; }
+.lpBookIntro .lpTitle { font-size: clamp(1.75rem, 3.6vw, 2.4rem); }
+.lpBookIntro .lpLead { max-width: 38rem; font-size: 1rem; }
+.lpCalendlyPanel { position: relative; border: 1px solid rgba(246,242,234,.12); border-radius: 18px; overflow: hidden; background: rgba(8,16,15,.72); min-height: 680px; }
+.lpCalendlyWidget { min-width: 0; width: 100%; min-height: 680px; height: 680px; }
+.lpCalendlyLoading { position: absolute; inset: 0; display: grid; place-items: center; padding: 24px; text-align: center; font-size: 14px; color: rgba(246,242,234,.72); background: rgba(8,16,15,.92); z-index: 1; }
+.lpCalendlyLoading[hidden] { display: none; }
+.lpCalendlyError { display: none; padding: 24px; gap: 12px; text-align: center; }
+.lpCalendlyPanel.isError .lpCalendlyWidget { display: none; }
+.lpCalendlyPanel.isError .lpCalendlyError { display: grid; }
+.lpCalendlyFallback, .lpCalendlyError { font-size: 14px; line-height: 1.65; color: rgba(246,242,234,.76); }
+.lpCalendlyFallback a, .lpCalendlyError a { color: #d9b777; font-weight: 600; }
+.lpBookPrivacy { margin: 0; font-size: 13px; line-height: 1.65; color: rgba(246,242,234,.62); max-width: 40rem; }
 @media (max-width: 900px) {
-  .lpCalendlyWidget, .lpCalendlyPanel { min-height: 680px; height: 680px; }
+  .lpCalendlyWidget, .lpCalendlyPanel { min-height: 640px; height: 640px; }
 }
 </style>`;
 
@@ -51,34 +90,54 @@ export const CALENDLY_INLINE_SCRIPT = `<script id="pathfinder-calendly-inline">
 
   document.addEventListener("DOMContentLoaded", function () {
     track("calendly_page_view", "book");
+    var panel = document.querySelector(".lpCalendlyPanel");
     var widget = document.querySelector(".calendly-inline-widget");
+    var loading = document.querySelector(".lpCalendlyLoading");
     if (!widget) return;
+
     widget.setAttribute("data-url", buildCalendlyUrl(CALENDLY_URL));
 
-    function loadCalendly() {
-      if (typeof window.Calendly === "undefined") return;
-      window.Calendly.initInlineWidget({
-        url: buildCalendlyUrl(CALENDLY_URL),
-        parentElement: widget
-      });
+    function hideLoading() {
+      if (loading) loading.hidden = true;
+      if (panel) panel.setAttribute("aria-busy", "false");
     }
 
-    var observer = new IntersectionObserver(function (entries) {
-      entries.forEach(function (entry) {
-        if (!entry.isIntersecting) return;
-        observer.disconnect();
-        if (window.Calendly) {
-          loadCalendly();
-        } else {
-          var script = document.createElement("script");
-          script.src = "https://assets.calendly.com/assets/external/widget.js";
-          script.async = true;
-          script.onload = loadCalendly;
-          document.head.appendChild(script);
-        }
-      });
-    }, { rootMargin: "200px 0px" });
-    observer.observe(widget);
+    function showError() {
+      hideLoading();
+      if (panel) panel.classList.add("isError");
+    }
+
+    function loadCalendly() {
+      if (typeof window.Calendly === "undefined") return false;
+      try {
+        window.Calendly.initInlineWidget({
+          url: buildCalendlyUrl(CALENDLY_URL),
+          parentElement: widget
+        });
+        hideLoading();
+        return true;
+      } catch (error) {
+        showError();
+        return false;
+      }
+    }
+
+    function loadScript() {
+      var script = document.createElement("script");
+      script.src = "https://assets.calendly.com/assets/external/widget.js";
+      script.async = true;
+      script.onload = function () {
+        if (!loadCalendly()) showError();
+      };
+      script.onerror = showError;
+      document.head.appendChild(script);
+    }
+
+    if (window.Calendly) {
+      loadCalendly();
+    } else {
+      loadScript();
+    }
 
     window.addEventListener("message", function (event) {
       if (event.origin.indexOf("calendly.com") === -1) return;
@@ -95,8 +154,13 @@ export const CALENDLY_INLINE_SCRIPT = `<script id="pathfinder-calendly-inline">
 </script>`;
 
 export function buildCalendlyEmbedMarkup() {
-  return `<div class="lpCalendlyPanel" id="calendly-booking">
-  <div class="calendly-inline-widget lpCalendlyWidget" data-url="${DEFAULT_CALENDLY_URL}"></div>
+  return `<div class="lpCalendlyPanel" id="calendly-booking" aria-busy="true" aria-labelledby="calendly-booking-label">
+  <p class="lpCalendlyLoading" id="calendly-booking-label" aria-live="polite">Loading calendar…</p>
+  <div class="calendly-inline-widget lpCalendlyWidget" data-url="${DEFAULT_CALENDLY_URL}" title="Calendly scheduling"></div>
+  <div class="lpCalendlyError" role="alert">
+    <p>The booking calendar could not be loaded. You can open Calendly directly instead:</p>
+    <a href="${DEFAULT_CALENDLY_URL}" rel="noopener noreferrer">${BOOKING_LABEL}</a>
+  </div>
   <noscript class="lpCalendlyFallback">
     <p>Online booking requires JavaScript. Open Calendly directly instead:</p>
     <a href="${DEFAULT_CALENDLY_URL}" rel="noopener noreferrer">${BOOKING_LABEL}</a>
@@ -105,32 +169,16 @@ export function buildCalendlyEmbedMarkup() {
 }
 
 export function buildBookPageBody() {
-  return `<div class="lpGrid">
-  <section class="lpHero" aria-labelledby="book-title">
+  const meta = buildConsultationMetaLine();
+  return `<div class="lpBookPage">
+  <section class="lpBookIntro" aria-labelledby="book-title">
     <p class="lpKicker">Initial consultation · Secure Zoom</p>
     <h1 class="lpTitle" id="book-title">${BOOKING_LABEL}</h1>
-    <p class="lpLead">Choose a convenient time for a confidential initial conversation by Zoom. This is a short, non-urgent conversation to see whether therapy feels like a fit.</p>
-    <ul class="lpTrustList" aria-label="Professional reassurance">
-      <li>EATA registered</li>
-      <li>Trauma-informed</li>
-      <li>Confidential</li>
-      <li>English-speaking</li>
-      <li>Zoom link sent automatically</li>
-    </ul>
-    ${buildEataBadge()}
-    <ol class="lpSteps" aria-label="What happens next">
-      <li><span class="lpStepNum">1</span><span>Choose a time below and enter your details securely via Calendly.</span></li>
-      <li><span class="lpStepNum">2</span><span>You receive Zoom meeting details by email.</span></li>
-      <li><span class="lpStepNum">3</span><span>If it feels like a fit, Brent will explain next steps for ongoing therapy.</span></li>
-    </ol>
-    <p class="lpCalendlyAlt">Prefer to ask a question first? <a href="${ENQUIRY_PATH}">${ENQUIRY_LABEL}</a>. For crisis support, see our <a href="/crisis-support/">crisis page</a>.</p>
+    <p class="lpConsultMeta">${meta}</p>
+    <p class="lpLead">This is a brief introductory conversation rather than a full therapy session. It gives you an opportunity to explain what you are looking for, ask questions and decide whether working together feels appropriate. There is no obligation to continue.</p>
   </section>
-  <section class="lpFormPanel" aria-labelledby="calendly-booking-intro">
-    <p class="lpKicker">Choose your time</p>
-    <p class="lpFormIntro" id="calendly-booking-intro">Select an available slot for your initial Zoom consultation. Non-urgent enquiries only.</p>
-    ${buildCalendlyEmbedMarkup()}
-    <p class="lpReassurance">Zoom link by email · Sessions from €75 thereafter · Lisbon clinic or online · Non-urgent enquiries only</p>
-  </section>
+  ${buildCalendlyEmbedMarkup()}
+  <p class="lpBookPrivacy">Your booking is handled securely by Calendly. Zoom details are sent by email. This service is for non-urgent enquiries only. Prefer to ask a question first? <a href="${ENQUIRY_PATH}">${ENQUIRY_LABEL}</a>. For crisis support, see our <a href="/crisis-support/">crisis page</a>.</p>
 </div>`;
 }
 

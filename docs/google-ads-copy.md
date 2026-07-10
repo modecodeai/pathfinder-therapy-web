@@ -13,7 +13,7 @@ Use this document when writing or editing Search campaigns in Google Ads for **p
 
 | Item | Price | Notes |
 |------|-------|-------|
-| **Initial Zoom consultation** | Free / no charge | 15–30 min conversation to see if therapy is a fit — booked at `/book/` |
+| **Initial Zoom consultation** | Free / no charge | 30-minute conversation to see if therapy is a fit — booked at `/book/` (Calendly: `hi-pathfindertherapy/30min`) |
 | **Individual therapy session** | **From €75** | 50 minutes — see `/fees/` |
 | **Couples therapy session** | Discussed on enquiry | See `/fees/` |
 | **Ongoing sessions** | From €75 | Fees confirmed before work begins |

@@ -73,6 +73,61 @@ const ABOUT_FINAL_CTA = `<section class="lpEndCta" aria-label="Arrange a consult
   </div>
 </section>`;
 
+const THERAPY_PROCESS_SECTION = `<section class="approachEssay" aria-labelledby="therapy-process">
+  <div class="approachEssayInner">
+    <p class="sectionKicker">Getting started</p>
+    <h2 class="approachSectionTitle" id="therapy-process">What happens next</h2>
+    <ol class="lpSteps" aria-label="How to begin">
+      <li><span class="lpStepNum">1</span><span><strong>Choose a consultation time</strong> — select a convenient time through the secure booking page.</span></li>
+      <li><span class="lpStepNum">2</span><span><strong>Meet Brent by Zoom</strong> — use the initial conversation to briefly discuss what brings you to therapy and ask questions.</span></li>
+      <li><span class="lpStepNum">3</span><span><strong>Decide on the next step</strong> — there is no obligation to continue unless the working relationship feels appropriate.</span></li>
+    </ol>
+    <p class="lpTherapyEnquiryNote">Not ready to book? <a href="${ENQUIRY_PATH}">You can send an enquiry first</a>.</p>
+  </div>
+</section>`;
+
+const THERAPY_FINAL_CTA = `<section class="lpEndCta" aria-labelledby="therapy-next-step">
+  <div class="lpEndCtaInner">
+    <h2 class="lpSectionTitle" id="therapy-next-step">Take the next step</h2>
+    <p class="lpSectionLead">Arrange a short confidential consultation by Zoom to discuss what brings you to therapy and whether working together may feel appropriate.</p>
+    <div class="lpHeroActions">
+      <a class="lpPrimaryCta" href="${BOOKING_PATH}">${BOOKING_LABEL}</a>
+      <a class="lpSecondaryCta" href="${ENQUIRY_PATH}">${ENQUIRY_LABEL}</a>
+    </div>
+    <p class="lpTertiaryLink"><a href="https://wa.me/351914775365">Prefer WhatsApp? Message Pathfinder Therapy.</a></p>
+  </div>
+</section>`;
+
+export function fixTherapyPageContent(mainInner) {
+  let next = mainInner;
+
+  next = next.replace(/<section class="approachFinalCta"[\s\S]*?<\/section>/g, "");
+  next = next.replace(/<aside class="lpInlineCta"[\s\S]*?<\/aside>/g, "");
+
+  if (!next.includes('id="therapy-process"')) {
+    if (next.includes('id="therapy-questions"')) {
+      next = next.replace(
+        /<section class="approachEssay" aria-labelledby="therapy-questions">/,
+        `${THERAPY_PROCESS_SECTION}<section class="approachEssay" aria-labelledby="therapy-questions">`
+      );
+    } else if (next.includes("</article>")) {
+      next = next.replace("</article>", `${THERAPY_PROCESS_SECTION}</article>`);
+    }
+  }
+
+  if (!next.includes('id="therapy-next-step"')) {
+    if (next.includes('class="relatedPages"')) {
+      next = next.replace('<aside class="relatedPages"', `${THERAPY_FINAL_CTA}<aside class="relatedPages"`);
+    } else if (next.includes("</article>")) {
+      next = next.replace("</article>", `${THERAPY_FINAL_CTA}</article>`);
+    } else {
+      next = `${next}${THERAPY_FINAL_CTA}`;
+    }
+  }
+
+  return next;
+}
+
 export function fixAboutPageContent(mainInner) {
   let next = mainInner;
 
@@ -130,6 +185,10 @@ export function applyContentFixes(mainInner, route) {
 
   if (route === "/approach/") {
     next = fixApproachPageContent(next);
+  }
+
+  if (route === "/therapy/") {
+    next = fixTherapyPageContent(next);
   }
 
   if (route === "/therapy/" || route === "/contact/") {
