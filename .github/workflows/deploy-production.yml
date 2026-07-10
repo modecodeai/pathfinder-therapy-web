@@ -81,30 +81,4 @@ jobs:
       - name: Verify production HTML markers
         env:
           PATHFINDER_BUILD_SHA: ${{ github.sha }}
-        run: |
-          set -euo pipefail
-          routes="/ /start/ /book/ /fees/ /about/ /approach/ /therapy/ /contact/"
-          for attempt in 1 2 3 4 5 6; do
-            echo "Verification attempt ${attempt}..."
-            failed=0
-            for route in $routes; do
-              url="https://www.pathfindertherapy.com${route}"
-              html=$(curl -fsSL -H "Cache-Control: no-cache" -H "Pragma: no-cache" "$url")
-              echo "$html" | grep -q "x-pathfinder-build-sha\" content=\"${PATHFINDER_BUILD_SHA}\"" || {
-                echo "Missing build SHA marker on ${url}"
-                failed=1
-              }
-            done
-            if [ "$failed" -eq 0 ]; then
-              curl -fsSL -H "Cache-Control: no-cache" "https://www.pathfindertherapy.com/start/" | grep -q "lpStartPathways"
-              curl -fsSL -H "Cache-Control: no-cache" "https://www.pathfindertherapy.com/fees/" | grep -q "€95"
-              curl -fsSL -H "Cache-Control: no-cache" "https://www.pathfindertherapy.com/fees/" | grep -q "€120"
-              curl -fsSL -H "Cache-Control: no-cache" "https://www.pathfindertherapy.com/about/" | grep -q "Every path is different\\. But"
-              curl -fsSL -H "Cache-Control: no-cache" "https://www.pathfindertherapy.com/approach/" | grep -q "for a reason\\."
-              echo "Production HTML verification passed for commit ${PATHFINDER_BUILD_SHA}"
-              exit 0
-            fi
-            sleep 15
-          done
-          echo "Production HTML verification failed after retries"
-          exit 1
+        run: node scripts/verify-production-html.mjs
