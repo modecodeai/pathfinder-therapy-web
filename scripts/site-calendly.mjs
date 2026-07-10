@@ -1,3 +1,4 @@
+import { BOOKING_LABEL, ENQUIRY_LABEL, ENQUIRY_PATH } from "./site-ux-layer.mjs";
 import { buildEataBadge } from "./site-eata.mjs";
 
 const CALENDLY_URL_FALLBACK = "https://calendly.com/pathfindertherapy/initial-consultation";
@@ -62,15 +63,22 @@ export const CALENDLY_INLINE_SCRIPT = `<script id="pathfinder-calendly-inline">
       });
     }
 
-    if (window.Calendly) {
-      loadCalendly();
-    } else {
-      var script = document.createElement("script");
-      script.src = "https://assets.calendly.com/assets/external/widget.js";
-      script.async = true;
-      script.onload = loadCalendly;
-      document.head.appendChild(script);
-    }
+    var observer = new IntersectionObserver(function (entries) {
+      entries.forEach(function (entry) {
+        if (!entry.isIntersecting) return;
+        observer.disconnect();
+        if (window.Calendly) {
+          loadCalendly();
+        } else {
+          var script = document.createElement("script");
+          script.src = "https://assets.calendly.com/assets/external/widget.js";
+          script.async = true;
+          script.onload = loadCalendly;
+          document.head.appendChild(script);
+        }
+      });
+    }, { rootMargin: "200px 0px" });
+    observer.observe(widget);
 
     window.addEventListener("message", function (event) {
       if (event.origin.indexOf("calendly.com") === -1) return;
@@ -91,7 +99,7 @@ export function buildCalendlyEmbedMarkup() {
   <div class="calendly-inline-widget lpCalendlyWidget" data-url="${DEFAULT_CALENDLY_URL}"></div>
   <noscript class="lpCalendlyFallback">
     <p>Online booking requires JavaScript. Open Calendly directly instead:</p>
-    <a href="${DEFAULT_CALENDLY_URL}" rel="noopener noreferrer">Book your initial Zoom consultation</a>
+    <a href="${DEFAULT_CALENDLY_URL}" rel="noopener noreferrer">${BOOKING_LABEL}</a>
   </noscript>
 </div>`;
 }
@@ -100,8 +108,8 @@ export function buildBookPageBody() {
   return `<div class="lpGrid">
   <section class="lpHero" aria-labelledby="book-title">
     <p class="lpKicker">Initial consultation · Secure Zoom</p>
-    <h1 class="lpTitle" id="book-title">Book a confidential initial Zoom call with Brent Kelly.</h1>
-    <p class="lpLead">Choose a time that suits you. This is a short, non-urgent initial conversation to see whether therapy feels like a fit — online via Zoom.</p>
+    <h1 class="lpTitle" id="book-title">${BOOKING_LABEL}</h1>
+    <p class="lpLead">Choose a convenient time for a confidential initial conversation by Zoom. This is a short, non-urgent conversation to see whether therapy feels like a fit.</p>
     <ul class="lpTrustList" aria-label="Professional reassurance">
       <li>EATA registered</li>
       <li>Trauma-informed</li>
@@ -115,7 +123,7 @@ export function buildBookPageBody() {
       <li><span class="lpStepNum">2</span><span>You receive Zoom meeting details by email.</span></li>
       <li><span class="lpStepNum">3</span><span>If it feels like a fit, Brent will explain next steps for ongoing therapy.</span></li>
     </ol>
-    <p class="lpCalendlyAlt">Prefer to send a brief written enquiry first? <a href="/start/">Use the consultation form</a> instead. For crisis support, see our <a href="/crisis-support/">crisis page</a>.</p>
+    <p class="lpCalendlyAlt">Prefer to ask a question first? <a href="${ENQUIRY_PATH}">${ENQUIRY_LABEL}</a>. For crisis support, see our <a href="/crisis-support/">crisis page</a>.</p>
   </section>
   <section class="lpFormPanel" aria-labelledby="calendly-booking-intro">
     <p class="lpKicker">Choose your time</p>

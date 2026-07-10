@@ -4,6 +4,8 @@ import { fileURLToPath } from "node:url";
 import {
   BOOKING_LABEL,
   BOOKING_PATH,
+  ENQUIRY_LABEL,
+  ENQUIRY_PATH,
   buildAiSummaryJson,
   buildLlmsTxt
 } from "./site-ux-layer.mjs";
@@ -234,7 +236,7 @@ const FORM_ENHANCEMENT_SCRIPT = `<script id="pathfinder-form-enhancement">
             form.dataset.enhanced = "false";
             if (submitButton) {
               submitButton.disabled = false;
-              submitButton.textContent = submitButton.dataset.label || "Arrange an initial consultation";
+              submitButton.textContent = submitButton.dataset.label || "Send an enquiry";
             }
             var status = form.querySelector(".contactStatus");
             if (!status) {
@@ -432,7 +434,7 @@ function prepareLandingForm(formHtml) {
   return formHtml
     .replace(
       /<button class="contactSubmit" type="submit">[^<]*<\/button>/,
-      '<button class="contactSubmit" type="submit" data-label="Arrange an initial consultation">Arrange an initial consultation</button>'
+      '<button class="contactSubmit" type="submit" data-label="Send an enquiry">Send an enquiry</button>'
     )
     .replace(/value="yes"/, 'value="on"')
     .replace(
@@ -476,8 +478,8 @@ function buildStartPage(contactHtml) {
       <h1 class="lpTitle" id="start-title">Find out if therapy is right for you — with a therapist in Lisbon or online.</h1>
       <p class="lpLead">Trauma-informed psychotherapy for anxiety, trauma, relationships, and life transitions. Brent Kelly responds to non-urgent enquiries within one working day.</p>
       <div class="lpHeroActions">
-        <a class="lpPrimaryCta" href="#consultation-form" data-scroll-target="#consultation-form">Arrange an initial consultation</a>
-        <a class="lpSecondaryCta" href="https://wa.me/351914775365">WhatsApp Brent</a>
+        <a class="lpPrimaryCta" href="#consultation-form" data-scroll-target="#consultation-form">${ENQUIRY_LABEL}</a>
+        <a class="lpSecondaryCta" href="${BOOKING_PATH}">${BOOKING_LABEL}</a>
       </div>
       <div class="lpTherapist">
         <img src="/assets/images/about-brent.webp" width="72" height="72" alt="Brent Kelly, therapist at Pathfinder Therapy Lisbon" loading="eager" decoding="async" />
@@ -523,7 +525,7 @@ function buildStartPage(contactHtml) {
   </footer>
 </main>
 <div class="lpStickyCta">
-  <a href="#consultation-form" data-scroll-target="#consultation-form">Arrange an initial consultation</a>
+  <a href="#consultation-form" data-scroll-target="#consultation-form">${ENQUIRY_LABEL}</a>
 </div>
 ${tail}
 ${LANDING_SCRIPT}
@@ -574,7 +576,7 @@ function buildBookPage(contactHtml) {
   </footer>
 </main>
 <div class="lpStickyCta">
-  <a href="#calendly-booking" data-scroll-target="#calendly-booking">Book initial Zoom call</a>
+  <a href="#calendly-booking" data-scroll-target="#calendly-booking">${BOOKING_LABEL}</a>
 </div>
 ${tail}
 ${LANDING_SCRIPT}
@@ -663,7 +665,7 @@ function buildContactPageV2(contactHtml) {
   });
   html = html.replace(
     buildStickyBar(),
-    buildStickyBar("#consultation-form", BOOKING_LABEL)
+    buildStickyBar(BOOKING_PATH, BOOKING_LABEL)
   );
   html = patchHtml(html, {
     title: "Contact | Arrange a Consultation | Pathfinder Therapy Lisbon",
@@ -699,7 +701,7 @@ function buildFaqPage(shellHtml) {
     <p class="sectionKicker">Booking</p>
     <h2 class="approachSectionTitle" id="faq-booking">How do I arrange an initial consultation?</h2>
     <div class="approachBody">
-      <p>Book an initial Zoom call via <a href="/book/">online booking</a>, or send a brief enquiry via the <a href="${BOOKING_PATH}">consultation form</a>. Brent replies to non-urgent messages within one working day.</p>
+      <p>You can <a href="${BOOKING_PATH}">arrange an initial consultation directly</a> or <a href="${ENQUIRY_PATH}">send an enquiry first</a> if you would prefer to ask a question. Brent replies to non-urgent messages within one working day.</p>
       <p>You can also email <a href="mailto:hi@pathfindertherapy.com">hi@pathfindertherapy.com</a> or call/WhatsApp <a href="tel:+351914775365">+351 914 775 365</a>.</p>
     </div>
   </div>
@@ -774,7 +776,7 @@ function buildFaqPage(shellHtml) {
 
   const schema = `<script type="application/ld+json">
 {"@context":"https://schema.org","@type":"FAQPage","mainEntity":[
-{"@type":"Question","name":"How do I arrange an initial consultation?","acceptedAnswer":{"@type":"Answer","text":"Book an initial Zoom call at pathfindertherapy.com/book or use the consultation enquiry form at pathfindertherapy.com/start. Brent replies within one working day."}},
+{"@type":"Question","name":"How do I arrange an initial consultation?","acceptedAnswer":{"@type":"Answer","text":"You can arrange an initial consultation at pathfindertherapy.com/book or send an enquiry at pathfindertherapy.com/start. Brent replies within one working day."}},
 {"@type":"Question","name":"Can I see Brent in person or online?","acceptedAnswer":{"@type":"Answer","text":"Yes. Sessions are available at the Lisbon clinic and securely online across Portugal."}},
 {"@type":"Question","name":"How much do sessions cost?","acceptedAnswer":{"@type":"Answer","text":"Individual sessions are from EUR 75 for 50 minutes."}},
 {"@type":"Question","name":"Do you offer EMDR and trauma therapy?","acceptedAnswer":{"@type":"Answer","text":"Yes. Brent offers trauma-informed psychotherapy and EMDR where clinically appropriate."}}
@@ -824,7 +826,7 @@ function buildFeesPage(shellHtml) {
     <p class="sectionKicker">Initial consultation</p>
     <h2 class="approachSectionTitle" id="fees-consultation">Initial consultation</h2>
     <div class="approachBody">
-      <p>Book an initial Zoom call via <a href="/book/">online booking</a>, or send a brief enquiry via the <a href="${BOOKING_PATH}">consultation form</a>. Brent will reply within one working day to arrange an initial conversation and confirm fees, format (in person or online), and next steps.</p>
+      <p>You can <a href="${BOOKING_PATH}">arrange an initial consultation directly</a> or <a href="${ENQUIRY_PATH}">send an enquiry first</a>. Brent will reply within one working day to confirm fees, format (in person or online), and next steps.</p>
     </div>
   </div>
 </section>

@@ -136,7 +136,7 @@ export function ContactForm({ source, compact = false, redirectTo = "/thank-you/
       </label>
 
       <button className="contact-submit" disabled={status === "submitting"} type="submit">
-        {status === "submitting" ? "Sending..." : "Send enquiry securely"}
+        {status === "submitting" ? "Sending..." : "Send an enquiry"}
       </button>
 
       {message ? (

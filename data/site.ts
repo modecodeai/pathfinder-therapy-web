@@ -80,5 +80,5 @@ export const chapters = [
 export const leadFunnel = {
   landingPath: "/start/",
   thankYouPath: "/thank-you/",
-  defaultCtaPath: "/start/"
+  defaultCtaPath: "/book/"
 };

@@ -1,5 +1,10 @@
-export const BOOKING_PATH = "/start/";
+export const CONSULTATION_PATH = "/book/";
+export const ENQUIRY_PATH = "/start/";
+/** Primary CTA — consultation booking (Calendly). */
+export const BOOKING_PATH = CONSULTATION_PATH;
 export const BOOKING_LABEL = "Arrange an initial consultation";
+/** Secondary CTA — written enquiry form. */
+export const ENQUIRY_LABEL = "Send an enquiry";
 
 export const SITE_UX_CSS = `<style id="pathfinder-site-ux">
 .pfStickyBook { position: fixed; left: 0; right: 0; bottom: 0; z-index: 50; display: none; padding: 12px 16px calc(12px + env(safe-area-inset-bottom)); background: rgba(8,16,15,.94); border-top: 1px solid rgba(246,242,234,.1); backdrop-filter: blur(10px); }
@@ -51,7 +56,7 @@ const HOMEPAGE_HERO_INJECTION = `<div class="pfHeroConversion">
   </ul>
   <div class="pfHeroActions">
     <a class="pfHeroPrimary" href="${BOOKING_PATH}">${BOOKING_LABEL}</a>
-    <a class="pfHeroSecondary" href="https://wa.me/351914775365">WhatsApp Brent</a>
+    <a class="pfHeroSecondary" href="${ENQUIRY_PATH}">${ENQUIRY_LABEL}</a>
   </div>
   <ol class="pfHeroSteps" aria-label="What happens next">
     <li>Send a brief secure enquiry — no detailed history needed.</li>
@@ -85,8 +90,13 @@ export function applySiteWideUx(html, route) {
   }
 
   next = next.replaceAll("Book a consultation", BOOKING_LABEL);
-  next = next.replaceAll('href="/contact/#contact-form"', `href="${BOOKING_PATH}"`);
-  next = next.replaceAll("href=\"/contact/#contact-form\"", `href="${BOOKING_PATH}"`);
+  next = next.replaceAll("Book initial Zoom call", BOOKING_LABEL);
+  next = next.replaceAll("Book Zoom call", BOOKING_LABEL);
+  next = next.replaceAll("Book an initial Zoom call", BOOKING_LABEL);
+  next = next.replaceAll("Send a brief enquiry", ENQUIRY_LABEL);
+  next = next.replaceAll("Send enquiry", ENQUIRY_LABEL);
+  next = next.replaceAll('href="/contact/#contact-form"', `href="${ENQUIRY_PATH}"`);
+  next = next.replaceAll("href=\"/contact/#contact-form\"", `href="${ENQUIRY_PATH}"`);
 
   if (route === "/") {
     next = applyHomepageUx(next);
@@ -95,7 +105,7 @@ export function applySiteWideUx(html, route) {
   if (route === "/contact/" && !hasHtmlClass(next, "pfContactBanner")) {
     next = next.replace(
       '<main id="main-content" class="siteMain interiorMain" tabindex="-1">',
-      `<main id="main-content" class="siteMain interiorMain" tabindex="-1"><div class="approachEssayInner"><p class="pfContactBanner">Prefer a focused consultation form? <a href="${BOOKING_PATH}">${BOOKING_LABEL}</a> — designed for a quick, confidential first enquiry. Response within one working day.</p></div>`
+      `<main id="main-content" class="siteMain interiorMain" tabindex="-1"><div class="approachEssayInner"><p class="pfContactBanner">Prefer a written enquiry first? <a href="${ENQUIRY_PATH}">${ENQUIRY_LABEL}</a> — or <a href="${BOOKING_PATH}">${BOOKING_LABEL}</a> to choose a time directly. Response within one working day.</p></div>`
     );
   }
 
@@ -177,8 +187,8 @@ export function buildLlmsTxt() {
 - https://www.pathfindertherapy.com/english-speaking-therapist-lisbon/
 
 ## Booking
-- Book initial Zoom consultation: https://www.pathfindertherapy.com/book/
-- Consultation enquiry form: https://www.pathfindertherapy.com/start/
+- Arrange an initial consultation: https://www.pathfindertherapy.com/book/
+- Send an enquiry: https://www.pathfindertherapy.com/start/
 - Email: hi@pathfindertherapy.com
 - Phone/WhatsApp: +351 914 775 365
 
