@@ -74,7 +74,7 @@ function hasHtmlClass(html, className) {
 }
 
 const BEGIN_SECTION_TRUST = `<div class="pfTrustBand" aria-label="Professional reassurance">
-  <p><strong>EATA registered</strong> · trauma-informed · EMDR · Transactional Analysis · clinical supervision · professional indemnity insurance · sessions in English</p>
+  <p><strong>EATA registered · ITAA member</strong> · trauma-informed · EMDR · Transactional Analysis · clinical supervision · professional indemnity insurance · sessions in English</p>
   <p>Pathfinder Therapy supports adults and couples navigating trauma, anxiety, attachment, and major life transitions — in person at our Lisbon clinic or securely online.</p>
 </div>`;
 
@@ -173,7 +173,7 @@ Individual therapy, couples therapy, EMDR, online therapy, trauma-informed psych
 Pathfinder Therapy Lisbon Clinic, R. Rodrigues Sampaio 76 1º Andar, 1150-281 Lisboa, Portugal.
 
 ## Clinician
-Brent Kelly — therapist (EATA registered). Specialities: trauma, EMDR, Transactional Analysis, military veterans, attachment.
+Brent Kelly — therapist (EATA registered · ITAA member). Specialities: trauma, EMDR, Transactional Analysis, military veterans, attachment.
 
 ## Fees
 Sessions from EUR 75. Non-urgent enquiries only — not a crisis service.
@@ -190,7 +190,7 @@ export function buildAiSummaryJson() {
       clinician: {
         name: "Brent Kelly",
         role: "Therapist",
-        registrations: ["EATA"],
+        registrations: ["EATA", "ITAA"],
         specialties: ["Trauma", "EMDR", "Transactional Analysis", "Military veterans", "Couples therapy"]
       },
       locations: [

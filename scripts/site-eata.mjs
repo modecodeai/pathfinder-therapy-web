@@ -1,4 +1,5 @@
 export const EATA_URL = "https://eatanews.org/";
+export const ITAA_URL = "https://itaaworld.com/";
 
 const EATA_LOGO_SVG = `<svg class="lpEataLogo" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 220 72" width="168" height="55" aria-hidden="true" focusable="false">
   <circle cx="18" cy="16" r="9" fill="none" stroke="#552583" stroke-width="2.8"/>
@@ -10,7 +11,15 @@ const EATA_LOGO_SVG = `<svg class="lpEataLogo" xmlns="http://www.w3.org/2000/svg
 </svg>`;
 
 export const EATA_BADGE_CSS = `<style id="pathfinder-eata-badge">
-.lpEataBadge {
+.lpEataWrap { display: grid; gap: 10px; }
+.lpMembershipBadges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: stretch;
+}
+.lpEataBadge,
+.lpItaaBadge {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -25,10 +34,20 @@ export const EATA_BADGE_CSS = `<style id="pathfinder-eata-badge">
   border-color: rgba(85,37,131,.35);
   box-shadow: 0 8px 24px rgba(0,0,0,.18);
 }
+.lpItaaBadge:hover {
+  border-color: rgba(78,181,232,.45);
+  box-shadow: 0 8px 24px rgba(0,0,0,.18);
+}
 .lpEataBadge svg,
 .lpEataBadge .lpEataLogo {
   display: block;
   width: min(100%, 168px);
+  height: auto;
+}
+.lpItaaBadge img,
+.lpItaaBadge .lpItaaLogo {
+  display: block;
+  width: min(100%, 88px);
   height: auto;
 }
 .lpEataNote {
@@ -37,14 +56,30 @@ export const EATA_BADGE_CSS = `<style id="pathfinder-eata-badge">
   line-height: 1.5;
   color: rgba(246,242,234,.58);
 }
+@media (max-width: 480px) {
+  .lpMembershipBadges { gap: 10px; }
+  .lpEataBadge,
+  .lpItaaBadge { padding: 10px 12px; }
+  .lpItaaBadge img,
+  .lpItaaBadge .lpItaaLogo { width: min(100%, 76px); }
+}
 </style>`;
 
 export function buildEataBadge() {
+  return buildMembershipBadges();
+}
+
+export function buildMembershipBadges() {
   return `<div class="lpEataWrap">
-  <a class="lpEataBadge" href="${EATA_URL}" target="_blank" rel="noopener noreferrer" aria-label="Brent Kelly is registered with EATA, the European Association for Transactional Analysis">
-    ${EATA_LOGO_SVG}
-  </a>
-  <p class="lpEataNote">Brent Kelly is registered with EATA.</p>
+  <div class="lpMembershipBadges">
+    <a class="lpEataBadge" href="${EATA_URL}" target="_blank" rel="noopener noreferrer" aria-label="Brent Kelly is registered with EATA, the European Association for Transactional Analysis">
+      ${EATA_LOGO_SVG}
+    </a>
+    <a class="lpItaaBadge" href="${ITAA_URL}" target="_blank" rel="noopener noreferrer" aria-label="Brent Kelly is a member of ITAA, the International Transactional Analysis Association">
+      <img class="lpItaaLogo" src="/assets/images/itaa-member-badge.svg" alt="ITAA Member badge" width="88" height="88" loading="lazy" decoding="async"/>
+    </a>
+  </div>
+  <p class="lpEataNote">Brent Kelly is registered with EATA and a member of ITAA.</p>
 </div>`;
 }
 

@@ -64,10 +64,18 @@ export const GLOBAL_SCHEMA = [
       "Anxiety",
       "Couples therapy"
     ],
-    memberOf: {
-      "@type": "Organization",
-      name: "European Association for Transactional Analysis (EATA)"
-    }
+    memberOf: [
+      {
+        "@type": "Organization",
+        name: "European Association for Transactional Analysis (EATA)",
+        url: "https://eatanews.org/"
+      },
+      {
+        "@type": "Organization",
+        name: "International Transactional Analysis Association (ITAA)",
+        url: "https://itaaworld.com/"
+      }
+    ]
   },
   {
     "@context": "https://schema.org",

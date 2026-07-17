@@ -142,6 +142,17 @@ export function fixAboutPageContent(mainInner) {
   next = normalizeKickerHeadingPairs(next);
   next = removeDuplicateSectionKickers(next);
 
+  next = next.replace(
+    "<li>EATA registered therapist and ITAA member</li>",
+    "<li>EATA registered therapist</li><li>ITAA member</li>"
+  );
+  if (next.includes("<li>EATA registered therapist</li>") && !next.includes("<li>ITAA member</li>")) {
+    next = next.replace(
+      "<li>EATA registered therapist</li>",
+      "<li>EATA registered therapist</li><li>ITAA member</li>"
+    );
+  }
+
   next = next.replace(/<section class="aboutFinalCta"[\s\S]*?<\/section>/g, "");
   next = next.replace(/<a class="button" href="\/start\/"><span>Arrange an initial consultation<\/span>[\s\S]*?<\/a>/g, "");
 
