@@ -241,7 +241,7 @@ function buildAboutSection() {
         <p class="pfKicker">About Brent</p>
         <h2 class="pfSectionTitle" id="home-about">Relationship focused. Personal and authentic.</h2>
         <p>Pathfinder is built around evidence-informed care, real conversation, and a steady therapeutic relationship. Brent Kelly works with adults and couples in English — in Lisbon and online.</p>
-        <p class="pfCredentials"><strong>EATA registered</strong> · EMDR · Transactional Analysis · clinical supervision</p>
+        <p class="pfCredentials"><strong>EATA registered · ITAA member</strong> · EMDR · Transactional Analysis · clinical supervision</p>
         ${buildEataBadge()}
         <div class="pfHeroActions">
           <a class="lpSecondaryCta" href="/about/">Meet Brent →</a>
@@ -363,7 +363,7 @@ export function buildVisualHomePageBody() {
           <a class="lpPrimaryCta" href="${BOOKING_PATH}">${BOOKING_LABEL}</a>
           <a class="pfHeroTextLink" href="/therapy/">Explore therapy</a>
         </div>
-        <p class="pfHeroTrust">EATA registered · Confidential · Sessions from €75</p>
+        <p class="pfHeroTrust">EATA registered · ITAA member · Confidential · Sessions from €75</p>
       </div>
       <div class="pfHeroMark" aria-hidden="true">
         <svg viewBox="0 0 80 80" fill="none"><circle cx="40" cy="40" r="36" stroke="#c89a58" stroke-width="1" opacity=".5"/><path d="M16 52c12-18 24-26 40-30 8 10 12 22 12 34" stroke="#c89a58" stroke-width="1.5" stroke-linecap="round"/></svg>

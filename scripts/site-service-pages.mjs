@@ -126,7 +126,7 @@ export const SERVICE_PAGES = [
     route: "/therapy/emdr/",
     title: "EMDR Therapy | Pathfinder Therapy Lisbon",
     description:
-      "EMDR within trauma-informed psychotherapy in Lisbon and online. 60-minute sessions from €95 with Brent Kelly, EATA registered.",
+      "EMDR within trauma-informed psychotherapy in Lisbon and online. 60-minute sessions from €95 with Brent Kelly, EATA registered and ITAA member.",
     canonical: "https://www.pathfindertherapy.com/therapy/emdr/",
     label: "Trauma processing",
     h1: "EMDR",
@@ -146,7 +146,7 @@ export const SERVICE_PAGES = [
     paragraphs: [
       "EMDR is offered within broader trauma-informed psychotherapy — not as a standalone technique. Brent assesses whether it feels clinically appropriate and prepares work carefully before processing begins.",
       "Sessions are 60 minutes. EMDR is not suitable for everyone; suitability is discussed openly in an initial consultation and ongoing therapy.",
-      "Work takes place in English, in person at the Lisbon clinic or online where appropriate. Brent is EATA registered with training in EMDR as part of integrative trauma-informed practice."
+      "Work takes place in English, in person at the Lisbon clinic or online where appropriate. Brent is EATA registered and an ITAA member, with training in EMDR as part of integrative trauma-informed practice."
     ],
     approach:
       "EMDR is integrated thoughtfully with relational psychotherapy and nervous-system awareness. Brent does not rush processing — stabilisation and trust in the therapeutic relationship come first."

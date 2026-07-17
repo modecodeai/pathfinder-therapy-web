@@ -158,6 +158,7 @@ export const SPRINT2_CSS = `${REVIEWS_CSS}
 
 const TRUST_PILLS = `<ul class="lpTrustList" aria-label="Professional reassurance">
   <li>EATA registered</li>
+  <li>ITAA member</li>
   <li>Trauma-informed</li>
   <li>EMDR</li>
   <li>Transactional Analysis</li>
@@ -168,7 +169,7 @@ const TRUST_PILLS = `<ul class="lpTrustList" aria-label="Professional reassuranc
 
 const TRUST_STRIP = `<div class="lpTrustStrip" aria-label="Professional credentials">
   ${buildEataBadge()}
-  <p class="lpTrustStripNote">EATA registered therapist · clinical supervision · professional indemnity insurance · sessions from €75 · Lisbon clinic or secure online</p>
+  <p class="lpTrustStripNote">EATA registered · ITAA member · clinical supervision · professional indemnity insurance · sessions from €75 · Lisbon clinic or secure online</p>
 </div>`;
 
 const BOOKING_FIRST_STEPS = `<ul class="lpSteps" aria-label="What happens next">
@@ -285,7 +286,7 @@ export function buildHomePageBody() {
         <a class="lpPrimaryCta" href="${BOOKING_PATH}">${BOOKING_LABEL}</a>
         <a class="lpHeroTextLink" href="/therapy/">Explore therapy</a>
       </div>
-      <p class="lpHeroTrustLine">EATA registered · Confidential · Sessions from €75</p>
+      <p class="lpHeroTrustLine">EATA registered · ITAA member · Confidential · Sessions from €75</p>
     </section>
   </div>
 
@@ -346,7 +347,7 @@ export function buildHomePageBody() {
       <img src="/assets/images/about-brent.webp" width="120" height="120" alt="Brent Kelly, therapist at Pathfinder Therapy Lisbon" loading="lazy" decoding="async" />
       <div>
         <p>Pathfinder is built around evidence-informed care, real conversation, and a steady therapeutic relationship. Brent Kelly works with adults and couples in English — in Lisbon and online.</p>
-        <p><strong>EATA registered</strong> · EMDR · Transactional Analysis · clinical supervision</p>
+        <p><strong>EATA registered · ITAA member</strong> · EMDR · Transactional Analysis · clinical supervision</p>
         ${buildEataBadge()}
         <a class="lpSecondaryCta" href="/about/" style="display:inline-flex;margin-top:8px">Meet Brent →</a>
       </div>

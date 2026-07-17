@@ -44,7 +44,7 @@ Do **not** place the Google `writereview` solicitation URL on the website — th
 ```
 Pathfinder Therapy offers trauma-informed psychotherapy in English for adults and couples in central Lisbon and securely online across Portugal.
 
-Brent Kelly is an EATA registered therapist working with trauma, anxiety, attachment, relationships, life transitions, and military veterans. EMDR and Transactional Analysis are integrated where clinically appropriate.
+Brent Kelly is an EATA registered therapist and ITAA member working with trauma, anxiety, attachment, relationships, life transitions, and military veterans. EMDR and Transactional Analysis are integrated where clinically appropriate.
 
 Sessions are held at our clinic in Avenidas Novas (R. Rodrigues Sampaio 76), near Marquês de Pombal and Picoas, or online. Individual sessions from €75 for 50 minutes. Book a free initial Zoom consultation call on our website.
 

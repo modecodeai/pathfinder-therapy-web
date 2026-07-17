@@ -803,7 +803,7 @@ function buildFaqPage(shellHtml) {
     <p class="sectionKicker">Confidentiality</p>
     <h2 class="approachSectionTitle" id="faq-confidential">Is therapy confidential?</h2>
     <div class="approachBody">
-      <p>Yes. Sessions are confidential within ethical and legal limits. Brent is registered with EATA, holds professional indemnity insurance, and receives clinical supervision.</p>
+      <p>Yes. Sessions are confidential within ethical and legal limits. Brent is registered with EATA and a member of ITAA, holds professional indemnity insurance, and receives clinical supervision.</p>
     </div>
   </div>
 </section>
@@ -994,6 +994,7 @@ async function main() {
   const repoRoot = path.join(path.dirname(fileURLToPath(import.meta.url)), "..");
   const staticAssets = [
     ["public/assets/images/eata-logo.svg", "assets/images/eata-logo.svg"],
+    ["public/assets/images/itaa-member-badge.svg", "assets/images/itaa-member-badge.svg"],
     [
       "public/assets/images/locallista-lis-signature-default.svg",
       "assets/images/locallista-lis-signature-default.svg"

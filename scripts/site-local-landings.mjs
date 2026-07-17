@@ -81,7 +81,7 @@ export const LOCAL_LANDING_PAGES = [
         "Methods",
         "EMDR and relational psychotherapy",
         "trauma-methods",
-        `<p>Pathfinder offers trauma-informed psychotherapy and <strong>EMDR</strong> where clinically appropriate, alongside Transactional Analysis and relational work. Brent is EATA registered and receives clinical supervision.</p>
+        `<p>Pathfinder offers trauma-informed psychotherapy and <strong>EMDR</strong> where clinically appropriate, alongside Transactional Analysis and relational work. Brent is EATA registered, a member of ITAA, and receives clinical supervision.</p>
         <p><a href="/knowledge-library/what-is-trauma-therapy/">What is trauma therapy?</a> · <a href="/knowledge-library/the-body-remembers/">The body remembers</a></p>`
       ),
       section(

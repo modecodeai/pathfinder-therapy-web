@@ -229,6 +229,30 @@ function auditCtas() {
   return issues;
 }
 
+function auditMembershipBadges() {
+  const issues = [];
+  const homepage = readRouteHtml("/");
+  if (!homepage.includes("itaa-member-badge.svg")) {
+    issues.push("Homepage missing ITAA member badge image");
+  }
+  if (!homepage.includes("lpItaaBadge")) {
+    issues.push("Homepage missing ITAA badge markup");
+  }
+  if (!homepage.includes("ITAA member")) {
+    issues.push("Homepage missing ITAA membership copy");
+  }
+  if (!homepage.includes("registered with EATA and a member of ITAA")) {
+    issues.push("Homepage missing combined EATA/ITAA membership note");
+  }
+
+  const about = readRouteHtml("/about/");
+  if (!about.includes("ITAA member")) {
+    issues.push("/about/ missing ITAA membership copy");
+  }
+
+  return issues;
+}
+
 function main() {
   const errors = [];
 
@@ -307,6 +331,7 @@ function main() {
   errors.push(...auditCtas());
   errors.push(...auditLegacyMarkers());
   errors.push(...auditPriorityRoutes());
+  errors.push(...auditMembershipBadges());
 
   if (errors.length) {
     console.error("Built HTML verification failed:");

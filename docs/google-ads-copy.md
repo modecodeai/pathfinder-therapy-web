@@ -33,7 +33,7 @@ Use these phrases in headlines and descriptions:
 - **Trauma-informed psychotherapy · Lisbon & online**
 - **Sessions from €75**
 - **In person in Lisbon or securely online**
-- **EATA registered · confidential**
+- **EATA registered · ITAA member · confidential**
 - **Non-urgent enquiries only**
 
 ---
@@ -76,7 +76,7 @@ Lisbon Clinic & Online
 Trauma-Informed Therapy
 Arrange Initial Consultation
 English-Speaking Therapist
-Confidential · EATA Registered
+Confidential · EATA Registered · ITAA Member
 Adults & Couples Welcome
 Feeling Overwhelmed?
 Regain Stability & Clarity
@@ -87,7 +87,7 @@ Regain Stability & Clarity
 ```
 Confidential psychotherapy for stress, trauma & life transitions. English-speaking.
 Book a free initial Zoom call. Sessions from €75 · Lisbon clinic or secure online.
-Trauma-informed therapy with Brent Kelly in Lisbon. EATA registered. Enquire today.
+Trauma-informed therapy with Brent Kelly in Lisbon. EATA registered · ITAA member. Enquire today.
 Non-urgent enquiries only. Free initial consultation call · ongoing sessions from €75.
 ```
 
