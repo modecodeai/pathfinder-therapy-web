@@ -7,6 +7,7 @@ on:
       - main
       - cursor/ncps-recognised-counselling-service-89a8
       - cursor/gregg-stevenson-patron-89a8
+      - cursor/pathfinder-project-images-89a8
     paths:
       - "cic-site/**"
       - ".github/workflows/deploy-cic-site.yml"
@@ -59,7 +60,7 @@ jobs:
           DEPLOYMENT_URL: ${{ steps.deploy.outputs.deployment-url }}
         run: node scripts/promote-and-purge-cloudflare.mjs
 
-      - name: Verify NCPS footer on Pages deployment
+      - name: Verify CIC deployment content and project images
         env:
           DEPLOYMENT_URL: ${{ steps.deploy.outputs.deployment-url }}
         run: |
@@ -76,6 +77,21 @@ jobs:
               echo "Verified NCPS footer on ${url}"
               HEADER="$(curl -fsSI -A 'Mozilla/5.0' "$url/" | tr -d '\r' | grep -i '^x-pathfinder-build:' || true)"
               echo "Build header: ${HEADER:-none}"
+              IMG_HEADERS="$(curl -fsSI -A 'Mozilla/5.0' "$url/images/pathfinder-project/outdoor-therapy-space-operational.webp" | tr -d '\r')"
+              echo "$IMG_HEADERS" | head -20
+              echo "$IMG_HEADERS" | grep -qi '^content-type: image/webp' || {
+                echo "Expected image/webp for outdoor therapy space asset"
+                exit 1
+              }
+              PROJECT_HTML="$(curl -fsSL -A 'Mozilla/5.0' "$url/pathfinder-project.html" || true)"
+              echo "$PROJECT_HTML" | grep -q 'id="project-journal"' || {
+                echo "Missing project-journal anchor"
+                exit 1
+              }
+              echo "$PROJECT_HTML" | grep -q 'Outdoor therapeutic space now operational' || {
+                echo "Missing operational journal milestone copy"
+                exit 1
+              }
               exit 0
             fi
           done
