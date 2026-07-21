@@ -3,7 +3,15 @@
   "url": "https://pathfindertherapy.org.uk/",
   "type": "Community Interest Company",
   "companyNumber": "17248842",
-  "summary": "Pathfinder Therapy CIC is a veteran-founded Community Interest Company providing counselling, psychotherapy, veteran support, and community wellbeing resources for people navigating difficult life terrain.",
+  "summary": "Pathfinder Therapy CIC is a veteran-founded Community Interest Company providing counselling, psychotherapy, veteran support, and community wellbeing resources for people navigating difficult life terrain. Pathfinder Therapy CIC is an NCPS Recognised Counselling Service (Membership No: RCS6035).",
+  "recognition": {
+    "body": "National Counselling and Psychotherapy Society",
+    "status": "NCPS Recognised Counselling Service",
+    "membershipNumber": "RCS6035",
+    "type": "organisational",
+    "page": "https://pathfindertherapy.org.uk/standards-and-accreditations.html",
+    "verificationUrl": "https://ncps.com/about-us/our-community/our-recognised-counselling-services"
+  },
   "email": "hello@pathfindertherapy.org.uk",
   "telephone": "01282 790280",
   "registeredOffice": {
@@ -38,7 +46,18 @@
     "contact": "https://pathfindertherapy.org.uk/contact.html",
     "pathfinderProject": "https://pathfindertherapy.org.uk/pathfinder-project.html",
     "impact": "https://pathfindertherapy.org.uk/impact.html",
-    "crisisSafeguarding": "https://pathfindertherapy.org.uk/crisis-safeguarding.html"
+    "crisisSafeguarding": "https://pathfindertherapy.org.uk/crisis-safeguarding.html",
+    "standardsAndAccreditations": "https://pathfindertherapy.org.uk/standards-and-accreditations.html",
+    "patron": "https://pathfindertherapy.org.uk/team/gregg-stevenson-mbe"
+  },
+  "patron": {
+    "name": "Gregg Stevenson MBE",
+    "role": "Patron",
+    "isClinical": false,
+    "isEmployee": false,
+    "isDirector": false,
+    "page": "https://pathfindertherapy.org.uk/team/gregg-stevenson-mbe",
+    "website": "https://greggstevenson.co.uk/"
   },
   "safetyBoundary": "Pathfinder Therapy CIC is not an emergency or crisis service. If there is immediate danger to life, call 999 or go to the nearest A&E. For urgent mental health help in England, call NHS 111 and select the mental health option.",
   "sitemap": "https://pathfindertherapy.org.uk/sitemap.xml",
