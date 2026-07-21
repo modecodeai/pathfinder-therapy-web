@@ -4131,6 +4131,31 @@ html[lang="en-GB"] body{
   }
 }
 
+/* Power of Place — project-owned landscape (replaces unlicensed stock) */
+.power-of-place-section .power-of-place-figure{
+  margin:0 0 22px;
+  border:1px solid rgba(255,255,255,.16);
+  border-radius:12px;
+  overflow:hidden;
+  background:#0d0f0f;
+}
+.power-of-place-section .power-of-place-figure img{
+  display:block;
+  width:100%;
+  height:auto;
+  aspect-ratio:4 / 3;
+  object-fit:cover;
+  object-position:center;
+}
+.power-of-place-section .power-of-place-figure figcaption{
+  padding:12px 14px;
+  color:#e7e7df;
+  font-size:14px;
+  line-height:1.4;
+  border-top:1px solid rgba(255,255,255,.1);
+  background:rgba(5,6,6,.9);
+}
+
 /* V56: Pathfinder Project operational milestone + journal */
 #project-journal,
 #future-programmes,
