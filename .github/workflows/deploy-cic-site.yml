@@ -1,0 +1,54 @@
+name: Deploy CIC site
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+      - cursor/ncps-recognised-counselling-service-89a8
+    paths:
+      - "cic-site/**"
+      - ".github/workflows/deploy-cic-site.yml"
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      deployments: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Deploy cic-site to Cloudflare Pages
+        id: deploy
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          command: pages deploy cic-site --project-name=pathfinder-therapy-cic-v10 --branch=main --commit-hash=${{ github.sha }} --commit-message="Deploy CIC site ${{ github.sha }}"
+
+      - name: Verify NCPS footer on Pages deployment
+        env:
+          DEPLOYMENT_URL: ${{ steps.deploy.outputs.deployment-url }}
+        run: |
+          set -euo pipefail
+          echo "Deployment URL: ${DEPLOYMENT_URL}"
+          if [ -z "${DEPLOYMENT_URL}" ]; then
+            echo "No deployment URL returned; checking production preview host"
+            DEPLOYMENT_URL="https://pathfinder-therapy-cic-v10.pages.dev"
+          fi
+          # Prefer the deployment-specific URL, fall back to project pages.dev
+          for url in "${DEPLOYMENT_URL}" "https://pathfinder-therapy-cic-v10.pages.dev" "https://d151320e.pathfinder-therapy-cic-v10.pages.dev"; do
+            echo "Checking ${url}"
+            html="$(curl -fsSL -A 'Mozilla/5.0' "$url/" || true)"
+            if echo "$html" | grep -q 'footer-accreditation' && echo "$html" | grep -q 'RCS6035'; then
+              echo "Verified NCPS footer on ${url}"
+              exit 0
+            fi
+          done
+          echo "NCPS footer not found on checked URLs"
+          exit 1
