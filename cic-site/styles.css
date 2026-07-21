@@ -11,6 +11,7 @@
   --yellow:#f5b51b;
   --olive:#cdd448;
   --line:rgba(255,255,255,.18);
+  --header-height:96px;
 }
 
 *{box-sizing:border-box}
@@ -4127,5 +4128,206 @@ html[lang="en-GB"] body{
   .patron-profile-media img,
   .patron-home-media img{
     transition:none;
+  }
+}
+
+/* V56: Pathfinder Project operational milestone + journal */
+#project-journal,
+#future-programmes,
+#milestone-heading{
+  scroll-margin-top: calc(var(--header-height) + 16px);
+}
+
+.project-milestone-panel{
+  padding:28px 0;
+  background:linear-gradient(90deg,#101515,#0b1210);
+  border-top:1px solid rgba(255,255,255,.14);
+  border-bottom:1px solid rgba(255,255,255,.14);
+}
+.project-milestone-panel__inner{
+  display:flex;
+  align-items:flex-start;
+  justify-content:space-between;
+  gap:28px;
+}
+.project-milestone-panel__copy{
+  max-width:820px;
+}
+.project-milestone-panel h2{
+  margin:0 0 12px;
+  font-family:'Barlow Condensed',Inter,sans-serif;
+  font-size:clamp(32px,4vw,48px);
+  line-height:.95;
+  text-transform:uppercase;
+  letter-spacing:.03em;
+  color:#f5f1dc;
+}
+.project-milestone-panel p{
+  margin:0 0 12px;
+  color:#e7e7df;
+  font-size:17px;
+  line-height:1.65;
+}
+.project-milestone-panel__note{
+  color:#cfcfc4 !important;
+  font-size:15px !important;
+}
+.project-status-badge{
+  margin:0;
+  flex-shrink:0;
+  display:inline-flex;
+  align-items:center;
+  gap:8px;
+  padding:10px 16px;
+  border:1px solid rgba(135,184,74,.45);
+  border-radius:999px;
+  background:rgba(135,184,74,.12);
+  color:#d8efb0;
+  font-family:'Barlow Condensed',Inter,sans-serif;
+  font-size:18px;
+  font-weight:800;
+  letter-spacing:.12em;
+  text-transform:uppercase;
+}
+.project-status-badge::before{
+  content:"";
+  width:8px;
+  height:8px;
+  border-radius:50%;
+  background:#87b84a;
+}
+.text-link{
+  display:inline-flex;
+  align-items:center;
+  gap:6px;
+  margin-top:8px;
+  color:var(--orange);
+  font-weight:700;
+  text-decoration:underline;
+  text-underline-offset:3px;
+}
+.text-link:hover,
+.text-link:focus-visible{
+  color:#ffb27a;
+  outline:2px solid var(--orange);
+  outline-offset:3px;
+}
+
+.retreat-build-grid--image-first{
+  grid-template-columns:1.15fr .85fr;
+}
+.project-image-full{
+  position:relative;
+  margin:0;
+  border:1px solid rgba(255,255,255,.16);
+  border-radius:10px;
+  overflow:hidden;
+  background:#0d0f0f;
+  box-shadow:0 24px 60px rgba(0,0,0,.36);
+}
+.project-image-full img{
+  display:block;
+  width:100%;
+  height:auto;
+  aspect-ratio:4 / 3;
+  object-fit:cover;
+  object-position:center center;
+}
+.outdoor-operational-feature .project-image-full img,
+.project-journal-entry--featured .project-image-full img{
+  object-fit:contain;
+  background:#0a0c0c;
+  aspect-ratio:4 / 3;
+}
+.project-image-full figcaption{
+  position:static;
+  display:block;
+  padding:12px 14px;
+  background:rgba(5,6,6,.9);
+  color:#f4f4f1;
+  font-size:14px;
+  line-height:1.4;
+  border-top:1px solid rgba(255,255,255,.1);
+}
+
+.project-journal-section{
+  padding:72px 0;
+  background:linear-gradient(180deg,#080a0a,#101515);
+  border-top:1px solid rgba(255,255,255,.14);
+  border-bottom:1px solid rgba(255,255,255,.14);
+}
+.project-journal-section > .container > h2{
+  margin:0 0 36px;
+  font-family:'Barlow Condensed',Inter,sans-serif;
+  font-size:clamp(38px,5vw,56px);
+  line-height:.94;
+  text-transform:uppercase;
+  letter-spacing:.03em;
+  color:#f5f1dc;
+}
+.project-journal-entry{
+  display:grid;
+  grid-template-columns:.95fr 1.05fr;
+  gap:40px;
+  align-items:center;
+  padding:36px 0;
+  border-top:1px solid rgba(255,255,255,.12);
+}
+.project-journal-entry:first-of-type{
+  border-top:0;
+  padding-top:0;
+}
+.project-journal-entry__meta{
+  margin:0 0 10px;
+  color:var(--orange);
+  font-family:'Barlow Condensed',Inter,sans-serif;
+  font-size:18px;
+  font-weight:800;
+  letter-spacing:.14em;
+  text-transform:uppercase;
+}
+.project-journal-entry h3{
+  margin:0 0 16px;
+  font-family:'Barlow Condensed',Inter,sans-serif;
+  font-size:clamp(30px,3.5vw,42px);
+  line-height:1;
+  text-transform:uppercase;
+  color:#e6d76d;
+}
+.project-journal-entry p{
+  margin:0 0 14px;
+  color:#e7e7df;
+  font-size:17px;
+  line-height:1.65;
+}
+.project-cta-section{
+  border-top:1px solid rgba(255,255,255,.14);
+}
+.project-cta-section .hero-actions{
+  flex-wrap:wrap;
+}
+
+@media(max-width:1100px){
+  .retreat-build-grid--image-first,
+  .project-journal-entry{
+    grid-template-columns:1fr;
+  }
+  .project-milestone-panel__inner{
+    flex-direction:column;
+  }
+}
+@media(max-width:760px){
+  .project-status-badge{
+    align-self:flex-start;
+  }
+  .project-image-full img,
+  .outdoor-operational-feature .project-image-full img,
+  .project-journal-entry--featured .project-image-full img{
+    aspect-ratio:4 / 3;
+  }
+}
+@media (prefers-reduced-motion: reduce){
+  html{
+    scroll-behavior:auto;
   }
 }
