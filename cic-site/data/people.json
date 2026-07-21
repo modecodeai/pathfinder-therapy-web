@@ -39,6 +39,10 @@
       "name": "Brent Kelly",
       "role": "Trauma Specialist · Therapist · Veteran",
       "category": "leadership",
+      "image": "assets/images/team/brent-kelly.jpeg",
+      "imageAlt": "Brent Kelly, Co-Founder and Director of Pathfinder Therapy CIC",
+      "imageWidth": 320,
+      "imageHeight": 400,
       "isClinical": true,
       "isEmployee": false,
       "isDirector": true
@@ -48,6 +52,10 @@
       "name": "Tim Felton",
       "role": "Therapist · Veteran",
       "category": "leadership",
+      "image": "assets/images/team/tim-felton.jpeg",
+      "imageAlt": "Tim Felton, Co-Founder, Director and Clinical Lead of Pathfinder Therapy CIC",
+      "imageWidth": 320,
+      "imageHeight": 400,
       "isClinical": true,
       "isEmployee": false,
       "isDirector": true
