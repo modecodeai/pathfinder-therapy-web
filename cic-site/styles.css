@@ -3592,3 +3592,269 @@ html[lang="en-GB"] body{
     color:#ddd8ca;
   }
 }
+
+/* V54: NCPS Recognised Counselling Service / Standards and Accreditations */
+.ncps-logo{
+  display:block;
+  width:100%;
+  max-width:340px;
+  height:auto;
+  object-fit:contain;
+}
+.ncps-logo--footer{
+  max-width:280px;
+}
+.ncps-logo--inline{
+  max-width:300px;
+}
+.footer-accreditation{
+  display:grid;
+  grid-template-columns:minmax(0,1fr) minmax(180px,280px);
+  gap:28px;
+  align-items:center;
+  padding:0 0 28px;
+  margin:0 0 24px;
+  border-bottom:1px solid rgba(255,255,255,.14);
+}
+.footer-accreditation-copy h2{
+  margin:0 0 12px;
+  color:#fff;
+  font-family:'Barlow Condensed',Inter,sans-serif;
+  font-size:28px;
+  text-transform:uppercase;
+  letter-spacing:.04em;
+}
+.footer-accreditation-copy p{
+  margin:0 0 10px;
+  color:#d9d9d2;
+  font-size:16px;
+  line-height:1.5;
+  max-width:640px;
+}
+.footer-accreditation-links{
+  display:flex;
+  flex-wrap:wrap;
+  gap:14px 22px;
+  margin-top:8px !important;
+}
+.footer-accreditation-links a{
+  color:#f4f4f1;
+  text-decoration:underline;
+  text-underline-offset:3px;
+  font-family:'Barlow Condensed',Inter,sans-serif;
+  font-size:18px;
+  text-transform:uppercase;
+  letter-spacing:.04em;
+}
+.footer-accreditation-links a:hover,
+.footer-accreditation-links a:focus-visible{
+  color:#f97316;
+  outline:2px solid #f97316;
+  outline-offset:3px;
+}
+.footer-accreditation-logo{
+  display:block;
+  padding:14px 16px;
+  border-radius:8px;
+  background:rgba(255,255,255,.96);
+  border:1px solid rgba(255,255,255,.18);
+  max-width:100%;
+}
+.footer-accreditation-logo:focus-visible{
+  outline:2px solid #f97316;
+  outline-offset:3px;
+}
+.footer-accreditation-logo img{
+  width:100%;
+  max-width:280px;
+  height:auto;
+}
+.standards-recognition-section,
+.standards-trust-section,
+.professional-recognition-section,
+.organisational-recognition-note{
+  padding:56px 0;
+  background:linear-gradient(90deg,#050606,#101515);
+  border-top:1px solid rgba(255,255,255,.14);
+  border-bottom:1px solid rgba(255,255,255,.14);
+}
+.standards-recognition-grid,
+.standards-trust-grid,
+.professional-recognition-grid{
+  display:grid;
+  grid-template-columns:minmax(180px,320px) minmax(0,1fr);
+  gap:42px;
+  align-items:center;
+}
+.standards-logo-panel,
+.standards-trust-logo,
+.professional-recognition-logo{
+  padding:24px;
+  border-radius:8px;
+  background:rgba(255,255,255,.96);
+  border:1px solid rgba(255,255,255,.18);
+}
+.standards-recognition-grid h2,
+.standards-trust-grid h2,
+.professional-recognition-grid h2,
+.organisational-recognition-note h2{
+  margin:0 0 16px;
+  font-family:'Barlow Condensed',Inter,sans-serif;
+  font-size:46px;
+  line-height:.96;
+  text-transform:uppercase;
+  letter-spacing:.03em;
+  max-width:760px;
+}
+.standards-recognition-grid p,
+.standards-trust-grid p,
+.professional-recognition-grid p,
+.organisational-recognition-note p{
+  color:#e7e7df;
+  font-size:18px;
+  line-height:1.65;
+  max-width:860px;
+}
+.standards-actions,
+.standards-trust-actions{
+  display:flex;
+  flex-wrap:wrap;
+  gap:14px;
+  margin-top:24px;
+}
+.standards-trust-actions a.button,
+.standards-actions a.button{
+  text-decoration:none;
+}
+.standards-external-link{
+  align-self:center;
+  color:#f4f4f1;
+  text-decoration:underline;
+  text-underline-offset:3px;
+}
+.standards-external-link:hover,
+.standards-external-link:focus-visible{
+  color:#f97316;
+}
+.standards-content-section{
+  padding-top:24px;
+}
+.standards-content{
+  max-width:980px;
+}
+.standards-card-list{
+  list-style:none;
+  margin:28px 0 0;
+  padding:0;
+  display:grid;
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:16px;
+}
+.standards-card-list li{
+  padding:24px;
+  border:1px solid rgba(255,255,255,.16);
+  border-radius:8px;
+  background:rgba(255,255,255,.045);
+}
+.standards-card-list h3{
+  margin:0 0 10px;
+  color:#e6d76d;
+  font-family:'Barlow Condensed',Inter,sans-serif;
+  font-size:26px;
+  text-transform:uppercase;
+}
+.standards-card-list p{
+  margin:0;
+  font-size:16px;
+}
+.standards-plain-list{
+  margin:16px 0 24px;
+  padding-left:22px;
+  color:#e7e7df;
+}
+.standards-plain-list li{
+  margin:0 0 8px;
+  font-size:17px;
+  line-height:1.55;
+}
+.standards-policy-links{
+  list-style:none;
+  margin:18px 0 28px;
+  padding:0;
+  display:grid;
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:12px 18px;
+}
+.standards-policy-links a{
+  color:#f97316;
+  text-decoration:underline;
+  text-underline-offset:3px;
+}
+.standards-policy-links a:focus-visible{
+  outline:2px solid #f97316;
+  outline-offset:3px;
+}
+.organisational-recognition-note .container{
+  max-width:900px;
+}
+.ncps-trust-note{
+  margin:18px 0 0;
+  padding:16px 18px;
+  border:1px solid rgba(255,255,255,.16);
+  border-radius:8px;
+  background:rgba(255,255,255,.045);
+  color:#e7e7df;
+  font-size:16px;
+  line-height:1.55;
+  max-width:720px;
+}
+.ncps-trust-note a{
+  color:#f97316;
+  text-decoration:underline;
+  text-underline-offset:3px;
+}
+.contact-ncps-note{
+  margin-top:18px;
+}
+@media(max-width:1000px){
+  .footer-accreditation,
+  .standards-recognition-grid,
+  .standards-trust-grid,
+  .professional-recognition-grid{
+    grid-template-columns:1fr;
+  }
+  .footer-accreditation-logo,
+  .standards-logo-panel,
+  .standards-trust-logo,
+  .professional-recognition-logo{
+    max-width:320px;
+  }
+  .ncps-logo,
+  .ncps-logo--footer,
+  .ncps-logo--inline{
+    max-width:280px;
+  }
+  .standards-recognition-grid h2,
+  .standards-trust-grid h2,
+  .professional-recognition-grid h2,
+  .organisational-recognition-note h2{
+    font-size:38px;
+  }
+}
+@media(max-width:640px){
+  .standards-card-list,
+  .standards-policy-links{
+    grid-template-columns:1fr;
+  }
+  .ncps-logo,
+  .ncps-logo--footer,
+  .ncps-logo--inline{
+    max-width:100%;
+  }
+  .footer-accreditation-logo,
+  .standards-logo-panel,
+  .standards-trust-logo,
+  .professional-recognition-logo{
+    max-width:280px;
+  }
+}

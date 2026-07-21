@@ -16,6 +16,8 @@ Pathfinder Therapy CIC provides specialist counselling and psychotherapy for vet
 
 Pathfinder is veteran-founded and veteran-led, with a clinical and community mission. It is an Armed Forces Covenant signatory and a Community Interest Company.
 
+Pathfinder Therapy CIC is an NCPS Recognised Counselling Service (NCPS Membership No: RCS6035). This is organisational recognition of the counselling service and is distinct from individual practitioner registrations.
+
 ## Core Pages
 
 - Home: https://pathfindertherapy.org.uk/
@@ -25,6 +27,7 @@ Pathfinder is veteran-founded and veteran-led, with a clinical and community mis
 - Resources: https://pathfindertherapy.org.uk/resources.html
 - About: https://pathfindertherapy.org.uk/about.html
 - Team: https://pathfindertherapy.org.uk/team.html
+- Standards and Accreditations: https://pathfindertherapy.org.uk/standards-and-accreditations.html
 - Contact: https://pathfindertherapy.org.uk/contact.html
 - Pathfinder Project: https://pathfindertherapy.org.uk/pathfinder-project.html
 - Impact: https://pathfindertherapy.org.uk/impact.html
