@@ -48,6 +48,16 @@ jobs:
           echo "deployment-url=${DEPLOY_URL}" >> "$GITHUB_OUTPUT"
           echo "Resolved deployment URL: ${DEPLOY_URL}"
 
+      - name: Promote deployment and purge .org.uk cache
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          CLOUDFLARE_PAGES_PROJECT: pathfinder-therapy-cic-v10
+          CLOUDFLARE_ZONE_NAME: pathfindertherapy.org.uk
+          PATHFINDER_PRODUCTION_HOSTS: pathfindertherapy.org.uk,www.pathfindertherapy.org.uk
+          DEPLOYMENT_URL: ${{ steps.deploy.outputs.deployment-url }}
+        run: node scripts/promote-and-purge-cloudflare.mjs
+
       - name: Verify NCPS footer on Pages deployment
         env:
           DEPLOYMENT_URL: ${{ steps.deploy.outputs.deployment-url }}
