@@ -3857,4 +3857,26 @@ html[lang="en-GB"] body{
   .professional-recognition-logo{
     max-width:280px;
   }
+  .standards-hero h1{
+    font-size:clamp(34px, 11vw, 48px);
+    overflow-wrap:anywhere;
+    word-break:break-word;
+  }
+  .standards-recognition-grid h2,
+  .standards-trust-grid h2,
+  .professional-recognition-grid h2,
+  .organisational-recognition-note h2{
+    overflow-wrap:anywhere;
+    word-break:break-word;
+  }
+  .footer-accreditation-links a,
+  .standards-external-link{
+    overflow-wrap:anywhere;
+  }
+}
+@media(max-width:360px){
+  .standards-hero h1{
+    font-size:32px;
+    letter-spacing:.02em;
+  }
 }
