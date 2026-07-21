@@ -47,7 +47,17 @@
     "pathfinderProject": "https://pathfindertherapy.org.uk/pathfinder-project.html",
     "impact": "https://pathfindertherapy.org.uk/impact.html",
     "crisisSafeguarding": "https://pathfindertherapy.org.uk/crisis-safeguarding.html",
-    "standardsAndAccreditations": "https://pathfindertherapy.org.uk/standards-and-accreditations.html"
+    "standardsAndAccreditations": "https://pathfindertherapy.org.uk/standards-and-accreditations.html",
+    "patron": "https://pathfindertherapy.org.uk/team/gregg-stevenson-mbe"
+  },
+  "patron": {
+    "name": "Gregg Stevenson MBE",
+    "role": "Patron",
+    "isClinical": false,
+    "isEmployee": false,
+    "isDirector": false,
+    "page": "https://pathfindertherapy.org.uk/team/gregg-stevenson-mbe",
+    "website": "https://greggstevenson.co.uk/"
   },
   "safetyBoundary": "Pathfinder Therapy CIC is not an emergency or crisis service. If there is immediate danger to life, call 999 or go to the nearest A&E. For urgent mental health help in England, call NHS 111 and select the mental health option.",
   "sitemap": "https://pathfindertherapy.org.uk/sitemap.xml",

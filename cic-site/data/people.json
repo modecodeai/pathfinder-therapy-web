@@ -1,0 +1,56 @@
+{
+  "people": [
+    {
+      "slug": "gregg-stevenson-mbe",
+      "name": "Gregg Stevenson MBE",
+      "role": "Patron",
+      "category": "patron",
+      "image": "assets/images/team/gregg-stevenson-mbe.webp",
+      "imageAlt": "Gregg Stevenson MBE, Patron of Pathfinder Therapy CIC",
+      "imageWidth": 980,
+      "imageHeight": 1180,
+      "profilePath": "/team/gregg-stevenson-mbe",
+      "website": "https://greggstevenson.co.uk/",
+      "externalProfile": "https://news.lancashire.gov.uk/news/paralympic-gold-medallist-steps-into-new-role-supporting-armed-forces-community",
+      "shortBiography": "Gregg Stevenson MBE is a former Royal Engineer Commando, Paralympic gold medallist and advocate for veterans’ health, rehabilitation and mental wellbeing. As Patron of Pathfinder Therapy CIC, Gregg supports our mission to improve access to compassionate, trauma-informed psychological support for the Armed Forces community and their families.",
+      "fullBiography": [
+        "Gregg Stevenson MBE is a former Royal Engineer Commando, Paralympic gold medallist and respected advocate for veterans’ health, rehabilitation and mental wellbeing.",
+        "Gregg sustained life-changing injuries while serving in Afghanistan in 2009, resulting in an above-knee and below-knee amputation. Following his medical discharge from the Armed Forces, he continued supporting the military community through work at the Specialist Mobility Rehabilitation Centre in Fulwood and later within Op COURAGE, the NHS veterans’ mental health service.",
+        "His work with veterans has included helping develop coping strategies, improving engagement with mental health services and increasing understanding of the wider challenges experienced by members of the Armed Forces community.",
+        "Gregg discovered rowing after trialling for the Invictus Games in 2018. Together with rowing partner Lauran Rowles, he won gold in the mixed double sculls at the Paris 2024 Paralympic Games. He is also a world and European champion, a world-record holder and was part of the crew named World Rowing Para Crew of the Year.",
+        "In 2026, Gregg became Lancashire County Council’s Armed Forces Covenant Project Manager. In this role, he leads work to strengthen support for veterans, serving personnel and Armed Forces families, improve partnership working and ensure the voices of the Armed Forces community are represented.",
+        "As Patron of Pathfinder Therapy CIC, Gregg supports our mission to improve access to compassionate, evidence-informed and trauma-informed psychological care. His military experience, rehabilitation journey, professional work and commitment to improving outcomes for veterans closely reflect the values at the heart of Pathfinder Therapy CIC."
+      ],
+      "patronRoleCopy": "As Patron, Gregg acts as a public supporter of Pathfinder Therapy CIC’s community purpose. His role helps us raise awareness of the psychological needs of veterans and Armed Forces families while championing informed, compassionate and accessible support.",
+      "pathfinderStatement": "Gregg’s lived experience, service background and commitment to the Armed Forces community closely reflect the values and purpose of Pathfinder Therapy CIC.",
+      "areasOfContribution": [
+        "Military service and lived experience",
+        "Veterans’ mental health",
+        "Rehabilitation and recovery",
+        "Armed Forces advocacy",
+        "Partnership and community engagement"
+      ],
+      "isClinical": false,
+      "isEmployee": false,
+      "isDirector": false
+    },
+    {
+      "slug": "brent-kelly",
+      "name": "Brent Kelly",
+      "role": "Trauma Specialist · Therapist · Veteran",
+      "category": "leadership",
+      "isClinical": true,
+      "isEmployee": false,
+      "isDirector": true
+    },
+    {
+      "slug": "tim-felton",
+      "name": "Tim Felton",
+      "role": "Therapist · Veteran",
+      "category": "leadership",
+      "isClinical": true,
+      "isEmployee": false,
+      "isDirector": true
+    }
+  ]
+}
