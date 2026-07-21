@@ -25,28 +25,46 @@ jobs:
 
       - name: Deploy cic-site to Cloudflare Pages
         id: deploy
-        uses: cloudflare/wrangler-action@v3
-        with:
-          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          command: pages deploy cic-site --project-name=pathfinder-therapy-cic-v10 --branch=main --commit-hash=${{ github.sha }} --commit-message="Deploy CIC site ${{ github.sha }}"
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: |
+          set -euo pipefail
+          if [ -z "${CLOUDFLARE_API_TOKEN:-}" ] || [ -z "${CLOUDFLARE_ACCOUNT_ID:-}" ]; then
+            echo "Missing CLOUDFLARE_API_TOKEN or CLOUDFLARE_ACCOUNT_ID secret"
+            exit 1
+          fi
+          OUTPUT="$(npx --yes wrangler@4 pages deploy cic-site \
+            --project-name=pathfinder-therapy-cic-v10 \
+            --branch=main \
+            --commit-hash="${GITHUB_SHA}" \
+            --commit-message="Deploy CIC site ${GITHUB_SHA}" \
+            --commit-dirty=true)"
+          echo "$OUTPUT"
+          DEPLOY_URL="$(printf '%s\n' "$OUTPUT" | sed -n 's/.*https:\/\/\([a-z0-9]*\)\.pathfinder-therapy-cic-v10\.pages\.dev.*/https:\/\/\1.pathfinder-therapy-cic-v10.pages.dev/p' | head -1)"
+          if [ -z "$DEPLOY_URL" ]; then
+            DEPLOY_URL="$(printf '%s\n' "$OUTPUT" | grep -Eo 'https://[a-z0-9.-]+\.pages\.dev' | head -1 || true)"
+          fi
+          echo "deployment-url=${DEPLOY_URL}" >> "$GITHUB_OUTPUT"
+          echo "Resolved deployment URL: ${DEPLOY_URL}"
 
       - name: Verify NCPS footer on Pages deployment
         env:
           DEPLOYMENT_URL: ${{ steps.deploy.outputs.deployment-url }}
         run: |
           set -euo pipefail
-          echo "Deployment URL: ${DEPLOYMENT_URL}"
-          if [ -z "${DEPLOYMENT_URL}" ]; then
-            echo "No deployment URL returned; checking production preview host"
-            DEPLOYMENT_URL="https://pathfinder-therapy-cic-v10.pages.dev"
-          fi
-          # Prefer the deployment-specific URL, fall back to project pages.dev
-          for url in "${DEPLOYMENT_URL}" "https://pathfinder-therapy-cic-v10.pages.dev" "https://d151320e.pathfinder-therapy-cic-v10.pages.dev"; do
+          echo "Deployment URL: ${DEPLOYMENT_URL:-none}"
+          sleep 5
+          for url in ${DEPLOYMENT_URL:-} \
+            "https://pathfinder-therapy-cic-v10.pages.dev" \
+            "https://d151320e.pathfinder-therapy-cic-v10.pages.dev"; do
+            [ -n "$url" ] || continue
             echo "Checking ${url}"
             html="$(curl -fsSL -A 'Mozilla/5.0' "$url/" || true)"
             if echo "$html" | grep -q 'footer-accreditation' && echo "$html" | grep -q 'RCS6035'; then
               echo "Verified NCPS footer on ${url}"
+              HEADER="$(curl -fsSI -A 'Mozilla/5.0' "$url/" | tr -d '\r' | grep -i '^x-pathfinder-build:' || true)"
+              echo "Build header: ${HEADER:-none}"
               exit 0
             fi
           done
