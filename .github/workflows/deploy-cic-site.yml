@@ -9,6 +9,7 @@ on:
       - cursor/gregg-stevenson-patron-89a8
       - cursor/pathfinder-project-images-89a8
       - cursor/fix-nazare-getty-image-89a8
+      - cursor/team-director-photos-89a8
     paths:
       - "cic-site/**"
       - ".github/workflows/deploy-cic-site.yml"
