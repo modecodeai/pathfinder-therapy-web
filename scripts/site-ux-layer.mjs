@@ -172,6 +172,10 @@ Individual therapy, couples therapy, EMDR, online therapy, trauma-informed psych
 ## Location
 Pathfinder Therapy Lisbon Clinic, R. Rodrigues Sampaio 76 1º Andar, 1150-281 Lisboa, Portugal.
 
+## Legal entity
+Pathfinder Therapy is a trading name of Pathfinder Therapy CIC, a community interest company registered in England and Wales under company number 17248842.
+Pathfinder Therapy CIC is an NCPS Recognised Counselling Service (membership number RCS6035).
+
 ## Clinician
 Brent Kelly — therapist (EATA registered · ITAA member). Specialities: trauma, EMDR, Transactional Analysis, military veterans, attachment.
 
@@ -184,9 +188,19 @@ export function buildAiSummaryJson() {
   return JSON.stringify(
     {
       name: "Pathfinder Therapy",
+      legal_name: "Pathfinder Therapy CIC",
+      trading_name_statement: "Pathfinder Therapy is a trading name of Pathfinder Therapy CIC.",
+      company_number: "17248842",
       type: "Private psychotherapy practice",
       url: "https://www.pathfindertherapy.com",
       locale: "en-GB",
+      recognition: {
+        ncps: {
+          status: "NCPS Recognised Counselling Service",
+          membership_number: "RCS6035",
+          url: "https://ncps.com/about-us/our-community/our-recognised-counselling-services"
+        }
+      },
       clinician: {
         name: "Brent Kelly",
         role: "Therapist",

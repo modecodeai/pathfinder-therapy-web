@@ -56,8 +56,8 @@ export const DESIGN_TOKENS_CSS = `<style id="pathfinder-design-tokens">
 .pfHeroTextLink { display: inline-flex; align-items: center; min-height: 44px; padding: 0 4px; color: var(--pf-bronze-soft); font-family: var(--pf-font-sans); font-size: 0.9375rem; font-weight: 500; text-decoration: underline; text-underline-offset: 3px; }
 .pfFooter { margin-top: 0; padding: clamp(48px, 6vw, 72px) var(--pf-space-inline) calc(24px + env(safe-area-inset-bottom)); background: var(--pf-forest-deep); color: rgba(246,242,234,.72); border-top: 1px solid var(--pf-border-dark); }
 .pfFooterInner { max-width: 1180px; margin: 0 auto; display: grid; gap: 32px; }
-.pfFooterGrid { display: grid; grid-template-columns: minmax(0, 1.2fr) repeat(3, minmax(0, 1fr)); gap: clamp(24px, 4vw, 40px); }
-.pfFooterBrand p { margin: 12px 0 0; font-family: var(--pf-font-sans); font-size: var(--pf-text-body-sm); line-height: var(--pf-leading-body); color: rgba(246,242,234,.62); max-width: 22rem; }
+.pfFooterGrid { display: grid; grid-template-columns: minmax(0, 1.15fr) minmax(0, 1.05fr) repeat(2, minmax(0, 1fr)); gap: clamp(24px, 4vw, 40px); }
+.pfFooterBrand > p { margin: 12px 0 0; font-family: var(--pf-font-sans); font-size: var(--pf-text-body-sm); line-height: var(--pf-leading-body); color: rgba(246,242,234,.62); max-width: 22rem; }
 .pfFooterLogo { font-family: var(--pf-font-serif); font-size: 1.35rem; color: var(--pf-linen); letter-spacing: .04em; }
 .pfFooterLogo small { display: block; margin-top: 4px; font-family: var(--pf-font-sans); font-size: 0.6875rem; letter-spacing: .14em; text-transform: uppercase; color: var(--pf-bronze-soft); }
 .pfFooterCol h2 { margin: 0 0 12px; font-family: var(--pf-font-sans); font-size: 0.6875rem; font-weight: 600; letter-spacing: .14em; text-transform: uppercase; color: var(--pf-bronze-soft); }

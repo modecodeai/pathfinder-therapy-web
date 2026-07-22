@@ -998,6 +998,10 @@ async function main() {
     [
       "public/assets/images/locallista-lis-signature-default.svg",
       "assets/images/locallista-lis-signature-default.svg"
+    ],
+    [
+      "public/assets/images/accreditations/ncps-recognised-counselling-service.png",
+      "assets/images/accreditations/ncps-recognised-counselling-service.png"
     ]
   ];
   for (const [sourceRel, targetRel] of staticAssets) {

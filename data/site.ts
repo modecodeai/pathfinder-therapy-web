@@ -1,5 +1,8 @@
 export const site = {
   name: "Pathfinder Therapy",
+  legalName: "Pathfinder Therapy CIC",
+  tradingNameStatement: "Pathfinder Therapy is a trading name of Pathfinder Therapy CIC.",
+  companyNumber: "17248842",
   title: "Pathfinder Therapy | Trauma-Informed Psychotherapy in Lisbon",
   description:
     "Trauma-informed psychotherapy with Brent Kelly at Pathfinder Therapy, online and in Lisbon.",
@@ -10,7 +13,12 @@ export const site = {
   whatsappUrl: "https://wa.me/351914775365",
   addressDisplay: "R. Rodrigues Sampaio 76 1º Andar, 1150-281 Lisboa, Portugal",
   ogImage: "/pathfinder-therapy-room.png",
-  ogImageAlt: "Pathfinder Therapy room"
+  ogImageAlt: "Pathfinder Therapy room",
+  ncps: {
+    status: "NCPS Recognised Counselling Service",
+    membershipNumber: "RCS6035",
+    url: "https://ncps.com/about-us/our-community/our-recognised-counselling-services"
+  }
 };
 
 export const enquiryTypes = [

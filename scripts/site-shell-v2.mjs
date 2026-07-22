@@ -7,6 +7,13 @@ import {
   buildFloatingCta
 } from "./site-design-tokens.mjs";
 import { buildContactVisualBody } from "./site-contact-visual.mjs";
+import {
+  LEGAL_ENTITY_CSS,
+  TRADING_NAME_STATEMENT,
+  buildNcpsAccreditationBlock,
+  buildTradingNameBlock,
+  injectLegalPageDisclosure
+} from "./site-legal-entity.mjs";
 
 export { BOOKING_LABEL, BOOKING_PATH, ENQUIRY_LABEL, ENQUIRY_PATH };
 
@@ -27,6 +34,7 @@ export const RESOURCES_LINKS = [
 
 export const SHELL_V2_CSS = `${FONT_LINKS}
 ${DESIGN_TOKENS_CSS}
+${LEGAL_ENTITY_CSS}
 <style id="pathfinder-shell-v2">
 .lpShell { min-height: 100vh; background: var(--pf-forest-deep); color: var(--pf-linen); font-family: var(--pf-font-sans); font-size: 16px; overflow-x: clip; }
 .lpHeader { position: sticky; top: 0; z-index: 40; background: rgba(8,16,15,.94); border-bottom: 1px solid rgba(246,242,234,.08); backdrop-filter: blur(10px); }
@@ -342,48 +350,50 @@ export function buildHeader(route) {
 }
 
 export function buildSiteFooter() {
-  const therapyLinks = [
+  const quickLinks = [
+    { href: "/therapy/", label: "Therapy" },
     { href: "/therapy/individual/", label: "Individual therapy" },
     { href: "/therapy/couples/", label: "Couples therapy" },
     { href: "/therapy/emdr/", label: "EMDR" },
-    { href: "/therapy/online/", label: "Online therapy" }
-  ];
-  const exploreLinks = [
+    { href: "/therapy/online/", label: "Online therapy" },
     { href: "/about/", label: "About Brent" },
     { href: "/approach/", label: "Approach" },
     { href: "/fees/", label: "Fees" },
     ...RESOURCES_LINKS,
-    { href: "/contact/", label: "Contact" }
+    { href: "/privacy/", label: "Privacy" },
+    { href: "/terms/", label: "Terms" },
+    { href: "/crisis-support/", label: "Crisis support" }
   ];
-  const therapyNav = therapyLinks.map((item) => `<a href="${item.href}">${item.label}</a>`).join("");
-  const exploreNav = exploreLinks.map((item) => `<a href="${item.href}">${item.label}</a>`).join("");
+  const quickNav = quickLinks.map((item) => `<a href="${item.href}">${item.label}</a>`).join("");
 
   return `<footer class="pfFooter">
   <div class="pfFooterInner">
     <div class="pfFooterGrid">
       <div class="pfFooterBrand">
-        <div class="pfFooterLogo">Pathfinder<small>Psychotherapy</small></div>
+        <div class="pfFooterLogo">Pathfinder<small>Therapy</small></div>
         <p>Trauma-informed psychotherapy with Brent Kelly for English-speaking adults and couples — in Lisbon and securely online across Portugal.</p>
-        <p style="margin-top:12px"><a href="https://www.instagram.com/pathfinder.therapy/" rel="noopener noreferrer" target="_blank">Instagram</a></p>
+        ${buildTradingNameBlock()}
+        <p style="margin-top:12px"><a href="https://www.instagram.com/pathfinder.therapy/" rel="noopener noreferrer" target="_blank">Instagram<span class="visually-hidden"> (opens in a new tab)</span></a></p>
+      </div>
+      <div class="pfFooterCol pfFooterStandards">
+        <h2>Standards and Recognition</h2>
+        ${buildNcpsAccreditationBlock()}
+        <p class="pfFooterColNavNote">Also: EATA registered practice · ITAA membership · clinical supervision · professional indemnity insurance</p>
       </div>
       <div class="pfFooterCol">
-        <h2>Therapy</h2>
-        <nav aria-label="Therapy services">${therapyNav}</nav>
-      </div>
-      <div class="pfFooterCol">
-        <h2>Explore</h2>
-        <nav aria-label="Explore">${exploreNav}</nav>
+        <h2>Quick Links</h2>
+        <nav aria-label="Footer quick links">${quickNav}</nav>
       </div>
       <div class="pfFooterCol pfFooterContact">
-        <h2>Get in touch</h2>
+        <h2>Contact</h2>
         <p><a href="tel:+351914775365">+351 914 775 365</a></p>
         <p><a href="mailto:hi@pathfindertherapy.com">hi@pathfindertherapy.com</a></p>
         <p>R. Rodrigues Sampaio 76 1º Andar<br>1150-281 Lisboa, Portugal</p>
-        <p><a href="https://www.google.com/maps/dir//Pathfinder+Therapy,+R.+Rodrigues+Sampaio+76+1st+floor,+1150-281+Lisboa">Get directions →</a></p>
+        <p><a href="https://www.google.com/maps/dir//Pathfinder+Therapy,+R.+Rodrigues+Sampaio+76+1st+floor,+1150-281+Lisboa" target="_blank" rel="noopener noreferrer">Get directions →<span class="visually-hidden"> (opens in a new tab)</span></a></p>
       </div>
     </div>
     <div class="pfFooterBottom">
-      <p>© ${new Date().getFullYear()} Pathfinder Therapy · Brent Kelly, Lisboa · <a href="/privacy/">Privacy</a> · <a href="/terms/">Terms</a> · <a href="/crisis-support/">Crisis support</a> · <a href="#" data-cookie-manage>Manage cookies</a> · Non-urgent enquiries only</p>
+      <p>© ${new Date().getFullYear()} Pathfinder Therapy · ${TRADING_NAME_STATEMENT} · Brent Kelly, Lisboa · <a href="/privacy/">Privacy</a> · <a href="/terms/">Terms</a> · <a href="/crisis-support/">Crisis support</a> · <a href="#" data-cookie-manage>Manage cookies</a> · Non-urgent enquiries only</p>
       <a class="pfFooterCta" href="${BOOKING_PATH}" aria-label="${BOOKING_LABEL} — opens booking page">${BOOKING_LABEL}</a>
     </div>
   </div>
@@ -433,7 +443,8 @@ export function applyShellV2(html, route) {
   }
 
   const parts = extractPageParts(html);
-  const mainInner = stripLegacyMarkup(applyContentFixes(parts.mainInner, route));
+  let mainInner = stripLegacyMarkup(applyContentFixes(parts.mainInner, route));
+  mainInner = injectLegalPageDisclosure(mainInner, route);
   let next = wrapInShellV2({ ...parts, mainInner: mainInner, route });
   next = next.replaceAll("Book a consultation", BOOKING_LABEL);
   next = next.replaceAll("Book initial Zoom call", BOOKING_LABEL);
@@ -446,5 +457,5 @@ export function applyShellV2(html, route) {
 }
 
 export function buildContactPageBody(formHtml) {
-  return buildContactVisualBody(formHtml);
+  return injectLegalPageDisclosure(buildContactVisualBody(formHtml), "/contact/");
 }

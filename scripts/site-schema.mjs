@@ -16,15 +16,23 @@ export const GLOBAL_SCHEMA = [
     "@type": "Organization",
     "@id": `${SITE}/#organization`,
     name: "Pathfinder Therapy",
-    legalName: "Pathfinder Therapy",
+    legalName: "Pathfinder Therapy CIC",
     slogan: "Navigating Life's Difficult Terrain",
     url: SITE,
     email: "hi@pathfindertherapy.com",
     telephone: "+351 914 775 365",
+    identifier: {
+      "@type": "PropertyValue",
+      name: "Company Number",
+      value: "17248842",
+      description: "Registered in England and Wales"
+    },
+    award: "NCPS Recognised Counselling Service, Membership No. RCS6035",
     sameAs: [
       "https://www.instagram.com/pathfinder.therapy/",
       "https://share.google/9avIEL6pz3bn4kETg",
-      "https://www.locallista.com"
+      "https://www.locallista.com",
+      "https://ncps.com/about-us/our-community/our-recognised-counselling-services"
     ],
     address: LISBON_ADDRESS,
     areaServed: [
@@ -82,6 +90,7 @@ export const GLOBAL_SCHEMA = [
     "@type": "MedicalBusiness",
     "@id": `${SITE}/#medical-business`,
     name: "Pathfinder Therapy",
+    legalName: "Pathfinder Therapy CIC",
     url: SITE,
     image: `${SITE}/assets/images/hero-01.webp`,
     email: "hi@pathfindertherapy.com",
