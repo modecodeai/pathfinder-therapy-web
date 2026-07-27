@@ -1933,6 +1933,14 @@ h1 span{color:var(--orange)}
   }
 }
 
+@media(max-width:360px){
+  .pathfinder-form{
+    width:calc(100% + 28px);
+    margin-left:-14px;
+    padding:9px;
+  }
+}
+
 
 /* V24: final form polish */
 .hp-field{
