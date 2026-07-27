@@ -1935,7 +1935,7 @@ h1 span{color:var(--orange)}
 
 @media(max-width:360px){
   .pathfinder-form{
-    width:calc(100% + 28px);
+    width:100vw;
     margin-left:-14px;
     padding:9px;
   }
