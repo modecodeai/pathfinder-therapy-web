@@ -4357,3 +4357,24 @@ html[lang="en-GB"] body{
     scroll-behavior:auto;
   }
 }
+
+/* Adaptive Immersive Trauma Therapy Pilot — sitewide footer notice */
+.footer-aitt-notice{
+  margin:1.5rem 0 0;
+  padding-top:1.25rem;
+  border-top:1px solid rgba(255,255,255,.1);
+  max-width:70rem;
+}
+.footer-aitt-notice p{
+  color:var(--muted);
+  font-size:.92rem;
+  line-height:1.55;
+  margin:.45rem 0 0;
+}
+.footer-aitt-notice a{
+  color:var(--orange);
+  font-weight:700;
+  text-decoration:none;
+}
+.footer-aitt-notice a:hover,
+.footer-aitt-notice a:focus-visible{text-decoration:underline}
