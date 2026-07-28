@@ -35,6 +35,9 @@ Pathfinder Therapy CIC is an NCPS Recognised Counselling Service (NCPS Membershi
 - Impact reports: https://pathfindertherapy.org.uk/impact-reports.html
 - Privacy notice: https://pathfindertherapy.org.uk/privacy.html
 - Crisis and safeguarding: https://pathfindertherapy.org.uk/crisis-safeguarding.html
+- Adaptive Immersive Trauma Therapy Pilot: https://pathfindertherapy.org.uk/immersive-trauma-therapy.html
+- AITT news announcement: https://pathfindertherapy.org.uk/news/adaptive-immersive-trauma-therapy-pilot.html
+- Research and innovation: https://pathfindertherapy.org.uk/research-innovation.html
 
 ## Services
 
@@ -46,6 +49,11 @@ Pathfinder Therapy CIC is an NCPS Recognised Counselling Service (NCPS Membershi
 - Training and development
 - Referral guidance and signposting
 - Free downloadable wellbeing and therapy-preparation resources
+- Adaptive Immersive Trauma Therapy Pilot (service-evaluation programme in development)
+
+## Adaptive Immersive Trauma Therapy Pilot
+
+Pathfinder Therapy CIC is developing the Adaptive Immersive Trauma Therapy Pilot (AITT), a therapist-led service-evaluation programme exploring immersive preparation and resourcing, VR-assisted EMDR, and immersive support for phantom limb pain. Technology supports clinical practice and does not independently provide treatment. The pilot is not presented as a proven cure, formal clinical trial, 3MDR treatment, or as endorsed by Meta, PsyTechVR, BLESMA, the NHS or rehabilitation centres unless written agreement is secured. Vision (aspirational): to become Europe’s leading clinical centre for adaptive immersive trauma therapy.
 
 ## The Pathfinder Project
 

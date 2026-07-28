@@ -19,6 +19,7 @@
   <title>Pathfinder Therapy CIC | Navigating Life’s Difficult Terrain</title>
   <meta name="description" content="Veteran-founded counselling and psychotherapy for veterans of all genders and adults in the wider community navigating life’s difficult terrain.">
   <link rel="icon" type="image/svg+xml" href="assets/favicon.svg">
+  <link rel="stylesheet" href="assets/aitt.css?v=1">
   <link rel="stylesheet" href="styles.css?v=55">
 
   <link rel="canonical" href="https://pathfindertherapy.org.uk/">
@@ -34,6 +35,8 @@
   <meta name="twitter:description" content="Veteran-founded counselling and psychotherapy for veterans of all genders and adults in the wider community navigating life’s difficult terrain.">
   <meta name="twitter:image" content="https://pathfindertherapy.org.uk/assets/hero-mountain-path.jpg">
   <script src="assets/site-navigation.js" defer></script>
+  <script src="data/aitt-config.js" defer></script>
+  <script src="assets/aitt.js" defer></script>
   <script type="application/ld+json">
 {
   "@context": "https://schema.org",
@@ -96,6 +99,7 @@
         <button class="nav-dropdown-toggle" type="button" aria-haspopup="true" aria-expanded="false">Support <span>▾</span></button>
         <div class="nav-dropdown" role="menu">
           <a href="services.html" role="menuitem">Individual Therapy</a>
+          <a href="immersive-trauma-therapy.html" role="menuitem">Immersive Therapy</a>
           <a href="veterans.html" role="menuitem">Veteran Support</a>
           <a href="get-support.html" role="menuitem">Get Support</a>
           <a href="resources.html" role="menuitem">Resources</a>
@@ -116,6 +120,7 @@
           <a href="pathfinder-project.html" role="menuitem">Project Overview</a>
           <a href="pathfinder-project.html#project-journal" role="menuitem">Latest Updates</a>
           <a href="pathfinder-project.html#future-programmes" role="menuitem">Future Programmes</a>
+          <a href="immersive-trauma-therapy.html" role="menuitem">Immersive Therapy</a>
         </div>
       </div>
       <a href="contact.html" class="nav-link">Contact</a>
@@ -147,7 +152,27 @@
 
   <section class="credibility-strip" aria-label="Pathfinder credentials"><div class="container credibility-strip-grid"><span>Veteran Led</span><span>Armed Forces Covenant Signatory</span><span>Community Interest Company</span><span>The Pathfinder Project</span></div></section>
 
-  <section class="home-mission-banner" aria-labelledby="home-mission-title"><div class="container home-mission-grid"><div><p class="eyebrow">A CIC with a mission</p><h2 id="home-mission-title">Therapists. Veterans. Pathfinders.</h2></div><p>Pathfinder Therapy CIC exists to improve access to meaningful psychological support, develop innovative wellbeing initiatives, and create opportunities for recovery, resilience and growth within our communities.</p></div></section>
+  
+  <section class="aitt-announce" aria-labelledby="aitt-home-title">
+    <div class="container aitt-announce-inner">
+      <p class="eyebrow">New Pathfinder clinical pilot</p>
+      <p><span class="aitt-status-badge" data-aitt-status-badge>Pilot launching in 2026</span></p>
+      <h2 id="aitt-home-title">Introducing Adaptive Immersive Trauma Therapy</h2>
+      <p>Pathfinder Therapy CIC is preparing to launch an Adaptive Immersive Trauma Therapy Pilot exploring how virtual reality may safely support trauma treatment, EMDR practice and rehabilitation-informed care.</p>
+      <p>Using Meta Quest 3S headsets and PsyTechVR, appropriately trained practitioners will evaluate carefully selected applications including preparation, grounding, resourcing, bilateral stimulation and therapist-guided trauma treatment.</p>
+      <p>A distinct pathway will also explore immersive support for amputees experiencing phantom limb pain, phantom limb sensations and psychological distress following life-changing injury.</p>
+      <p>The programme has a particular focus on military veterans, adults with complex trauma, wounded and injured veterans and people whose mobility, pain or rehabilitation needs require an adapted approach.</p>
+      <p>The technology will support the therapeutic relationship and wider rehabilitation pathway—not replace them.</p>
+      <p><em>Adaptive immersive care for trauma, limb loss and recovery.</em></p>
+      <div class="aitt-announce-actions">
+        <a class="button button-primary" href="immersive-trauma-therapy.html" data-aitt-cta="participant">Explore the pilot <span>→</span></a>
+        <a class="button button-secondary" href="immersive-trauma-therapy.html#register-interest" data-aitt-cta="participant">Register your interest</a>
+        <a class="button button-secondary" href="immersive-trauma-therapy.html#professional-partnerships" data-aitt-cta="professional">Discuss a clinical partnership</a>
+      </div>
+    </div>
+  </section>
+
+<section class="home-mission-banner" aria-labelledby="home-mission-title"><div class="container home-mission-grid"><div><p class="eyebrow">A CIC with a mission</p><h2 id="home-mission-title">Therapists. Veterans. Pathfinders.</h2></div><p>Pathfinder Therapy CIC exists to improve access to meaningful psychological support, develop innovative wellbeing initiatives, and create opportunities for recovery, resilience and growth within our communities.</p></div></section>
 
   <section class="home-retreat-feature" aria-labelledby="home-retreat-title"><div class="container home-retreat-grid"><figure><img src="assets/retreat-sunset.jpg" alt="Sunset over the landscape near The Pathfinder Project"></figure><div><p class="eyebrow">The Pathfinder Project</p><h2 id="home-retreat-title">Follow the Pathfinder Project.</h2><p>Our woodland outdoor therapeutic space near Alcobaça is now operational. Follow the Pathfinder Project as programmes are carefully developed.</p><a class="button button-primary" href="pathfinder-project.html#project-journal">Follow the project <span>→</span></a></div></div></section>
 
@@ -439,6 +464,11 @@
           height="484">
       </a>
     </section>
+    <section class="footer-aitt-notice" aria-labelledby="footer-aitt-title">
+      <h2 id="footer-aitt-title" class="visually-hidden">Adaptive Immersive Trauma Therapy Pilot</h2>
+      <p><a href="immersive-trauma-therapy.html">Adaptive Immersive Trauma Therapy Pilot</a></p>
+      <p>Pathfinder Therapy CIC is developing a therapist-led Adaptive Immersive Trauma Therapy Pilot focused on trauma care, accessibility and rehabilitation-informed support. The programme is a service-development initiative and is not a substitute for emergency, medical, psychiatric, pain-management, prosthetic or rehabilitation care.</p>
+    </section>
     <div class="legal-footer-grid">
     <p><strong>PATHFINDER THERAPY CIC</strong><br>Company Number 17248842</p>
     <nav aria-label="Legal and support links">
@@ -459,6 +489,7 @@
       <a href="pathfinder-project.html">The Pathfinder Project</a>
       <a href="our-journey.html">Our Journey</a>
       <a href="research-innovation.html">Research &amp; Innovation</a>
+      <a href="immersive-trauma-therapy.html">Immersive Therapy</a>
       <a href="#" data-cookie-manage>Manage Cookies</a>
       <a href="contact.html">Contact</a>
     </nav>

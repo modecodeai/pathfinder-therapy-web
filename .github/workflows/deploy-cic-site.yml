@@ -5,6 +5,7 @@ on:
   push:
     branches:
       - main
+      - cursor/aitt-pilot-cic-54ef
       - cursor/ncps-recognised-counselling-service-89a8
       - cursor/gregg-stevenson-patron-89a8
       - cursor/pathfinder-project-images-89a8

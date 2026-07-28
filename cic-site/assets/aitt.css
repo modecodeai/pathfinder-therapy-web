@@ -1,0 +1,308 @@
+/* Adaptive Immersive Trauma Therapy Pilot — CIC site styles */
+
+.aitt-status-badge{
+  display:inline-flex;
+  align-items:center;
+  gap:.45rem;
+  padding:.35rem .75rem;
+  border:1px solid rgba(249,115,22,.45);
+  border-radius:999px;
+  color:var(--orange);
+  font-size:.78rem;
+  font-weight:700;
+  letter-spacing:.06em;
+  text-transform:uppercase;
+}
+
+.aitt-announce{
+  padding:clamp(3.5rem,6vw,5.5rem) 0;
+  background:
+    radial-gradient(ellipse at 12% 20%, rgba(56,169,255,.12), transparent 45%),
+    radial-gradient(ellipse at 88% 80%, rgba(249,115,22,.1), transparent 40%),
+    linear-gradient(180deg, #0a0b0c 0%, #050606 100%);
+  border-block:1px solid var(--line);
+}
+
+.aitt-announce-inner{
+  display:grid;
+  gap:1.5rem;
+  max-width:920px;
+}
+
+.aitt-announce h2{
+  font-family:'Barlow Condensed',Inter,sans-serif;
+  font-size:clamp(2.2rem,4vw,3.4rem);
+  font-weight:800;
+  letter-spacing:.02em;
+  line-height:1.05;
+  margin:0;
+}
+
+.aitt-announce p{color:var(--muted);max-width:68ch;line-height:1.65}
+.aitt-announce-actions{
+  display:flex;
+  flex-wrap:wrap;
+  gap:.85rem;
+  margin-top:.35rem;
+}
+
+.aitt-section{padding:clamp(3.2rem,5.5vw,5rem) 0}
+.aitt-section + .aitt-section{border-top:1px solid rgba(255,255,255,.06)}
+.aitt-section h2{
+  font-family:'Barlow Condensed',Inter,sans-serif;
+  font-size:clamp(1.9rem,3.2vw,2.8rem);
+  font-weight:800;
+  letter-spacing:.02em;
+  line-height:1.08;
+  margin:0 0 1rem;
+}
+.aitt-section h3{
+  font-family:'Barlow Condensed',Inter,sans-serif;
+  font-size:1.45rem;
+  font-weight:700;
+  letter-spacing:.03em;
+  margin:0 0 .65rem;
+}
+.aitt-section p,
+.aitt-section li{color:var(--muted);line-height:1.65}
+.aitt-lead{font-size:1.05rem;max-width:70ch}
+.aitt-stack{display:grid;gap:1rem;max-width:76ch}
+.aitt-stack ul,
+.aitt-list{
+  margin:.35rem 0 0;
+  padding-left:1.15rem;
+  display:grid;
+  gap:.4rem;
+}
+
+.aitt-highlight{
+  margin:1.25rem 0 0;
+  padding:1rem 1.15rem;
+  border-left:3px solid var(--orange);
+  background:rgba(249,115,22,.08);
+  color:var(--white);
+  max-width:76ch;
+}
+
+.aitt-vision{
+  background:
+    linear-gradient(135deg, rgba(56,169,255,.08), transparent 50%),
+    #080909;
+}
+.aitt-vision blockquote{
+  margin:0;
+  max-width:48rem;
+  font-family:'Barlow Condensed',Inter,sans-serif;
+  font-size:clamp(1.55rem,2.8vw,2.25rem);
+  font-weight:700;
+  line-height:1.25;
+  letter-spacing:.01em;
+  color:var(--white);
+}
+
+.aitt-pathway-grid,
+.aitt-card-grid,
+.aitt-principle-grid,
+.aitt-why-grid{
+  display:grid;
+  gap:1.15rem;
+  margin-top:1.5rem;
+}
+.aitt-pathway-grid{grid-template-columns:repeat(3,minmax(0,1fr))}
+.aitt-why-grid,
+.aitt-principle-grid{grid-template-columns:repeat(3,minmax(0,1fr))}
+.aitt-card-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+
+.aitt-card{
+  display:flex;
+  flex-direction:column;
+  gap:.75rem;
+  padding:1.35rem 1.25rem;
+  border:1px solid rgba(255,255,255,.1);
+  background:rgba(255,255,255,.03);
+  min-height:100%;
+}
+.aitt-card p{margin:0;flex:1}
+.aitt-card a{
+  color:var(--orange);
+  font-weight:700;
+  text-decoration:none;
+}
+.aitt-card a:hover,
+.aitt-card a:focus-visible{text-decoration:underline}
+
+.aitt-panel{
+  padding:1.5rem;
+  border:1px solid rgba(255,255,255,.1);
+  background:rgba(255,255,255,.025);
+}
+.aitt-panel + .aitt-panel{margin-top:1rem}
+
+.aitt-journey{
+  counter-reset:aitt-step;
+  display:grid;
+  gap:.85rem;
+  margin:1.25rem 0 0;
+  padding:0;
+  list-style:none;
+  max-width:78ch;
+}
+.aitt-journey li{
+  position:relative;
+  padding:1rem 1rem 1rem 3.4rem;
+  border:1px solid rgba(255,255,255,.08);
+  background:rgba(255,255,255,.02);
+}
+.aitt-journey li::before{
+  counter-increment:aitt-step;
+  content:counter(aitt-step);
+  position:absolute;
+  left:1rem;
+  top:1rem;
+  width:1.7rem;
+  height:1.7rem;
+  display:grid;
+  place-items:center;
+  border-radius:50%;
+  background:rgba(249,115,22,.18);
+  color:var(--orange);
+  font-weight:800;
+  font-size:.85rem;
+}
+.aitt-journey strong{
+  display:block;
+  color:var(--white);
+  margin-bottom:.25rem;
+}
+
+.aitt-tracker{
+  display:grid;
+  gap:.65rem;
+  margin-top:1.25rem;
+  max-width:52rem;
+}
+.aitt-tracker-row{
+  display:grid;
+  grid-template-columns:1fr auto;
+  gap:1rem;
+  align-items:center;
+  padding:.75rem 1rem;
+  border:1px solid rgba(255,255,255,.08);
+  background:rgba(255,255,255,.02);
+}
+.aitt-tracker-status{
+  font-size:.78rem;
+  font-weight:700;
+  letter-spacing:.05em;
+  text-transform:uppercase;
+  color:var(--blue);
+}
+
+.aitt-faq details{
+  border:1px solid rgba(255,255,255,.1);
+  background:rgba(255,255,255,.02);
+  margin:0 0 .65rem;
+}
+.aitt-faq summary{
+  cursor:pointer;
+  list-style:none;
+  padding:1rem 1.15rem;
+  font-weight:700;
+  color:var(--white);
+}
+.aitt-faq summary::-webkit-details-marker{display:none}
+.aitt-faq summary::after{
+  content:"+";
+  float:right;
+  color:var(--orange);
+  font-weight:800;
+}
+.aitt-faq details[open] summary::after{content:"−"}
+.aitt-faq summary:focus-visible{
+  outline:2px solid var(--orange);
+  outline-offset:2px;
+}
+.aitt-faq .aitt-faq-answer{
+  padding:0 1.15rem 1.15rem;
+  max-width:72ch;
+}
+
+.aitt-form-section .pathfinder-form{
+  margin-top:1.25rem;
+}
+.aitt-form-warning{
+  margin:1rem 0;
+  padding:1rem 1.15rem;
+  border:1px solid rgba(245,181,27,.35);
+  background:rgba(245,181,27,.08);
+  color:var(--white);
+  max-width:76ch;
+}
+.aitt-disclaimer{
+  margin-top:1.5rem;
+  padding:1.25rem 1.35rem;
+  border:1px solid rgba(255,255,255,.14);
+  background:rgba(0,0,0,.35);
+  max-width:78ch;
+  color:var(--muted);
+}
+.aitt-brand-disclaimer{
+  font-size:.92rem;
+  max-width:76ch;
+  color:var(--muted);
+}
+
+.footer-aitt-notice{
+  margin:1.5rem 0 0;
+  padding-top:1.25rem;
+  border-top:1px solid rgba(255,255,255,.1);
+  max-width:70rem;
+}
+.footer-aitt-notice p{
+  color:var(--muted);
+  font-size:.92rem;
+  line-height:1.55;
+  margin:.45rem 0 0;
+}
+.footer-aitt-notice a{
+  color:var(--orange);
+  font-weight:700;
+  text-decoration:none;
+}
+.footer-aitt-notice a:hover,
+.footer-aitt-notice a:focus-visible{text-decoration:underline}
+
+.aitt-service-badge{
+  display:inline-block;
+  margin-bottom:.5rem;
+  padding:.25rem .6rem;
+  border:1px solid rgba(56,169,255,.45);
+  color:var(--blue);
+  font-size:.72rem;
+  font-weight:700;
+  letter-spacing:.06em;
+  text-transform:uppercase;
+}
+
+.aitt-two-col{
+  display:grid;
+  grid-template-columns:1.1fr .9fr;
+  gap:clamp(1.5rem,3vw,2.5rem);
+  align-items:start;
+}
+
+@media (max-width:980px){
+  .aitt-pathway-grid,
+  .aitt-why-grid,
+  .aitt-principle-grid,
+  .aitt-card-grid,
+  .aitt-two-col{
+    grid-template-columns:1fr;
+  }
+}
+
+@media (prefers-reduced-motion:reduce){
+  .aitt-announce,
+  .aitt-card,
+  .aitt-panel{transition:none}
+}

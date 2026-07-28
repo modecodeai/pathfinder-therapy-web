@@ -3,7 +3,7 @@
   "url": "https://pathfindertherapy.org.uk/",
   "type": "Community Interest Company",
   "companyNumber": "17248842",
-  "summary": "Pathfinder Therapy CIC is a veteran-founded Community Interest Company providing counselling, psychotherapy, veteran support, and community wellbeing resources for people navigating difficult life terrain. Pathfinder Therapy CIC is an NCPS Recognised Counselling Service (Membership No: RCS6035).",
+  "summary": "Pathfinder Therapy CIC is a veteran-founded Community Interest Company providing counselling, psychotherapy, veteran support, and community wellbeing resources for people navigating difficult life terrain. Pathfinder Therapy CIC is an NCPS Recognised Counselling Service (Membership No: RCS6035). Pathfinder is developing a therapist-led Adaptive Immersive Trauma Therapy Pilot (AITT) exploring immersive preparation, VR-assisted EMDR and rehabilitation-informed support for amputees experiencing phantom limb pain. The pilot is a service-evaluation programme, not a proven treatment or formal clinical trial.",
   "recognition": {
     "body": "National Counselling and Psychotherapy Society",
     "status": "NCPS Recognised Counselling Service",
@@ -35,7 +35,8 @@
     "men's mental health support",
     "community therapy",
     "training and development",
-    "wellbeing resources"
+    "wellbeing resources",
+    "adaptive immersive trauma therapy pilot (in development)"
   ],
   "keyPages": {
     "home": "https://pathfindertherapy.org.uk/",
@@ -48,7 +49,9 @@
     "impact": "https://pathfindertherapy.org.uk/impact.html",
     "crisisSafeguarding": "https://pathfindertherapy.org.uk/crisis-safeguarding.html",
     "standardsAndAccreditations": "https://pathfindertherapy.org.uk/standards-and-accreditations.html",
-    "patron": "https://pathfindertherapy.org.uk/team/gregg-stevenson-mbe"
+    "patron": "https://pathfindertherapy.org.uk/team/gregg-stevenson-mbe",
+    "immersiveTraumaTherapy": "https://pathfindertherapy.org.uk/immersive-trauma-therapy.html",
+    "aittNews": "https://pathfindertherapy.org.uk/news/adaptive-immersive-trauma-therapy-pilot.html"
   },
   "patron": {
     "name": "Gregg Stevenson MBE",
