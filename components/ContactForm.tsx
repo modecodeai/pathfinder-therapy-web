@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useRef, useState, type FormEvent } from "react";
+import { useEffect, useRef, useState, type FormEvent } from "react";
 import { enquiryTypes, site } from "@/data/site";
 import { trackFormStart, trackGenerateLead } from "@/lib/analytics";
 import { attributionPayload } from "@/lib/lead-attribution";
@@ -14,12 +14,28 @@ type ContactFormProps = {
 
 type FormStatus = "idle" | "submitting" | "success" | "error";
 
+function enquiryTypeFromSearch(): string {
+  if (typeof window === "undefined") {
+    return "";
+  }
+  const params = new URLSearchParams(window.location.search);
+  const value = params.get("enquiryType") || params.get("enquiry") || "";
+  return enquiryTypes.includes(value) ? value : "";
+}
+
 export function ContactForm({ source, compact = false, redirectTo = "/thank-you/" }: ContactFormProps) {
   const router = useRouter();
   const formRef = useRef<HTMLFormElement>(null);
   const [status, setStatus] = useState<FormStatus>("idle");
   const [message, setMessage] = useState("");
   const [formStarted, setFormStarted] = useState(false);
+
+  useEffect(() => {
+    const value = enquiryTypeFromSearch();
+    if (!value || !formRef.current) return;
+    const select = formRef.current.querySelector<HTMLSelectElement>('select[name="enquiryType"]');
+    if (select) select.value = value;
+  }, []);
 
   function handleFormStart() {
     if (formStarted) {

@@ -267,11 +267,18 @@ function main() {
         'id="home-about"',
         'id="home-reassurance"',
         'id="home-services"',
+        'id="home-immersive"',
         'id="home-next"',
         "Independent feedback",
         'id="home-final-cta"',
         'id="home-lisbon"'
       ];
+      if (!html.includes("Immersive EMDR Therapy")) {
+        errors.push("Homepage missing Immersive EMDR Therapy announcement");
+      }
+      if (!html.includes("Pilot service launching soon")) {
+        errors.push("Homepage missing immersive pilot badge");
+      }
       let last = -1;
       for (const marker of order) {
         const idx = html.indexOf(marker);
@@ -295,6 +302,7 @@ function main() {
     if (route === "/therapy/") {
       if (!html.includes("Take the next step")) errors.push("/therapy/ missing final CTA");
       if (!html.includes("Choose a consultation time")) errors.push("/therapy/ missing book-first process");
+      if (!html.includes('id="therapy-immersive"')) errors.push("/therapy/ missing Immersive EMDR section");
       if (html.includes('<aside class="lpBookingPanel"')) errors.push("/therapy/ still has sidebar booking panel");
       if (html.includes("Begin with a conversation")) errors.push("/therapy/ has duplicate CTA");
     }

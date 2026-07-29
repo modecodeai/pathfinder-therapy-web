@@ -2,6 +2,7 @@ const VALID_ENQUIRY_TYPES = new Set([
   "Individual therapy",
   "Couples therapy",
   "EMDR",
+  "Immersive EMDR Therapy",
   "Online therapy",
   "Clinical enquiry",
   "Other"

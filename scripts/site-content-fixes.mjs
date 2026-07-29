@@ -73,6 +73,26 @@ const ABOUT_FINAL_CTA = `<section class="lpEndCta" aria-label="Arrange a consult
   </div>
 </section>`;
 
+const THERAPY_IMMERSIVE_SECTION = `<section class="approachEssay" aria-labelledby="therapy-immersive">
+  <div class="approachEssayInner">
+    <p class="sectionKicker">Clinical pilot</p>
+    <p class="pfPilotBadge" style="margin:0 0 12px">Pilot service launching soon</p>
+    <h2 class="approachSectionTitle" id="therapy-immersive">Immersive EMDR Therapy</h2>
+    <div class="approachBody">
+      <p>An emerging trauma-treatment approach combining EMDR therapy with immersive virtual reality environments. The technology may support grounding, emotional regulation, preparation and trauma processing while therapy remains guided by a trained practitioner.</p>
+      <ul>
+        <li>In-person sessions in Lisbon</li>
+        <li>Remote delivery where clinically suitable</li>
+        <li>Individual clinical assessment required</li>
+        <li>Participation subject to suitability and informed consent</li>
+        <li>Pilot availability launching soon</li>
+      </ul>
+      <p><strong>Immersive EMDR will only be offered following an individual assessment of clinical suitability.</strong> Virtual reality is used as an adjunct to therapy and does not replace the therapeutic relationship or professional clinical judgement. It is not a cure, not suitable for every client, and not a replacement for established trauma therapy.</p>
+      <p><a class="lpPrimaryCta" href="/contact/?enquiryType=${encodeURIComponent("Immersive EMDR Therapy")}">Register Your Interest</a></p>
+    </div>
+  </div>
+</section>`;
+
 const THERAPY_PROCESS_SECTION = `<section class="approachEssay" aria-labelledby="therapy-process">
   <div class="approachEssayInner">
     <p class="sectionKicker">Getting started</p>
@@ -106,6 +126,22 @@ export function fixTherapyPageContent(mainInner) {
 
   next = next.replace(/<section class="approachFinalCta"[\s\S]*?<\/section>/g, "");
   next = next.replace(/<aside class="lpInlineCta"[\s\S]*?<\/aside>/g, "");
+
+  if (!next.includes('id="therapy-immersive"')) {
+    if (next.includes('id="therapy-process"')) {
+      next = next.replace(
+        /<section class="approachEssay" aria-labelledby="therapy-process">/,
+        `${THERAPY_IMMERSIVE_SECTION}<section class="approachEssay" aria-labelledby="therapy-process">`
+      );
+    } else if (next.includes('id="therapy-fee"')) {
+      next = next.replace(
+        /<section class="approachLifeForce" aria-labelledby="therapy-fee">/,
+        `${THERAPY_IMMERSIVE_SECTION}<section class="approachLifeForce" aria-labelledby="therapy-fee">`
+      );
+    } else if (next.includes("</article>")) {
+      next = next.replace("</article>", `${THERAPY_IMMERSIVE_SECTION}</article>`);
+    }
+  }
 
   if (!next.includes('id="therapy-process"')) {
     if (next.includes('id="therapy-questions"')) {

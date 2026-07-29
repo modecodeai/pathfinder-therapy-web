@@ -47,6 +47,7 @@ export const SPRINT2_CSS = `${REVIEWS_CSS}
 .lpTherapyEnquiryNote { margin: 16px 0 0; font-size: 14px; line-height: 1.65; color: rgba(246,242,234,.72); }
 .lpTherapyEnquiryNote a { color: #d9b777; font-weight: 600; text-decoration: none; }
 .lpTherapyEnquiryNote a:hover { text-decoration: underline; }
+.pfPilotBadge { display: inline-flex; align-items: center; width: fit-content; min-height: 28px; padding: 4px 12px; border-radius: 999px; border: 1px solid rgba(200,154,88,.4); background: rgba(200,154,88,.1); color: #d9b777; font-size: 0.6875rem; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; }
 .lpStepsSection { display: grid; gap: 20px; }
 .lpStepsGrid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; margin: 0; padding: 0; list-style: none; }
 .lpStepCard { padding: 20px; border: 1px solid rgba(246,242,234,.1); border-radius: 14px; background: rgba(8,16,15,.35); display: grid; gap: 8px; }

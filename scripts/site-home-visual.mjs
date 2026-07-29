@@ -68,6 +68,16 @@ export const HOMEPAGE_VISUAL_CSS = `<style id="pathfinder-home-visual">
 .pfStepCard { padding: 20px; border: 1px solid var(--pf-border-dark); border-radius: var(--pf-radius-md); background: rgba(15,24,22,.5); display: grid; gap: 8px; }
 .pfStepCard h3 { margin: 0; font-family: var(--pf-font-serif); font-size: 1.05rem; color: var(--pf-linen); }
 .pfStepCard p { margin: 0; font-family: var(--pf-font-sans); font-size: var(--pf-text-body-sm); line-height: var(--pf-leading-body); color: var(--pf-linen-muted); }
+.pfImmersivePilot { position: relative; overflow: hidden; }
+.pfImmersivePilot::before { content: ""; position: absolute; inset: 0; background:
+  radial-gradient(ellipse 70% 80% at 100% 0%, rgba(200,154,88,.1), transparent 55%),
+  radial-gradient(ellipse 50% 60% at 0% 100%, rgba(120,150,140,.08), transparent 50%);
+  pointer-events: none; }
+.pfImmersiveInner { position: relative; z-index: 1; display: grid; gap: clamp(18px, 3vw, 24px); max-width: 44rem; }
+.pfPilotBadge { display: inline-flex; align-items: center; width: fit-content; min-height: 28px; padding: 4px 12px; border-radius: 999px; border: 1px solid rgba(200,154,88,.4); background: rgba(200,154,88,.1); color: var(--pf-bronze); font-family: var(--pf-font-sans); font-size: 0.6875rem; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; }
+.pfImmersiveInner p { margin: 0; font-family: var(--pf-font-sans); font-size: var(--pf-text-body); line-height: var(--pf-leading-body); color: var(--pf-linen-muted); }
+.pfImmersiveNote { margin: 0; padding: 14px 16px; border-left: 3px solid rgba(200,154,88,.55); background: rgba(15,24,22,.55); color: var(--pf-linen) !important; font-size: var(--pf-text-body-sm) !important; }
+.pfImmersiveList { margin: 0; padding-left: 1.15rem; display: grid; gap: 6px; color: var(--pf-linen-muted); font-family: var(--pf-font-sans); font-size: var(--pf-text-body-sm); line-height: 1.55; }
 @media (max-width: 900px) {
   .pfHeroInner { grid-template-columns: 1fr; }
   .pfHeroMark { display: none; }
@@ -144,6 +154,14 @@ const SERVICES = [
     copy: "Eye Movement Desensitisation and Reprocessing where clinically appropriate for trauma processing.",
     image: "/assets/images/hero-01.webp",
     alt: "Atmospheric landscape — EMDR within trauma-informed care"
+  },
+  {
+    href: "/#immersive-emdr",
+    label: "Pilot launching soon",
+    title: "Immersive EMDR Therapy",
+    copy: "An emerging approach combining EMDR with carefully selected virtual reality environments — subject to suitability and informed consent.",
+    image: "/assets/images/hero-01.webp",
+    alt: "Calm landscape suggesting depth — Immersive EMDR Therapy pilot"
   },
   {
     href: "/therapy/online/",
@@ -295,6 +313,26 @@ function buildServicesSection() {
 </section>`;
 }
 
+function buildImmersiveEmdrSection() {
+  return `<section class="pfSection pfSection--dark pfImmersivePilot" id="immersive-emdr" aria-labelledby="home-immersive">
+  <div class="pfSectionInner">
+    <div class="pfImmersiveInner">
+      <p class="pfKicker">Clinical pilot</p>
+      <span class="pfPilotBadge">Pilot service launching soon</span>
+      <h2 class="pfSectionTitle" id="home-immersive">Immersive EMDR Therapy</h2>
+      <p>Pathfinder Therapy is preparing to pilot an innovative approach to trauma therapy that combines EMDR with carefully selected virtual reality environments.</p>
+      <p>Using PsyTechVR and Meta Quest headsets, immersive EMDR may help clients engage with grounding, emotional regulation and trauma-processing exercises within a controlled therapeutic environment.</p>
+      <p>The pilot will be offered by trained EMDR practitioners from our Lisbon clinic and remotely where this is clinically appropriate — as immersive EMDR therapy in Lisbon, or as EMDR therapy with virtual reality online when that is suitable.</p>
+      <p class="pfImmersiveNote">Immersive EMDR will only be offered following an individual assessment of clinical suitability. Virtual reality is used as an adjunct to therapy and does not replace the therapeutic relationship or professional clinical judgement.</p>
+      <div class="pfHeroActions">
+        <a class="lpPrimaryCta" href="/contact/?enquiryType=${encodeURIComponent("Immersive EMDR Therapy")}">Register Your Interest</a>
+        <a class="lpSecondaryCta" href="/therapy/emdr/">Learn about EMDR</a>
+      </div>
+    </div>
+  </div>
+</section>`;
+}
+
 function buildWhatHappensNext() {
   return `<section class="pfSection pfSection--dark" aria-labelledby="home-next">
   <div class="pfSectionInner">
@@ -375,6 +413,7 @@ export function buildVisualHomePageBody() {
   ${buildAboutSection()}
   ${buildReassuranceStrip()}
   ${buildServicesSection()}
+  ${buildImmersiveEmdrSection()}
   ${buildWhatHappensNext()}
   ${buildPublicFeedbackSection({ visual: true })}
   ${buildFinalCta()}

@@ -198,6 +198,18 @@ const FORM_ENHANCEMENT_SCRIPT = `<script id="pathfinder-form-enhancement">
       });
     });
 
+    document.querySelectorAll('select[name="enquiryType"]').forEach(function (select) {
+      var params = new URLSearchParams(window.location.search);
+      var value = params.get("enquiryType") || params.get("enquiry");
+      if (!value) return;
+      for (var i = 0; i < select.options.length; i += 1) {
+        if (select.options[i].value === value || select.options[i].textContent === value) {
+          select.selectedIndex = i;
+          break;
+        }
+      }
+    });
+
     document.querySelectorAll("form.contactForm").forEach(function (form) {
       var started = false;
       form.addEventListener("focusin", function () {
@@ -461,7 +473,7 @@ const LANDING_SCHEMA = `<script type="application/ld+json">
 </script>`;
 
 function prepareLandingForm(formHtml) {
-  return formHtml
+  let next = formHtml
     .replace(
       /<button class="contactSubmit" type="submit">[^<]*<\/button>/,
       '<button class="contactSubmit" type="submit" data-label="Send an enquiry">Send an enquiry</button>'
@@ -475,6 +487,15 @@ function prepareLandingForm(formHtml) {
       '<p class="contactSecureIntro">',
       '<p class="contactSecureIntro" id="consultation-form-intro">'
     );
+
+  if (!next.includes("Immersive EMDR Therapy")) {
+    next = next.replace(
+      "<option>EMDR</option>",
+      "<option>EMDR</option><option>Immersive EMDR Therapy</option>"
+    );
+  }
+
+  return next;
 }
 
 function extractHeadAndTail(contactHtml) {
@@ -1093,7 +1114,7 @@ async function main() {
     patchHtml(buildHomePageV2(homeHtml), {
       title: "Trauma-Informed Psychotherapy in Lisbon | Pathfinder Therapy",
       description:
-        "Trauma-informed psychotherapy with Brent Kelly in Lisbon and online. English-speaking therapy for adults and couples. Arrange an initial consultation.",
+        "Trauma-informed psychotherapy with Brent Kelly in Lisbon and online. English-speaking therapy for adults and couples, including EMDR and an emerging immersive EMDR therapy pilot. Arrange an initial consultation.",
       canonical: "https://www.pathfindertherapy.com/"
     })
   );
