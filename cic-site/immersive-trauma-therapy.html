@@ -1004,15 +1004,22 @@
       <h2>Accessibility</h2>
       <button type="button" class="accessibility-close" data-a11y-close aria-label="Close accessibility options">×</button>
     </div>
-    <div class="accessibility-panel__controls">
-      <button type="button" data-a11y-action="text-increase">Larger text</button>
-      <button type="button" data-a11y-action="text-decrease">Smaller text</button>
-      <button type="button" data-a11y-action="contrast">High contrast</button>
-      <button type="button" data-a11y-action="spacing">More spacing</button>
-      <button type="button" data-a11y-action="reset">Reset</button>
+    <p>Adjust the site display to support reading, contrast and comfort.</p>
+    <div class="accessibility-options">
+      <button type="button" data-a11y-action="font-increase">Increase text</button>
+      <button type="button" data-a11y-action="font-decrease">Decrease text</button>
+      <button type="button" data-a11y-toggle="contrast">High contrast</button>
+      <button type="button" data-a11y-toggle="links">Underline links</button>
+      <button type="button" data-a11y-toggle="readable">Readable font</button>
+      <button type="button" data-a11y-toggle="motion">Reduce motion</button>
+      <button type="button" data-a11y-action="reset">Reset options</button>
     </div>
+    <p class="accessibility-panel__small"><a href="accessibility.html">Accessibility statement</a></p>
   </div>
 </div>
+<button type="button" id="accessibilityToggle" class="accessibility-toggle" aria-controls="accessibilityPanel" aria-expanded="false">
+  Accessibility
+</button>
 
 <script src="assets/accessibility.js"></script>
 </body>
