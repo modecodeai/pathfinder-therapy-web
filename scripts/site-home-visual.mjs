@@ -112,7 +112,8 @@ const PROCESS_STAGES = [
   },
   {
     title: "Heal",
-    copy: "Trauma-informed psychotherapy and EMDR where appropriate — paced carefully around your nervous system."
+    copy:
+      'Trauma-informed psychotherapy and <a href="/emdr-therapy-lisbon/">EMDR therapy in Lisbon</a> where appropriate — paced carefully around your nervous system.'
   },
   {
     title: "Move forward",
@@ -138,7 +139,7 @@ const SERVICES = [
     alt: "Therapy room — couples therapy"
   },
   {
-    href: "/therapy/emdr/",
+    href: "/emdr-therapy-lisbon/",
     label: "Trauma processing",
     title: "EMDR",
     copy: "Eye Movement Desensitisation and Reprocessing where clinically appropriate for trauma processing.",

@@ -1,2 +1,6 @@
-# Permanent redirect www to apex (Cloudflare Pages)
+# Permanent redirect www to apex (Cloudflare Pages) — CIC domain
 https://www.pathfindertherapy.org.uk/* https://pathfindertherapy.org.uk/:splat 301
+
+# EMDR: consolidate on the Lisbon authority page (private practice .com)
+/therapy/emdr /emdr-therapy-lisbon/ 301
+/therapy/emdr/ /emdr-therapy-lisbon/ 301

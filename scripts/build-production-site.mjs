@@ -51,6 +51,11 @@ import {
 } from "./site-knowledge-articles.mjs";
 import { buildAllServicePages, getServicePageRoutes } from "./site-service-pages.mjs";
 import { CONTACT_VISUAL_CSS } from "./site-contact-visual.mjs";
+import {
+  EMDR_LISBON_ROUTE,
+  EMDR_LEGACY_ROUTES,
+  buildEmdrLisbonPage
+} from "./site-emdr-lisbon.mjs";
 
 const PREVIEW_ORIGIN =
   process.env.PATHFINDER_PREVIEW_ORIGIN ?? "https://9aa49f15.pathfinder-therapy-web.pages.dev";
@@ -785,7 +790,7 @@ function buildFaqPage(shellHtml) {
     <h2 class="approachSectionTitle" id="faq-emdr">Do you offer EMDR and trauma therapy?</h2>
     <div class="approachBody">
       <p>Yes. Brent offers trauma-informed psychotherapy and EMDR where clinically appropriate, alongside Transactional Analysis and relational work.</p>
-      <p><a href="/knowledge-library/what-is-trauma-therapy/">What is trauma therapy?</a> · <a href="/knowledge-library/how-does-emdr-work/">How does EMDR work?</a></p>
+      <p><a href="/emdr-therapy-lisbon/">EMDR therapy in Lisbon</a> · <a href="/knowledge-library/what-is-trauma-therapy/">What is trauma therapy?</a> · <a href="/knowledge-library/how-does-emdr-work/">How does EMDR work?</a></p>
     </div>
   </div>
 </section>
@@ -860,7 +865,7 @@ function buildFeesPage(shellHtml) {
     <h2 class="approachSectionTitle" id="fees-emdr">EMDR</h2>
     <div class="approachBody">
       <p><strong>€95</strong> for a 60-minute session.</p>
-      <p>Eye Movement Desensitisation and Reprocessing within broader trauma-informed psychotherapy, where clinically appropriate.</p>
+      <p>Eye Movement Desensitisation and Reprocessing within broader trauma-informed psychotherapy, where clinically appropriate. Read about <a href="/emdr-therapy-lisbon/">EMDR therapy in Lisbon</a>.</p>
     </div>
   </div>
 </section>
@@ -914,22 +919,39 @@ function buildFeesPage(shellHtml) {
 function patchSitemap(sitemapXml) {
   let next = sitemapXml;
   const today = new Date().toISOString().slice(0, 10);
+
+  // Remove obsolete EMDR service URL — canonical authority page is /emdr-therapy-lisbon/
+  next = next.replace(
+    /\s*<url>\s*<loc>https:\/\/www\.pathfindertherapy\.com\/therapy\/emdr\/<\/loc>[\s\S]*?<\/url>/g,
+    ""
+  );
+
   const additions = [
     { loc: "https://www.pathfindertherapy.com/faq/", priority: "0.75" },
     { loc: "https://www.pathfindertherapy.com/fees/", priority: "0.75" },
     { loc: "https://www.pathfindertherapy.com/crisis-support/", priority: "0.55" },
     { loc: "https://www.pathfindertherapy.com/therapy/individual/", priority: "0.9" },
     { loc: "https://www.pathfindertherapy.com/therapy/couples/", priority: "0.9" },
-    { loc: "https://www.pathfindertherapy.com/therapy/emdr/", priority: "0.9" },
     { loc: "https://www.pathfindertherapy.com/therapy/online/", priority: "0.9" },
     { loc: "https://www.pathfindertherapy.com/psychotherapy-lisbon/", priority: "0.88" },
     { loc: "https://www.pathfindertherapy.com/trauma-therapy-lisbon/", priority: "0.88" },
-    { loc: "https://www.pathfindertherapy.com/emdr-therapy-lisbon/", priority: "0.88" },
+    { loc: "https://www.pathfindertherapy.com/emdr-therapy-lisbon/", priority: "0.95" },
     { loc: "https://www.pathfindertherapy.com/english-speaking-therapist-lisbon/", priority: "0.88" }
   ];
 
   for (const entry of additions) {
-    if (next.includes(entry.loc)) continue;
+    if (next.includes(`<loc>${entry.loc}</loc>`)) {
+      // Refresh priority for the EMDR authority page when already present.
+      if (entry.loc.endsWith("/emdr-therapy-lisbon/")) {
+        next = next.replace(
+          new RegExp(
+            `(<loc>${entry.loc.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}</loc>[\\s\\S]*?<priority>)[^<]+(</priority>)`
+          ),
+          `$1${entry.priority}$2`
+        );
+      }
+      continue;
+    }
     next = next.replace(
       "</urlset>",
       `  <url>\n    <loc>${entry.loc}</loc>\n    <lastmod>${today}</lastmod>\n    <priority>${entry.priority}</priority>\n  </url>\n</urlset>`
@@ -1035,6 +1057,8 @@ async function main() {
     "/",
     ...getServicePageRoutes(),
     ...getLocalLandingRoutes(),
+    EMDR_LISBON_ROUTE,
+    "/therapy/emdr/",
     ...getKnowledgeLibraryBuiltRoutes()
   ]);
   const assetPaths = new Set(["/robots.txt", "/rss.xml", "/sitemap.xml", "/favicon.ico", "/favicon.svg"]);
@@ -1159,6 +1183,35 @@ async function main() {
     );
     await writeRoute(PREVIEW_ORIGIN, page.route, landingHtml);
     console.log(`Added ${page.route} (local landing)`);
+  }
+
+  {
+    let emdrHtml = stripHydrationScripts(buildEmdrLisbonPage(shellHtml, buildInteriorPageV2));
+    for (const asset of extractAssetPaths(emdrHtml)) assetPaths.add(asset);
+    await writeRoute(PREVIEW_ORIGIN, EMDR_LISBON_ROUTE, emdrHtml);
+    console.log(`Added ${EMDR_LISBON_ROUTE} (EMDR Lisbon authority page)`);
+  }
+
+  // Fallback HTML for legacy EMDR URL (Cloudflare Pages also has a 301 in _redirects).
+  {
+    const legacyRedirectHtml = `<!doctype html>
+<html lang="en-GB">
+<head>
+  <meta charset="utf-8">
+  <title>EMDR Therapy Lisbon | Redirecting</title>
+  <meta name="robots" content="noindex, follow">
+  <link rel="canonical" href="https://www.pathfindertherapy.com${EMDR_LISBON_ROUTE}">
+  <meta http-equiv="refresh" content="0;url=${EMDR_LISBON_ROUTE}">
+  <script>location.replace(${JSON.stringify(EMDR_LISBON_ROUTE)});</script>
+</head>
+<body>
+  <p>This page has moved to <a href="${EMDR_LISBON_ROUTE}">EMDR therapy in Lisbon</a>.</p>
+</body>
+</html>`;
+    for (const legacy of EMDR_LEGACY_ROUTES.filter((route) => route.endsWith("/"))) {
+      await writeRoute(PREVIEW_ORIGIN, legacy, legacyRedirectHtml);
+      console.log(`Added ${legacy} → ${EMDR_LISBON_ROUTE} (legacy redirect)`);
+    }
   }
 
   const knowledgeArticles = await loadKnowledgeArticles();
