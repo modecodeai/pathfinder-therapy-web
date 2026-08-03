@@ -4,8 +4,18 @@
  */
 (function () {
   const cfg = window.PATHFINDER_AITT || {};
+  const CONSENT_STORAGE_KEY = "pathfinder_cookie_consent_v1";
+
+  function hasAnalyticsConsent() {
+    try {
+      return window.localStorage.getItem(CONSENT_STORAGE_KEY) === "accepted";
+    } catch (_) {
+      return false;
+    }
+  }
 
   function track(eventName) {
+    if (!hasAnalyticsConsent()) return;
     try {
       if (typeof window.gtag === "function") {
         window.gtag("event", eventName, {
