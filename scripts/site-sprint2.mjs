@@ -366,7 +366,7 @@ export function buildHomePageBody() {
     <div class="lpServiceGrid">
       <article class="lpServiceCard"><a href="/therapy/" aria-label="Individual therapy — learn more"><h3>Individual therapy</h3><p>Trauma-informed psychotherapy for adults — anxiety, trauma, attachment, and life transitions.</p><span class="lpServiceCardLink">Learn more →</span></a></article>
       <article class="lpServiceCard"><a href="/therapy/" aria-label="Couples therapy — learn more"><h3>Couples therapy</h3><p>Relational work for couples navigating conflict, disconnection, and repeating patterns.</p><span class="lpServiceCardLink">Learn more →</span></a></article>
-      <article class="lpServiceCard"><a href="/therapy/" aria-label="EMDR — learn more"><h3>EMDR</h3><p>Eye Movement Desensitisation and Reprocessing where clinically appropriate for trauma processing.</p><span class="lpServiceCardLink">Learn more →</span></a></article>
+      <article class="lpServiceCard"><a href="/emdr-therapy-lisbon/" aria-label="EMDR therapy in Lisbon"><h3>EMDR</h3><p>Eye Movement Desensitisation and Reprocessing where clinically appropriate for trauma processing.</p><span class="lpServiceCardLink">EMDR therapy in Lisbon →</span></a></article>
       <article class="lpServiceCard"><a href="/therapy/" aria-label="Online therapy — learn more"><h3>Online therapy</h3><p>Secure online sessions across Portugal and internationally where appropriate.</p><span class="lpServiceCardLink">Learn more →</span></a></article>
     </div>
     <div class="lpHeroActions" style="margin-top:24px">

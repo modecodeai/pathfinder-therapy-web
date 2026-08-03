@@ -81,7 +81,7 @@ export const LOCAL_LANDING_PAGES = [
         "Methods",
         "EMDR and relational psychotherapy",
         "trauma-methods",
-        `<p>Pathfinder offers trauma-informed psychotherapy and <strong>EMDR</strong> where clinically appropriate, alongside Transactional Analysis and relational work. Brent is EATA registered, a member of ITAA, and receives clinical supervision.</p>
+        `<p>Pathfinder offers trauma-informed psychotherapy and <a href="/emdr-therapy-lisbon/">EMDR therapy in Lisbon</a> where clinically appropriate, alongside Transactional Analysis and relational work. Brent is EATA registered, a member of ITAA, and receives clinical supervision.</p>
         <p><a href="/knowledge-library/what-is-trauma-therapy/">What is trauma therapy?</a> · <a href="/knowledge-library/the-body-remembers/">The body remembers</a></p>`
       ),
       section(
@@ -97,46 +97,7 @@ export const LOCAL_LANDING_PAGES = [
       { href: "/emdr-therapy-lisbon/", label: "EMDR therapy Lisbon" }
     ]
   },
-  {
-    route: "/emdr-therapy-lisbon/",
-    title: "EMDR Therapist Lisbon | Pathfinder Therapy",
-    description:
-      "EMDR therapy in Lisbon with Brent Kelly. Trauma-informed EMDR for adults — English-speaking sessions in Lisbon or online across Portugal. Book an initial consultation.",
-    serviceName: "EMDR therapy in Lisbon",
-    serviceType: "EMDR",
-    hero: {
-      kicker: "EMDR · Lisbon & online",
-      title: "EMDR therapy in Lisbon with a trauma-informed therapist.",
-      lead: "Eye Movement Desensitisation and Reprocessing (EMDR) where clinically appropriate — integrated within broader trauma-informed psychotherapy, not as a standalone quick fix."
-    },
-    sections: [
-      section(
-        "What is EMDR",
-        "How EMDR fits therapy",
-        "emdr-what",
-        `<p>EMDR is a structured approach that can help process distressing memories and reduce their emotional intensity over time. It is used within a wider therapeutic relationship — Brent assesses suitability carefully before recommending EMDR.</p>
-        <p><a href="/knowledge-library/how-does-emdr-work/">How does EMDR work?</a></p>`
-      ),
-      section(
-        "Who it may suit",
-        "Trauma, anxiety, and persistent distress",
-        "emdr-who",
-        `<p>EMDR is often considered for trauma-related symptoms, persistent anxiety linked to past events, and patterns that feel stuck despite talking therapy. Suitability is discussed in an initial consultation.</p>
-        <p><a href="/trauma-therapy-lisbon/">Trauma therapy Lisbon</a></p>`
-      ),
-      section(
-        "Practical details",
-        "Sessions in English — Lisbon or online",
-        "emdr-practical",
-        `<p>EMDR sessions are available in English at the Lisbon clinic or online. Individual sessions from €75 for 50 minutes. <a href="/fees/">See fees</a>.</p>
-        ${DIRECTIONS_LINK}`
-      )
-    ],
-    links: [
-      { href: "/knowledge-library/how-does-emdr-work/", label: "How does EMDR work?" },
-      { href: "/knowledge-library/what-is-trauma-therapy/", label: "What is trauma therapy?" }
-    ]
-  },
+  // /emdr-therapy-lisbon/ is built by scripts/site-emdr-lisbon.mjs (authority page).
   {
     route: "/english-speaking-therapist-lisbon/",
     title: "English Speaking Therapist Lisbon | Pathfinder Therapy",
