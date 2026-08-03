@@ -702,60 +702,43 @@ export function buildEmdrLisbonPage(shellHtml, buildInteriorPageV2) {
   }
 
   // Ensure Open Graph / Twitter match the authority page brief.
-  html = html
-    .replace(
-      /<meta property="og:title" content="[^"]*">/,
-      `<meta property="og:title" content="${EMDR_LISBON_META.ogTitle}">`
-    )
-    .replace(
-      /<meta property="og:description" content="[^"]*">/,
-      `<meta property="og:description" content="${EMDR_LISBON_META.ogDescription}">`
-    )
-    .replace(
-      /<meta property="og:url" content="[^"]*">/,
-      `<meta property="og:url" content="${CANONICAL}">`
-    )
-    .replace(
-      /<meta property="og:type" content="[^"]*">/,
-      `<meta property="og:type" content="website">`
-    )
-    .replace(
-      /<meta name="twitter:title" content="[^"]*">/,
-      `<meta name="twitter:title" content="${EMDR_LISBON_META.ogTitle}">`
-    )
-    .replace(
-      /<meta name="twitter:description" content="[^"]*">/,
-      `<meta name="twitter:description" content="${EMDR_LISBON_META.ogDescription}">`
-    );
+  // Preview shell may emit self-closing or duplicate meta tags — strip then inject once.
+  const stripMeta = (attr, name) => {
+    html = html.replace(new RegExp(`<meta ${attr}="${name}" content="[^"]*"\\s*/?>\\n?`, "gi"), "");
+  };
 
-  if (!html.includes('property="og:locale"')) {
-    html = html.replace(
-      "</head>",
-      `<meta property="og:locale" content="en_GB">\n<meta property="og:site_name" content="Pathfinder Therapy">\n</head>`
-    );
-  } else {
-    html = html.replace(
-      /<meta property="og:locale" content="[^"]*">/,
-      `<meta property="og:locale" content="en_GB">`
-    );
-  }
-  if (!html.includes('property="og:site_name"')) {
-    html = html.replace(
-      "</head>",
-      `<meta property="og:site_name" content="Pathfinder Therapy">\n</head>`
-    );
-  }
-  if (!html.includes('name="twitter:card"')) {
-    html = html.replace(
-      "</head>",
-      `<meta name="twitter:card" content="summary_large_image">\n</head>`
-    );
-  } else {
-    html = html.replace(
-      /<meta name="twitter:card" content="[^"]*">/,
-      `<meta name="twitter:card" content="summary_large_image">`
-    );
-  }
+  [
+    ["property", "og:title"],
+    ["property", "og:description"],
+    ["property", "og:url"],
+    ["property", "og:type"],
+    ["property", "og:image"],
+    ["property", "og:locale"],
+    ["property", "og:site_name"],
+    ["name", "twitter:card"],
+    ["name", "twitter:title"],
+    ["name", "twitter:description"],
+    ["name", "twitter:image"]
+  ].forEach(([attr, name]) => stripMeta(attr, name));
+
+  // Also remove dimension/alt variants that can disagree with the chosen image.
+  html = html.replace(/<meta property="og:image:(?:width|height|alt)" content="[^"]*"\s*\/?>\n?/gi, "");
+
+  const socialMeta = [
+    `<meta property="og:type" content="website"/>`,
+    `<meta property="og:site_name" content="Pathfinder Therapy"/>`,
+    `<meta property="og:locale" content="en_GB"/>`,
+    `<meta property="og:title" content="${EMDR_LISBON_META.ogTitle}"/>`,
+    `<meta property="og:description" content="${EMDR_LISBON_META.ogDescription}"/>`,
+    `<meta property="og:url" content="${CANONICAL}"/>`,
+    `<meta property="og:image" content="${EMDR_LISBON_META.ogImage}"/>`,
+    `<meta name="twitter:card" content="summary_large_image"/>`,
+    `<meta name="twitter:title" content="${EMDR_LISBON_META.ogTitle}"/>`,
+    `<meta name="twitter:description" content="${EMDR_LISBON_META.ogDescription}"/>`,
+    `<meta name="twitter:image" content="${EMDR_LISBON_META.ogImage}"/>`
+  ].join("\n");
+
+  html = html.replace("</head>", `${socialMeta}\n</head>`);
 
   return html;
 }

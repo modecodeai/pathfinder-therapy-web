@@ -85,5 +85,3 @@ I am also honest about what EMDR is not. It is not hypnosis: you remain awake, a
 If there are specific experiences that still feel active — memories you avoid, images that intrude, situations your body reacts to out of all proportion to the present — EMDR may be worth exploring. If what you carry is more diffuse, the answer may still be yes, but the route in will be slower and more relational.
 
 The only way to know properly is a conversation. A first session is a chance to look at what you are carrying and decide together whether EMDR, or another way of working, fits the shape of it.
-
-If you are looking for English-speaking EMDR therapy in Lisbon, see the dedicated page on [EMDR therapy in Lisbon](/emdr-therapy-lisbon/).
