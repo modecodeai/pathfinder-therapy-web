@@ -39,6 +39,10 @@ function clean(value, max = 500) {
   return value.trim().slice(0, max);
 }
 
+function isChecked(value) {
+  return value === "on" || value === true || value === "true";
+}
+
 function clientKey(request) {
   return (
     request.headers.get("cf-connecting-ip") ||
@@ -60,7 +64,7 @@ function allowRequest(key) {
 }
 
 async function verifyTurnstile(token, secret, ip) {
-  if (!secret) return true;
+  if (!secret) return false;
   if (!token) return false;
   const body = new URLSearchParams();
   body.set("secret", secret);
@@ -127,7 +131,7 @@ function buildEmail(formType, body) {
 }
 
 export async function onRequestPost(context) {
-  const { request, env } = context;
+  const { request, env = {} } = context;
 
   try {
     const ip = clientKey(request);
@@ -139,6 +143,17 @@ export async function onRequestPost(context) {
 
     if (body.website) {
       return jsonResponse({ ok: true, message: "Thank you. Your enquiry has been received." });
+    }
+
+    const turnstileSecret = env.TURNSTILE_SECRET_KEY || env.CF_TURNSTILE_SECRET_KEY;
+    if (!turnstileSecret || !env.RESEND_API_KEY) {
+      return jsonResponse(
+        {
+          ok: false,
+          message: "The enquiry could not be sent. Please email hello@pathfindertherapy.org.uk."
+        },
+        503
+      );
     }
 
     const formType = clean(body.formType || "general", 40) || "general";
@@ -160,8 +175,7 @@ export async function onRequestPost(context) {
       return jsonResponse({ ok: false, message: "Please include a brief message." }, 400);
     }
 
-    const consent = body.consent;
-    if (consent !== "on" && consent !== true && consent !== "true") {
+    if (!isChecked(body.consent)) {
       return jsonResponse({ ok: false, message: "Please confirm consent to be contacted." }, 400);
     }
 
@@ -170,6 +184,17 @@ export async function onRequestPost(context) {
       if (!enquiryType || !GENERAL_ENQUIRY_TYPES.has(enquiryType)) {
         return jsonResponse({ ok: false, message: "Please choose an enquiry type." }, 400);
       }
+      if (!isChecked(body.crisisAcknowledgement)) {
+        return jsonResponse(
+          { ok: false, message: "Please complete the required acknowledgement." },
+          400
+        );
+      }
+    } else if (!isChecked(body.privacyAck)) {
+      return jsonResponse(
+        { ok: false, message: "Please complete the required acknowledgement." },
+        400
+      );
     }
 
     if (formType === "aitt_professional") {
@@ -180,7 +205,7 @@ export async function onRequestPost(context) {
 
     const turnstileOk = await verifyTurnstile(
       body.turnstileToken,
-      env.TURNSTILE_SECRET_KEY,
+      turnstileSecret,
       ip
     );
     if (!turnstileOk) {
@@ -195,29 +220,27 @@ export async function onRequestPost(context) {
           ? "AITT professional partnership"
           : "Website enquiry";
 
-    if (env.RESEND_API_KEY) {
-      const fromEmail =
-        env.CONTACT_FROM_EMAIL || "Pathfinder Therapy CIC <hello@pathfindertherapy.org.uk>";
-      const toEmail = env.CONTACT_TO_EMAIL || "hello@pathfindertherapy.org.uk";
+    const fromEmail =
+      env.CONTACT_FROM_EMAIL || "Pathfinder Therapy CIC <hello@pathfindertherapy.org.uk>";
+    const toEmail = env.CONTACT_TO_EMAIL || "hello@pathfindertherapy.org.uk";
 
-      const notifyResponse = await fetch("https://api.resend.com/emails", {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${env.RESEND_API_KEY}`,
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify({
-          from: fromEmail,
-          to: [toEmail],
-          reply_to: email,
-          subject: `${subjectPrefix}: ${name}`,
-          text: emailBody
-        })
-      });
+    const notifyResponse = await fetch("https://api.resend.com/emails", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${env.RESEND_API_KEY}`,
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        from: fromEmail,
+        to: [toEmail],
+        reply_to: email,
+        subject: `${subjectPrefix}: ${name}`,
+        text: emailBody
+      })
+    });
 
-      if (!notifyResponse.ok) {
-        throw new Error("Email delivery failed");
-      }
+    if (!notifyResponse.ok) {
+      throw new Error("Email delivery failed");
     }
 
     return jsonResponse({
