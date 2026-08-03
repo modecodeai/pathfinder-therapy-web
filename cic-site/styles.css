@@ -1924,12 +1924,25 @@ h1 span{color:var(--orange)}
     gap:0;
   }
 
+  .page-hero h1{
+    font-size:clamp(44px,15vw,58px);
+    overflow-wrap:anywhere;
+  }
+
   .pathfinder-form{
     padding:22px;
   }
 
   .form-grid h2{
     font-size:38px;
+  }
+}
+
+@media(max-width:360px){
+  .pathfinder-form{
+    width:100vw;
+    margin-left:-14px;
+    padding:9px;
   }
 }
 
