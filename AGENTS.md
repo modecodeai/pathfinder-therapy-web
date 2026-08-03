@@ -313,3 +313,32 @@ rg -n 'cdn-cgi/l/email-protection|__cf_email__' .
 # Find http links
 rg -n 'http://pathfindertherapy.org.uk' .
 ```
+
+---
+
+## Cursor Cloud specific instructions
+
+This repository actually contains **two** products; be sure you are editing the right one (see the Scope table above):
+
+1. **Next.js app (repo root)** — the "Arrival" / `pathfindertherapy.com` site. Node/pnpm project (`package.json`, `next.config.ts`). This is the app you develop with `pnpm dev`.
+2. **CIC static HTML site (`cic-site/`)** — flat `.html` files served as-is on Cloudflare Pages. No build step; edit the HTML directly. This is the main SEO target described above.
+
+### Setup / dependencies
+
+- Tooling in the VM: Node 22, pnpm 10 (already installed). The startup update script runs `pnpm install --frozen-lockfile`, so dependencies are ready when a session begins.
+- `pnpm install` reports `Ignored build scripts: sharp, unrs-resolver`. This is expected and harmless — lint, typecheck, build, and `pnpm dev` all work without those native builds (Next image optimization is disabled via `images.unoptimized`).
+
+### Next.js app (repo root)
+
+Standard commands are in `package.json` `scripts` and `README.md`. Non-obvious notes:
+
+- `pnpm dev` serves the app at `http://localhost:3000` (Turbopack).
+- `pnpm run build` runs the custom `scripts/build-production-site.mjs` (NOT `next build`). It mirrors content from a remote preview origin and writes to `out/`. Offline it prints `Skipping missing asset https://...pages.dev/...` warnings for a handful of remote-only assets — these are expected and the build still succeeds. `pnpm run verify:built` validates the `out/` output.
+- `pnpm run build:next` is the raw `next build --webpack` if you need it.
+- `pnpm run lint` currently reports **7 warnings, 0 errors** (unused vars in build scripts) — this is the clean baseline, not a regression.
+- The contact form posts to `/api/contact`, a Cloudflare Pages Function (`functions/api/contact.js`). That function does **not** run under `next dev`, so submitting the form locally will fail — this is expected. Client-side page navigation and form input still work in dev.
+
+### CIC static site (`cic-site/`)
+
+- Serve locally with `npx serve cic-site` (e.g. `-l 4000`). Note `serve` applies clean-URL redirects by default: `/about.html` 301→ `/about`. Production (Cloudflare Pages) serves the flat `.html` URLs directly, so to mirror production URLs use `npx serve cic-site --no-clean-urls`.
+- `cic-site/functions/_middleware.js` handles the www→apex 301 (only runs on Cloudflare Pages, not in `serve`).
