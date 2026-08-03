@@ -9,7 +9,7 @@
   function hasAnalyticsConsent() {
     try {
       return window.localStorage.getItem(CONSENT_STORAGE_KEY) === "accepted";
-    } catch (_) {
+    } catch {
       return false;
     }
   }
