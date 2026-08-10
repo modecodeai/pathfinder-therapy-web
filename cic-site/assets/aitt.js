@@ -4,8 +4,18 @@
  */
 (function () {
   const cfg = window.PATHFINDER_AITT || {};
+  const CONSENT_STORAGE_KEY = "pathfinder_cookie_consent_v1";
+
+  function hasAnalyticsConsent() {
+    try {
+      return window.localStorage.getItem(CONSENT_STORAGE_KEY) === "accepted";
+    } catch {
+      return false;
+    }
+  }
 
   function track(eventName) {
+    if (!hasAnalyticsConsent()) return;
     try {
       if (typeof window.gtag === "function") {
         window.gtag("event", eventName, {
@@ -13,9 +23,7 @@
           send_to: undefined
         });
       }
-      window.dataLayer = window.dataLayer || [];
-      window.dataLayer.push({ event: eventName });
-    } catch (_) {
+    } catch {
       /* analytics optional */
     }
   }
@@ -133,7 +141,7 @@
         form.reset();
         updatePageSource();
         if (window.turnstile) window.turnstile.reset();
-      } catch (_) {
+      } catch {
         setStatus(
           status,
           "The form could not be sent yet. Please email hello@pathfindertherapy.org.uk directly.",
