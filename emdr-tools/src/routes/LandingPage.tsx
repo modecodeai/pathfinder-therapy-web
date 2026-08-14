@@ -37,20 +37,22 @@ export function LandingPage() {
         <p className="subtitle">Clinical EMDR tools for trained therapists</p>
         <p className="lede">
           Browser-based visual and auditory bilateral stimulation with a phase-aware EMDR Session
-          Companion. For use by appropriately trained mental-health professionals.
+          Companion. One shared BLS engine across Studio, Session, and remote client view.
         </p>
-        <div className="cta-row">
-          <Link className="btn primary" to="/account">
+        <div className="cta-row cta-hierarchy">
+          <Link className="btn primary large" to="/account">
             Create free therapist account
           </Link>
-          <Link className="btn" to="/session">
+          <Link className="btn large" to="/session">
             EMDR Session Companion
           </Link>
-          <Link className="btn" to="/resources">
-            Therapist Script Library
-          </Link>
-          <Link className="btn" to="/tools">
+        </div>
+        <div className="cta-row cta-utility">
+          <Link className="btn ghost" to="/tools">
             Open BLS Studio
+          </Link>
+          <Link className="btn ghost" to="/resources">
+            Therapist Script Library
           </Link>
           <button type="button" className="btn ghost" onClick={() => setShowJoin((v) => !v)}>
             Join a Session
@@ -75,6 +77,10 @@ export function LandingPage() {
             </div>
           </form>
         )}
+        <p className="hint clinical-boundary">
+          Pathfinder EMDR Tools supports clinical delivery and does not replace professional
+          training, supervision, consultation or clinical judgement.
+        </p>
       </main>
 
       <footer className="site-footer">Pathfinder Therapy</footer>

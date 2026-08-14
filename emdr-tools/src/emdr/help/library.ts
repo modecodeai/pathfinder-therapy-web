@@ -143,4 +143,8 @@ export const LIBRARY_GROUPS: { title: string; ids: string[] }[] = [
     title: 'Treatment Planning',
     ids: ['phase1-aip-mapping', 'phase1-direct-questioning', 'phase1-floatback'],
   },
+  {
+    title: 'Advanced Tools',
+    ids: ['phase2-rdi-placeholder'],
+  },
 ];

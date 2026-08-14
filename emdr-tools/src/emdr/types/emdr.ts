@@ -105,6 +105,15 @@ export interface CompanionSessionState {
   consecutiveNoChangeSets: number;
   sessionStartedAt: string;
   totalProcessingMs: number;
+  /** Last known BLS configuration for resume (appearance + timing) */
+  blsSnapshot?: Partial<import('../../types/room').RoomState>;
+  presentingIssue?: string;
+  therapyGoal?: string;
+  aipPast?: string;
+  aipPresent?: string;
+  aipFuture?: string;
+  readinessNotes?: string;
+  closurePath?: 'completed' | 'incomplete' | null;
 }
 
 export const SPEED_PRESETS: SpeedPreset[] = [

@@ -14,6 +14,7 @@ export function AccountPage() {
     privacyConsent: false,
     country: '',
     profession: '',
+    organisation: '',
     emdrTrainingStatus: 'emdr-trained',
   });
 
@@ -30,8 +31,10 @@ export function AccountPage() {
   }
 
   if (auth.isAuthenticated && mode !== 'onboarding') {
+    const first = auth.therapist!.firstName || 'Therapist';
+    const displayName = first.charAt(0).toUpperCase() + first.slice(1);
     return (
-      <div className="marketing">
+      <div className="marketing dashboard">
         <header className="site-header">
           <Link to="/" className="brand">
             <span className="brand-mark" aria-hidden />
@@ -39,35 +42,41 @@ export function AccountPage() {
               <strong>Pathfinder</strong> EMDR Tools
             </span>
           </Link>
+          <nav className="site-nav">
+            <Link to="/account">Account</Link>
+          </nav>
         </header>
-        <main className="about">
-          <h1>
-            Welcome, {auth.therapist!.firstName}
-          </h1>
-          <p className="lede">Free therapist account · {auth.therapist!.accountTier}</p>
+        <main className="about dashboard-main">
+          <h1>Welcome, {displayName}</h1>
+          <p className="lede">Free Therapist Account</p>
           <p className="hint">
             Pathfinder EMDR Tools supports clinical delivery and does not replace professional
-            training, supervision, consultation or clinical judgement. EMDR reprocessing should be
-            undertaken by appropriately trained practitioners.
+            training, supervision, consultation or clinical judgement.
           </p>
           <div className="cta-row">
-            <Link className="btn primary" to="/session">
+            <Link className="btn primary large" to="/session">
               Start EMDR Session
             </Link>
-            <Link className="btn" to="/tools">
-              Start BLS Studio
+            <Link className="btn large" to="/tools">
+              Open BLS Studio
             </Link>
+          </div>
+          <div className="cta-row cta-utility">
+            <Link className="btn ghost" to="/resources">
+              Script Library
+            </Link>
+            <Link className="btn ghost" to="/tools">
+              Join remote session
+            </Link>
+            <button type="button" className="btn ghost" onClick={() => setMode('onboarding')}>
+              Account / profile
+            </button>
           </div>
           {!auth.therapist!.emdrTrainingStatus && (
             <button type="button" className="btn ghost" onClick={() => setMode('onboarding')}>
               Complete practice profile
             </button>
           )}
-          <p>
-            <button type="button" className="btn ghost" onClick={() => void auth.logout()}>
-              Log out
-            </button>
-          </p>
         </main>
       </div>
     );
@@ -197,6 +206,13 @@ export function AccountPage() {
                 />
               </label>
               <label className="field">
+                <span>Organisation (optional)</span>
+                <input
+                  value={form.organisation}
+                  onChange={(e) => setForm({ ...form, organisation: e.target.value })}
+                />
+              </label>
+              <label className="field">
                 <span>EMDR training status</span>
                 <select
                   value={form.emdrTrainingStatus}
@@ -209,6 +225,11 @@ export function AccountPage() {
                   <option value="other">Other</option>
                 </select>
               </label>
+              {auth.isAuthenticated && (
+                <button type="button" className="btn ghost" onClick={() => void auth.logout()}>
+                  Log out
+                </button>
+              )}
             </>
           )}
 

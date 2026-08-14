@@ -50,15 +50,18 @@ export function JoinPage() {
       },
       onError: (m) => setError(m),
       onConnectionChange: (s) => {
-        if (s === 'connected') setStatus('Connected to therapist');
+        if (s === 'connected') setStatus('Connected to your therapist');
         else if (s === 'reconnecting') {
-          setStatus('Connection interrupted — attempting to reconnect…');
-        } else if (s === 'error') setStatus('Connection interrupted');
-        else if (s === 'connecting') setStatus('Connecting…');
+          session.emergencyStop();
+          setStatus('Connection interrupted — stimulation stopped. Therapist must restart.');
+        } else if (s === 'error') {
+          session.emergencyStop();
+          setStatus('Connection interrupted');
+        } else if (s === 'connecting') setStatus('Connecting…');
       },
       onConnectionLostWhileRunning: () => {
         session.emergencyStop();
-        setStatus('Connection interrupted — stimulation stopped');
+        setStatus('Connection interrupted — stimulation stopped. Therapist must restart.');
       },
     });
     remoteRef.current = client;
@@ -95,13 +98,11 @@ export function JoinPage() {
             <strong>Pathfinder</strong> EMDR Tools
           </span>
         </div>
-        <h1>Join session</h1>
-        <p className="lede">
-          Your therapist has invited you to a bilateral stimulation session.
-        </p>
+        <h1>Join your EMDR session</h1>
+        <p className="lede">Enter the room code from your therapist, or open the invitation link.</p>
         <p className="hint">No account. No name. No clinical information collected.</p>
         <button type="button" className="btn primary" onClick={() => void join()}>
-          Join Session
+          Join session
         </button>
         <p className="mono room-ref">Room {roomId}</p>
       </div>

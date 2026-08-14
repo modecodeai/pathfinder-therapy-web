@@ -1,7 +1,10 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 import { BlsStage } from '../../components/BlsStage';
+import { BlsConfigurationPanel } from '../../components/bls/BlsConfigurationPanel';
 import { EMDR_PHASE_PRESETS } from '../config/phasePresets';
+import { phaseTimingPatch } from '../bls/config';
+import { resolveInitialBlsState } from '../bls/persistence';
 import {
   NO_CHANGE_REMINDER,
   nextNoChangeCount,
@@ -9,7 +12,7 @@ import {
 } from '../engine/noChangeTracker';
 import { HelpDrawer } from '../help/HelpDrawer';
 import { useBlsSession } from '../../hooks/useBlsSession';
-import { presetCycleMs, withSpeed01 } from '../../types/room';
+import type { RoomState } from '../../types/room';
 import type {
   AssessmentTarget,
   BLSSetRecord,
@@ -18,6 +21,7 @@ import type {
   SetResponse,
 } from '../types/emdr';
 import { PHASE_LABELS, SPEED_PRESETS } from '../types/emdr';
+import { ClinicalPhasePanel } from './ClinicalPhasePanel';
 
 const PHASES: EMDRPhase[] = [
   'history',
@@ -43,18 +47,31 @@ function newSession(): CompanionSessionState {
     consecutiveNoChangeSets: 0,
     sessionStartedAt: new Date().toISOString(),
     totalProcessingMs: 0,
+    closurePath: null,
   };
 }
 
+function loadCompanion(): CompanionSessionState {
+  try {
+    const raw = sessionStorage.getItem(STORAGE_KEY);
+    if (raw) return JSON.parse(raw) as CompanionSessionState;
+  } catch {
+    /* ignore */
+  }
+  return newSession();
+}
+
 export function SessionCompanionPage() {
+  const [params] = useSearchParams();
+  const fromStudio = params.get('fromStudio') === '1';
+
   const [companion, setCompanion] = useState<CompanionSessionState>(() => {
-    try {
-      const raw = sessionStorage.getItem(STORAGE_KEY);
-      if (raw) return JSON.parse(raw) as CompanionSessionState;
-    } catch {
-      /* ignore */
+    if (fromStudio) {
+      // Fresh clinical shell when carrying Studio setup; keep anonymous label
+      const base = newSession();
+      return base;
     }
-    return newSession();
+    return loadCompanion();
   });
   const [focusMode, setFocusMode] = useState(false);
   const [awaitingFeedback, setAwaitingFeedback] = useState(false);
@@ -65,12 +82,15 @@ export function SessionCompanionPage() {
   const [applyPresetPrompt, setApplyPresetPrompt] = useState<EMDRPhase | null>(null);
   const [whyOpen, setWhyOpen] = useState(false);
   const [sessionElapsed, setSessionElapsed] = useState(0);
-  const [customDirty, setCustomDirty] = useState(false);
+  const [timingDirty, setTimingDirty] = useState(false);
   const [helpOpen, setHelpOpen] = useState(false);
+  const [blsSettingsOpen, setBlsSettingsOpen] = useState(false);
   const [stopSignalEstablished, setStopSignalEstablished] = useState(false);
   const [focusField, setFocusField] = useState<'sud' | 'voc' | 'nc' | null>(null);
   const [returnToTargetOpen, setReturnToTargetOpen] = useState(false);
   const [lastResponse, setLastResponse] = useState<SetResponse | null>(null);
+  const [blsManualOpen, setBlsManualOpen] = useState(false);
+  const [clientPreview, setClientPreview] = useState(false);
 
   const session = useBlsSession({
     onSetComplete: (m) => {
@@ -82,7 +102,35 @@ export function SessionCompanionPage() {
         totalProcessingMs: c.totalProcessingMs + m.timeMs,
       }));
     },
+    onStateChange: (state) => {
+      setCompanion((c) => ({
+        ...c,
+        blsSnapshot: snapshotBls(state),
+      }));
+      if (clientPreview) {
+        try {
+          const bc = new BroadcastChannel('pf-emdr-sync');
+          bc.postMessage({ type: 'state', state });
+          bc.close();
+        } catch {
+          /* ignore */
+        }
+      }
+    },
   });
+
+  // Initialise BLS: handoff → therapist default → resumed snapshot → system
+  useEffect(() => {
+    const resumed = fromStudio ? null : companion.blsSnapshot;
+    const initial = resolveInitialBlsState(resumed);
+    // Apply current phase timing without overwriting Studio appearance
+    const withPhase = {
+      ...initial,
+      ...phaseTimingPatch(EMDR_PHASE_PRESETS[companion.phase], initial),
+    };
+    session.replaceState(withPhase);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   useEffect(() => {
     sessionStorage.setItem(STORAGE_KEY, JSON.stringify(companion));
@@ -95,10 +143,10 @@ export function SessionCompanionPage() {
   }, [companion.sessionStartedAt]);
 
   useEffect(() => {
-    // Initial phase preset on mount once
-    applyPhasePreset(companion.phase, true);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+    if (session.state.visualMode === 'infinity') {
+      setHelpOpen(true);
+    }
+  }, [session.state.visualMode]);
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -116,11 +164,11 @@ export function SessionCompanionPage() {
       } else if (e.code === 'ArrowUp') {
         e.preventDefault();
         session.patchState({ speed01: Math.min(1, session.state.speed01 + 0.05) });
-        setCustomDirty(true);
+        setTimingDirty(true);
       } else if (e.code === 'ArrowDown') {
         e.preventDefault();
         session.patchState({ speed01: Math.max(0, session.state.speed01 - 0.05) });
-        setCustomDirty(true);
+        setTimingDirty(true);
       }
     };
     window.addEventListener('keydown', onKey);
@@ -128,33 +176,30 @@ export function SessionCompanionPage() {
   }, [session, awaitingFeedback]);
 
   const preset = EMDR_PHASE_PRESETS[companion.phase];
+  const isActive = session.state.running && !session.state.paused;
+  const hideForms = focusMode && isActive;
+  const showNoChange = shouldShowNoChangeReminder(companion.consecutiveNoChangeSets);
+  const blsMinimised = companion.phase === 'history' && !blsManualOpen;
+  const infinityMode = session.state.visualMode === 'infinity';
 
   const applyPhasePreset = useCallback(
     (phase: EMDRPhase, force: boolean) => {
       const p = EMDR_PHASE_PRESETS[phase];
-      if (!force && customDirty) {
+      if (!force && timingDirty) {
         setApplyPresetPrompt(phase);
         setCompanion((c) => ({ ...c, phase }));
         return;
       }
-      const cycle = presetCycleMs(p.speedPreset);
-      const speedPatch = withSpeed01(session.stateRef.current, (5000 - cycle) / (5000 - 550));
-      session.patchState({
-        ...speedPatch,
-        visualMode: p.trajectory,
-        visualEnabled: p.blsActive,
-        setMode: p.continuous ? 'continuous' : p.durationSeconds ? 'timed' : 'passes',
-        continuous: !!p.continuous,
-        targetPasses: p.passes,
-        targetSeconds: p.durationSeconds ?? 15,
-        running: false,
-        paused: false,
-      });
-      setCustomDirty(false);
+      const patch = phaseTimingPatch(p, session.stateRef.current);
+      session.patchState(patch);
+      setTimingDirty(false);
       setCompanion((c) => ({ ...c, phase }));
       setApplyPresetPrompt(null);
+      if (phase === 'closure' && p.trajectory === 'infinity') {
+        setHelpOpen(true);
+      }
     },
-    [customDirty, session],
+    [timingDirty, session],
   );
 
   const recordResponse = (response: SetResponse, note?: string) => {
@@ -168,7 +213,7 @@ export function SessionCompanionPage() {
         (s) => Math.abs(s.cycleDurationMs - session.state.cycleDurationMs) < 200,
       )?.id,
       targetPasses: session.state.targetPasses,
-      completedPasses: lastCompleted?.passes ?? metricsPasses(session.metrics.passes),
+      completedPasses: lastCompleted?.passes ?? session.metrics.passes,
       targetDurationSeconds: session.state.targetSeconds,
       completedDurationSeconds: Math.round((lastCompleted?.durationMs ?? 0) / 1000),
       continuous: session.state.continuous,
@@ -199,89 +244,108 @@ export function SessionCompanionPage() {
     setCompanion((c) => ({ ...c, target: { ...c.target, ...partial } }));
   };
 
+  const patchCompanion = (partial: Partial<CompanionSessionState>) => {
+    setCompanion((c) => ({ ...c, ...partial }));
+  };
+
+  const onBlsChange = (partial: Partial<RoomState>) => {
+    if (partial.visualMode !== undefined && isActive && partial.visualMode !== session.state.visualMode) {
+      return; // blocked — UI shows pause message
+    }
+    if (
+      partial.speed01 !== undefined ||
+      partial.targetPasses !== undefined ||
+      partial.targetSeconds !== undefined ||
+      partial.continuous !== undefined ||
+      partial.setMode !== undefined
+    ) {
+      setTimingDirty(true);
+    }
+    session.patchState(partial);
+  };
+
   const formatElapsed = (ms: number) => {
     const s = Math.floor(ms / 1000);
     const m = Math.floor(s / 60);
     return `${m}:${String(s % 60).padStart(2, '0')}`;
   };
 
-  useEffect(() => {
-    if (session.state.visualMode === 'infinity') {
-      setHelpOpen(true);
-    }
+  const trajectoryLabel = useMemo(() => {
+    const map: Record<string, string> = {
+      horizontal: 'Horizontal',
+      'diagonal-up': 'Diagonal ↗︎',
+      'diagonal-down': 'Diagonal ↖︎',
+      vertical: 'Vertical',
+      infinity: 'Infinity ∞',
+      blink: 'Blink',
+    };
+    return map[session.state.visualMode] ?? session.state.visualMode;
   }, [session.state.visualMode]);
 
-  const showNoChange = shouldShowNoChangeReminder(companion.consecutiveNoChangeSets);
-
-  const isActive = session.state.running && !session.state.paused;
-  const hideForms = focusMode || isActive;
-
-  const sudHistory = useMemo(
-    () => companion.sets.filter((s) => s.sud != null).map((s) => s.sud as number),
-    [companion.sets],
-  );
-
   return (
-    <div className={`companion ${focusMode ? 'is-focus' : ''}`}>
-      <header className="companion-top">
-        <div className="companion-title">
-          <Link to="/" className="brand compact">
-            <span className="brand-mark" aria-hidden />
-            <span>
-              <strong>Pathfinder</strong> EMDR
+    <div className={`companion companion-v3 ${focusMode ? 'is-focus' : ''}`}>
+      {!hideForms && (
+        <header className="companion-top">
+          <div className="companion-brand">
+            <Link to="/" className="brand">
+              <span className="brand-mark" aria-hidden />
+              <span>
+                <strong>Pathfinder</strong> EMDR
+              </span>
+            </Link>
+            <input
+              className="session-ref"
+              value={companion.referenceLabel}
+              onChange={(e) => setCompanion((c) => ({ ...c, referenceLabel: e.target.value }))}
+              aria-label="Session reference"
+            />
+          </div>
+          <div className="companion-meta">
+            <span className="timer" title="Session elapsed">
+              Session {formatElapsed(sessionElapsed)}
             </span>
-          </Link>
-          <input
-            className="session-ref"
-            value={companion.referenceLabel}
-            onChange={(e) => setCompanion((c) => ({ ...c, referenceLabel: e.target.value }))}
-            aria-label="Session reference"
-          />
-        </div>
-        <div className="companion-meta">
-          <span>{PHASE_LABELS[companion.phase]}</span>
-          <span className="timer" aria-label="Session elapsed">
-            {formatElapsed(sessionElapsed)}
-          </span>
-          <button type="button" className="btn" onClick={() => setHelpOpen((v) => !v)}>
-            {helpOpen ? 'Hide Help' : 'Help & Scripts'}
-          </button>
-          <Link className="btn ghost" to="/resources">
-            Library
-          </Link>
-          <Link className="btn ghost" to="/tools">
-            BLS Studio
-          </Link>
-          <Link className="btn ghost" to="/account">
-            Account
-          </Link>
-        </div>
-      </header>
+            <span className="timer" title="Current set">
+              Set {session.formatTime(session.metrics.timeMs)}
+            </span>
+            <button type="button" className="btn" onClick={() => setHelpOpen((v) => !v)}>
+              {helpOpen ? 'Hide Help' : 'Help & Scripts'}
+            </button>
+            <Link className="btn ghost" to="/resources">
+              Library
+            </Link>
+            <Link className="btn ghost" to="/tools">
+              BLS Studio
+            </Link>
+          </div>
+        </header>
+      )}
 
-      <nav className="phase-nav" aria-label="EMDR phases">
-        {PHASES.map((p) => (
-          <button
-            key={p}
-            type="button"
-            className={companion.phase === p ? 'is-active' : ''}
-            onClick={() => applyPhasePreset(p, false)}
-          >
-            {PHASE_LABELS[p]}
-          </button>
-        ))}
-      </nav>
+      {!hideForms && (
+        <nav className="phase-nav phase-nav-v3" aria-label="EMDR phases">
+          {PHASES.map((p) => (
+            <button
+              key={p}
+              type="button"
+              className={companion.phase === p ? 'is-active' : ''}
+              onClick={() => applyPhasePreset(p, false)}
+            >
+              {PHASE_LABELS[p]}
+            </button>
+          ))}
+        </nav>
+      )}
 
       {applyPresetPrompt && (
         <div className="banner soft">
           <span>
-            Phase changed. Apply suggested preset for {PHASE_LABELS[applyPresetPrompt]}?
+            Use suggested {PHASE_LABELS[applyPresetPrompt]} timing preset? Appearance stays the same.
           </span>
           <button
             type="button"
             className="btn primary"
             onClick={() => applyPhasePreset(applyPresetPrompt, true)}
           >
-            Use phase preset
+            Use suggested preset
           </button>
           <button type="button" className="btn ghost" onClick={() => setApplyPresetPrompt(null)}>
             Keep current settings
@@ -306,7 +370,6 @@ export function SessionCompanionPage() {
                 .filter(Boolean)
                 .join(' · ') || '—'}
             </p>
-            <p className="hint">Processing history is preserved in Set history.</p>
           </div>
           <button type="button" className="btn ghost" onClick={() => setReturnToTargetOpen(false)}>
             Dismiss
@@ -317,49 +380,77 @@ export function SessionCompanionPage() {
       <div className={`companion-body ${helpOpen ? 'with-help' : ''}`}>
         {!hideForms && (
           <aside className="companion-side">
-            <PhasePanel
+            <ClinicalPhasePanel
               phase={companion.phase}
+              companion={companion}
               target={companion.target}
               onTarget={updateTarget}
-              onBeginReprocessing={() => applyPhasePreset('desensitisation', true)}
+              onCompanion={patchCompanion}
+              onBeginDesensitisation={() => applyPhasePreset('desensitisation', true)}
               why={preset.why}
               whyOpen={whyOpen}
               onToggleWhy={() => setWhyOpen((v) => !v)}
               stopSignalEstablished={stopSignalEstablished}
-              onStopSignal={(v) => setStopSignalEstablished(v)}
+              onStopSignal={setStopSignalEstablished}
               onFocusField={setFocusField}
               onOpenHelp={() => setHelpOpen(true)}
+              onSelectInfinity={() => {
+                session.patchState({
+                  ...phaseTimingPatch(EMDR_PHASE_PRESETS.closure, session.stateRef.current, {
+                    forceTrajectory: true,
+                  }),
+                  visualMode: 'infinity',
+                });
+                setHelpOpen(true);
+              }}
             />
 
-            <div className="panel">
-              <h2>Set history</h2>
-              {companion.sets.length === 0 && <p className="hint">No sets yet.</p>}
-              <ul className="set-history">
-                {[...companion.sets].reverse().map((s, i) => (
-                  <li key={s.id}>
-                    <strong>{companion.sets.length - i}</strong>
-                    <span>{s.mode}</span>
-                    <span>{s.completedPasses}p</span>
-                    <span>{s.response ?? '—'}</span>
-                  </li>
-                ))}
-              </ul>
-              {sudHistory.length > 0 && (
-                <p className="hint">
-                  SUD trail: {companion.target.initialSUD ?? '—'} → {sudHistory.join(' → ')} →{' '}
-                  {companion.target.currentSUD ?? '—'}
-                </p>
-              )}
-            </div>
+            {companion.sets.length > 0 && (
+              <div className="panel">
+                <h2>Set history</h2>
+                <table className="set-table">
+                  <thead>
+                    <tr>
+                      <th>SET</th>
+                      <th>MODE</th>
+                      <th>PASSES</th>
+                      <th>RESPONSE</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {companion.sets.map((s, i) => (
+                      <tr key={s.id}>
+                        <td>{String(i + 1).padStart(2, '0')}</td>
+                        <td>{s.mode}</td>
+                        <td>{s.completedPasses}</td>
+                        <td>{s.response ?? '—'}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+            {companion.sets.length === 0 && (
+              <p className="hint empty-sets">No sets recorded yet.</p>
+            )}
           </aside>
         )}
 
         <section className="companion-stage">
-          <BlsStage
-            attachCanvas={session.attachCanvas}
-            label={focusMode ? undefined : 'BLS'}
-            fullscreen={focusMode}
-          />
+          {!blsMinimised ? (
+            <BlsStage
+              attachCanvas={session.attachCanvas}
+              label={focusMode ? undefined : 'BLS'}
+              fullscreen={focusMode}
+            />
+          ) : (
+            <div className="bls-minimised">
+              <p>BLS is not routinely used during this phase.</p>
+              <button type="button" className="btn" onClick={() => setBlsManualOpen(true)}>
+                Open BLS manually
+              </button>
+            </div>
+          )}
           {isActive && (
             <div className="live-hud">
               <span>{session.formatTime(session.metrics.timeMs)}</span>
@@ -373,149 +464,189 @@ export function SessionCompanionPage() {
 
         {!hideForms && (
           <aside className="companion-controls">
-            <div className="panel">
-              <h2>BLS controls</h2>
-              <p className="hint">Suggested starting point — adjust clinically.</p>
-              {preset.suggestedPassRange && (
-                <p className="hint">
-                  Suggested passes: ~{preset.suggestedPassRange[0]}–
-                  {preset.suggestedPassRange[1]}
+            {infinityMode ? (
+              <div className="panel infinity-panel">
+                <h2>Infinity / De-arousal</h2>
+                <p className="hint">Very slow · Suggested starting point — adjust clinically</p>
+                <p>
+                  Duration <strong>{session.state.targetSeconds ?? 15} sec</strong>
                 </p>
-              )}
-
-              <label className="field">
-                <span>Slower ←——→ Faster</span>
-                <input
-                  type="range"
-                  min={0}
-                  max={1}
-                  step={0.01}
-                  value={session.state.speed01}
-                  onChange={(e) => {
-                    session.patchState({ speed01: Number(e.target.value) });
-                    setCustomDirty(true);
-                  }}
-                />
-              </label>
-
-              <label className="field">
-                <span>Passes {session.state.targetPasses ?? 30}</span>
-                <input
-                  type="range"
-                  min={4}
-                  max={60}
-                  value={session.state.targetPasses ?? 30}
-                  onChange={(e) => {
-                    session.patchState({
-                      targetPasses: Number(e.target.value),
-                      setMode: 'passes',
-                      continuous: false,
-                    });
-                    setCustomDirty(true);
-                  }}
-                />
-              </label>
-
-              {(companion.phase === 'closure' || session.state.visualMode === 'infinity') && (
-                <>
-                  <label className="field">
-                    <span>Duration {session.state.targetSeconds ?? 15}s</span>
-                    <input
-                      type="range"
-                      min={10}
-                      max={30}
-                      value={session.state.targetSeconds ?? 15}
-                      onChange={(e) =>
-                        session.patchState({
-                          targetSeconds: Number(e.target.value),
-                          setMode: 'timed',
-                        })
-                      }
-                    />
-                  </label>
-                  <div className="segmented">
-                    <button
-                      type="button"
-                      className={session.state.midlineDirection === 'up' ? 'is-active' : ''}
-                      onClick={() => session.patchState({ midlineDirection: 'up' })}
-                    >
-                      Up midline
-                    </button>
-                    <button
-                      type="button"
-                      className={session.state.midlineDirection === 'down' ? 'is-active' : ''}
-                      onClick={() => session.patchState({ midlineDirection: 'down' })}
-                    >
-                      Down midline
-                    </button>
-                  </div>
-                </>
-              )}
-
-              <label className="toggle block">
-                <input
-                  type="checkbox"
-                  checked={session.state.continuous}
-                  onChange={(e) =>
-                    session.patchState({
-                      continuous: e.target.checked,
-                      setMode: e.target.checked ? 'continuous' : 'passes',
-                    })
-                  }
-                />
-                <span>Continuous</span>
-              </label>
-
-              <div className="stack-btns">
+                <div className="segmented">
+                  <button
+                    type="button"
+                    className={session.state.midlineDirection === 'up' ? 'is-active' : ''}
+                    onClick={() => session.patchState({ midlineDirection: 'up' })}
+                  >
+                    Up through centre
+                  </button>
+                  <button
+                    type="button"
+                    className={session.state.midlineDirection === 'down' ? 'is-active' : ''}
+                    onClick={() => session.patchState({ midlineDirection: 'down' })}
+                  >
+                    Down through centre
+                  </button>
+                </div>
                 {!session.state.running ? (
                   <button
                     type="button"
-                    className="btn primary"
-                    disabled={!preset.blsActive && companion.phase === 'history'}
+                    className="btn primary large"
                     onClick={() => {
                       setAwaitingFeedback(false);
                       setFocusMode(true);
                       void session.start();
                     }}
                   >
-                    Start Set
+                    Start Infinity set
                   </button>
                 ) : (
-                  <>
+                  <div className="stack-btns">
                     <button
                       type="button"
-                      className="btn"
+                      className="btn large"
                       onClick={() => (session.state.paused ? void session.resume() : session.pause())}
                     >
                       {session.state.paused ? 'Resume' : 'Pause'}
                     </button>
-                    <button type="button" className="btn danger" onClick={() => session.stop()}>
+                    <button type="button" className="btn danger large" onClick={() => session.stop()}>
                       Stop
                     </button>
-                  </>
+                  </div>
                 )}
-                <button type="button" className="btn" onClick={() => setHelpOpen(true)}>
-                  Help & Scripts
-                </button>
-                <button
-                  type="button"
-                  className="btn ghost"
-                  onClick={() => setFocusMode((v) => !v)}
-                >
-                  {focusMode ? 'Exit focus' : 'Focus Mode'}
-                </button>
-                <button
-                  type="button"
-                  className="btn ghost"
-                  onClick={() => void document.documentElement.requestFullscreen?.()}
-                >
-                  Fullscreen
-                </button>
               </div>
-              <p className="hint">Space start/pause · Esc stop · ↑↓ speed</p>
-            </div>
+            ) : (
+              <div className="panel bls-compact">
+                <h2>BLS</h2>
+                <p className="bls-summary">
+                  {trajectoryLabel}
+                  <br />
+                  {session.state.continuous
+                    ? 'Continuous'
+                    : session.state.setMode === 'timed'
+                      ? `${session.state.targetSeconds ?? 15} sec`
+                      : `${session.state.targetPasses ?? 30} passes`}
+                </p>
+                <p className="hint">{preset.why}</p>
+                <button type="button" className="btn ghost" onClick={() => setWhyOpen((v) => !v)}>
+                  Why this preset?
+                </button>
+                {whyOpen && <p className="hint why">{preset.why}</p>}
 
-            {awaitingFeedback && (
+                <label className="field speed-field">
+                  <span>Speed · Slower ←——→ Faster</span>
+                  <input
+                    type="range"
+                    min={0}
+                    max={1}
+                    step={0.01}
+                    value={session.state.speed01}
+                    onChange={(e) => {
+                      session.patchState({ speed01: Number(e.target.value) });
+                      setTimingDirty(true);
+                    }}
+                  />
+                </label>
+
+                {!awaitingFeedback && (
+                  <div className="stack-btns">
+                    {!session.state.running ? (
+                      <button
+                        type="button"
+                        className="btn primary large"
+                        disabled={blsMinimised || (!preset.blsActive && companion.phase === 'assessment')}
+                        onClick={() => {
+                          setAwaitingFeedback(false);
+                          setFocusMode(true);
+                          void session.start();
+                        }}
+                      >
+                        Start Set
+                      </button>
+                    ) : (
+                      <>
+                        <button
+                          type="button"
+                          className="btn large"
+                          onClick={() =>
+                            session.state.paused ? void session.resume() : session.pause()
+                          }
+                        >
+                          {session.state.paused ? 'Resume' : 'Pause'}
+                        </button>
+                        <button
+                          type="button"
+                          className="btn danger large"
+                          onClick={() => session.stop()}
+                        >
+                          Stop
+                        </button>
+                      </>
+                    )}
+                    <button
+                      type="button"
+                      className="btn"
+                      onClick={() => setBlsSettingsOpen((v) => !v)}
+                    >
+                      {blsSettingsOpen ? 'Hide BLS Settings' : 'BLS Settings'}
+                    </button>
+                    <button type="button" className="btn" onClick={() => setHelpOpen(true)}>
+                      Help & Scripts
+                    </button>
+                    <button
+                      type="button"
+                      className="btn ghost"
+                      onClick={() => setFocusMode((v) => !v)}
+                    >
+                      {focusMode ? 'Exit focus' : 'Focus Mode'}
+                    </button>
+                    <button
+                      type="button"
+                      className="btn ghost"
+                      onClick={() => {
+                        setClientPreview(true);
+                        window.open(
+                          '/tools?clientView=1',
+                          'pf-emdr-client',
+                          'popup=yes,width=1024,height=720',
+                        );
+                      }}
+                    >
+                      Client Preview
+                    </button>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {blsSettingsOpen && !awaitingFeedback && (
+              <div className="panel bls-settings-expanded">
+                <h2>BLS Settings</h2>
+                <p className="hint">
+                  Live-safe: speed, colour, size, background, volume. Pause to change trajectory.
+                </p>
+                <BlsConfigurationPanel
+                  state={session.state}
+                  onChange={onBlsChange}
+                  section="all"
+                  running={isActive}
+                  compact
+                />
+                {session.state.running && (
+                  <button
+                    type="button"
+                    className="btn"
+                    onClick={() => {
+                      session.stop();
+                      void session.start();
+                    }}
+                  >
+                    Restart Set
+                  </button>
+                )}
+              </div>
+            )}
+
+            {awaitingFeedback && !infinityMode && (
               <div className="panel check-in">
                 <h2>What are you noticing now?</h2>
                 <div className="chip-grid">
@@ -523,9 +654,9 @@ export function SessionCompanionPage() {
                     [
                       ['change', 'Change / new material'],
                       ['no-change', 'No change'],
-                      ['positive', 'Positive / adaptive'],
-                      ['distress', 'Increased distress'],
-                      ['pause', 'Need to pause'],
+                      ['positive', 'Positive material'],
+                      ['distress', 'Increased disturbance'],
+                      ['pause', 'Pause'],
                       ['return-to-target', 'Return to target'],
                     ] as const
                   ).map(([id, label]) => (
@@ -541,55 +672,87 @@ export function SessionCompanionPage() {
                 </div>
                 <button
                   type="button"
-                  className="btn primary"
+                  className="btn primary large"
                   onClick={() => {
                     setAwaitingFeedback(false);
                     setFocusMode(true);
                     void session.start();
                   }}
                 >
-                  Start another set
+                  Continue processing
                 </button>
               </div>
             )}
 
-            {(companion.phase === 'closure' || session.state.visualMode === 'infinity') &&
-              awaitingFeedback && (
-                <div className="panel">
-                  <h2>Check in with client</h2>
-                  <div className="stack-btns">
-                    <button
-                      type="button"
-                      className="btn primary"
-                      onClick={() => {
-                        setAwaitingFeedback(false);
-                        void session.start();
-                      }}
-                    >
-                      Repeat
-                    </button>
-                    <button
-                      type="button"
-                      className="btn"
-                      onClick={() =>
-                        session.patchState({
-                          midlineDirection:
-                            session.state.midlineDirection === 'up' ? 'down' : 'up',
-                        })
-                      }
-                    >
-                      Reverse midline direction
-                    </button>
-                    <button
-                      type="button"
-                      className="btn ghost"
-                      onClick={() => setAwaitingFeedback(false)}
-                    >
-                      Finish
-                    </button>
-                  </div>
+            {awaitingFeedback && infinityMode && (
+              <div className="panel check-in">
+                <h2>Check in with client</h2>
+                <div className="stack-btns">
+                  <button
+                    type="button"
+                    className="btn primary large"
+                    onClick={() => {
+                      setAwaitingFeedback(false);
+                      void session.start();
+                    }}
+                  >
+                    Repeat
+                  </button>
+                  <button
+                    type="button"
+                    className="btn"
+                    onClick={() =>
+                      session.patchState({
+                        midlineDirection:
+                          session.state.midlineDirection === 'up' ? 'down' : 'up',
+                      })
+                    }
+                  >
+                    Reverse direction
+                  </button>
+                  <button
+                    type="button"
+                    className="btn"
+                    onClick={() => setBlsSettingsOpen(true)}
+                  >
+                    Adjust
+                  </button>
+                  <button
+                    type="button"
+                    className="btn ghost"
+                    onClick={() => setAwaitingFeedback(false)}
+                  >
+                    Finish
+                  </button>
                 </div>
-              )}
+              </div>
+            )}
+          </aside>
+        )}
+
+        {focusMode && isActive && (
+          <aside className="focus-controls">
+            <label className="field">
+              <span>Speed</span>
+              <input
+                type="range"
+                min={0}
+                max={1}
+                step={0.01}
+                value={session.state.speed01}
+                onChange={(e) => session.patchState({ speed01: Number(e.target.value) })}
+              />
+            </label>
+            <button
+              type="button"
+              className="btn large"
+              onClick={() => (session.state.paused ? void session.resume() : session.pause())}
+            >
+              {session.state.paused ? 'Resume' : 'Pause'}
+            </button>
+            <button type="button" className="btn danger large" onClick={() => session.stop()}>
+              Stop
+            </button>
           </aside>
         )}
 
@@ -599,7 +762,7 @@ export function SessionCompanionPage() {
           phase={companion.phase}
           awaitingFeedback={awaitingFeedback}
           consecutiveNoChange={companion.consecutiveNoChangeSets}
-          infinityMode={session.state.visualMode === 'infinity'}
+          infinityMode={infinityMode}
           focusField={focusField}
           lastResponse={lastResponse}
           processingActive={isActive}
@@ -609,298 +772,10 @@ export function SessionCompanionPage() {
   );
 }
 
-function metricsPasses(n: number): number {
-  return n;
-}
-
-function PhasePanel({
-  phase,
-  target,
-  onTarget,
-  onBeginReprocessing,
-  why,
-  whyOpen,
-  onToggleWhy,
-  stopSignalEstablished,
-  onStopSignal,
-  onFocusField,
-  onOpenHelp,
-}: {
-  phase: EMDRPhase;
-  target: AssessmentTarget;
-  onTarget: (p: Partial<AssessmentTarget>) => void;
-  onBeginReprocessing: () => void;
-  why: string;
-  whyOpen: boolean;
-  onToggleWhy: () => void;
-  stopSignalEstablished: boolean;
-  onStopSignal: (v: boolean) => void;
-  onFocusField: (f: 'sud' | 'voc' | 'nc' | null) => void;
-  onOpenHelp: () => void;
-}) {
-  return (
-    <div className="panel">
-      <div className="panel-head">
-        <h2>Target</h2>
-        <button type="button" className="btn ghost" onClick={onToggleWhy}>
-          Why this preset?
-        </button>
-      </div>
-      {whyOpen && <p className="hint why">{why}</p>}
-
-      {phase === 'preparation' && (
-        <label className="toggle block">
-          <input
-            type="checkbox"
-            checked={stopSignalEstablished}
-            onChange={(e) => onStopSignal(e.target.checked)}
-          />
-          <span>Stop signal established</span>
-        </label>
-      )}
-
-      {(phase === 'history' || phase === 'assessment' || phase === 'desensitisation') && (
-        <>
-          {phase === 'history' && (
-            <p className="hint">BLS not normally required during this phase.</p>
-          )}
-          <Field
-            label="Target / image"
-            value={target.image ?? ''}
-            onChange={(v) => onTarget({ image: v })}
-          />
-          <Field
-            label="Negative Cognition"
-            value={target.negativeCognition ?? ''}
-            onChange={(v) => onTarget({ negativeCognition: v })}
-            onFocus={() => {
-              onFocusField('nc');
-              onOpenHelp();
-            }}
-          />
-          <Field
-            label="Positive Cognition"
-            value={target.positiveCognition ?? ''}
-            onChange={(v) => onTarget({ positiveCognition: v })}
-          />
-          <Scale
-            label="SUD 0–10"
-            min={0}
-            max={10}
-            value={target.currentSUD ?? target.initialSUD}
-            onChange={(v) =>
-              onTarget({
-                currentSUD: v,
-                initialSUD: target.initialSUD ?? v,
-              })
-            }
-            onFocus={() => {
-              onFocusField('sud');
-              onOpenHelp();
-            }}
-          />
-          <Scale
-            label="VOC 1–7"
-            min={1}
-            max={7}
-            value={target.currentVOC ?? target.initialVOC}
-            onChange={(v) =>
-              onTarget({
-                currentVOC: v,
-                initialVOC: target.initialVOC ?? v,
-              })
-            }
-            onFocus={() => {
-              onFocusField('voc');
-              onOpenHelp();
-            }}
-          />
-          <Field
-            label="Emotions"
-            value={target.emotion ?? ''}
-            onChange={(v) => onTarget({ emotion: v })}
-          />
-          <Field
-            label="Body location / sensation"
-            value={target.bodyLocation ?? ''}
-            onChange={(v) => onTarget({ bodyLocation: v })}
-          />
-          {phase === 'assessment' && (
-            <button type="button" className="btn primary" onClick={onBeginReprocessing}>
-              Begin Desensitisation
-            </button>
-          )}
-        </>
-      )}
-
-      {phase === 'installation' && (
-        <>
-          <Scale
-            label="Current VOC 1–7"
-            min={1}
-            max={7}
-            value={target.currentVOC}
-            onChange={(v) => onTarget({ currentVOC: v })}
-            onFocus={() => {
-              onFocusField('voc');
-              onOpenHelp();
-            }}
-          />
-          <label className="toggle block">
-            <input
-              type="checkbox"
-              checked={!!target.ecologicalVOC}
-              onChange={(e) => onTarget({ ecologicalVOC: e.target.checked })}
-            />
-            <span>Ecologically appropriate VOC</span>
-          </label>
-        </>
-      )}
-
-      {phase === 'body-scan' && (
-        <>
-          <Field
-            label="Body sensation"
-            value={target.bodyLocation ?? ''}
-            onChange={(v) => onTarget({ bodyLocation: v })}
-          />
-          <div className="chip-grid">
-            {['Clear / neutral', 'Positive sensation', 'Residual disturbance', 'New association'].map(
-              (label) => (
-                <button
-                  key={label}
-                  type="button"
-                  className="chip"
-                  onClick={() => onTarget({ bodyLocation: label })}
-                >
-                  {label}
-                </button>
-              ),
-            )}
-          </div>
-        </>
-      )}
-
-      {phase === 'future-template' && (
-        <>
-          <Field
-            label="Future scenario"
-            value={target.title ?? ''}
-            onChange={(v) => onTarget({ title: v })}
-          />
-          <Field
-            label="Desired response / PC"
-            value={target.positiveCognition ?? ''}
-            onChange={(v) => onTarget({ positiveCognition: v })}
-          />
-          <Scale
-            label="VOC 1–7"
-            min={1}
-            max={7}
-            value={target.currentVOC}
-            onChange={(v) => onTarget({ currentVOC: v })}
-          />
-        </>
-      )}
-
-      {phase === 'reevaluation' && (
-        <>
-          <Scale
-            label="Current SUD"
-            min={0}
-            max={10}
-            value={target.currentSUD}
-            onChange={(v) => onTarget({ currentSUD: v })}
-            onFocus={() => {
-              onFocusField('sud');
-              onOpenHelp();
-            }}
-          />
-          <Scale
-            label="Current VOC"
-            min={1}
-            max={7}
-            value={target.currentVOC}
-            onChange={(v) => onTarget({ currentVOC: v })}
-          />
-          <Field
-            label="Changes since previous session"
-            value={target.memory ?? ''}
-            onChange={(v) => onTarget({ memory: v })}
-          />
-        </>
-      )}
-
-      {phase === 'closure' && (
-        <p className="hint">
-          Options: Resource, Grounding, Container, Safe/Calm State, Infinity ∞, Manual BLS, or No
-          BLS — select Infinity trajectory in controls for de-arousal.
-        </p>
-      )}
-
-      {phase === 'preparation' && (
-        <button type="button" className="btn ghost" onClick={onOpenHelp}>
-          Open Safe/Calm Place & Container help
-        </button>
-      )}
-    </div>
-  );
-}
-
-function Field({
-  label,
-  value,
-  onChange,
-  onFocus,
-}: {
-  label: string;
-  value: string;
-  onChange: (v: string) => void;
-  onFocus?: () => void;
-}) {
-  return (
-    <label className="field">
-      <span>{label}</span>
-      <input
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-        onFocus={onFocus}
-      />
-    </label>
-  );
-}
-
-function Scale({
-  label,
-  min,
-  max,
-  value,
-  onChange,
-  onFocus,
-}: {
-  label: string;
-  min: number;
-  max: number;
-  value?: number;
-  onChange: (v: number) => void;
-  onFocus?: () => void;
-}) {
-  return (
-    <div className="scale-block" onFocus={onFocus}>
-      <span>{label}</span>
-      <div className="scale-btns">
-        {Array.from({ length: max - min + 1 }, (_, i) => min + i).map((n) => (
-          <button
-            key={n}
-            type="button"
-            className={value === n ? 'chip is-active' : 'chip'}
-            onClick={() => onChange(n)}
-            onFocus={onFocus}
-          >
-            {n}
-          </button>
-        ))}
-      </div>
-    </div>
-  );
+function snapshotBls(state: RoomState): Partial<RoomState> {
+  const { running: _r, paused: _p, sequence: _s, ...rest } = state;
+  void _r;
+  void _p;
+  void _s;
+  return rest;
 }
