@@ -1441,3 +1441,93 @@ body {
     overflow-x: auto;
   }
 }
+
+/* ——— BLS Guidance in scripts ——— */
+.bls-guide {
+  margin-top: 0.85rem;
+  padding: 0.75rem 0.85rem;
+  border-radius: 10px;
+  border: 1px solid var(--pf-border);
+  background: #f7fafb;
+}
+
+.bls-guide-status {
+  display: inline-block;
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  padding: 0.2rem 0.55rem;
+  border-radius: 6px;
+  background: #e8eef0;
+  color: var(--pf-text-muted);
+}
+
+.bls-guide.status-use .bls-guide-status {
+  background: color-mix(in srgb, var(--pf-primary) 18%, #fff);
+  color: var(--pf-primary);
+}
+
+.bls-guide.status-optional .bls-guide-status {
+  background: #e8eef5;
+  color: #3d5a73;
+}
+
+.bls-guide.status-not-yet .bls-guide-status,
+.bls-guide.status-not-required .bls-guide-status,
+.bls-guide.status-paused-between-sets .bls-guide-status {
+  background: #eceff1;
+  color: #546e7a;
+}
+
+.bls-guide.status-do-not-continue .bls-guide-status,
+.bls-guide.status-pause-reassess .bls-guide-status {
+  background: #fff4e5;
+  color: #9a6700;
+}
+
+.bls-guide-title {
+  margin: 0.5rem 0 0.35rem;
+  font-size: 0.98rem;
+  font-weight: 600;
+}
+
+.bls-guide-rationale,
+.bls-guide-preset {
+  margin: 0.35rem 0;
+  font-size: 0.92rem;
+  line-height: 1.4;
+}
+
+.bls-guide-list {
+  margin: 0.4rem 0;
+  padding-left: 1.15rem;
+  font-size: 0.9rem;
+}
+
+.bls-guide-caution {
+  margin: 0.5rem 0;
+  padding: 0.5rem 0.65rem;
+  border-radius: 8px;
+  background: #fff8ef;
+  border-left: 3px solid #c9852a;
+  font-size: 0.9rem;
+}
+
+.bls-guide-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  margin-top: 0.55rem;
+}
+
+.bls-guide-never {
+  margin: 0.45rem 0 0;
+}
+
+.help-drawer.is-minimised {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  padding: 0.75rem;
+  min-width: 180px;
+}

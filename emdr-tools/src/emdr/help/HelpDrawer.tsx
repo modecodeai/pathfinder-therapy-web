@@ -1,6 +1,11 @@
 import { useEffect, useMemo, useState } from 'react';
 import type { EMDRPhase, SetResponse } from '../types/emdr';
-import { contextualScriptIds, getScriptById } from './library';
+import {
+  contextualScriptIds,
+  getScriptById,
+  resolveBlsGuidance,
+} from './library';
+import type { BlsGuidanceContext, ClinicalBlsPresetId } from './blsGuidanceTypes';
 import {
   loadFavourites,
   loadHelpNotes,
@@ -18,8 +23,10 @@ interface HelpDrawerProps {
   infinityMode?: boolean;
   focusField?: 'sud' | 'voc' | 'nc' | null;
   lastResponse?: SetResponse | null;
-  /** During active BLS, keep drawer available but prefer quick mode */
   processingActive?: boolean;
+  guidanceContext?: BlsGuidanceContext;
+  onLoadBlsPreset?: (presetId: ClinicalBlsPresetId) => void;
+  onOpenBlsSettings?: () => void;
 }
 
 export function HelpDrawer({
@@ -32,11 +39,15 @@ export function HelpDrawer({
   focusField,
   lastResponse,
   processingActive,
+  guidanceContext,
+  onLoadBlsPreset,
+  onOpenBlsSettings,
 }: HelpDrawerProps) {
   const [mode, setMode] = useState<'quick' | 'guide'>('quick');
   const [favs, setFavs] = useState<string[]>([]);
   const [notes, setNotes] = useState<Record<string, string>>({});
   const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [minimised, setMinimised] = useState(false);
 
   useEffect(() => {
     setFavs(loadFavourites());
@@ -44,7 +55,12 @@ export function HelpDrawer({
   }, [open]);
 
   useEffect(() => {
-    if (processingActive) setMode('quick');
+    if (processingActive) {
+      setMode('quick');
+      setMinimised(true);
+    } else {
+      setMinimised(false);
+    }
   }, [processingActive]);
 
   const ids = useMemo(
@@ -67,6 +83,32 @@ export function HelpDrawer({
   if (!open) return null;
 
   const active = selectedId ? getScriptById(selectedId) : undefined;
+  const ctx: BlsGuidanceContext = {
+    phase,
+    awaitingFeedback,
+    consecutiveNoChange,
+    infinityMode,
+    lastResponse,
+    processingActive,
+    ...guidanceContext,
+  };
+  const resolved = active
+    ? resolveBlsGuidance(active.id, active.blsGuidance, ctx)
+    : undefined;
+
+  if (minimised && processingActive) {
+    return (
+      <aside className="help-drawer is-minimised" aria-label="Help and scripts">
+        <p className="hint">Help minimised during active BLS</p>
+        <button type="button" className="btn ghost" onClick={() => setMinimised(false)}>
+          Expand Help
+        </button>
+        <button type="button" className="btn ghost" onClick={onClose}>
+          Close
+        </button>
+      </aside>
+    );
+  }
 
   return (
     <aside className="help-drawer" aria-label="Help and scripts">
@@ -127,6 +169,10 @@ export function HelpDrawer({
             saveHelpNote(active.id, note);
             setNotes(loadHelpNotes());
           }}
+          blsGuidance={resolved}
+          onLoadBlsPreset={onLoadBlsPreset}
+          onOpenBlsSettings={onOpenBlsSettings}
+          showBlsSafetyHint={mode === 'guide'}
         />
       )}
 

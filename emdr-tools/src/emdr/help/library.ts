@@ -11,10 +11,26 @@ import {
 import type { EMDRScript } from './types';
 import { HELP_LIBRARY_META } from './types';
 import type { EMDRPhase, SetResponse } from '../types/emdr';
+import { SCRIPT_BLS_GUIDANCE } from './blsGuidanceCatalog';
 
 export { HELP_LIBRARY_META };
+export {
+  resolveBlsGuidance,
+  SCRIPT_BLS_GUIDANCE,
+  clinicalPresetToPhase,
+  PHASE_ACTIVATION_GUIDANCE,
+} from './blsGuidanceCatalog';
+export type { BLSGuidance, BlsGuidanceContext, ClinicalBlsPresetId } from './blsGuidanceTypes';
+export { BLS_STATUS_LABELS } from './blsGuidanceTypes';
 
-export const ALL_SCRIPTS: EMDRScript[] = [
+function enrich(scripts: EMDRScript[]): EMDRScript[] {
+  return scripts.map((s) => ({
+    ...s,
+    blsGuidance: s.blsGuidance ?? SCRIPT_BLS_GUIDANCE[s.id],
+  }));
+}
+
+export const ALL_SCRIPTS: EMDRScript[] = enrich([
   ...PHASE1_SCRIPTS,
   ...PHASE2_SCRIPTS,
   ...PHASE3_SCRIPTS,
@@ -26,7 +42,7 @@ export const ALL_SCRIPTS: EMDRScript[] = [
   ...FUTURE_TEMPLATE_SCRIPTS,
   ...INFINITY_SCRIPTS,
   ...CROSS_PHASE_SCRIPTS,
-];
+]);
 
 export function getScriptById(id: string): EMDRScript | undefined {
   return ALL_SCRIPTS.find((s) => s.id === id);

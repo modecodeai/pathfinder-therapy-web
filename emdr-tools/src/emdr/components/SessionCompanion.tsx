@@ -11,6 +11,8 @@ import {
   shouldShowNoChangeReminder,
 } from '../engine/noChangeTracker';
 import { HelpDrawer } from '../help/HelpDrawer';
+import { clinicalPresetToPhase } from '../help/library';
+import type { ClinicalBlsPresetId } from '../help/blsGuidanceTypes';
 import { useBlsSession } from '../../hooks/useBlsSession';
 import type { RoomState } from '../../types/room';
 import type {
@@ -91,6 +93,7 @@ export function SessionCompanionPage() {
   const [lastResponse, setLastResponse] = useState<SetResponse | null>(null);
   const [blsManualOpen, setBlsManualOpen] = useState(false);
   const [clientPreview, setClientPreview] = useState(false);
+  const [resourceResponse, setResourceResponse] = useState<'positive' | 'negative' | null>(null);
 
   const session = useBlsSession({
     onSetComplete: (m) => {
@@ -118,6 +121,25 @@ export function SessionCompanionPage() {
       }
     },
   });
+
+  const loadClinicalBlsPreset = useCallback(
+    (presetId: ClinicalBlsPresetId) => {
+      if (presetId === 'manual') {
+        setBlsSettingsOpen(true);
+        return;
+      }
+      const { phasePreset, infinity } = clinicalPresetToPhase(presetId);
+      if (!phasePreset) return;
+      const patch = phaseTimingPatch(phasePreset, session.stateRef.current, {
+        forceTrajectory: !!infinity,
+      });
+      session.patchState(patch);
+      setTimingDirty(true);
+      setBlsSettingsOpen(true);
+      // Never starts BLS — therapist must press Start Set
+    },
+    [session],
+  );
 
   // Initialise BLS: handoff → therapist default → resumed snapshot → system
   useEffect(() => {
@@ -403,6 +425,8 @@ export function SessionCompanionPage() {
                 });
                 setHelpOpen(true);
               }}
+              resourceResponse={resourceResponse}
+              onResourceResponse={setResourceResponse}
             />
 
             {companion.sets.length > 0 && (
@@ -766,10 +790,31 @@ export function SessionCompanionPage() {
           focusField={focusField}
           lastResponse={lastResponse}
           processingActive={isActive}
+          guidanceContext={{
+            resourceResponse,
+            bodyScanFinding: bodyScanFindingFromTarget(companion.target.bodyLocation),
+            closurePath: companion.closurePath ?? null,
+            returningToTarget: returnToTargetOpen,
+            obtainingSud: focusField === 'sud' && companion.phase === 'desensitisation',
+          }}
+          onLoadBlsPreset={loadClinicalBlsPreset}
+          onOpenBlsSettings={() => setBlsSettingsOpen(true)}
         />
       </div>
     </div>
   );
+}
+
+function bodyScanFindingFromTarget(
+  body?: string,
+): 'clear' | 'positive' | 'disturbing' | 'new' | null {
+  if (!body) return null;
+  const b = body.toLowerCase();
+  if (b.includes('clear') || b.includes('neutral')) return 'clear';
+  if (b.includes('positive')) return 'positive';
+  if (b.includes('residual') || b.includes('disturb')) return 'disturbing';
+  if (b.includes('new')) return 'new';
+  return null;
 }
 
 function snapshotBls(state: RoomState): Partial<RoomState> {

@@ -19,6 +19,8 @@ interface Props {
   onFocusField: (f: 'sud' | 'voc' | 'nc' | null) => void;
   onOpenHelp: () => void;
   onSelectInfinity: () => void;
+  resourceResponse?: 'positive' | 'negative' | null;
+  onResourceResponse?: (v: 'positive' | 'negative' | null) => void;
 }
 
 export function ClinicalPhasePanel(props: Props) {
@@ -150,6 +152,8 @@ function PreparationPanel({
   stopSignalEstablished,
   onStopSignal,
   onOpenHelp,
+  resourceResponse,
+  onResourceResponse,
 }: Props) {
   return (
     <>
@@ -170,6 +174,23 @@ function PreparationPanel({
         multiline
       />
       <p className="hint">Resource / Stabilisation — Slower · approximately 8 passes</p>
+      <p className="field-label">Safe/Calm response (optional)</p>
+      <div className="chip-grid">
+        <button
+          type="button"
+          className={resourceResponse === 'positive' ? 'chip is-active' : 'chip'}
+          onClick={() => onResourceResponse?.('positive')}
+        >
+          Positive / settling
+        </button>
+        <button
+          type="button"
+          className={resourceResponse === 'negative' ? 'chip is-active' : 'chip'}
+          onClick={() => onResourceResponse?.('negative')}
+        >
+          Activating / disturbing
+        </button>
+      </div>
       <button type="button" className="btn" onClick={onOpenHelp}>
         Open Safe/Calm Place & Container help
       </button>

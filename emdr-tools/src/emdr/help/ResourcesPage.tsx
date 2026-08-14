@@ -146,6 +146,8 @@ export function ResourcesPage() {
                 saveHelpNote(selected.id, note);
                 setNotes(loadHelpNotes());
               }}
+              blsGuidance={selected.blsGuidance}
+              showBlsSafetyHint={mode === 'guide'}
             />
           ) : (
             <p>Select a help card.</p>

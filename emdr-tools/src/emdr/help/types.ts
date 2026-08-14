@@ -1,4 +1,8 @@
 import type { EMDRPhase } from '../types/emdr';
+import type { BLSGuidance } from './blsGuidanceTypes';
+
+export type { BLSGuidance, BlsGuidanceStatus, ClinicalBlsPresetId } from './blsGuidanceTypes';
+export { BLS_STATUS_LABELS } from './blsGuidanceTypes';
 
 export type ScriptCategory =
   | 'standard'
@@ -47,6 +51,8 @@ export interface EMDRScript {
   /** Set when content needs clinician review before relying on it */
   requiresClinicalReview?: boolean;
   quickPromptIds?: string[];
+  /** Explicit BLS guidance for this procedural point */
+  blsGuidance?: BLSGuidance;
 }
 
 export interface HelpLibraryMeta {
@@ -58,7 +64,7 @@ export interface HelpLibraryMeta {
 }
 
 export const HELP_LIBRARY_META: HelpLibraryMeta = {
-  contentVersion: '1.0.0',
+  contentVersion: '1.1.0',
   sourceVersion: 'Part 1 Basic Training Manual / Worksheets 03-2026 (reference framework)',
   status: 'clinical-review',
   reviewedAt: '2026-08-14',

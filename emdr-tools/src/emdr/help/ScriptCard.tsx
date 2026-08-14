@@ -1,5 +1,7 @@
 import type { EMDRScript, ScriptSectionType } from './types';
 import { SECTION_LABELS } from './types';
+import type { BLSGuidance, ClinicalBlsPresetId } from './blsGuidanceTypes';
+import { BlsGuidancePanel } from './BlsGuidancePanel';
 
 interface ScriptCardProps {
   script: EMDRScript;
@@ -9,6 +11,11 @@ interface ScriptCardProps {
   onToggleFavourite?: () => void;
   onNoteChange?: (note: string) => void;
   compact?: boolean;
+  /** Resolved (possibly runtime-overlaid) BLS guidance */
+  blsGuidance?: BLSGuidance;
+  onLoadBlsPreset?: (presetId: ClinicalBlsPresetId) => void;
+  onOpenBlsSettings?: () => void;
+  showBlsSafetyHint?: boolean;
 }
 
 export function ScriptCard({
@@ -19,10 +26,23 @@ export function ScriptCard({
   onToggleFavourite,
   onNoteChange,
   compact,
+  blsGuidance,
+  onLoadBlsPreset,
+  onOpenBlsSettings,
+  showBlsSafetyHint,
 }: ScriptCardProps) {
+  const guidance = blsGuidance ?? script.blsGuidance;
   const sections =
     mode === 'quick'
-      ? script.sections.filter((s) => s.type === 'say' || s.type === 'ask' || s.type === 'decision-point' || s.type === 'caution').slice(0, 6)
+      ? script.sections
+          .filter(
+            (s) =>
+              s.type === 'say' ||
+              s.type === 'ask' ||
+              s.type === 'decision-point' ||
+              s.type === 'caution',
+          )
+          .slice(0, 6)
       : script.sections;
 
   return (
@@ -48,9 +68,7 @@ export function ScriptCard({
         <p className="banner notice">CONTENT_REQUIRES_CLINICAL_REVIEW</p>
       )}
 
-      {mode === 'guide' && script.clinicalNote && (
-        <p className="hint">{script.clinicalNote}</p>
-      )}
+      {mode === 'guide' && script.clinicalNote && <p className="hint">{script.clinicalNote}</p>}
 
       <div className="script-sections">
         {sections.map((sec, i) => (
@@ -71,6 +89,16 @@ export function ScriptCard({
         </div>
       )}
 
+      {guidance && (
+        <BlsGuidancePanel
+          guidance={guidance}
+          mode={mode}
+          onLoadPreset={onLoadBlsPreset}
+          onOpenBlsSettings={onOpenBlsSettings}
+          showGlobalSafetyHint={showBlsSafetyHint}
+        />
+      )}
+
       {onNoteChange && (
         <label className="field">
           <span>My reminder (therapist-only)</span>
@@ -84,9 +112,7 @@ export function ScriptCard({
       )}
 
       {mode === 'guide' && (
-        <p className="script-footer">
-          Based on Pathfinder’s EMDR training reference framework.
-        </p>
+        <p className="script-footer">Based on Pathfinder’s EMDR training reference framework.</p>
       )}
     </article>
   );
