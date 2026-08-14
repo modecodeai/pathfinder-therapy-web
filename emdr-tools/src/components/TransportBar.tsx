@@ -1,78 +1,110 @@
-import { SPEED_MAX_HZ, SPEED_MIN_HZ, SPEED_STEP_HZ } from '../lib/types';
-import type { SessionController } from '../hooks/useSessionController';
+import type { BlsSession } from '../hooks/useBlsSession';
+import {
+  SPEED_MAX_HZ,
+  SPEED_MIN_HZ,
+  SPEED_STEP_HZ,
+} from '../types/room';
 
 interface TransportBarProps {
-  session: SessionController;
-  onFullscreen?: () => void;
+  session: BlsSession;
   onClientView?: () => void;
+  onFullscreen?: () => void;
 }
 
-export function TransportBar({ session, onFullscreen, onClientView }: TransportBarProps) {
-  const { snapshot, pause, stop, setSpeed, formatTime } = session;
-  const running = snapshot.running && !snapshot.paused;
+export function TransportBar({ session, onClientView, onFullscreen }: TransportBarProps) {
+  const { state, metrics, start, pause, resume, stop, patchState, formatTime, resetCounters } =
+    session;
+  const active = state.running && !state.paused;
 
   return (
     <footer className="transport">
-      <div className="transport-stats">
-        <div>
-          <span className="stat-label">Time</span>
-          <strong>{formatTime(snapshot.timeMs)}</strong>
+      <div className="bls-rate">
+        <div className="bls-rate-label">
+          <span>BLS Rate</span>
+          <strong>{state.speedHz.toFixed(1)} Hz</strong>
         </div>
-        <div>
-          <span className="stat-label">Passes</span>
-          <strong>{snapshot.passes}</strong>
-        </div>
-        <div>
-          <span className="stat-label">Sets</span>
-          <strong>{snapshot.sets}</strong>
+        <div className="bls-rate-controls">
+          <button
+            type="button"
+            className="btn icon"
+            aria-label="Decrease rate"
+            onClick={() => patchState({ speedHz: state.speedHz - SPEED_STEP_HZ })}
+          >
+            −
+          </button>
+          <input
+            type="range"
+            min={SPEED_MIN_HZ}
+            max={SPEED_MAX_HZ}
+            step={SPEED_STEP_HZ}
+            value={state.speedHz}
+            aria-label="BLS rate in hertz"
+            onChange={(e) => patchState({ speedHz: Number(e.target.value) })}
+          />
+          <button
+            type="button"
+            className="btn icon"
+            aria-label="Increase rate"
+            onClick={() => patchState({ speedHz: state.speedHz + SPEED_STEP_HZ })}
+          >
+            +
+          </button>
         </div>
       </div>
 
-      <div className="transport-actions">
-        <button type="button" className="btn ghost" onClick={onClientView} title="Open client view">
-          Client view
-        </button>
-        <button type="button" className="btn ghost" onClick={onFullscreen} title="Fullscreen (F)">
-          Fullscreen
-        </button>
-        <button
-          type="button"
-          className="btn"
-          disabled={!snapshot.running || snapshot.paused}
-          onClick={pause}
-        >
-          Pause
-        </button>
-        <button type="button" className="btn danger" onClick={stop} disabled={!snapshot.running && snapshot.timeMs === 0}>
-          Stop
-        </button>
-        <button
-          type="button"
-          className="btn primary play"
-          disabled={snapshot.running && !snapshot.paused}
-          onClick={() => {
-            if (!snapshot.running) void session.start();
-            else if (snapshot.paused) void session.resume();
-          }}
-        >
-          {!snapshot.running ? 'Start' : 'Resume'}
-        </button>
+      <div className="transport-row">
+        <div className="metrics" aria-live="polite">
+          <Metric label="Time" value={formatTime(metrics.timeMs)} />
+          <Metric label="Passes" value={String(metrics.passes)} />
+          <Metric label="Sets" value={String(metrics.sets)} />
+        </div>
+        <div className="transport-actions">
+          <button
+            type="button"
+            className="btn ghost"
+            onClick={() => {
+              if (window.confirm('Reset time, passes and sets counters?')) resetCounters();
+            }}
+          >
+            Reset Counters
+          </button>
+          <button type="button" className="btn ghost" onClick={onClientView}>
+            Client View
+          </button>
+          <button type="button" className="btn ghost" onClick={onFullscreen}>
+            Fullscreen
+          </button>
+          <button type="button" className="btn" disabled={!active} onClick={() => pause()}>
+            Pause
+          </button>
+          <button
+            type="button"
+            className="btn"
+            disabled={!state.running || !state.paused}
+            onClick={() => void resume()}
+          >
+            Resume
+          </button>
+          {!state.running ? (
+            <button type="button" className="btn primary" onClick={() => void start()}>
+              Start Set
+            </button>
+          ) : (
+            <button type="button" className="btn danger" onClick={() => stop()}>
+              Stop
+            </button>
+          )}
+        </div>
       </div>
-
-      <label className="speed-slider">
-        <span>
-          Speed {snapshot.speedHz.toFixed(1)} Hz
-          <em>{running ? ' · live' : ''}</em>
-        </span>
-        <input
-          type="range"
-          min={SPEED_MIN_HZ}
-          max={SPEED_MAX_HZ}
-          step={SPEED_STEP_HZ}
-          value={snapshot.speedHz}
-          onChange={(e) => setSpeed(Number(e.target.value))}
-        />
-      </label>
     </footer>
+  );
+}
+
+function Metric({ label, value }: { label: string; value: string }) {
+  return (
+    <div>
+      <span>{label}</span>
+      <strong>{value}</strong>
+    </div>
   );
 }

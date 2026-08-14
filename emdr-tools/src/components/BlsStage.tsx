@@ -1,18 +1,18 @@
 import { useEffect, useRef } from 'react';
 
-interface StimulusStageProps {
+interface BlsStageProps {
   attachCanvas: (el: HTMLCanvasElement | null) => void;
   label?: string;
   fullscreen?: boolean;
   className?: string;
 }
 
-export function StimulusStage({
+export function BlsStage({
   attachCanvas,
-  label = 'Client preview',
+  label,
   fullscreen = false,
   className = '',
-}: StimulusStageProps) {
+}: BlsStageProps) {
   const ref = useRef<HTMLCanvasElement | null>(null);
 
   useEffect(() => {
@@ -21,9 +21,13 @@ export function StimulusStage({
   }, [attachCanvas]);
 
   return (
-    <div className={`stimulus-stage ${fullscreen ? 'is-fullscreen' : ''} ${className}`.trim()}>
-      <canvas ref={ref} className="stimulus-canvas" aria-label="Bilateral stimulation stage" />
-      {!fullscreen && <span className="stimulus-label">{label}</span>}
+    <div
+      className={`bls-stage ${fullscreen ? 'is-fullscreen' : ''} ${className}`.trim()}
+      role="img"
+      aria-label="Bilateral stimulation stage"
+    >
+      <canvas ref={ref} className="bls-canvas" />
+      {label && !fullscreen && <span className="bls-label">{label}</span>}
     </div>
   );
 }

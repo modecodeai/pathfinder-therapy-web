@@ -15,5 +15,10 @@
     "noUnusedParameters": true,
     "noFallthroughCasesInSwitch": true
   },
-  "include": ["worker", "worker-configuration.d.ts", "src/lib/roomProtocol.ts", "src/lib/types.ts"]
+  "include": [
+    "worker/**/*.ts",
+    "worker-configuration.d.ts",
+    "src/features/remote/protocol.ts",
+    "src/types/room.ts"
+  ]
 }

@@ -2,6 +2,10 @@ name = "pathfinder-emdr-tools"
 compatibility_date = "2025-04-01"
 main = "./worker/index.ts"
 
+routes = [
+  { pattern = "emdr.pathfindertherapy.com", custom_domain = true }
+]
+
 [assets]
 binding = "ASSETS"
 not_found_handling = "single-page-application"

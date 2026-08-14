@@ -1,15 +1,15 @@
 import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom';
-import { AboutPage } from './pages/AboutPage';
-import { JoinPage } from './pages/JoinPage';
-import { LandingPage } from './pages/LandingPage';
-import { ToolsRoute } from './pages/ToolsRoute';
+import { AboutPage } from '../routes/AboutPage';
+import { JoinPage } from '../routes/JoinPage';
+import { LandingPage } from '../routes/LandingPage';
+import { ToolsPage } from '../routes/ToolsPage';
 
 export default function App() {
   return (
     <BrowserRouter>
       <Routes>
         <Route path="/" element={<LandingPage />} />
-        <Route path="/tools" element={<ToolsRoute />} />
+        <Route path="/tools" element={<ToolsPage />} />
         <Route path="/join/:roomId" element={<JoinPage />} />
         <Route path="/about" element={<AboutPage />} />
         <Route path="*" element={<Navigate to="/" replace />} />

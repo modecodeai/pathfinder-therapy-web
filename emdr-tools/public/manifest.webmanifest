@@ -1,11 +1,11 @@
 {
-  "name": "pathfinder-emdr-tools",
+  "name": "Pathfinder EMDR Tools",
   "short_name": "EMDR Tools",
-  "description": "Pathfinder EMDR Tools — clinician-controlled bilateral stimulation",
+  "description": "Bilateral stimulation tools for EMDR therapy",
   "start_url": "/tools",
   "display": "standalone",
-  "background_color": "#0e1418",
-  "theme_color": "#2f6f6a",
+  "background_color": "#F5F7F8",
+  "theme_color": "#0F766E",
   "lang": "en-GB",
   "icons": [
     {
