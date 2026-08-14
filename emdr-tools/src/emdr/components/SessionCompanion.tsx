@@ -7,6 +7,7 @@ import {
   nextNoChangeCount,
   shouldShowNoChangeReminder,
 } from '../engine/noChangeTracker';
+import { HelpDrawer } from '../help/HelpDrawer';
 import { useBlsSession } from '../../hooks/useBlsSession';
 import { presetCycleMs, withSpeed01 } from '../../types/room';
 import type {
@@ -65,6 +66,11 @@ export function SessionCompanionPage() {
   const [whyOpen, setWhyOpen] = useState(false);
   const [sessionElapsed, setSessionElapsed] = useState(0);
   const [customDirty, setCustomDirty] = useState(false);
+  const [helpOpen, setHelpOpen] = useState(false);
+  const [stopSignalEstablished, setStopSignalEstablished] = useState(false);
+  const [focusField, setFocusField] = useState<'sud' | 'voc' | 'nc' | null>(null);
+  const [returnToTargetOpen, setReturnToTargetOpen] = useState(false);
+  const [lastResponse, setLastResponse] = useState<SetResponse | null>(null);
 
   const session = useBlsSession({
     onSetComplete: (m) => {
@@ -180,6 +186,13 @@ export function SessionCompanionPage() {
     }));
     setAwaitingFeedback(false);
     setLastCompleted(null);
+    setLastResponse(response);
+    if (response === 'return-to-target') {
+      setReturnToTargetOpen(true);
+      setHelpOpen(true);
+    } else if (response === 'change' || response === 'no-change') {
+      setHelpOpen(true);
+    }
   };
 
   const updateTarget = (partial: Partial<AssessmentTarget>) => {
@@ -191,6 +204,12 @@ export function SessionCompanionPage() {
     const m = Math.floor(s / 60);
     return `${m}:${String(s % 60).padStart(2, '0')}`;
   };
+
+  useEffect(() => {
+    if (session.state.visualMode === 'infinity') {
+      setHelpOpen(true);
+    }
+  }, [session.state.visualMode]);
 
   const showNoChange = shouldShowNoChangeReminder(companion.consecutiveNoChangeSets);
 
@@ -224,6 +243,12 @@ export function SessionCompanionPage() {
           <span className="timer" aria-label="Session elapsed">
             {formatElapsed(sessionElapsed)}
           </span>
+          <button type="button" className="btn" onClick={() => setHelpOpen((v) => !v)}>
+            {helpOpen ? 'Hide Help' : 'Help & Scripts'}
+          </button>
+          <Link className="btn ghost" to="/resources">
+            Library
+          </Link>
           <Link className="btn ghost" to="/tools">
             BLS Studio
           </Link>
@@ -270,7 +295,26 @@ export function SessionCompanionPage() {
         </div>
       )}
 
-      <div className="companion-body">
+      {returnToTargetOpen && (
+        <div className="banner soft return-target-panel" role="status">
+          <div>
+            <strong>Return to target</strong>
+            <p>
+              Image: {companion.target.image || companion.target.title || '—'} · SUD:{' '}
+              {companion.target.currentSUD ?? '—'} · Reaction:{' '}
+              {[companion.target.emotion, companion.target.bodyLocation]
+                .filter(Boolean)
+                .join(' · ') || '—'}
+            </p>
+            <p className="hint">Processing history is preserved in Set history.</p>
+          </div>
+          <button type="button" className="btn ghost" onClick={() => setReturnToTargetOpen(false)}>
+            Dismiss
+          </button>
+        </div>
+      )}
+
+      <div className={`companion-body ${helpOpen ? 'with-help' : ''}`}>
         {!hideForms && (
           <aside className="companion-side">
             <PhasePanel
@@ -281,6 +325,10 @@ export function SessionCompanionPage() {
               why={preset.why}
               whyOpen={whyOpen}
               onToggleWhy={() => setWhyOpen((v) => !v)}
+              stopSignalEstablished={stopSignalEstablished}
+              onStopSignal={(v) => setStopSignalEstablished(v)}
+              onFocusField={setFocusField}
+              onOpenHelp={() => setHelpOpen(true)}
             />
 
             <div className="panel">
@@ -446,6 +494,9 @@ export function SessionCompanionPage() {
                     </button>
                   </>
                 )}
+                <button type="button" className="btn" onClick={() => setHelpOpen(true)}>
+                  Help & Scripts
+                </button>
                 <button
                   type="button"
                   className="btn ghost"
@@ -541,6 +592,18 @@ export function SessionCompanionPage() {
               )}
           </aside>
         )}
+
+        <HelpDrawer
+          open={helpOpen}
+          onClose={() => setHelpOpen(false)}
+          phase={companion.phase}
+          awaitingFeedback={awaitingFeedback}
+          consecutiveNoChange={companion.consecutiveNoChangeSets}
+          infinityMode={session.state.visualMode === 'infinity'}
+          focusField={focusField}
+          lastResponse={lastResponse}
+          processingActive={isActive}
+        />
       </div>
     </div>
   );
@@ -558,6 +621,10 @@ function PhasePanel({
   why,
   whyOpen,
   onToggleWhy,
+  stopSignalEstablished,
+  onStopSignal,
+  onFocusField,
+  onOpenHelp,
 }: {
   phase: EMDRPhase;
   target: AssessmentTarget;
@@ -566,6 +633,10 @@ function PhasePanel({
   why: string;
   whyOpen: boolean;
   onToggleWhy: () => void;
+  stopSignalEstablished: boolean;
+  onStopSignal: (v: boolean) => void;
+  onFocusField: (f: 'sud' | 'voc' | 'nc' | null) => void;
+  onOpenHelp: () => void;
 }) {
   return (
     <div className="panel">
@@ -576,6 +647,17 @@ function PhasePanel({
         </button>
       </div>
       {whyOpen && <p className="hint why">{why}</p>}
+
+      {phase === 'preparation' && (
+        <label className="toggle block">
+          <input
+            type="checkbox"
+            checked={stopSignalEstablished}
+            onChange={(e) => onStopSignal(e.target.checked)}
+          />
+          <span>Stop signal established</span>
+        </label>
+      )}
 
       {(phase === 'history' || phase === 'assessment' || phase === 'desensitisation') && (
         <>
@@ -591,6 +673,10 @@ function PhasePanel({
             label="Negative Cognition"
             value={target.negativeCognition ?? ''}
             onChange={(v) => onTarget({ negativeCognition: v })}
+            onFocus={() => {
+              onFocusField('nc');
+              onOpenHelp();
+            }}
           />
           <Field
             label="Positive Cognition"
@@ -608,6 +694,10 @@ function PhasePanel({
                 initialSUD: target.initialSUD ?? v,
               })
             }
+            onFocus={() => {
+              onFocusField('sud');
+              onOpenHelp();
+            }}
           />
           <Scale
             label="VOC 1–7"
@@ -620,6 +710,10 @@ function PhasePanel({
                 initialVOC: target.initialVOC ?? v,
               })
             }
+            onFocus={() => {
+              onFocusField('voc');
+              onOpenHelp();
+            }}
           />
           <Field
             label="Emotions"
@@ -633,7 +727,7 @@ function PhasePanel({
           />
           {phase === 'assessment' && (
             <button type="button" className="btn primary" onClick={onBeginReprocessing}>
-              Begin Reprocessing
+              Begin Desensitisation
             </button>
           )}
         </>
@@ -647,6 +741,10 @@ function PhasePanel({
             max={7}
             value={target.currentVOC}
             onChange={(v) => onTarget({ currentVOC: v })}
+            onFocus={() => {
+              onFocusField('voc');
+              onOpenHelp();
+            }}
           />
           <label className="toggle block">
             <input
@@ -713,6 +811,10 @@ function PhasePanel({
             max={10}
             value={target.currentSUD}
             onChange={(v) => onTarget({ currentSUD: v })}
+            onFocus={() => {
+              onFocusField('sud');
+              onOpenHelp();
+            }}
           />
           <Scale
             label="Current VOC"
@@ -735,6 +837,12 @@ function PhasePanel({
           BLS — select Infinity trajectory in controls for de-arousal.
         </p>
       )}
+
+      {phase === 'preparation' && (
+        <button type="button" className="btn ghost" onClick={onOpenHelp}>
+          Open Safe/Calm Place & Container help
+        </button>
+      )}
     </div>
   );
 }
@@ -743,15 +851,21 @@ function Field({
   label,
   value,
   onChange,
+  onFocus,
 }: {
   label: string;
   value: string;
   onChange: (v: string) => void;
+  onFocus?: () => void;
 }) {
   return (
     <label className="field">
       <span>{label}</span>
-      <input value={value} onChange={(e) => onChange(e.target.value)} />
+      <input
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        onFocus={onFocus}
+      />
     </label>
   );
 }
@@ -762,15 +876,17 @@ function Scale({
   max,
   value,
   onChange,
+  onFocus,
 }: {
   label: string;
   min: number;
   max: number;
   value?: number;
   onChange: (v: number) => void;
+  onFocus?: () => void;
 }) {
   return (
-    <div className="scale-block">
+    <div className="scale-block" onFocus={onFocus}>
       <span>{label}</span>
       <div className="scale-btns">
         {Array.from({ length: max - min + 1 }, (_, i) => min + i).map((n) => (
@@ -779,6 +895,7 @@ function Scale({
             type="button"
             className={value === n ? 'chip is-active' : 'chip'}
             onClick={() => onChange(n)}
+            onFocus={onFocus}
           >
             {n}
           </button>

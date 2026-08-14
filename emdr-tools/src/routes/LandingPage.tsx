@@ -24,6 +24,7 @@ export function LandingPage() {
         </div>
         <nav className="site-nav">
           <Link to="/session">Session</Link>
+          <Link to="/resources">Script Library</Link>
           <Link to="/tools">BLS Studio</Link>
           <Link to="/account">Account</Link>
           <Link to="/about">About</Link>
@@ -44,6 +45,9 @@ export function LandingPage() {
           </Link>
           <Link className="btn" to="/session">
             EMDR Session Companion
+          </Link>
+          <Link className="btn" to="/resources">
+            Therapist Script Library
           </Link>
           <Link className="btn" to="/tools">
             Open BLS Studio
