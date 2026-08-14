@@ -1,5 +1,6 @@
 import { BOOKING_LABEL, BOOKING_PATH, ENQUIRY_LABEL, ENQUIRY_PATH } from "./site-ux-layer.mjs";
 import { extractPageParts, wrapInShellV2 } from "./site-shell-v2.mjs";
+import { EMDR_RELATED_CARD } from "./site-emdr-lisbon.mjs";
 
 export const SERVICE_PAGE_CSS = `<style id="pathfinder-service-pages">
 .pfServicePage { display: grid; gap: 0; }
@@ -121,36 +122,8 @@ export const SERVICE_PAGES = [
     approach:
       "Brent holds a steady, non-judgemental space for both partners. Work may draw on Transactional Analysis and trauma-informed understanding — always paced to what the relationship can hold in the room."
   },
-  {
-    slug: "emdr",
-    route: "/therapy/emdr/",
-    title: "EMDR Therapy | Pathfinder Therapy Lisbon",
-    description:
-      "EMDR within trauma-informed psychotherapy in Lisbon and online. 60-minute sessions from €95 with Brent Kelly, EATA registered and ITAA member.",
-    canonical: "https://www.pathfindertherapy.com/therapy/emdr/",
-    label: "Trauma processing",
-    h1: "EMDR",
-    heroLead: "Eye Movement Desensitisation and Reprocessing within broader trauma-informed care — paced carefully around your nervous system.",
-    image: "/assets/images/hero-01.webp",
-    imageAlt: "Atmospheric landscape — EMDR within trauma-informed psychotherapy",
-    fee: "€95",
-    duration: "60 minutes",
-    format: "In person at the Lisbon clinic or securely online where clinically appropriate.",
-    helpsWith: [
-      "PTSD and trauma-related symptoms",
-      "Distressing memories that feel stuck",
-      "Anxiety linked to past experiences",
-      "Hypervigilance and nervous-system activation",
-      "Processing when talk therapy alone feels insufficient"
-    ],
-    paragraphs: [
-      "EMDR is offered within broader trauma-informed psychotherapy — not as a standalone technique. Brent assesses whether it feels clinically appropriate and prepares work carefully before processing begins.",
-      "Sessions are 60 minutes. EMDR is not suitable for everyone; suitability is discussed openly in an initial consultation and ongoing therapy.",
-      "Work takes place in English, in person at the Lisbon clinic or online where appropriate. Brent is EATA registered and an ITAA member, with training in EMDR as part of integrative trauma-informed practice."
-    ],
-    approach:
-      "EMDR is integrated thoughtfully with relational psychotherapy and nervous-system awareness. Brent does not rush processing — stabilisation and trust in the therapeutic relationship come first."
-  },
+  // EMDR authority page lives at /emdr-therapy-lisbon/ (see site-emdr-lisbon.mjs).
+  // /therapy/emdr/ permanently redirects there.
   {
     slug: "online",
     route: "/therapy/online/",
@@ -194,7 +167,10 @@ function buildHelpsList(items) {
 }
 
 function buildRelatedServices(currentSlug) {
-  const others = SERVICE_PAGES.filter((page) => page.slug !== currentSlug);
+  const others = [
+    ...SERVICE_PAGES.filter((page) => page.slug !== currentSlug),
+    EMDR_RELATED_CARD
+  ];
   const cards = others
     .map(
       (page) => `<a class="pfExploreCard" href="${page.route}" aria-label="${page.h1} — explore more">

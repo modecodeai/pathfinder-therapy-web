@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="en-GB">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <meta
+      name="description"
+      content="Pathfinder EMDR Tools — bilateral stimulation tools for EMDR therapy."
+    />
+    <meta name="theme-color" content="#0F766E" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <link rel="manifest" href="/manifest.webmanifest" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700&family=Source+Serif+4:opsz,wght@8..60,500;8..60,600&display=swap"
+      rel="stylesheet"
+    />
+    <title>Pathfinder EMDR Tools</title>
+    <script type="module" crossorigin src="/assets/index-BB3T93jQ.js"></script>
+    <link rel="stylesheet" crossorigin href="/assets/index-B1j6gGX9.css">
+  </head>
+  <body>
+    <div id="root"></div>
+    <script>
+      // Keep active clinical phase chip in view on narrow screens.
+      (function () {
+        function scrollActivePhase() {
+          var nav = document.querySelector(".phase-nav-v3, .phase-nav");
+          if (!nav) return;
+          var active = nav.querySelector("button.is-active, [aria-current='step'], [aria-pressed='true']");
+          if (active && typeof active.scrollIntoView === "function") {
+            active.scrollIntoView({ inline: "center", block: "nearest", behavior: "smooth" });
+          }
+        }
+        var obs = new MutationObserver(function () { scrollActivePhase(); });
+        function arm() {
+          var root = document.getElementById("root");
+          if (!root) return;
+          obs.observe(root, { subtree: true, childList: true, attributes: true, attributeFilter: ["class", "aria-current", "aria-pressed"] });
+          scrollActivePhase();
+        }
+        if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", arm);
+        else arm();
+        window.addEventListener("orientationchange", function () { setTimeout(scrollActivePhase, 250); });
+        window.addEventListener("resize", function () { setTimeout(scrollActivePhase, 150); });
+      })();
+    </script>
+  </body>
+</html>

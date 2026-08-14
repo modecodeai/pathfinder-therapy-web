@@ -28,7 +28,10 @@ export const KNOWLEDGE_ARTICLE_META = [
     slug: "how-does-emdr-work",
     sourceFile: "how-does-emdr-work.md",
     faqs: ["How does EMDR work?", "Is EMDR only for trauma?", "Will I stay in control during EMDR?"],
-    related: [{ href: "/knowledge-library/what-is-trauma-therapy/", label: "What is trauma therapy?" }]
+    related: [
+      { href: "/knowledge-library/what-is-trauma-therapy/", label: "What is trauma therapy?" },
+      { href: "/emdr-therapy-lisbon/", label: "EMDR therapy in Lisbon" }
+    ]
   },
   {
     slug: "can-therapy-help-anxiety",

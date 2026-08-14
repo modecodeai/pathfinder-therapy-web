@@ -9,8 +9,8 @@ const ROUTES = [
   "/therapy/",
   "/therapy/individual/",
   "/therapy/couples/",
-  "/therapy/emdr/",
   "/therapy/online/",
+  "/emdr-therapy-lisbon/",
   "/start/",
   "/book/",
   "/fees/",
@@ -186,9 +186,12 @@ function auditCtas() {
     const rel = path.relative(OUT_DIR, file);
     const html = fs.readFileSync(file, "utf8");
     const onStart = rel === "start/index.html";
+    const onEmdrAuthority = rel === "emdr-therapy-lisbon/index.html";
 
     for (const label of LEGACY_LABELS) {
       if (html.includes(label)) {
+        // Allowed as the final-CTA eyebrow on the EMDR Lisbon authority page.
+        if (onEmdrAuthority && label === "Begin with a conversation") continue;
         issues.push(`${rel}: legacy label "${label}"`);
       }
     }
@@ -319,6 +322,38 @@ function main() {
       if (!html.includes("Explore more")) errors.push(`${route} missing related services section`);
       if (!html.includes("pfServiceHero")) errors.push(`${route} missing image-led hero`);
       if (!html.includes("pfPanelCta")) errors.push(`${route} missing subdued panel CTA`);
+    }
+    if (route === "/emdr-therapy-lisbon/") {
+      if (!html.includes('id="emdr-lisbon-title"')) errors.push(`${route} missing H1 id`);
+      if (!html.includes("EMDR Therapy in Lisbon")) errors.push(`${route} missing H1 copy`);
+      if (!html.includes("What is EMDR therapy?")) errors.push(`${route} missing definition heading`);
+      if (!html.includes("Frequently asked questions about EMDR")) errors.push(`${route} missing FAQ heading`);
+      if (!html.includes('rel="canonical" href="https://www.pathfindertherapy.com/emdr-therapy-lisbon/"')) {
+        errors.push(`${route} missing self-referencing canonical`);
+      }
+      if (!html.includes("EMDR Therapy Lisbon | English-Speaking Trauma Therapy")) {
+        errors.push(`${route} missing approved title`);
+      }
+      if (html.includes("noindex")) errors.push(`${route} should not be noindex`);
+      if (!html.includes('aria-current="page">EMDR Therapy Lisbon')) {
+        errors.push(`${route} missing breadcrumb current page`);
+      }
+      if (!html.includes("/book/")) errors.push(`${route} missing booking CTA`);
+      if (!html.includes("/start/#enquiry")) errors.push(`${route} missing enquiry CTA`);
+      if (!html.includes("/crisis-support/")) errors.push(`${route} missing crisis-support link`);
+      if (!html.includes("pathfinder-emdr-analytics")) errors.push(`${route} missing EMDR analytics script`);
+      if ((html.match(/<h1\b/g) || []).length !== 1) errors.push(`${route} must have exactly one H1`);
+      if (html.includes("EMDR-certified") || html.includes("EMDR accredited") || html.includes("EMDR Europe")) {
+        errors.push(`${route} contains unsupported EMDR accreditation claim`);
+      }
+      if (html.includes("cure trauma") || html.includes("erase traumatic")) {
+        errors.push(`${route} contains disallowed outcome claim`);
+      }
+    }
+    if (route === "/") {
+      if (!html.includes('href="/emdr-therapy-lisbon/"')) {
+        errors.push("Homepage missing EMDR Lisbon authority link");
+      }
     }
     if (route === "/contact/") {
       if (!html.includes("pfContactDetails")) errors.push("/contact/ missing refined contact hierarchy");

@@ -354,7 +354,7 @@ export function buildSiteFooter() {
     { href: "/therapy/", label: "Therapy" },
     { href: "/therapy/individual/", label: "Individual therapy" },
     { href: "/therapy/couples/", label: "Couples therapy" },
-    { href: "/therapy/emdr/", label: "EMDR" },
+    { href: "/emdr-therapy-lisbon/", label: "EMDR therapy in Lisbon" },
     { href: "/therapy/online/", label: "Online therapy" },
     { href: "/about/", label: "About Brent" },
     { href: "/approach/", label: "Approach" },
