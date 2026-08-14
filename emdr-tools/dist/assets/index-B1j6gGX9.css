@@ -184,3 +184,45 @@
     mask-image: linear-gradient(90deg, #000 0%, #000 calc(100% - 36px), transparent 100%);
   }
 }
+
+/* === Therapist BLS maximise / minimise === */
+.companion.is-stage-minimised .companion-stage {
+  max-height: 112px;
+  min-height: 72px !important;
+  padding: 0.45rem 0.65rem !important;
+}
+.companion.is-stage-minimised .bls-minimised.is-therapist-minimised {
+  width: 100%;
+  height: 100%;
+  min-height: 0 !important;
+  max-height: 100%;
+  padding: 0.55rem 0.85rem;
+  gap: 0.75rem;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  justify-items: start;
+  border-radius: 10px;
+}
+.companion.is-stage-minimised .bls-minimised.is-therapist-minimised p {
+  margin: 0;
+  font-size: 0.92rem;
+  line-height: 1.35;
+}
+.companion.is-stage-minimised.companion-v3 .companion-body,
+.companion.is-stage-minimised.companion-v3 .companion-body.with-help,
+.companion.is-stage-minimised.companion-v3 .companion-body.clinical-hidden,
+.companion.is-stage-minimised.companion-v3 .companion-body.help-overlay-open {
+  grid-template-rows: auto minmax(0, 1fr) !important;
+}
+.companion.is-focus .focus-controls {
+  z-index: 6;
+}
+@media (max-width: 900px) {
+  .companion-meta {
+    flex-wrap: wrap;
+    gap: 0.35rem;
+  }
+  .companion-meta .btn.ghost {
+    min-height: 36px;
+  }
+}

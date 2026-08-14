@@ -24,3 +24,12 @@ Appended to `dist/assets/index-B1j6gGX9.css`:
 cd emdr-tools
 npx wrangler deploy --keep-vars
 ```
+
+## Therapist BLS maximise / minimise (2026-08-14)
+
+Therapist session header controls:
+
+- **Maximise BLS** — enters focus mode and requests browser full screen (client watching therapist device / shared screen)
+- **Minimise BLS** — collapses the therapist stage preview so clinical controls get space when the client has their own display (in-room second screen or Client Display link). Client stimulation continues.
+- **Restore BLS** / **Exit focus** — return to the normal split layout (Escape also exits focus + full screen)
+
