@@ -54,6 +54,10 @@ for (let i = 0; i < 20; i++) {
   await new Promise((r) => setTimeout(r, 250));
 }
 assert(!!joinUrl, `Room created with join URL: ${joinUrl}`);
+if (!joinUrl) {
+  await browser.close();
+  process.exit(1);
+}
 
 const client = await browser.newPage();
 await client.setViewport({ width: 1024, height: 720 });
