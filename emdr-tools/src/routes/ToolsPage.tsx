@@ -98,7 +98,11 @@ function LocalClientView() {
           Exit
         </button>
       )}
-      <BlsStage attachCanvas={session.attachCanvas} fullscreen />
+      <BlsStage
+        attachCanvas={session.attachCanvas}
+        fullscreen
+        trajectory={session.state.visualMode}
+      />
     </div>
   );
 }
@@ -312,7 +316,7 @@ function TherapistConsole() {
   };
 
   return (
-    <div className="console studio-v3">
+    <div className="console studio-v3 app-shell">
       <header className="console-top">
         <Link to="/" className="brand">
           <span className="brand-mark" aria-hidden />
@@ -502,7 +506,12 @@ function TherapistConsole() {
               Test BLS — not a clinical processing set
             </div>
           )}
-          <BlsStage attachCanvas={session.attachCanvas} label="BLS stage" />
+          <BlsStage
+            attachCanvas={session.attachCanvas}
+            label="BLS stage"
+            trajectory={session.state.visualMode}
+            lockSize={session.state.running && !session.state.paused}
+          />
           <div className="stage-actions">
             <button
               type="button"

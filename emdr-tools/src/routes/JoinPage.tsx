@@ -126,7 +126,7 @@ export function JoinPage() {
         </button>
       </header>
       {error && <p className="error-banner">{error}</p>}
-      <BlsStage attachCanvas={session.attachCanvas} fullscreen />
+      <BlsStage attachCanvas={session.attachCanvas} fullscreen trajectory={session.state.visualMode} />
       <p className="join-footnote">
         Pathfinder EMDR Tools — stimulation only. Conversation stays on your video platform.
       </p>

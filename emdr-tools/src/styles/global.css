@@ -1531,3 +1531,362 @@ body {
   padding: 0.75rem;
   min-width: 180px;
 }
+
+/* ——— Viewport shell: no page scroll (v3 layout fix) ——— */
+html,
+body,
+#root {
+  height: 100%;
+}
+
+.marketing,
+.resources-page,
+.about,
+.center-page,
+.join-page.center {
+  min-height: 100%;
+  overflow: auto;
+}
+
+.app-shell,
+.companion.app-shell,
+.console.studio-v3 {
+  height: 100dvh;
+  height: 100vh;
+  max-height: 100dvh;
+  overflow: hidden;
+  display: grid;
+  grid-template-rows: auto auto auto minmax(0, 1fr) auto;
+}
+
+.console.studio-v3 {
+  grid-template-rows: auto minmax(0, 1fr) auto;
+}
+
+.console.studio-v3 .console-main,
+.studio-layout {
+  min-height: 0;
+  overflow: hidden;
+  height: 100%;
+}
+
+.console.studio-v3 .side-panel,
+.side-wide {
+  min-height: 0;
+  overflow-y: auto;
+  max-height: none;
+}
+
+.console.studio-v3 .stage-wrap {
+  min-height: 0;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.companion.app-shell {
+  min-height: 0;
+}
+
+.companion-top {
+  height: 56px;
+  min-height: 56px;
+  max-height: 56px;
+  padding: 0 0.85rem;
+  box-sizing: border-box;
+}
+
+.phase-nav-v3,
+.phase-nav {
+  min-height: 40px;
+  max-height: 48px;
+  padding: 0.25rem 0.65rem;
+  flex-wrap: nowrap;
+}
+
+.companion-banners {
+  max-height: 3.2rem;
+  overflow: hidden;
+}
+
+.companion-banners .banner {
+  padding: 0.35rem 0.75rem;
+  font-size: 0.85rem;
+}
+
+.companion-workspace {
+  min-height: 0;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.companion-v3 .companion-body {
+  flex: 1;
+  min-height: 0;
+  min-width: 0;
+  display: grid;
+  grid-template-columns: minmax(200px, 26%) minmax(0, 1fr) minmax(200px, 24%);
+  overflow: hidden;
+  position: relative;
+}
+
+.companion-v3 .companion-body.clinical-hidden {
+  grid-template-columns: auto minmax(0, 1fr) minmax(200px, 26%);
+}
+
+.companion-v3 .companion-body.with-help,
+.companion-v3 .companion-body.help-overlay-open {
+  grid-template-columns: minmax(180px, 22%) minmax(0, 1fr) minmax(180px, 22%);
+}
+
+.companion-side,
+.companion-controls {
+  min-height: 0;
+  min-width: 0;
+  overflow-x: hidden;
+  overflow-y: auto;
+  max-height: none;
+  padding: 0.5rem 0.65rem;
+}
+
+.companion-stage {
+  min-height: 0;
+  min-width: 0;
+  height: 100%;
+  padding: 0.5rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  background: #e8eef0;
+}
+
+.bls-stage-fit {
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.bls-stage {
+  width: 100%;
+  height: 100%;
+  max-width: 1200px;
+  max-height: 720px;
+  min-height: 0 !important;
+  margin: 0 auto;
+}
+
+.bls-stage.aspect-horizontal {
+  aspect-ratio: 16 / 7;
+  height: auto;
+  max-height: min(720px, 100%);
+  width: min(100%, calc(min(720px, 100%) * 16 / 7));
+}
+
+.bls-stage.aspect-diagonal,
+.bls-stage.aspect-infinity {
+  aspect-ratio: 16 / 9;
+  height: auto;
+  max-height: min(720px, 100%);
+  width: min(100%, calc(min(720px, 100%) * 16 / 9));
+}
+
+.bls-stage.aspect-vertical {
+  aspect-ratio: 4 / 3;
+  height: auto;
+  max-height: min(720px, 100%);
+  width: min(100%, calc(min(720px, 100%) * 4 / 3));
+}
+
+.bls-stage.is-fullscreen {
+  max-width: none;
+  max-height: none;
+  width: 100%;
+  height: 100%;
+  aspect-ratio: auto;
+}
+
+.companion.is-focus {
+  grid-template-rows: minmax(0, 1fr);
+}
+
+.companion.is-focus .companion-workspace,
+.companion.is-focus .companion-body {
+  height: 100%;
+}
+
+.companion.is-focus .bls-stage,
+.companion.is-focus .bls-stage-fit {
+  max-width: none;
+  max-height: none;
+  width: 100%;
+  height: 100%;
+  aspect-ratio: auto;
+}
+
+.companion-action-bar {
+  display: grid;
+  grid-template-columns: auto minmax(140px, 1fr) auto;
+  gap: 0.75rem;
+  align-items: center;
+  min-height: 64px;
+  max-height: 80px;
+  padding: 0.45rem 0.85rem;
+  border-top: 1px solid var(--pf-border);
+  background: var(--pf-panel);
+  z-index: 5;
+}
+
+.action-metrics {
+  display: flex;
+  gap: 0.85rem;
+  font-size: 0.9rem;
+  white-space: nowrap;
+}
+
+.action-speed {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  gap: 0.45rem;
+  align-items: center;
+  font-size: 0.8rem;
+  color: var(--pf-text-muted);
+}
+
+.action-btns {
+  display: flex;
+  gap: 0.45rem;
+}
+
+.help-drawer {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: min(420px, 92%);
+  max-width: 480px;
+  z-index: 20;
+  box-shadow: -8px 0 24px rgba(0, 0, 0, 0.08);
+  border-left: 1px solid var(--pf-border);
+  max-height: none;
+}
+
+.help-drawer.is-minimised {
+  width: 160px;
+}
+
+.phase-chip {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--pf-primary);
+  background: color-mix(in srgb, var(--pf-primary) 10%, white);
+  padding: 0.2rem 0.55rem;
+  border-radius: 999px;
+}
+
+.panel-toolbar {
+  margin-bottom: 0.35rem;
+}
+
+.clinical-restore {
+  position: absolute;
+  left: 0.35rem;
+  top: 0.35rem;
+  z-index: 3;
+}
+
+.target-reminder {
+  position: absolute;
+  top: 0.5rem;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(23, 32, 38, 0.7);
+  color: #fff;
+  padding: 0.25rem 0.65rem;
+  border-radius: 999px;
+  font-size: 0.8rem;
+  max-width: 90%;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.bls-minimised {
+  min-height: 0;
+  height: 100%;
+  max-height: 100%;
+}
+
+.client-shell {
+  height: 100dvh;
+  height: 100vh;
+  overflow: hidden;
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
+}
+
+.client-shell .bls-stage,
+.client-shell .bls-stage-fit {
+  max-width: none;
+  max-height: none;
+  width: 100%;
+  height: 100%;
+  aspect-ratio: auto;
+  min-height: 0 !important;
+}
+
+@media (max-width: 1100px) {
+  .companion-v3 .companion-body,
+  .companion-v3 .companion-body.help-overlay-open,
+  .companion-v3 .companion-body.clinical-hidden {
+    grid-template-columns: minmax(0, 1fr) minmax(220px, 280px);
+    grid-template-rows: minmax(0, 1fr) auto;
+  }
+
+  .companion-side {
+    display: none;
+  }
+
+  .companion.is-compact-mode .companion-controls {
+    max-height: 40%;
+  }
+
+  .companion-action-bar {
+    grid-template-columns: 1fr;
+    max-height: none;
+  }
+}
+
+@media (max-width: 768px) {
+  .companion.app-shell {
+    grid-template-rows: auto auto minmax(0, 1fr) auto;
+  }
+
+  .bls-stage.aspect-horizontal,
+  .bls-stage.aspect-diagonal,
+  .bls-stage.aspect-infinity,
+  .bls-stage.aspect-vertical {
+    max-height: 45dvh;
+  }
+}
+
+/* Override legacy conflicting rules */
+.companion {
+  min-height: 0 !important;
+}
+
+.companion-side,
+.companion-controls {
+  max-height: none !important;
+}
+
+.companion.is-focus .bls-stage {
+  min-height: 0 !important;
+}
