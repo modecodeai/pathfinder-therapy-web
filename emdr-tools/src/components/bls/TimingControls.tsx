@@ -4,9 +4,11 @@ interface Props {
   state: RoomState;
   onChange: (partial: Partial<RoomState>) => void;
   compact?: boolean;
+  /** When true, omit speed slider (Session Companion shows it above Start Set). */
+  hideSpeed?: boolean;
 }
 
-export function TimingControls({ state, onChange, compact }: Props) {
+export function TimingControls({ state, onChange, compact, hideSpeed }: Props) {
   const mode: SetMode = state.continuous
     ? 'continuous'
     : state.setMode === 'timed'
@@ -31,18 +33,20 @@ export function TimingControls({ state, onChange, compact }: Props) {
         <legend>Timing</legend>
         <p className="hint">Suggested starting point — adjust clinically</p>
 
-        <label className="field speed-field">
-          <span>Slower ←————————→ Faster</span>
-          <input
-            type="range"
-            min={0}
-            max={1}
-            step={0.01}
-            value={state.speed01}
-            aria-label="BLS speed from slower to faster"
-            onChange={(e) => onChange({ speed01: Number(e.target.value) })}
-          />
-        </label>
+        {!hideSpeed && (
+          <label className="field speed-field">
+            <span>Slower ←————————→ Faster</span>
+            <input
+              type="range"
+              min={0}
+              max={1}
+              step={0.01}
+              value={state.speed01}
+              aria-label="BLS speed from slower to faster"
+              onChange={(e) => onChange({ speed01: Number(e.target.value) })}
+            />
+          </label>
+        )}
 
         <div className="segmented timing-modes">
           {(

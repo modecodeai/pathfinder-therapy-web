@@ -1,7 +1,6 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { BlsStage } from '../../components/BlsStage';
-import { BlsConfigurationPanel } from '../../components/bls/BlsConfigurationPanel';
 import { EMDR_PHASE_PRESETS } from '../config/phasePresets';
 import { phaseTimingPatch } from '../bls/config';
 import { resolveInitialBlsState } from '../bls/persistence';
@@ -24,7 +23,8 @@ import type {
 } from '../types/emdr';
 import { PHASE_LABELS, SPEED_PRESETS } from '../types/emdr';
 import { ClinicalPhasePanel } from './ClinicalPhasePanel';
-import { ClientDisplayPanel, ClientDisplayPreviewModal, ClientDisplayToolbarButton } from './ClientDisplayPanel';
+import { ClientDisplayPreviewModal, ClientDisplayToolbarButton } from './ClientDisplayPanel';
+import { SessionBlsControlPanel } from './SessionBlsControlPanel';
 import { useTherapistClientDisplay } from '../hooks/useTherapistClientDisplay';
 
 const PHASES: EMDRPhase[] = [
@@ -303,18 +303,6 @@ export function SessionCompanionPage() {
     return `${m}:${String(s % 60).padStart(2, '0')}`;
   };
 
-  const trajectoryLabel = useMemo(() => {
-    const map: Record<string, string> = {
-      horizontal: 'Horizontal',
-      'diagonal-up': 'Diagonal ↗︎',
-      'diagonal-down': 'Diagonal ↖︎',
-      vertical: 'Vertical',
-      infinity: 'Infinity ∞',
-      blink: 'Blink',
-    };
-    return map[session.state.visualMode] ?? session.state.visualMode;
-  }, [session.state.visualMode]);
-
   return (
     <div
       className={`companion companion-v3 app-shell ${focusMode ? 'is-focus' : ''} ${compactMode ? 'is-compact-mode' : ''} ${isActive ? 'is-bls-active' : ''}`}
@@ -536,120 +524,61 @@ export function SessionCompanionPage() {
           </section>
 
           {!focusMode && (
-            <aside className="companion-controls">
-              <div className="panel bls-compact">
-                <h2>BLS</h2>
-                <p className="bls-summary">
-                  {trajectoryLabel}
-                  {' · '}
-                  {session.state.continuous
-                    ? 'Continuous'
-                    : session.state.setMode === 'timed'
-                      ? `${session.state.targetSeconds ?? 15}s`
-                      : `${session.state.targetPasses ?? 30} passes`}
-                </p>
-                {infinityMode && (
-                  <div className="segmented">
-                    <button
-                      type="button"
-                      className={session.state.midlineDirection === 'up' ? 'is-active' : ''}
-                      onClick={() => session.patchState({ midlineDirection: 'up' })}
-                    >
-                      Up
-                    </button>
-                    <button
-                      type="button"
-                      className={session.state.midlineDirection === 'down' ? 'is-active' : ''}
-                      onClick={() => session.patchState({ midlineDirection: 'down' })}
-                    >
-                      Down
-                    </button>
-                  </div>
-                )}
-                <button type="button" className="btn" onClick={() => setBlsSettingsOpen((v) => !v)}>
-                  {blsSettingsOpen ? 'Hide settings' : 'BLS Settings'}
-                </button>
-                <button type="button" className="btn ghost" onClick={() => setHelpOpen(true)}>
-                  Help & Scripts
-                </button>
-                <button type="button" className="btn ghost" onClick={() => setFocusMode(true)}>
-                  Focus
-                </button>
-              </div>
-
-              <ClientDisplayPanel
-                display={clientDisplay}
-                state={session.state}
-                onMuteTherapistChange={(muted) => session.patchState({ muteTherapistAudio: muted })}
-              />
-
-              {blsSettingsOpen && (
-                <div className="panel bls-settings-expanded">
-                  <BlsConfigurationPanel
-                    state={session.state}
-                    onChange={onBlsChange}
-                    section="all"
-                    running={isActive}
-                    compact
-                  />
-                </div>
-              )}
-
-              {awaitingFeedback && (
-                <div className="panel check-in">
-                  <h2>{infinityMode ? 'Check in' : 'What are you noticing now?'}</h2>
-                  {!infinityMode ? (
-                    <div className="chip-grid">
-                      {(
-                        [
-                          ['change', 'Change'],
-                          ['no-change', 'No change'],
-                          ['positive', 'Positive'],
-                          ['distress', 'Distress'],
-                          ['pause', 'Pause'],
-                          ['return-to-target', 'Return to target'],
-                        ] as const
-                      ).map(([id, label]) => (
-                        <button key={id} type="button" className="chip" onClick={() => recordResponse(id)}>
-                          {label}
-                        </button>
-                      ))}
-                    </div>
-                  ) : (
-                    <div className="stack-btns">
-                      <button
-                        type="button"
-                        className="btn primary"
-                        onClick={() => {
-                          setAwaitingFeedback(false);
-                          void clientDisplay.start();
-                        }}
-                      >
-                        Repeat
-                      </button>
-                      <button type="button" className="btn ghost" onClick={() => setAwaitingFeedback(false)}>
-                        Finish
-                      </button>
-                    </div>
-                  )}
-                </div>
-              )}
-
-              <div className="panel">
-                <button
-                  type="button"
-                  className="btn ghost"
-                  onClick={() => {
-                    if (clientDisplay.active && !window.confirm('Client display is connected. End session and disconnect client?')) {
-                      return;
-                    }
-                    clientDisplay.endSessionWithClient();
-                  }}
-                >
-                  End Session
-                </button>
-              </div>
-            </aside>
+            <SessionBlsControlPanel
+              phase={companion.phase}
+              preset={preset}
+              state={session.state}
+              running={session.state.running}
+              paused={session.state.paused}
+              isActive={isActive}
+              blsMinimised={blsMinimised}
+              settingsOpen={blsSettingsOpen}
+              bodyScanFinding={bodyScanFindingFromTarget(companion.target.bodyLocation)}
+              awaitingFeedback={awaitingFeedback}
+              onChange={onBlsChange}
+              onStart={() => {
+                setAwaitingFeedback(false);
+                void clientDisplay.start();
+              }}
+              onPause={() => clientDisplay.pause()}
+              onResume={() => void clientDisplay.resume()}
+              onStop={() => clientDisplay.stop()}
+              onOpenManual={() => setBlsManualOpen(true)}
+              onBeginDesensitisation={() => applyPhasePreset('desensitisation', true)}
+              onToggleSettings={() => setBlsSettingsOpen((v) => !v)}
+              onOpenHelp={() => setHelpOpen(true)}
+              onSelectInfinity={() => {
+                session.patchState({
+                  ...phaseTimingPatch(EMDR_PHASE_PRESETS.closure, session.stateRef.current, {
+                    forceTrajectory: true,
+                  }),
+                  visualMode: 'infinity',
+                });
+                setHelpOpen(true);
+              }}
+              onEnablePositiveStrengthening={() => {
+                session.patchState({
+                  continuous: true,
+                  setMode: 'continuous',
+                  speed01: 0.25,
+                  visualMode: 'horizontal',
+                });
+                setTimingDirty(true);
+              }}
+              onRecordResponse={(id) => recordResponse(id)}
+              onDismissFeedback={() => setAwaitingFeedback(false)}
+              onEndSession={() => {
+                if (
+                  clientDisplay.active &&
+                  !window.confirm('Client display is connected. End session and disconnect client?')
+                ) {
+                  return;
+                }
+                clientDisplay.endSessionWithClient();
+              }}
+              clientDisplay={clientDisplay}
+              onMuteTherapistChange={(muted) => session.patchState({ muteTherapistAudio: muted })}
+            />
           )}
 
           <HelpDrawer
@@ -676,13 +605,16 @@ export function SessionCompanionPage() {
       </div>
 
       {!focusMode && (
-        <footer className="companion-action-bar" aria-label="BLS transport">
+        <footer className="companion-action-bar" aria-label="Session status">
           <div className="action-metrics">
+            <span>
+              Session <strong>{formatElapsed(sessionElapsed)}</strong>
+            </span>
             <span>
               Set <strong>{session.formatTime(session.metrics.timeMs)}</strong>
             </span>
             <span>
-              Passes{' '}
+              Pass{' '}
               <strong>
                 {session.metrics.passes}
                 {session.state.targetPasses && !session.state.continuous
@@ -690,53 +622,26 @@ export function SessionCompanionPage() {
                   : ''}
               </strong>
             </span>
-          </div>
-          <label className="action-speed">
-            <span>Slower</span>
-            <input
-              type="range"
-              min={0}
-              max={1}
-              step={0.01}
-              value={session.state.speed01}
-              aria-label="BLS speed"
-              onChange={(e) => {
-                session.patchState({ speed01: Number(e.target.value) });
-                setTimingDirty(true);
-              }}
-            />
-            <span>Faster</span>
-          </label>
-          <div className="action-btns">
-            {!session.state.running ? (
-              <button
-                type="button"
-                className="btn primary large"
-                disabled={blsMinimised || (!preset.blsActive && companion.phase === 'assessment')}
-                onClick={() => {
-                  setAwaitingFeedback(false);
-                  void clientDisplay.start();
-                }}
-              >
-                {infinityMode ? 'Start Infinity' : awaitingFeedback ? 'Continue' : 'Start Set'}
-              </button>
-            ) : (
-              <>
-                <button
-                  type="button"
-                  className="btn large"
-                  onClick={() =>
-                    session.state.paused ? void clientDisplay.resume() : clientDisplay.pause()
-                  }
-                >
-                  {session.state.paused ? 'Resume' : 'Pause'}
-                </button>
-                <button type="button" className="btn danger large" onClick={() => clientDisplay.stop()}>
-                  Stop
-                </button>
-              </>
+            {clientDisplay.peerStatus === 'connected' && (
+              <span className="action-client-live">Client ● Connected</span>
             )}
           </div>
+          {session.state.running && (
+            <div className="action-btns">
+              <button
+                type="button"
+                className="btn"
+                onClick={() =>
+                  session.state.paused ? void clientDisplay.resume() : clientDisplay.pause()
+                }
+              >
+                {session.state.paused ? 'Resume' : 'Pause'}
+              </button>
+              <button type="button" className="btn danger" onClick={() => clientDisplay.stop()}>
+                Stop
+              </button>
+            </div>
+          )}
         </footer>
       )}
 

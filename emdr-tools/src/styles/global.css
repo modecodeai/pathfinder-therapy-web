@@ -2321,11 +2321,98 @@ body:has(.join-page.live) {
   flex-direction: column;
 }
 
-.client-preview-label {
+.session-bls-controls {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  min-height: 0;
+  overflow-x: hidden;
+  overflow-y: auto;
+}
+
+.bls-control-panel {
+  display: grid;
+  gap: 0.55rem;
+}
+
+.bls-control-head h2 {
+  margin: 0;
+  font-size: 1.05rem;
+}
+
+.bls-control-sub {
+  margin: 0.15rem 0 0;
+  color: var(--pf-text-muted);
+  font-size: 0.88rem;
+}
+
+.bls-phase-gate {
+  display: grid;
+  gap: 0.5rem;
+  padding: 0.65rem;
+  background: var(--pf-bg);
+  border-radius: 10px;
+}
+
+.bls-phase-gate p,
+.bls-phase-hint,
+.bls-phase-actions .hint {
+  margin: 0;
+}
+
+.bls-live-speed .speed-ends {
+  display: flex;
+  justify-content: space-between;
   font-size: 0.72rem;
-  padding: 0.25rem 0.5rem;
-  background: #1a2226;
-  color: rgba(255, 255, 255, 0.7);
+  color: var(--pf-text-muted);
+  margin-top: 0.15rem;
+}
+
+.bls-transport-primary {
+  display: grid;
+  gap: 0.35rem;
+}
+
+.bls-start-btn {
+  width: 100%;
+  min-height: 52px;
+  font-size: 1.05rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
+.bls-transport-running {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.45rem;
+}
+
+.bls-transport-running .btn {
+  min-height: 48px;
+}
+
+.bls-client-hint {
+  margin: 0;
+}
+
+.bls-control-secondary {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+
+.action-client-live {
+  color: var(--pf-primary);
+  font-weight: 600;
+  font-size: 0.85rem;
+}
+
+.companion-action-bar {
+  grid-template-columns: 1fr auto;
+}
+
+.companion-v3 .companion-controls.session-bls-controls {
+  padding: 0.45rem 0.55rem 0.65rem;
 }
 
 .client-preview-mirror .bls-stage-fit {

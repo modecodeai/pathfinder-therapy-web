@@ -91,15 +91,24 @@ const hasClinicalLeak = await client.evaluate(() => {
 });
 assert(!hasClinicalLeak, 'Client has no clinical content');
 
-await therapist.evaluate(() => {
-  [...document.querySelectorAll('button')]
-    .find((b) => /Start Set|Start Infinity|Continue/i.test(b.textContent || ''))
-    ?.click();
-});
-await new Promise((r) => setTimeout(r, 1500));
+  // Start set from companion BLS panel
+  await therapist.evaluate(() => {
+    const btn = [...document.querySelectorAll('button')].find((b) =>
+      /Start Set|Start Infinity|Continue/i.test(b.textContent || ''),
+    );
+    btn?.click();
+  });
+  await new Promise((r) => setTimeout(r, 1500));
 
-const clientLive = await client.evaluate(() => !document.querySelector('.client-neutral-overlay'));
-assert(clientLive, 'Client stimulus active after Start Set');
+  const hasStart = await therapist.evaluate(() =>
+    [...document.querySelectorAll('button')].some((b) =>
+      /Start Set|Pause|Stop/i.test(b.textContent || ''),
+    ),
+  );
+  assert(hasStart, 'Start/Pause/Stop visible in Session Companion');
+
+  const clientLive = await client.evaluate(() => !document.querySelector('.client-neutral-overlay'));
+  assert(clientLive, 'Client stimulus active after Start Set');
 
 await therapist.evaluate(() => {
   const input = document.querySelector('.action-speed input[type=range]');

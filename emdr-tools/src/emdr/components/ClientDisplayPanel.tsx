@@ -12,7 +12,6 @@ export function clientDisplayStatus(display: TherapistClientDisplay): {
   if (display.peerStatus === 'waiting') return { text: 'Waiting for client', tone: 'wait' };
   if (display.peerStatus === 'interrupted') return { text: 'Connection interrupted', tone: 'warn' };
   if (display.peerStatus === 'disconnected') return { text: 'Connection interrupted', tone: 'warn' };
-  if (display.active) return { text: 'Waiting for client', tone: 'wait' };
   return { text: 'Not connected', tone: 'idle' };
 }
 
