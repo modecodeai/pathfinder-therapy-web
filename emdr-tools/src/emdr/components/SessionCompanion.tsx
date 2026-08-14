@@ -346,48 +346,56 @@ export function SessionCompanionPage() {
         </header>
       )}
 
-      {!focusMode && !compactMode && (
-        <nav className="phase-nav phase-nav-v3" aria-label="EMDR phases">
-          {PHASES.map((p) => (
-            <button
-              key={p}
-              type="button"
-              className={companion.phase === p ? 'is-active' : ''}
-              onClick={() => applyPhasePreset(p, false)}
-            >
-              {PHASE_LABELS[p]}
-            </button>
-          ))}
-        </nav>
-      )}
-
-      {(applyPresetPrompt || showNoChange || returnToTargetOpen) && !focusMode && (
-        <div className="companion-banners">
-          {applyPresetPrompt && (
-            <div className="banner soft">
-              <span>Use suggested {PHASE_LABELS[applyPresetPrompt]} timing?</span>
-              <button type="button" className="btn primary" onClick={() => applyPhasePreset(applyPresetPrompt, true)}>
-                Use suggested
-              </button>
-              <button type="button" className="btn ghost" onClick={() => setApplyPresetPrompt(null)}>
-                Keep current
-              </button>
-            </div>
+      {/* Always render chrome row so grid tracks stay: header | chrome | workspace | action */}
+      {!focusMode && (
+        <div className="companion-chrome">
+          {!compactMode && (
+            <nav className="phase-nav phase-nav-v3" aria-label="EMDR phases">
+              {PHASES.map((p) => (
+                <button
+                  key={p}
+                  type="button"
+                  className={companion.phase === p ? 'is-active' : ''}
+                  onClick={() => applyPhasePreset(p, false)}
+                >
+                  {PHASE_LABELS[p]}
+                </button>
+              ))}
+            </nav>
           )}
-          {showNoChange && (
-            <div className="banner notice" role="status">
-              {NO_CHANGE_REMINDER}
-            </div>
-          )}
-          {returnToTargetOpen && (
-            <div className="banner soft" role="status">
-              <span>
-                Return to target · {companion.target.image || companion.target.title || '—'} · SUD{' '}
-                {companion.target.currentSUD ?? '—'}
-              </span>
-              <button type="button" className="btn ghost" onClick={() => setReturnToTargetOpen(false)}>
-                Dismiss
-              </button>
+          {(applyPresetPrompt || showNoChange || returnToTargetOpen) && (
+            <div className="companion-banners">
+              {applyPresetPrompt && (
+                <div className="banner soft">
+                  <span>Use suggested {PHASE_LABELS[applyPresetPrompt]} timing?</span>
+                  <button
+                    type="button"
+                    className="btn primary"
+                    onClick={() => applyPhasePreset(applyPresetPrompt, true)}
+                  >
+                    Use suggested
+                  </button>
+                  <button type="button" className="btn ghost" onClick={() => setApplyPresetPrompt(null)}>
+                    Keep current
+                  </button>
+                </div>
+              )}
+              {showNoChange && (
+                <div className="banner notice" role="status">
+                  {NO_CHANGE_REMINDER}
+                </div>
+              )}
+              {returnToTargetOpen && (
+                <div className="banner soft" role="status">
+                  <span>
+                    Return to target · {companion.target.image || companion.target.title || '—'} · SUD{' '}
+                    {companion.target.currentSUD ?? '—'}
+                  </span>
+                  <button type="button" className="btn ghost" onClick={() => setReturnToTargetOpen(false)}>
+                    Dismiss
+                  </button>
+                </div>
+              )}
             </div>
           )}
         </div>

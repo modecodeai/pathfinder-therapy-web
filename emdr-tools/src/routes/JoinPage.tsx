@@ -112,7 +112,10 @@ export function JoinPage() {
   return (
     <div className="join-page live">
       <header className="join-bar">
-        <span>{status}</span>
+        <div>
+          <span>{status}</span>
+          {error && <p className="error-banner">{error}</p>}
+        </div>
         <button
           type="button"
           className="btn"
@@ -125,7 +128,6 @@ export function JoinPage() {
           {document.fullscreenElement ? 'Exit Full Screen' : 'Enter Full Screen'}
         </button>
       </header>
-      {error && <p className="error-banner">{error}</p>}
       <BlsStage attachCanvas={session.attachCanvas} fullscreen trajectory={session.state.visualMode} />
       <p className="join-footnote">
         Pathfinder EMDR Tools — stimulation only. Conversation stays on your video platform.

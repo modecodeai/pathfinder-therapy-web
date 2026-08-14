@@ -80,24 +80,26 @@ function LocalClientView() {
 
   return (
     <div className="client-shell">
-      <div className="client-brand">
-        <span className="brand-mark" aria-hidden />
-        <span>Pathfinder EMDR</span>
-        {connected && !interrupted && <span className="client-conn">Connected to your therapist</span>}
-        {interrupted && <span className="client-conn warn">Connection interrupted</span>}
+      <div className="client-chrome">
+        <div className="client-brand">
+          <span className="brand-mark" aria-hidden />
+          <span>Pathfinder EMDR</span>
+          {connected && !interrupted && <span className="client-conn">Connected to your therapist</span>}
+          {interrupted && <span className="client-conn warn">Connection interrupted</span>}
+        </div>
+        {exitHint && (
+          <button
+            type="button"
+            className="exit-hint"
+            onClick={() => {
+              if (document.fullscreenElement) void document.exitFullscreen();
+              window.close();
+            }}
+          >
+            Exit
+          </button>
+        )}
       </div>
-      {exitHint && (
-        <button
-          type="button"
-          className="exit-hint"
-          onClick={() => {
-            if (document.fullscreenElement) void document.exitFullscreen();
-            window.close();
-          }}
-        >
-          Exit
-        </button>
-      )}
       <BlsStage
         attachCanvas={session.attachCanvas}
         fullscreen
