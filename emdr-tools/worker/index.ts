@@ -1,12 +1,17 @@
 import { EmdrRoom } from './room';
+import { AccountDirectory } from './accountDirectory';
 import { createDefaultRoomState, type RoomState } from '../src/types/room';
 
-export { EmdrRoom };
+export { EmdrRoom, AccountDirectory };
 
 export default {
   async fetch(request: Request, env: Env): Promise<Response> {
     const url = new URL(request.url);
     const path = url.pathname;
+
+    if (path.startsWith('/api/auth') || path.startsWith('/api/sessions')) {
+      return handleAuthRoutes(request, env, url);
+    }
 
     if (path.startsWith('/api/rooms') || path.startsWith('/ws/')) {
       return handleRoomRoutes(request, env, url);
@@ -16,6 +21,32 @@ export default {
     return withSecurityHeaders(res);
   },
 };
+
+function accountsStub(env: Env) {
+  return env.ACCOUNTS.get(env.ACCOUNTS.idFromName('global'));
+}
+
+async function handleAuthRoutes(request: Request, env: Env, url: URL): Promise<Response> {
+  const stub = accountsStub(env);
+  const map: Record<string, string> = {
+    '/api/auth/register': '/register',
+    '/api/auth/login': '/login',
+    '/api/auth/me': '/me',
+    '/api/auth/logout': '/logout',
+    '/api/auth/onboarding': '/onboarding',
+    '/api/auth/delete-account': '/delete-account',
+    '/api/sessions': '/sessions',
+  };
+  const target = map[url.pathname];
+  if (!target) return Response.json({ error: 'Not found' }, { status: 404 });
+  return stub.fetch(
+    new Request(`https://accounts${target}`, {
+      method: request.method,
+      headers: request.headers,
+      body: request.method === 'GET' || request.method === 'HEAD' ? undefined : await request.text(),
+    }),
+  );
+}
 
 async function handleRoomRoutes(request: Request, env: Env, url: URL): Promise<Response> {
   if (request.method === 'POST' && url.pathname === '/api/rooms') {

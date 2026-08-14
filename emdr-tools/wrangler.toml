@@ -14,9 +14,17 @@ not_found_handling = "single-page-application"
 name = "ROOM"
 class_name = "EmdrRoom"
 
+[[durable_objects.bindings]]
+name = "ACCOUNTS"
+class_name = "AccountDirectory"
+
 [[migrations]]
 tag = "v1"
 new_sqlite_classes = ["EmdrRoom"]
+
+[[migrations]]
+tag = "v2"
+new_sqlite_classes = ["AccountDirectory"]
 
 [vars]
 APP_NAME = "Pathfinder EMDR Tools"

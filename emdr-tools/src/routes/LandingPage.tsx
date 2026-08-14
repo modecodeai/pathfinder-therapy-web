@@ -22,7 +22,10 @@ export function LandingPage() {
             <strong>Pathfinder</strong> EMDR Tools
           </span>
         </div>
-        <nav>
+        <nav className="site-nav">
+          <Link to="/session">Session</Link>
+          <Link to="/tools">BLS Studio</Link>
+          <Link to="/account">Account</Link>
           <Link to="/about">About</Link>
         </nav>
       </header>
@@ -30,16 +33,22 @@ export function LandingPage() {
       <main className="landing">
         <p className="eyebrow">Pathfinder Therapy</p>
         <h1>Pathfinder EMDR Tools</h1>
-        <p className="subtitle">Bilateral stimulation tools for EMDR therapy</p>
+        <p className="subtitle">Clinical EMDR tools for trained therapists</p>
         <p className="lede">
-          Browser-based visual and auditory bilateral stimulation tools designed for appropriately
-          trained practitioners.
+          Browser-based visual and auditory bilateral stimulation with a phase-aware EMDR Session
+          Companion. For use by appropriately trained mental-health professionals.
         </p>
         <div className="cta-row">
-          <Link className="btn primary" to="/tools">
-            Open Therapist Tools
+          <Link className="btn primary" to="/account">
+            Create free therapist account
           </Link>
-          <button type="button" className="btn" onClick={() => setShowJoin((v) => !v)}>
+          <Link className="btn" to="/session">
+            EMDR Session Companion
+          </Link>
+          <Link className="btn" to="/tools">
+            Open BLS Studio
+          </Link>
+          <button type="button" className="btn ghost" onClick={() => setShowJoin((v) => !v)}>
             Join a Session
           </button>
         </div>

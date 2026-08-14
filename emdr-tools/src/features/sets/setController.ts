@@ -24,7 +24,7 @@ export class SetController {
   check(): boolean {
     if (this.completed) return true;
     const mode = this.opts.getMode();
-    if (mode === 'manual') return false;
+    if (mode === 'manual' || mode === 'continuous') return false;
 
     if (mode === 'passes') {
       if (this.opts.getPasses() >= this.opts.getTargetPasses()) {
@@ -35,10 +35,12 @@ export class SetController {
       return false;
     }
 
-    if (this.opts.getElapsedMs() >= this.opts.getTargetSeconds() * 1000) {
-      this.completed = true;
-      this.opts.onComplete();
-      return true;
+    if (mode === 'timed') {
+      if (this.opts.getElapsedMs() >= this.opts.getTargetSeconds() * 1000) {
+        this.completed = true;
+        this.opts.onComplete();
+        return true;
+      }
     }
     return false;
   }

@@ -338,14 +338,18 @@ interface RoomRow {
 
 function normalizeState(s: RoomState): RoomState {
   const base = createDefaultRoomState();
+  const merged = { ...base, ...s };
   return {
-    ...base,
-    ...s,
-    speedHz: clampSpeed(s.speedHz ?? base.speedHz),
-    stimulusSize: clampSize(s.stimulusSize ?? base.stimulusSize),
-    travelWidth: clampTravel(s.travelWidth ?? base.travelWidth),
-    verticalPosition: Math.min(1, Math.max(0, s.verticalPosition ?? 0.5)),
-    audioVolume: Math.min(1, Math.max(0, s.audioVolume ?? 0.45)),
-    sequence: typeof s.sequence === 'number' ? s.sequence : 0,
+    ...merged,
+    speedHz: clampSpeed(merged.speedHz ?? base.speedHz),
+    cycleDurationMs: merged.cycleDurationMs ?? base.cycleDurationMs,
+    speed01: typeof merged.speed01 === 'number' ? merged.speed01 : base.speed01,
+    midlineDirection: merged.midlineDirection === 'down' ? 'down' : 'up',
+    continuous: !!merged.continuous,
+    stimulusSize: clampSize(merged.stimulusSize ?? base.stimulusSize),
+    travelWidth: clampTravel(merged.travelWidth ?? base.travelWidth),
+    verticalPosition: Math.min(1, Math.max(0, merged.verticalPosition ?? 0.5)),
+    audioVolume: Math.min(1, Math.max(0, merged.audioVolume ?? 0.45)),
+    sequence: typeof merged.sequence === 'number' ? merged.sequence : 0,
   };
 }

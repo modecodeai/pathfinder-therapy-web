@@ -1,13 +1,10 @@
-/** Operational BLS state only — never store clinical content. */
+/** Operational BLS state — remote sync + studio. Clinical notes live in companion only. */
 
-export type VisualMode =
-  | 'horizontal'
-  | 'vertical'
-  | 'diagonal-down'
-  | 'diagonal-up'
-  | 'blink';
+import type { BLSTrajectory, MidlineDirection } from '../emdr/types/emdr';
+import { SPEED_PRESETS } from '../emdr/types/emdr';
 
-export type SetMode = 'manual' | 'passes' | 'timed';
+export type VisualMode = BLSTrajectory;
+export type SetMode = 'manual' | 'passes' | 'timed' | 'continuous';
 export type AudioSound = 'soft-click' | 'soft-tone' | 'pulse';
 export type SessionMode = 'in-person' | 'remote';
 export type Side = 'L' | 'R';
@@ -16,22 +13,28 @@ export interface RoomState {
   visualEnabled: boolean;
   audioEnabled: boolean;
   visualMode: VisualMode;
+  /**
+   * Legacy/remote field: full passes per second.
+   * Preferred control is cycleDurationMs / speed01.
+   */
   speedHz: number;
+  /** Duration of one full pass (L→R→L) in ms */
+  cycleDurationMs: number;
+  /** 0 = slower, 1 = faster — primary clinical speed UI */
+  speed01: number;
   stimulusColour: string;
   backgroundColour: string;
-  /** Stimulus radius in CSS pixels (approx 8–40) */
   stimulusSize: number;
-  /** Travel width 0.3–1 */
   travelWidth: number;
-  /** Vertical position 0 (top) – 1 (bottom); 0.5 = centre */
   verticalPosition: number;
+  midlineDirection: MidlineDirection;
   running: boolean;
   paused: boolean;
   setMode: SetMode;
   targetPasses?: number;
   targetSeconds?: number;
+  continuous: boolean;
   audioSound: AudioSound;
-  /** 0–1 */
   audioVolume: number;
   audioOnly: boolean;
   syncAudioWithVisual: boolean;
@@ -45,10 +48,13 @@ export interface LocalMetrics {
   sets: number;
 }
 
-export const SPEED_MIN_HZ = 0.2;
-export const SPEED_MAX_HZ = 2.5;
-export const SPEED_STEP_HZ = 0.1;
-export const DEFAULT_SPEED_HZ = 1.4;
+export const SPEED_MIN_HZ = 0.15;
+export const SPEED_MAX_HZ = 1.8;
+export const SPEED_STEP_HZ = 0.05;
+export const DEFAULT_SPEED_HZ = 0.7;
+
+export const CYCLE_MIN_MS = 550;
+export const CYCLE_MAX_MS = 5000;
 
 export const SIZE_MIN = 8;
 export const SIZE_MAX = 40;
@@ -58,7 +64,7 @@ export const TRAVEL_MIN = 0.3;
 export const TRAVEL_MAX = 1;
 export const DEFAULT_TRAVEL = 0.85;
 
-export const PASS_PRESETS = [12, 18, 24, 30, 36] as const;
+export const PASS_PRESETS = [6, 8, 10, 12, 18, 20, 24, 30, 36] as const;
 export const TIME_PRESETS = [10, 15, 20, 30, 45, 60] as const;
 
 export const STIMULUS_COLOURS = [
@@ -79,22 +85,50 @@ export const BACKGROUND_COLOURS = [
   { id: 'light-grey', value: '#D1D5DB' },
 ] as const;
 
+export function speed01ToCycleMs(speed01: number): number {
+  const s = Math.min(1, Math.max(0, speed01));
+  return Math.round(CYCLE_MAX_MS + (CYCLE_MIN_MS - CYCLE_MAX_MS) * s);
+}
+
+export function cycleMsToSpeed01(ms: number): number {
+  const clamped = Math.min(CYCLE_MAX_MS, Math.max(CYCLE_MIN_MS, ms));
+  return (CYCLE_MAX_MS - clamped) / (CYCLE_MAX_MS - CYCLE_MIN_MS);
+}
+
+export function cycleMsToHz(ms: number): number {
+  return Number((1000 / Math.max(50, ms)).toFixed(2));
+}
+
+export function hzToCycleMs(hz: number): number {
+  return Math.round(1000 / Math.max(0.05, hz));
+}
+
+export function presetCycleMs(id: string): number {
+  const p = SPEED_PRESETS.find((x) => x.id === id);
+  return p?.cycleDurationMs ?? 1400;
+}
+
 export function createDefaultRoomState(): RoomState {
+  const cycleDurationMs = presetCycleMs('moderate');
   return {
     visualEnabled: true,
     audioEnabled: false,
     visualMode: 'horizontal',
-    speedHz: DEFAULT_SPEED_HZ,
+    speedHz: cycleMsToHz(cycleDurationMs),
+    cycleDurationMs,
+    speed01: cycleMsToSpeed01(cycleDurationMs),
     stimulusColour: '#14B8A6',
     backgroundColour: '#242628',
     stimulusSize: DEFAULT_SIZE,
     travelWidth: DEFAULT_TRAVEL,
     verticalPosition: 0.5,
+    midlineDirection: 'up',
     running: false,
     paused: false,
     setMode: 'passes',
-    targetPasses: 24,
-    targetSeconds: 30,
+    targetPasses: 30,
+    targetSeconds: 15,
+    continuous: false,
     audioSound: 'soft-click',
     audioVolume: 0.45,
     audioOnly: false,
@@ -110,7 +144,7 @@ export function createEmptyMetrics(): LocalMetrics {
 
 export function clampSpeed(hz: number): number {
   const stepped = Math.round(hz / SPEED_STEP_HZ) * SPEED_STEP_HZ;
-  return Math.min(SPEED_MAX_HZ, Math.max(SPEED_MIN_HZ, Number(stepped.toFixed(1))));
+  return Math.min(SPEED_MAX_HZ, Math.max(SPEED_MIN_HZ, Number(stepped.toFixed(2))));
 }
 
 export function clampSize(px: number): number {
@@ -119,4 +153,14 @@ export function clampSize(px: number): number {
 
 export function clampTravel(t: number): number {
   return Math.min(TRAVEL_MAX, Math.max(TRAVEL_MIN, Number(t.toFixed(2))));
+}
+
+/** Apply speed01 and keep hz/cycle in sync */
+export function withSpeed01(_state: RoomState, speed01: number): Partial<RoomState> {
+  const cycleDurationMs = speed01ToCycleMs(speed01);
+  return {
+    speed01,
+    cycleDurationMs,
+    speedHz: cycleMsToHz(cycleDurationMs),
+  };
 }

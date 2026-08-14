@@ -19,6 +19,7 @@
     "worker/**/*.ts",
     "worker-configuration.d.ts",
     "src/features/remote/protocol.ts",
-    "src/types/room.ts"
+    "src/types/room.ts",
+    "src/emdr/types/emdr.ts"
   ]
 }

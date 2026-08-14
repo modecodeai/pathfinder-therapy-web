@@ -77,8 +77,15 @@ export function validateTherapistCommand(msg: unknown): TherapistCommand | null 
   return { type: m.type as 'PAUSE' | 'STOP' | 'END_SESSION', sequence: m.sequence };
 }
 
-const VISUAL_MODES = new Set(['horizontal', 'vertical', 'diagonal-down', 'diagonal-up', 'blink']);
-const SET_MODES = new Set(['manual', 'passes', 'timed']);
+const VISUAL_MODES = new Set([
+  'horizontal',
+  'vertical',
+  'diagonal-down',
+  'diagonal-up',
+  'blink',
+  'infinity',
+]);
+const SET_MODES = new Set(['manual', 'passes', 'timed', 'continuous']);
 const SOUNDS = new Set(['soft-click', 'soft-tone', 'pulse']);
 
 export function sanitizePartialRoomState(input: Record<string, unknown>): Partial<RoomState> {
@@ -91,6 +98,16 @@ export function sanitizePartialRoomState(input: Record<string, unknown>): Partia
   if (typeof input.speedHz === 'number' && Number.isFinite(input.speedHz)) {
     out.speedHz = input.speedHz;
   }
+  if (typeof input.cycleDurationMs === 'number' && Number.isFinite(input.cycleDurationMs)) {
+    out.cycleDurationMs = Math.min(5000, Math.max(550, Math.round(input.cycleDurationMs)));
+  }
+  if (typeof input.speed01 === 'number' && Number.isFinite(input.speed01)) {
+    out.speed01 = Math.min(1, Math.max(0, input.speed01));
+  }
+  if (input.midlineDirection === 'up' || input.midlineDirection === 'down') {
+    out.midlineDirection = input.midlineDirection;
+  }
+  if (typeof input.continuous === 'boolean') out.continuous = input.continuous;
   if (typeof input.stimulusColour === 'string' && /^#[0-9A-Fa-f]{6}$/.test(input.stimulusColour)) {
     out.stimulusColour = input.stimulusColour;
   }

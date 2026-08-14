@@ -1,4 +1,10 @@
-import type { Side, VisualMode } from '../../types/room';
+import type { BLSTrajectory, MidlineDirection } from '../../emdr/types/emdr';
+import {
+  cycleProgressFromElapsed,
+  getTrajectoryPosition,
+  passesFromCycleProgress,
+} from '../../emdr/engine/trajectoryEngine';
+import type { Side } from '../../types/room';
 
 export interface BlsFrame {
   x: number;
@@ -9,34 +15,32 @@ export interface BlsFrame {
 
 export interface BlsEngineOptions {
   canvas: HTMLCanvasElement;
-  getSpeedHz: () => number;
-  getMode: () => VisualMode;
+  /** Duration of one full pass (L→R→L) in ms */
+  getCycleDurationMs: () => number;
+  getTrajectory: () => BLSTrajectory;
   getColour: () => string;
   getBackground: () => string;
-  /** Radius in CSS pixels */
   getSizePx: () => number;
   getTravelWidth: () => number;
-  /** 0 top – 1 bottom */
   getVerticalPosition: () => number;
   getVisualEnabled: () => boolean;
-  /** Logical elapsed ms used for phase when running */
+  getMidline?: () => MidlineDirection;
   getElapsedMs: () => number;
   isAnimating: () => boolean;
-  /** Called when a pass completes (one edge-to-edge traversal) */
-  onPass?: (sideArrived: Side) => void;
+  /** Fires once per completed full pass (back-and-forth) */
+  onPass?: (completedPasses: number) => void;
+  /** Side cue for audio — approx half-pass */
   onSide?: (side: Side) => void;
 }
 
 /**
- * Canvas BLS driven by requestAnimationFrame.
- * Position from elapsed time + Hz — not React state per frame.
- *
- * One pass = one full traversal from one edge to the opposite edge.
- * At speedHz, passes per second ≈ speedHz (each half-cycle is one pass).
+ * Canvas BLS via requestAnimationFrame.
+ * One pass = one complete back-and-forth (LEFT→RIGHT→LEFT).
  */
 export class BlsEngine {
   private raf = 0;
   private started = false;
+  private lastPassFloor = 0;
   private lastSide: Side | null = null;
   private readonly opts: BlsEngineOptions;
   private readonly ctx: CanvasRenderingContext2D;
@@ -67,6 +71,7 @@ export class BlsEngine {
   }
 
   resetSideTracking(): void {
+    this.lastPassFloor = 0;
     this.lastSide = null;
   }
 
@@ -84,95 +89,43 @@ export class BlsEngine {
 
   private tick(): void {
     this.resize();
-    const animating = this.opts.isAnimating();
-    const visualOn = this.opts.getVisualEnabled();
-
-    if (!animating) {
+    if (!this.opts.isAnimating()) {
       this.drawIdle();
       return;
     }
 
-    const hz = Math.max(0.05, this.opts.getSpeedHz());
-    const elapsedSec = Math.max(0, this.opts.getElapsedMs() / 1000);
-    // Each pass = half cycle (edge to edge). Full L-R-L = 2 passes = 1/hz seconds? 
-    // Spec: pass = one edge-to-edge. At 1 Hz → 1 pass/sec.
-    const passFloat = elapsedSec * hz;
-    const passIndex = Math.floor(passFloat);
-    const t = passFloat - passIndex; // 0..1 within current pass
-    const goingRight = passIndex % 2 === 0;
-    const side: Side = goingRight ? 'R' : 'L';
+    const cycleDur = this.opts.getCycleDurationMs();
+    const elapsed = this.opts.getElapsedMs();
+    const cycleProgress = cycleProgressFromElapsed(elapsed, cycleDur);
+    const passFloor = passesFromCycleProgress(cycleProgress);
+    const frac = cycleProgress - passFloor;
 
-    if (this.lastSide !== null && side !== this.lastSide) {
-      this.opts.onPass?.(side);
-      this.opts.onSide?.(side);
-    } else if (this.lastSide === null) {
+    if (passFloor > this.lastPassFloor) {
+      this.lastPassFloor = passFloor;
+      this.opts.onPass?.(passFloor);
+    }
+
+    // Audio side cue: first half → R, second half → L (approx)
+    const side: Side = frac < 0.5 ? 'R' : 'L';
+    if (this.lastSide !== side) {
+      this.lastSide = side;
       this.opts.onSide?.(side);
     }
-    this.lastSide = side;
 
-    const frame = this.computeFrame(side, easeInOutSine(t), goingRight, visualOn);
+    const traj = this.opts.getTrajectory();
+    const pt = getTrajectoryPosition(frac, traj, {
+      travelWidth: this.opts.getTravelWidth(),
+      verticalPosition: this.opts.getVerticalPosition(),
+      midline: this.opts.getMidline?.() ?? 'up',
+    });
+
+    const frame: BlsFrame = {
+      x: pt.x * this.opts.canvas.width,
+      y: pt.y * this.opts.canvas.height,
+      side,
+      visible: this.opts.getVisualEnabled(),
+    };
     this.paint(frame);
-  }
-
-  private computeFrame(
-    side: Side,
-    ease: number,
-    goingRight: boolean,
-    visualOn: boolean,
-  ): BlsFrame {
-    const mode = this.opts.getMode();
-    const travel = Math.min(1, Math.max(0.3, this.opts.getTravelWidth()));
-    const canvas = this.opts.canvas;
-    const w = canvas.width;
-    const h = canvas.height;
-    const marginX = ((1 - travel) / 2) * w;
-    const marginY = ((1 - travel) / 2) * h;
-    const yBase = marginY + this.opts.getVerticalPosition() * (h - 2 * marginY);
-
-    let x = w / 2;
-    let y = yBase;
-
-    if (mode === 'blink') {
-      x = side === 'R' ? w - marginX : marginX;
-      y = yBase;
-    } else if (mode === 'horizontal') {
-      const p = goingRight ? ease : 1 - ease;
-      // When going to L (odd passes), animate from right to left
-      const prog = goingRight ? ease : ease;
-      x = goingRight
-        ? marginX + prog * (w - 2 * marginX)
-        : w - marginX - prog * (w - 2 * marginX);
-      y = yBase;
-      void p;
-    } else if (mode === 'vertical') {
-      const goingDown = goingRight;
-      const prog = ease;
-      y = goingDown
-        ? marginY + prog * (h - 2 * marginY)
-        : h - marginY - prog * (h - 2 * marginY);
-      x = w / 2;
-    } else if (mode === 'diagonal-up') {
-      const prog = ease;
-      if (goingRight) {
-        x = marginX + prog * (w - 2 * marginX);
-        y = h - marginY - prog * (h - 2 * marginY);
-      } else {
-        x = w - marginX - prog * (w - 2 * marginX);
-        y = marginY + prog * (h - 2 * marginY);
-      }
-    } else {
-      // diagonal-down
-      const prog = ease;
-      if (goingRight) {
-        x = marginX + prog * (w - 2 * marginX);
-        y = marginY + prog * (h - 2 * marginY);
-      } else {
-        x = w - marginX - prog * (w - 2 * marginX);
-        y = h - marginY - prog * (h - 2 * marginY);
-      }
-    }
-
-    return { x, y, side, visible: visualOn };
   }
 
   private paint(frame: BlsFrame): void {
@@ -195,31 +148,29 @@ export class BlsEngine {
     this.ctx.fillRect(0, 0, canvas.width, canvas.height);
     if (!this.opts.getVisualEnabled()) return;
 
+    const traj = this.opts.getTrajectory();
+    const pt = getTrajectoryPosition(0, traj, {
+      travelWidth: this.opts.getTravelWidth(),
+      verticalPosition: this.opts.getVerticalPosition(),
+      midline: this.opts.getMidline?.() ?? 'up',
+    });
     const dpr = Math.min(window.devicePixelRatio || 1, 2);
     const r = this.opts.getSizePx() * dpr;
-    const marginY = ((1 - this.opts.getTravelWidth()) / 2) * canvas.height;
-    const y =
-      marginY + this.opts.getVerticalPosition() * (canvas.height - 2 * marginY);
     this.ctx.beginPath();
-    this.ctx.globalAlpha = this.opts.isAnimating() ? 1 : 0.85;
     this.ctx.fillStyle = this.opts.getColour();
-    this.ctx.arc(canvas.width / 2, y, r, 0, Math.PI * 2);
+    this.ctx.arc(pt.x * canvas.width, pt.y * canvas.height, r, 0, Math.PI * 2);
     this.ctx.fill();
-    this.ctx.globalAlpha = 1;
   }
 }
 
-export function easeInOutSine(t: number): number {
-  const x = Math.min(1, Math.max(0, t));
-  return -(Math.cos(Math.PI * x) - 1) / 2;
+// Re-export helpers used by tests / audio-only
+export { easeInOutSine } from '../../emdr/engine/trajectoryEngine';
+
+export function passesFromElapsed(elapsedMs: number, cycleDurationMs: number): number {
+  return passesFromCycleProgress(cycleProgressFromElapsed(elapsedMs, cycleDurationMs));
 }
 
-/** Pure helpers for tests */
-export function passesFromElapsed(elapsedMs: number, hz: number): number {
-  return Math.floor(Math.max(0, elapsedMs / 1000) * Math.max(0.05, hz));
-}
-
-export function sideFromElapsed(elapsedMs: number, hz: number): Side {
-  const passIndex = passesFromElapsed(elapsedMs, hz);
-  return passIndex % 2 === 0 ? 'R' : 'L';
+export function sideFromElapsed(elapsedMs: number, cycleDurationMs: number): Side {
+  const frac = cycleProgressFromElapsed(elapsedMs, cycleDurationMs) % 1;
+  return frac < 0.5 ? 'R' : 'L';
 }

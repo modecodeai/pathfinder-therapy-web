@@ -6,11 +6,12 @@ import {
 } from '../types/room';
 
 const MODES: { id: VisualMode; label: string }[] = [
-  { id: 'horizontal', label: 'Horizontal Sweep' },
-  { id: 'vertical', label: 'Vertical Sweep' },
-  { id: 'diagonal-down', label: 'Diagonal Down' },
-  { id: 'diagonal-up', label: 'Diagonal Up' },
-  { id: 'blink', label: 'Blink Left/Right' },
+  { id: 'horizontal', label: 'Horizontal' },
+  { id: 'diagonal-up', label: 'Diagonal ↗︎↙︎' },
+  { id: 'diagonal-down', label: 'Diagonal ↖︎↘︎' },
+  { id: 'infinity', label: 'Infinity ∞' },
+  { id: 'vertical', label: 'Vertical' },
+  { id: 'blink', label: 'Blink L/R' },
 ];
 
 interface VisualControlsProps {
@@ -40,20 +41,52 @@ export function VisualControls({ state, onChange }: VisualControlsProps) {
       </div>
 
       <fieldset>
-        <legend>Mode</legend>
+        <legend>Trajectory</legend>
         <div className="chip-grid">
           {MODES.map((m) => (
             <button
               key={m.id}
               type="button"
               className={state.visualMode === m.id ? 'chip is-active' : 'chip'}
-              onClick={() => onChange({ visualMode: m.id })}
+              onClick={() =>
+                onChange({
+                  visualMode: m.id,
+                  ...(m.id === 'infinity'
+                    ? { setMode: 'timed' as const, targetSeconds: 15, speed01: 0.05 }
+                    : {}),
+                })
+              }
             >
               {m.label}
             </button>
           ))}
         </div>
       </fieldset>
+
+      {state.visualMode === 'infinity' && (
+        <fieldset>
+          <legend>Midline direction</legend>
+          <div className="segmented">
+            <button
+              type="button"
+              className={state.midlineDirection === 'up' ? 'is-active' : ''}
+              onClick={() => onChange({ midlineDirection: 'up' })}
+            >
+              Up through centre
+            </button>
+            <button
+              type="button"
+              className={state.midlineDirection === 'down' ? 'is-active' : ''}
+              onClick={() => onChange({ midlineDirection: 'down' })}
+            >
+              Down through centre
+            </button>
+          </div>
+          <p className="hint">
+            Slow figure-eight for de-arousal — check which midline direction feels more soothing.
+          </p>
+        </fieldset>
+      )}
 
       <fieldset>
         <legend>Stimulus colour</legend>
@@ -148,18 +181,6 @@ export function VisualControls({ state, onChange }: VisualControlsProps) {
           ))}
         </div>
       </fieldset>
-
-      <label className="field">
-        <span>Fine vertical position</span>
-        <input
-          type="range"
-          min={0}
-          max={100}
-          step={1}
-          value={Math.round(state.verticalPosition * 100)}
-          onChange={(e) => onChange({ verticalPosition: Number(e.target.value) / 100 })}
-        />
-      </label>
     </div>
   );
 }

@@ -1,17 +1,19 @@
+import type { ReactNode } from 'react';
 import type { BlsSession } from '../hooks/useBlsSession';
-import {
-  SPEED_MAX_HZ,
-  SPEED_MIN_HZ,
-  SPEED_STEP_HZ,
-} from '../types/room';
 
 interface TransportBarProps {
   session: BlsSession;
   onClientView?: () => void;
   onFullscreen?: () => void;
+  checkInSlot?: ReactNode;
 }
 
-export function TransportBar({ session, onClientView, onFullscreen }: TransportBarProps) {
+export function TransportBar({
+  session,
+  onClientView,
+  onFullscreen,
+  checkInSlot,
+}: TransportBarProps) {
   const { state, metrics, start, pause, resume, stop, patchState, formatTime, resetCounters } =
     session;
   const active = state.running && !state.paused;
@@ -20,37 +22,47 @@ export function TransportBar({ session, onClientView, onFullscreen }: TransportB
     <footer className="transport">
       <div className="bls-rate">
         <div className="bls-rate-label">
-          <span>BLS Rate</span>
-          <strong>{state.speedHz.toFixed(1)} Hz</strong>
+          <span>Speed</span>
+          <strong>
+            Slower <span aria-hidden>←</span>
+            <span className="sr-only">to</span>
+            <span aria-hidden>→</span> Faster
+          </strong>
         </div>
         <div className="bls-rate-controls">
           <button
             type="button"
             className="btn icon"
-            aria-label="Decrease rate"
-            onClick={() => patchState({ speedHz: state.speedHz - SPEED_STEP_HZ })}
+            aria-label="Slower"
+            onClick={() => patchState({ speed01: Math.max(0, state.speed01 - 0.05) })}
           >
             −
           </button>
           <input
             type="range"
-            min={SPEED_MIN_HZ}
-            max={SPEED_MAX_HZ}
-            step={SPEED_STEP_HZ}
-            value={state.speedHz}
-            aria-label="BLS rate in hertz"
-            onChange={(e) => patchState({ speedHz: Number(e.target.value) })}
+            min={0}
+            max={1}
+            step={0.01}
+            value={state.speed01}
+            aria-label="BLS speed from slower to faster"
+            onChange={(e) => patchState({ speed01: Number(e.target.value) })}
           />
           <button
             type="button"
             className="btn icon"
-            aria-label="Increase rate"
-            onClick={() => patchState({ speedHz: state.speedHz + SPEED_STEP_HZ })}
+            aria-label="Faster"
+            onClick={() => patchState({ speed01: Math.min(1, state.speed01 + 0.05) })}
           >
             +
           </button>
         </div>
+        <p className="hint speed-hint">
+          Suggested starting point — adjust clinically. Movement should be as fast as the client can
+          comfortably manage without strain.
+        </p>
       </div>
+
+      {checkInSlot}
 
       <div className="transport-row">
         <div className="metrics" aria-live="polite">

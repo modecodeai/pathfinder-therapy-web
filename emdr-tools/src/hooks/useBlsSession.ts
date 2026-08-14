@@ -4,26 +4,26 @@ import { BlsEngine, sideFromElapsed } from '../features/visual/blsEngine';
 import { formatTime, SetController } from '../features/sets/setController';
 import {
   clampSize,
-  clampSpeed,
   clampTravel,
   createDefaultRoomState,
   createEmptyMetrics,
+  withSpeed01,
   type LocalMetrics,
   type RoomState,
 } from '../types/room';
 
 export interface UseBlsSessionOptions {
-  /** Therapist hears muted by default; client never mutes for themselves via this flag */
   isClient?: boolean;
   onStateChange?: (state: RoomState) => void;
-  /** When true, ignore local transport — driven by remote ROOM_STATE */
-  remoteDriven?: boolean;
+  onSetComplete?: (metrics: LocalMetrics) => void;
 }
 
 export function useBlsSession(options: UseBlsSessionOptions = {}) {
   const isClient = options.isClient ?? false;
   const onChangeRef = useRef(options.onStateChange);
   onChangeRef.current = options.onStateChange;
+  const onSetCompleteRef = useRef(options.onSetComplete);
+  onSetCompleteRef.current = options.onSetComplete;
 
   const [state, setState] = useState<RoomState>(() => createDefaultRoomState());
   const [metrics, setMetrics] = useState<LocalMetrics>(() => createEmptyMetrics());
@@ -35,7 +35,6 @@ export function useBlsSession(options: UseBlsSessionOptions = {}) {
   const engineRef = useRef<BlsEngine | null>(null);
   const audioRef = useRef(new AudioEngine());
   const timerRef = useRef<number | null>(null);
-  const audioOnlyRef = useRef<number | null>(null);
   const runStartedAtRef = useRef<number | null>(null);
   const accumulatedMsRef = useRef(0);
 
@@ -47,40 +46,36 @@ export function useBlsSession(options: UseBlsSessionOptions = {}) {
 
   const patchState = useCallback(
     (partial: Partial<RoomState>) => {
-      const next: RoomState = {
-        ...stateRef.current,
-        ...partial,
-        speedHz:
-          partial.speedHz !== undefined
-            ? clampSpeed(partial.speedHz)
-            : stateRef.current.speedHz,
-        stimulusSize:
-          partial.stimulusSize !== undefined
-            ? clampSize(partial.stimulusSize)
-            : stateRef.current.stimulusSize,
-        travelWidth:
-          partial.travelWidth !== undefined
-            ? clampTravel(partial.travelWidth)
-            : stateRef.current.travelWidth,
-      };
+      let next: RoomState = { ...stateRef.current, ...partial };
+      if (partial.speed01 !== undefined) {
+        next = { ...next, ...withSpeed01(next, partial.speed01) };
+      } else if (partial.cycleDurationMs !== undefined) {
+        const ms = partial.cycleDurationMs;
+        next = {
+          ...next,
+          cycleDurationMs: ms,
+          speedHz: 1000 / Math.max(50, ms),
+          speed01: Math.min(1, Math.max(0, (5000 - ms) / (5000 - 550))),
+        };
+      }
+      if (partial.stimulusSize !== undefined) {
+        next.stimulusSize = clampSize(partial.stimulusSize);
+      }
+      if (partial.travelWidth !== undefined) {
+        next.travelWidth = clampTravel(partial.travelWidth);
+      }
       notifyState(next);
       return next;
     },
     [notifyState],
   );
 
-  const bumpSequence = useCallback(() => {
-    return stateRef.current.sequence + 1;
-  }, []);
+  const bumpSequence = useCallback(() => stateRef.current.sequence + 1, []);
 
   const clearTimers = () => {
     if (timerRef.current) {
       window.clearInterval(timerRef.current);
       timerRef.current = null;
-    }
-    if (audioOnlyRef.current) {
-      window.clearInterval(audioOnlyRef.current);
-      audioOnlyRef.current = null;
     }
   };
 
@@ -98,24 +93,30 @@ export function useBlsSession(options: UseBlsSessionOptions = {}) {
     runStartedAtRef.current = null;
     accumulatedMsRef.current = 0;
     audioRef.current.reset();
-    setMetrics((m) => {
-      const next = { ...m, sets: m.sets + 1, timeMs: 0, passes: 0 };
-      metricsRef.current = next;
-      return next;
-    });
+    const finalMetrics = {
+      ...metricsRef.current,
+      sets: metricsRef.current.sets + 1,
+    };
+    setMetrics({ ...finalMetrics, timeMs: 0, passes: 0 });
+    metricsRef.current = { ...finalMetrics, timeMs: 0, passes: 0 };
     notifyState({
       ...stateRef.current,
       running: false,
       paused: false,
       sequence: stateRef.current.sequence + 1,
     });
+    onSetCompleteRef.current?.(finalMetrics);
   }, [notifyState]);
 
   const setController = useRef(
     new SetController({
-      getMode: () => stateRef.current.setMode,
-      getTargetPasses: () => stateRef.current.targetPasses ?? 24,
-      getTargetSeconds: () => stateRef.current.targetSeconds ?? 30,
+      getMode: () => {
+        const s = stateRef.current;
+        if (s.continuous) return 'manual';
+        return s.setMode === 'continuous' ? 'manual' : s.setMode;
+      },
+      getTargetPasses: () => stateRef.current.targetPasses ?? 30,
+      getTargetSeconds: () => stateRef.current.targetSeconds ?? 15,
       getElapsedMs: () => metricsRef.current.timeMs,
       getPasses: () => metricsRef.current.passes,
       onComplete: () => completeSet(),
@@ -132,8 +133,8 @@ export function useBlsSession(options: UseBlsSessionOptions = {}) {
       engineRef.current?.stopLoop();
       const engine = new BlsEngine({
         canvas,
-        getSpeedHz: () => stateRef.current.speedHz,
-        getMode: () => stateRef.current.visualMode,
+        getCycleDurationMs: () => stateRef.current.cycleDurationMs,
+        getTrajectory: () => stateRef.current.visualMode,
         getColour: () => stateRef.current.stimulusColour,
         getBackground: () => stateRef.current.backgroundColour,
         getSizePx: () => stateRef.current.stimulusSize,
@@ -141,6 +142,7 @@ export function useBlsSession(options: UseBlsSessionOptions = {}) {
         getVerticalPosition: () => stateRef.current.verticalPosition,
         getVisualEnabled: () =>
           stateRef.current.visualEnabled && !stateRef.current.audioOnly,
+        getMidline: () => stateRef.current.midlineDirection,
         getElapsedMs: () => {
           if (
             stateRef.current.running &&
@@ -154,10 +156,10 @@ export function useBlsSession(options: UseBlsSessionOptions = {}) {
           return metricsRef.current.timeMs;
         },
         isAnimating: () => stateRef.current.running && !stateRef.current.paused,
-        onPass: () => {
+        onPass: (completed) => {
           if (!stateRef.current.running || stateRef.current.paused) return;
           setMetrics((m) => {
-            const next = { ...m, passes: m.passes + 1 };
+            const next = { ...m, passes: completed };
             metricsRef.current = next;
             queueMicrotask(() => setController.current.check());
             return next;
@@ -193,17 +195,16 @@ export function useBlsSession(options: UseBlsSessionOptions = {}) {
     timerRef.current = window.setInterval(() => {
       if (!stateRef.current.running || stateRef.current.paused) return;
       const elapsed =
-        accumulatedMsRef.current + (performance.now() - (runStartedAtRef.current ?? performance.now()));
+        accumulatedMsRef.current +
+        (performance.now() - (runStartedAtRef.current ?? performance.now()));
       setMetrics((m) => {
         const next = { ...m, timeMs: Math.floor(elapsed) };
         metricsRef.current = next;
         return next;
       });
       setController.current.check();
-
-      // Audio-only: emit sides on a timer when visual is off
       if (stateRef.current.audioOnly || !stateRef.current.visualEnabled) {
-        const side = sideFromElapsed(elapsed, stateRef.current.speedHz);
+        const side = sideFromElapsed(elapsed, stateRef.current.cycleDurationMs);
         syncAudioSettings();
         void audioRef.current.tickSide(side);
       }
@@ -272,7 +273,6 @@ export function useBlsSession(options: UseBlsSessionOptions = {}) {
     return seq;
   }, [bumpSequence, notifyState]);
 
-  /** Immediate halt without sequence bump — used on client connection loss */
   const emergencyStop = useCallback(() => {
     clearTimers();
     runStartedAtRef.current = null;
@@ -296,34 +296,35 @@ export function useBlsSession(options: UseBlsSessionOptions = {}) {
   }, []);
 
   const replaceState = useCallback(
-    (next: RoomState, opts?: { startAt?: number; resetMetrics?: boolean }) => {
-      const normalized = {
+    (next: RoomState) => {
+      const normalized: RoomState = {
+        ...createDefaultRoomState(),
         ...next,
-        speedHz: clampSpeed(next.speedHz),
+        cycleDurationMs: next.cycleDurationMs || hzFallback(next.speedHz),
+        speed01: next.speed01 ?? 0.5,
+        midlineDirection: next.midlineDirection ?? 'up',
+        continuous: next.continuous ?? false,
         stimulusSize: clampSize(next.stimulusSize),
         travelWidth: clampTravel(next.travelWidth),
       };
+      if (!next.cycleDurationMs && next.speedHz) {
+        normalized.cycleDurationMs = hzFallback(next.speedHz);
+        normalized.speed01 = Math.min(
+          1,
+          Math.max(0, (5000 - normalized.cycleDurationMs) / (5000 - 550)),
+        );
+      }
       stateRef.current = normalized;
       setState(normalized);
       syncAudioSettings();
-
       clearTimers();
-      if (opts?.resetMetrics) {
-        accumulatedMsRef.current = 0;
-        setMetrics(createEmptyMetrics());
-        metricsRef.current = createEmptyMetrics();
-      }
 
       if (normalized.running && !normalized.paused) {
-        // Align local clock; startAt is therapist Date.now()-ish — use performance offset from receipt
         accumulatedMsRef.current = metricsRef.current.timeMs;
         runStartedAtRef.current = performance.now();
         startClock();
-      } else if (normalized.running && normalized.paused) {
-        runStartedAtRef.current = null;
       } else {
         runStartedAtRef.current = null;
-        accumulatedMsRef.current = 0;
       }
     },
     [startClock, syncAudioSettings],
@@ -354,6 +355,10 @@ export function useBlsSession(options: UseBlsSessionOptions = {}) {
     audioUnsupported: () => audioRef.current.isUnsupported,
     ensureAudio: () => audioRef.current.ensure(),
   };
+}
+
+function hzFallback(hz: number): number {
+  return Math.round(1000 / Math.max(0.15, hz || 0.7));
 }
 
 export type BlsSession = ReturnType<typeof useBlsSession>;
