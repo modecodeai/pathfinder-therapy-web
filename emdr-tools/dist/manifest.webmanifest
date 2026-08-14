@@ -1,0 +1,18 @@
+{
+  "name": "Pathfinder EMDR Tools",
+  "short_name": "EMDR Tools",
+  "description": "Bilateral stimulation tools for EMDR therapy",
+  "start_url": "/tools",
+  "display": "standalone",
+  "background_color": "#F5F7F8",
+  "theme_color": "#0F766E",
+  "lang": "en-GB",
+  "icons": [
+    {
+      "src": "/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}

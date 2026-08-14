@@ -7,3 +7,7 @@ out/
 .env.*
 !.env.example
 tsconfig.tsbuildinfo
+
+# EMDR tools wrangler local state
+emdr-tools/.wrangler/
+
