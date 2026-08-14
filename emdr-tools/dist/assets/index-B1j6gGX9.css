@@ -145,3 +145,42 @@
     font-size: 12px;
   }
 }
+
+/* === Portrait therapist follow-up (keep Start Set on-screen) === */
+@media (max-width: 700px) and (orientation: portrait) {
+  .companion-top .top-actions,
+  .console-top .top-actions,
+  .companion-meta .btn:not([data-keep]),
+  .companion-top a.btn,
+  .companion-top button.btn {
+    font-size: 12px;
+    min-height: 36px;
+    padding: 0.2rem 0.45rem;
+  }
+  /* Prefer stage + controls over chrome */
+  .companion-v3 .companion-body,
+  .companion-v3 .companion-body.with-help,
+  .companion-v3 .companion-body.help-overlay-open,
+  .companion-v3 .companion-body.clinical-hidden {
+    grid-template-rows: minmax(140px, 34vh) minmax(0, 1fr) !important;
+  }
+  .companion-controls,
+  .session-bls-controls {
+    padding-bottom: calc(0.5rem + env(safe-area-inset-bottom, 0px)) !important;
+  }
+  .bls-start-btn,
+  .bls-transport-primary {
+    position: sticky;
+    bottom: 0;
+    z-index: 3;
+    margin-top: 0.35rem;
+  }
+  .companion-action-bar {
+    padding-bottom: calc(0.35rem + env(safe-area-inset-bottom, 0px)) !important;
+  }
+  /* Phase labels can abbreviate via smaller padding; rely on horizontal scroll */
+  .phase-nav,
+  .phase-nav-v3 {
+    mask-image: linear-gradient(90deg, #000 0%, #000 calc(100% - 36px), transparent 100%);
+  }
+}
