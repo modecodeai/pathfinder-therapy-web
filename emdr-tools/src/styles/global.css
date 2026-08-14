@@ -2044,3 +2044,154 @@ body:has(.join-page.live) {
     max-height: none !important;
   }
 }
+
+/* ——— Client Display (Session Companion + full-screen client) ——— */
+.client-display-panel {
+  display: grid;
+  gap: 0.45rem;
+}
+
+.client-display-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.client-display-head h2 {
+  margin: 0;
+  font-size: 1rem;
+}
+
+.client-display-dot {
+  font-size: 0.78rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.client-display-dot.tone-idle {
+  color: var(--pf-text-muted);
+}
+
+.client-display-dot.tone-wait {
+  color: #ca8a04;
+}
+
+.client-display-dot.tone-ok {
+  color: var(--pf-primary);
+}
+
+.client-display-dot.tone-warn {
+  color: var(--pf-warning);
+}
+
+.client-display-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+
+.client-display-meta {
+  margin: 0;
+}
+
+.client-display-toolbar {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.client-display-toolbar.is-live {
+  color: var(--pf-primary);
+}
+
+.client-preview-mirror {
+  border: 1px solid var(--pf-border);
+  border-radius: 10px;
+  overflow: hidden;
+  background: #111;
+  min-height: 140px;
+  max-height: 180px;
+  display: flex;
+  flex-direction: column;
+}
+
+.client-preview-label {
+  font-size: 0.72rem;
+  padding: 0.25rem 0.5rem;
+  background: #1a2226;
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.client-preview-mirror .bls-stage-fit {
+  flex: 1;
+  min-height: 110px;
+}
+
+.client-preview-mirror .bls-stage {
+  max-height: 140px;
+  aspect-ratio: 16 / 7;
+}
+
+.client-stage-wrap {
+  position: relative;
+  min-height: 0;
+  min-width: 0;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.client-stage-wrap .bls-stage-fit {
+  flex: 1;
+  min-height: 0;
+}
+
+.client-neutral-overlay {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-content: center;
+  justify-items: center;
+  gap: 0.5rem;
+  background: rgba(0, 0, 0, 0.72);
+  color: #f5f7f8;
+  text-align: center;
+  padding: 1.5rem;
+  z-index: 2;
+}
+
+.client-neutral-brand {
+  font-size: 1.1rem;
+  margin: 0;
+}
+
+.client-live-bar {
+  flex-shrink: 0;
+}
+
+.client-live-status {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.client-conn-dot {
+  color: #64748b;
+}
+
+.client-conn-dot.is-live {
+  color: var(--pf-accent);
+}
+
+.join-page.live.is-fs {
+  grid-template-rows: auto minmax(0, 1fr);
+}
+
+.client-waiting-intro .btn {
+  margin-top: 0.35rem;
+}
+
+.client-end h1 {
+  margin-bottom: 0.35rem;
+}

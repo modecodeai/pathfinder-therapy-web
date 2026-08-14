@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { BlsStage } from '../../components/BlsStage';
 import { BlsConfigurationPanel } from '../../components/bls/BlsConfigurationPanel';
@@ -24,6 +24,9 @@ import type {
 } from '../types/emdr';
 import { PHASE_LABELS, SPEED_PRESETS } from '../types/emdr';
 import { ClinicalPhasePanel } from './ClinicalPhasePanel';
+import { ClientDisplayPanel } from './ClientDisplayPanel';
+import { ClientPreviewMirror } from './ClientPreviewMirror';
+import { useTherapistClientDisplay } from '../hooks/useTherapistClientDisplay';
 
 const PHASES: EMDRPhase[] = [
   'history',
@@ -92,11 +95,11 @@ export function SessionCompanionPage() {
   const [returnToTargetOpen, setReturnToTargetOpen] = useState(false);
   const [lastResponse, setLastResponse] = useState<SetResponse | null>(null);
   const [blsManualOpen, setBlsManualOpen] = useState(false);
-  const [clientPreview, setClientPreview] = useState(false);
   const [resourceResponse, setResourceResponse] = useState<'positive' | 'negative' | null>(null);
   const [clinicalCollapsed, setClinicalCollapsed] = useState(false);
   const [compactMode, setCompactMode] = useState(false);
   const [historyOpen, setHistoryOpen] = useState(false);
+  const publishRemoteRef = useRef<(state: RoomState) => void>(() => undefined);
 
   const session = useBlsSession({
     onSetComplete: (m) => {
@@ -113,17 +116,15 @@ export function SessionCompanionPage() {
         ...c,
         blsSnapshot: snapshotBls(state),
       }));
-      if (clientPreview) {
-        try {
-          const bc = new BroadcastChannel('pf-emdr-sync');
-          bc.postMessage({ type: 'state', state });
-          bc.close();
-        } catch {
-          /* ignore */
-        }
-      }
+      publishRemoteRef.current(state);
     },
   });
+
+  const clientDisplay = useTherapistClientDisplay(session);
+
+  useEffect(() => {
+    publishRemoteRef.current = clientDisplay.publishState;
+  }, [clientDisplay.publishState]);
 
   const loadClinicalBlsPreset = useCallback(
     (presetId: ClinicalBlsPresetId) => {
@@ -180,10 +181,10 @@ export function SessionCompanionPage() {
       if (e.code === 'Space') {
         e.preventDefault();
         if (awaitingFeedback) return;
-        session.toggleSpace();
+        clientDisplay.toggleSpace();
       } else if (e.code === 'Escape') {
         e.preventDefault();
-        session.stop();
+        clientDisplay.stop();
         if (document.fullscreenElement) void document.exitFullscreen();
         setFocusMode(false);
       } else if (e.code === 'ArrowUp') {
@@ -198,7 +199,7 @@ export function SessionCompanionPage() {
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, [session, awaitingFeedback]);
+  }, [session, awaitingFeedback, clientDisplay]);
 
   const preset = EMDR_PHASE_PRESETS[companion.phase];
   const isActive = session.state.running && !session.state.paused;
@@ -333,6 +334,17 @@ export function SessionCompanionPage() {
             <span className="timer" title="Session elapsed">
               Session {formatElapsed(sessionElapsed)}
             </span>
+            <button
+              type="button"
+              className={`btn ghost client-display-toolbar ${clientDisplay.peerStatus === 'connected' ? 'is-live' : ''}`}
+              onClick={() => void clientDisplay.openClientDisplay()}
+              title="Open full-screen client BLS display"
+            >
+              Client Display
+              <span className={`client-display-dot tone-${clientDisplay.peerStatus === 'connected' ? 'ok' : clientDisplay.active ? 'wait' : 'idle'}`}>
+                ●
+              </span>
+            </button>
             <button type="button" className="btn ghost" onClick={() => setHelpOpen((v) => !v)}>
               {helpOpen ? 'Hide Help' : 'Help'}
             </button>
@@ -363,8 +375,16 @@ export function SessionCompanionPage() {
               ))}
             </nav>
           )}
-          {(applyPresetPrompt || showNoChange || returnToTargetOpen) && (
+          {(applyPresetPrompt || showNoChange || returnToTargetOpen || clientDisplay.banner) && (
             <div className="companion-banners">
+              {clientDisplay.banner && (
+                <div className="banner notice" role="status">
+                  <span>{clientDisplay.banner}</span>
+                  <button type="button" className="btn ghost" onClick={() => clientDisplay.setBanner(null)}>
+                    Dismiss
+                  </button>
+                </div>
+              )}
               {applyPresetPrompt && (
                 <div className="banner soft">
                   <span>Use suggested {PHASE_LABELS[applyPresetPrompt]} timing?</span>
@@ -502,7 +522,7 @@ export function SessionCompanionPage() {
               <div className="live-hud">
                 <span>{session.formatTime(session.metrics.timeMs)}</span>
                 <span>{session.metrics.passes} passes</span>
-                <button type="button" className="btn danger" onClick={() => session.stop()}>
+                <button type="button" className="btn danger" onClick={() => clientDisplay.stop()}>
                   Stop
                 </button>
               </div>
@@ -555,21 +575,15 @@ export function SessionCompanionPage() {
                 <button type="button" className="btn ghost" onClick={() => setFocusMode(true)}>
                   Focus
                 </button>
-                <button
-                  type="button"
-                  className="btn ghost"
-                  onClick={() => {
-                    setClientPreview(true);
-                    window.open(
-                      '/tools?clientView=1',
-                      'pf-emdr-client',
-                      'popup=yes,width=1024,height=720',
-                    );
-                  }}
-                >
-                  Client Preview
-                </button>
               </div>
+
+              <ClientDisplayPanel
+                display={clientDisplay}
+                state={session.state}
+                onMuteTherapistChange={(muted) => session.patchState({ muteTherapistAudio: muted })}
+              />
+
+              <ClientPreviewMirror open={clientDisplay.previewOpen} />
 
               {blsSettingsOpen && (
                 <div className="panel bls-settings-expanded">
@@ -610,7 +624,7 @@ export function SessionCompanionPage() {
                         className="btn primary"
                         onClick={() => {
                           setAwaitingFeedback(false);
-                          void session.start();
+                          void clientDisplay.start();
                         }}
                       >
                         Repeat
@@ -622,6 +636,21 @@ export function SessionCompanionPage() {
                   )}
                 </div>
               )}
+
+              <div className="panel">
+                <button
+                  type="button"
+                  className="btn ghost"
+                  onClick={() => {
+                    if (clientDisplay.active && !window.confirm('Client display is connected. End session and disconnect client?')) {
+                      return;
+                    }
+                    clientDisplay.endSessionWithClient();
+                  }}
+                >
+                  End Session
+                </button>
+              </div>
             </aside>
           )}
 
@@ -688,7 +717,7 @@ export function SessionCompanionPage() {
                 disabled={blsMinimised || (!preset.blsActive && companion.phase === 'assessment')}
                 onClick={() => {
                   setAwaitingFeedback(false);
-                  void session.start();
+                  void clientDisplay.start();
                 }}
               >
                 {infinityMode ? 'Start Infinity' : awaitingFeedback ? 'Continue' : 'Start Set'}
@@ -698,11 +727,13 @@ export function SessionCompanionPage() {
                 <button
                   type="button"
                   className="btn large"
-                  onClick={() => (session.state.paused ? void session.resume() : session.pause())}
+                  onClick={() =>
+                    session.state.paused ? void clientDisplay.resume() : clientDisplay.pause()
+                  }
                 >
                   {session.state.paused ? 'Resume' : 'Pause'}
                 </button>
-                <button type="button" className="btn danger large" onClick={() => session.stop()}>
+                <button type="button" className="btn danger large" onClick={() => clientDisplay.stop()}>
                   Stop
                 </button>
               </>
@@ -727,11 +758,11 @@ export function SessionCompanionPage() {
           <button
             type="button"
             className="btn large"
-            onClick={() => (session.state.paused ? void session.resume() : session.pause())}
+            onClick={() => (session.state.paused ? void clientDisplay.resume() : clientDisplay.pause())}
           >
             {session.state.paused ? 'Resume' : 'Pause'}
           </button>
-          <button type="button" className="btn danger large" onClick={() => session.stop()}>
+          <button type="button" className="btn danger large" onClick={() => clientDisplay.stop()}>
             Stop
           </button>
           <button type="button" className="btn ghost" onClick={() => setFocusMode(false)}>
