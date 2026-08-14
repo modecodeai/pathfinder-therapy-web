@@ -1,13 +1,18 @@
-# Pathfinder EMDR Tools (Beta)
+# Pathfinder EMDR Tools (Clinical v2)
 
-Browser-based bilateral stimulation for trained EMDR practitioners.  
-Production target: **https://emdr.pathfindertherapy.com**
+Clinical EMDR tools for trained therapists.  
+Production: **https://emdr.pathfindertherapy.com**
 
-In-person and therapist-controlled remote sessions. No accounts. No clinical records.
+## What’s included
 
-## Stack
-
-React · TypeScript · Vite · Cloudflare Workers · Durable Objects · WebSockets (Hibernation) · Web Audio · rAF · Vitest
+- **BLS Studio** (`/tools`) — visual/auditory BLS, trajectories including Infinity ∞, remote rooms
+- **EMDR Session Companion** (`/session`) — phase-aware workspace (1–8 + Future Template)
+- **Free therapist accounts** (`/account`) — DO-backed auth, `therapist-free` tier
+- Pass counting: **one full back-and-forth = 1 pass**
+- Phase presets as *suggested starting points* (therapist override always available)
+- Infinity / de-arousal mode (slow, ~10–20s, midline direction)
+- Processing check-in + passive no-change reminder (non-directive)
+- SUD 0–10 / VOC 1–7 tools (anonymous session references supported)
 
 ## Local
 
@@ -15,37 +20,19 @@ React · TypeScript · Vite · Cloudflare Workers · Durable Objects · WebSocke
 cd emdr-tools
 npm install
 npm run dev
-```
-
-Other scripts:
-
-```bash
 npm run test
 npm run typecheck
 npm run build
-npm run preview
 npm run deploy
 ```
 
-## Deploy
+## Architecture notes
 
-```bash
-cd emdr-tools
-npm run deploy
-```
-
-`wrangler.toml` maps custom domain `emdr.pathfindertherapy.com`.  
-You still need Cloudflare DNS/zone permission so the custom domain can attach to this Worker. Do **not** change `pathfindertherapy.com` / `www` site routing beyond that Worker domain record.
-
-## Routes
-
-| Path | Role |
-|------|------|
-| `/` | Landing (+ manual room code join) |
-| `/tools` | Therapist console |
-| `/join/:roomId` | Client remote stage |
-| `/about` | Privacy / positioning |
+- React + Vite + Cloudflare Workers
+- Durable Objects: `EmdrRoom` (remote BLS), `AccountDirectory` (accounts/sessions)
+- Animation via `requestAnimationFrame` (not React per-frame state)
+- No proprietary training scripts copied into the UI
 
 ## Privacy
 
-Stores only temporary operational room state for remote BLS. No names, notes, SUD/VOC, diagnoses, or targets.
+BLS Studio works without identifiable client data. Saved sessions use therapist-chosen reference labels. Core BLS is not paywalled.
