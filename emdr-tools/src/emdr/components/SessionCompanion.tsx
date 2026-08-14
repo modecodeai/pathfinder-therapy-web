@@ -24,8 +24,7 @@ import type {
 } from '../types/emdr';
 import { PHASE_LABELS, SPEED_PRESETS } from '../types/emdr';
 import { ClinicalPhasePanel } from './ClinicalPhasePanel';
-import { ClientDisplayPanel } from './ClientDisplayPanel';
-import { ClientPreviewMirror } from './ClientPreviewMirror';
+import { ClientDisplayPanel, ClientDisplayPreviewModal, ClientDisplayToolbarButton } from './ClientDisplayPanel';
 import { useTherapistClientDisplay } from '../hooks/useTherapistClientDisplay';
 
 const PHASES: EMDRPhase[] = [
@@ -125,6 +124,13 @@ export function SessionCompanionPage() {
   useEffect(() => {
     publishRemoteRef.current = clientDisplay.publishState;
   }, [clientDisplay.publishState]);
+
+  // Prepare a client-display room token in the background (inactive until open/share)
+  useEffect(() => {
+    const t = window.setTimeout(() => clientDisplay.prepareRoom(), 400);
+    return () => window.clearTimeout(t);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const loadClinicalBlsPreset = useCallback(
     (presetId: ClinicalBlsPresetId) => {
@@ -334,19 +340,13 @@ export function SessionCompanionPage() {
             <span className="timer" title="Session elapsed">
               Session {formatElapsed(sessionElapsed)}
             </span>
-            <button
-              type="button"
-              className={`btn ghost client-display-toolbar ${clientDisplay.peerStatus === 'connected' ? 'is-live' : ''}`}
-              onClick={() => void clientDisplay.openClientDisplay()}
-              title="Open full-screen client BLS display"
-            >
-              Client Display
-              <span className={`client-display-dot tone-${clientDisplay.peerStatus === 'connected' ? 'ok' : clientDisplay.active ? 'wait' : 'idle'}`}>
-                ●
-              </span>
-            </button>
+            <ClientDisplayToolbarButton
+              display={clientDisplay}
+              state={session.state}
+              onMuteTherapistChange={(muted) => session.patchState({ muteTherapistAudio: muted })}
+            />
             <button type="button" className="btn ghost" onClick={() => setHelpOpen((v) => !v)}>
-              {helpOpen ? 'Hide Help' : 'Help'}
+              {helpOpen ? 'Hide Help' : 'Help & Scripts'}
             </button>
             <button type="button" className="btn ghost" onClick={() => setCompactMode((v) => !v)}>
               {compactMode ? 'Exit compact' : 'Compact'}
@@ -583,8 +583,6 @@ export function SessionCompanionPage() {
                 onMuteTherapistChange={(muted) => session.patchState({ muteTherapistAudio: muted })}
               />
 
-              <ClientPreviewMirror open={clientDisplay.previewOpen} />
-
               {blsSettingsOpen && (
                 <div className="panel bls-settings-expanded">
                   <BlsConfigurationPanel
@@ -770,6 +768,8 @@ export function SessionCompanionPage() {
           </button>
         </aside>
       )}
+
+      <ClientDisplayPreviewModal display={clientDisplay} />
     </div>
   );
 }

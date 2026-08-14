@@ -120,29 +120,49 @@ export function useTherapistClientDisplay(session: BlsSessionApi) {
     return client;
   }, [session, stopClinicalForDisconnect]);
 
-  const ensureRoom = useCallback(async () => {
-    setError(null);
-    if (remoteRef.current?.getRoomId() && joinUrl) {
-      return { roomId: remoteRef.current.getRoomId()!, joinUrl };
-    }
-    const client = attachTherapistClient();
-    const created = await client.createRoom(session.stateRef.current);
-    if (!created) {
-      remoteRef.current = null;
-      setError('Could not create client display room.');
-      return null;
-    }
-    setRoomId(created.roomId);
-    setJoinUrl(created.joinUrl);
-    setPeerStatus('waiting');
-    setBanner(null);
-    wasPeerConnected.current = false;
-    publishBroadcast(session.stateRef.current);
-    return created;
-  }, [attachTherapistClient, joinUrl, session]);
+  const ensureRoom = useCallback(
+    async (opts?: { markWaiting?: boolean }) => {
+      setError(null);
+      if (remoteRef.current?.getRoomId() && joinUrl) {
+        if (opts?.markWaiting) {
+          setPeerStatus((s) => (s === 'connected' ? s : 'waiting'));
+        }
+        return { roomId: remoteRef.current.getRoomId()!, joinUrl };
+      }
+      const client = attachTherapistClient();
+      // Always create room in a stopped state — client waits until Start Set
+      const initial = {
+        ...session.stateRef.current,
+        running: false,
+        paused: false,
+      };
+      const created = await client.createRoom(initial);
+      if (!created) {
+        remoteRef.current = null;
+        setError('Could not create client display room.');
+        return null;
+      }
+      setRoomId(created.roomId);
+      setJoinUrl(created.joinUrl);
+      if (opts?.markWaiting) {
+        setPeerStatus('waiting');
+      }
+      // Silent prepare keeps "Not connected" until open/share
+      setBanner(null);
+      wasPeerConnected.current = false;
+      publishBroadcast(session.stateRef.current);
+      return created;
+    },
+    [attachTherapistClient, joinUrl, session],
+  );
+
+  /** Prepare room token in background when Session Companion opens. */
+  const prepareRoom = useCallback(() => {
+    void ensureRoom({ markWaiting: false });
+  }, [ensureRoom]);
 
   const openClientDisplay = useCallback(async () => {
-    const created = await ensureRoom();
+    const created = await ensureRoom({ markWaiting: true });
     if (!created) return null;
     const url = `${created.joinUrl}${created.joinUrl.includes('?') ? '&' : '?'}display=1`;
     window.open(url, CLIENT_WINDOW, 'popup=yes,width=1280,height=800');
@@ -151,12 +171,12 @@ export function useTherapistClientDisplay(session: BlsSessionApi) {
   }, [ensureRoom, session]);
 
   const copyClientLink = useCallback(async () => {
-    const created = await ensureRoom();
+    const created = await ensureRoom({ markWaiting: true });
     if (!created) return false;
     try {
       await navigator.clipboard.writeText(created.joinUrl);
       setCopied(true);
-      window.setTimeout(() => setCopied(false), 1600);
+      window.setTimeout(() => setCopied(false), 2000);
       return true;
     } catch {
       setError('Could not copy link');
@@ -309,6 +329,7 @@ export function useTherapistClientDisplay(session: BlsSessionApi) {
     clientFullscreen,
     active: !!roomId,
     ensureRoom,
+    prepareRoom,
     openClientDisplay,
     copyClientLink,
     disconnectDisplay,

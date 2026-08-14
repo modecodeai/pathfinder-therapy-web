@@ -33,13 +33,20 @@ await therapist.evaluate(() => {
 await new Promise((r) => setTimeout(r, 400));
 
 assert(
-  !!(await therapist.$('.client-display-panel')),
-  'Client Display panel present in Session Companion',
+  !!(await therapist.$('.client-display-toolbar-btn')),
+  'Client Display toolbar control always visible',
 );
 
+// Open popover then Open Client Display (or use panel)
+await therapist.evaluate(() => {
+  document.querySelector('.client-display-toolbar-btn')?.dispatchEvent(
+    new MouseEvent('click', { bubbles: true }),
+  );
+});
+await new Promise((r) => setTimeout(r, 200));
 await therapist.evaluate(() => {
   const btn = [...document.querySelectorAll('button')].find((b) =>
-    /Open Client Display/i.test(b.textContent || ''),
+    /Open Client Display|Open Display/i.test(b.textContent || ''),
   );
   btn?.click();
 });
