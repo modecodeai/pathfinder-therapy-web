@@ -437,6 +437,9 @@ export function SessionCompanionPage() {
             <button type="button" className="btn ghost" onClick={() => setCompactMode((v) => !v)}>
               {compactMode ? 'Exit compact' : 'Compact'}
             </button>
+            <Link className="btn ghost" to="/pain">
+              EMDR Pain
+            </Link>
             <Link className="btn ghost" to="/tools">
               Studio
             </Link>
