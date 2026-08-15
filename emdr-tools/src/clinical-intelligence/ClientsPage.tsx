@@ -145,9 +145,14 @@ export function ClientDetailPage({ clientId }: { clientId: string }) {
                 Analyse a pasted session transcript with server-side OpenAI. Findings require
                 therapist review before updating this record.
               </p>
-              <Link className="btn primary" to={`/clients/${client.id}/clinical-intelligence`}>
-                Analyse Transcript
-              </Link>
+              <div className="stack-btns horizontal wrap">
+                <Link className="btn primary" to={`/clients/${client.id}/clinical-intelligence`}>
+                  Analyse Transcript
+                </Link>
+                <Link className="btn" to={`/clients/${client.id}/aip-formulation`}>
+                  AIP Formulation
+                </Link>
+              </div>
             </section>
 
             <ClientAnalysesList clientId={client.id} />

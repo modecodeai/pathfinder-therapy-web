@@ -80,6 +80,18 @@ export async function getClient(clientId: string): Promise<ClientRecord> {
   return data.client;
 }
 
+export async function patchClient(
+  clientId: string,
+  body: Partial<ClientRecord>,
+): Promise<{ ok: boolean; client?: ClientRecord; error?: string }> {
+  const res = await fetch(`/api/clients/${encodeURIComponent(clientId)}`, {
+    method: 'PATCH',
+    headers: authHeaders(),
+    body: JSON.stringify(body),
+  });
+  return parseJson(res);
+}
+
 export type AnalyseResponse = {
   success: boolean;
   error?: string;

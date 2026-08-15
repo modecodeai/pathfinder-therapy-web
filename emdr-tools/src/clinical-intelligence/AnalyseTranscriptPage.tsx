@@ -14,7 +14,6 @@ import {
   type ReviewStatus,
   type SupportedAnalysisPhase,
   type TranscriptAnalysis,
-  type TranscriptEvidence,
 } from './types';
 import {
   SYNTHETIC_PHASE3_TRANSCRIPT,
@@ -29,8 +28,19 @@ import {
 } from './lib/api';
 import { Phase3ReviewPanel } from './components/Phase3ReviewPanel';
 import { Phase4ReviewPanel } from './components/Phase4ReviewPanel';
+import { CompactFindingCard } from './components/CompactFindingCard';
 
 type View = 'form' | 'review' | 'apply-preview';
+type ReviewFilter =
+  | 'all'
+  | 'pending'
+  | 'approved'
+  | 'rejected'
+  | 'memories'
+  | 'themes'
+  | 'nc-pc'
+  | 'targets'
+  | 'resources';
 
 const PROTOCOLS = [{ id: 'standard-emdr', label: 'Standard EMDR' }] as const;
 const PHASES = [
@@ -99,6 +109,7 @@ export function AnalyseTranscriptPage({ clientId }: { clientId: string }) {
     Record<string, { existingMemoryId: string; resolution: 'merge' | 'keep-separate' }>
   >({});
   const [serverConflicts, setServerConflicts] = useState<string[]>([]);
+  const [reviewFilter, setReviewFilter] = useState<ReviewFilter>('all');
   const transcriptPaneRef = useRef<HTMLPreElement>(null);
 
   const phaseMeta = PHASES.find((p) => p.id === phase) ?? PHASES[0];
@@ -371,6 +382,20 @@ export function AnalyseTranscriptPage({ clientId }: { clientId: string }) {
     else setTranscript(SYNTHETIC_TEST_TRANSCRIPT);
   };
 
+  const statusFilter = (status: ReviewStatus) => {
+    if (reviewFilter === 'pending') return status === 'pending';
+    if (reviewFilter === 'approved') return status === 'approved' || status === 'edited';
+    if (reviewFilter === 'rejected') return status === 'rejected';
+    return true;
+  };
+
+  const showCat = (cat: ReviewFilter) =>
+    reviewFilter === 'all' ||
+    reviewFilter === 'pending' ||
+    reviewFilter === 'approved' ||
+    reviewFilter === 'rejected' ||
+    reviewFilter === cat;
+
   return (
     <div className="practice-shell library-page">
       <AppHeader activeNav="settings" />
@@ -487,7 +512,7 @@ export function AnalyseTranscriptPage({ clientId }: { clientId: string }) {
 
         {auth.isAuthenticated && result && (view === 'review' || view === 'apply-preview') && (
           <>
-            <div className="stack-btns horizontal wrap">
+            <div className="ci-sticky-toolbar stack-btns horizontal wrap">
               <button
                 type="button"
                 className="btn ghost"
@@ -525,17 +550,47 @@ export function AnalyseTranscriptPage({ clientId }: { clientId: string }) {
                     ? 'Apply Approved Processing Notes'
                     : 'Apply Approved Findings'}
               </button>
+              <Link className="btn ghost" to={`/clients/${clientId}/aip-formulation`}>
+                Open AIP Formulation
+              </Link>
             </div>
 
             {error && <div className="ci-error-banner">{error}</div>}
 
+            {phase1 && (
+              <div className="ci-review-filters" role="toolbar" aria-label="Finding filters">
+                {(
+                  [
+                    ['all', 'All'],
+                    ['pending', 'Pending'],
+                    ['approved', 'Approved'],
+                    ['rejected', 'Rejected'],
+                    ['memories', 'Memories'],
+                    ['themes', 'Themes'],
+                    ['nc-pc', 'NC-PC'],
+                    ['targets', 'Targets'],
+                    ['resources', 'Resources'],
+                  ] as const
+                ).map(([id, label]) => (
+                  <button
+                    key={id}
+                    type="button"
+                    className={reviewFilter === id ? 'is-active' : ''}
+                    onClick={() => setReviewFilter(id)}
+                  >
+                    {label}
+                  </button>
+                ))}
+              </div>
+            )}
+
             <div className="ci-review-layout">
-              <section className="panel ci-transcript-pane" aria-label="Transcript">
+              <section className="panel ci-transcript-pane is-sticky" aria-label="Transcript">
                 <h2>Transcript</h2>
                 <pre className="ci-transcript-pre" ref={transcriptPaneRef}>
                   <TranscriptWithHighlight text={transcript} highlight={highlight} />
                 </pre>
-                <p className="hint">Use View Evidence to highlight supporting excerpts.</p>
+                <p className="hint">View Evidence highlights the source excerpt here.</p>
               </section>
 
               <section className="panel ci-findings-pane" aria-label="Clinical Intelligence">
@@ -559,6 +614,7 @@ export function AnalyseTranscriptPage({ clientId }: { clientId: string }) {
 
                 {phase1 && (
                   <>
+                {(reviewFilter === 'all' || reviewFilter === 'pending' || reviewFilter === 'approved' || reviewFilter === 'rejected') && (
                 <FindingSection title="Information Still Needed">
                   <ul className="ci-needed-list">
                     {(phase1.unansweredQuestions.length
@@ -569,7 +625,9 @@ export function AnalyseTranscriptPage({ clientId }: { clientId: string }) {
                     ))}
                   </ul>
                 </FindingSection>
+                )}
 
+                {(reviewFilter === 'all') && (
                 <FindingSection title="Possible Areas to Clarify">
                   <p className="hint">AI-assisted — not treatment instructions.</p>
                   <ul>
@@ -579,7 +637,9 @@ export function AnalyseTranscriptPage({ clientId }: { clientId: string }) {
                     {!phase1.clarificationSuggestions.length && <li className="hint">None</li>}
                   </ul>
                 </FindingSection>
+                )}
 
+                {showCat('all') && statusFilter(phase1.summary.reviewStatus) && (
                 <FindingSection title="Summary">
                   <SuggestionCard
                     title="Session summary"
@@ -590,50 +650,60 @@ export function AnalyseTranscriptPage({ clientId }: { clientId: string }) {
                     onEvidence={setHighlight}
                   />
                 </FindingSection>
+                )}
 
+                {showCat('all') && (
                 <FindingSection title="Presenting Problems">
                   <SuggestionList
-                    items={phase1.presentingProblems}
+                    items={phase1.presentingProblems.filter((i) => statusFilter(i.reviewStatus))}
                     selectedIds={selectedIds}
                     setSelectedIds={setSelectedIds}
                     onStatus={(id, s, e) => setCollectionStatus('presentingProblems', id, s, e)}
                     onEvidence={setHighlight}
                   />
                 </FindingSection>
+                )}
 
+                {showCat('all') && (
                 <FindingSection title="Symptoms / Difficulties">
                   <SuggestionList
-                    items={phase1.symptoms}
+                    items={phase1.symptoms.filter((i) => statusFilter(i.reviewStatus))}
                     selectedIds={selectedIds}
                     setSelectedIds={setSelectedIds}
                     onStatus={(id, s, e) => setCollectionStatus('symptoms', id, s, e)}
                     onEvidence={setHighlight}
                   />
                 </FindingSection>
+                )}
 
+                {showCat('all') && (
                 <FindingSection title="Recent Examples">
                   <SuggestionList
-                    items={phase1.recentExamples}
+                    items={phase1.recentExamples.filter((i) => statusFilter(i.reviewStatus))}
                     selectedIds={selectedIds}
                     setSelectedIds={setSelectedIds}
                     onStatus={(id, s, e) => setCollectionStatus('recentExamples', id, s, e)}
                     onEvidence={setHighlight}
                   />
                 </FindingSection>
+                )}
 
+                {showCat('all') && (
                 <FindingSection title="Current Triggers">
                   <SuggestionList
-                    items={phase1.triggers}
+                    items={phase1.triggers.filter((i) => statusFilter(i.reviewStatus))}
                     selectedIds={selectedIds}
                     setSelectedIds={setSelectedIds}
                     onStatus={(id, s, e) => setCollectionStatus('triggers', id, s, e)}
                     onEvidence={setHighlight}
                   />
                 </FindingSection>
+                )}
 
+                {showCat('memories') && (
                 <FindingSection title="Memory Timeline / Earlier Experiences">
-                  {phase1.memories.length ? (
-                    phase1.memories.map((m) => (
+                  {phase1.memories.filter((m) => statusFilter(m.reviewStatus)).length ? (
+                    phase1.memories.filter((m) => statusFilter(m.reviewStatus)).map((m) => (
                       <MemoryCard
                         key={m.id}
                         memory={m}
@@ -647,19 +717,23 @@ export function AnalyseTranscriptPage({ clientId }: { clientId: string }) {
                     <p className="hint">Not established</p>
                   )}
                 </FindingSection>
+                )}
 
+                {showCat('all') && (
                 <FindingSection title="Possible Associative Links">
                   <SuggestionList
-                    items={phase1.associativeLinks ?? []}
+                    items={(phase1.associativeLinks ?? []).filter((i) => statusFilter(i.reviewStatus))}
                     selectedIds={selectedIds}
                     setSelectedIds={setSelectedIds}
                     onStatus={(id, s, e) => setCollectionStatus('associativeLinks', id, s, e)}
                     onEvidence={setHighlight}
                   />
                 </FindingSection>
+                )}
 
+                {showCat('themes') && (
                 <FindingSection title="Clinical Themes">
-                  {phase1.themes.map((t) => (
+                  {phase1.themes.filter((t) => statusFilter(t.reviewStatus)).map((t) => (
                     <ThemeCard
                       key={t.id}
                       theme={t}
@@ -669,12 +743,16 @@ export function AnalyseTranscriptPage({ clientId }: { clientId: string }) {
                       onEvidence={setHighlight}
                     />
                   ))}
-                  {!phase1.themes.length && <p className="hint">Not established</p>}
+                  {!phase1.themes.filter((t) => statusFilter(t.reviewStatus)).length && (
+                    <p className="hint">Not established</p>
+                  )}
                 </FindingSection>
+                )}
 
+                {showCat('nc-pc') && (
                 <FindingSection title="Possible NCs">
-                  {phase1.negativeCognitions.length ? (
-                    phase1.negativeCognitions.map((item) => (
+                  {phase1.negativeCognitions.filter((i) => statusFilter(i.reviewStatus)).length ? (
+                    phase1.negativeCognitions.filter((i) => statusFilter(i.reviewStatus)).map((item) => (
                       <CognitionCard
                         key={item.id}
                         item={item}
@@ -688,10 +766,12 @@ export function AnalyseTranscriptPage({ clientId }: { clientId: string }) {
                     <p className="hint">Not established</p>
                   )}
                 </FindingSection>
+                )}
 
+                {showCat('nc-pc') && (
                 <FindingSection title="Possible PCs">
-                  {phase1.positiveCognitions.length ? (
-                    phase1.positiveCognitions.map((item) => (
+                  {phase1.positiveCognitions.filter((i) => statusFilter(i.reviewStatus)).length ? (
+                    phase1.positiveCognitions.filter((i) => statusFilter(i.reviewStatus)).map((item) => (
                       <CognitionCard
                         key={item.id}
                         item={item}
@@ -705,46 +785,55 @@ export function AnalyseTranscriptPage({ clientId }: { clientId: string }) {
                     <p className="hint">Not established</p>
                   )}
                 </FindingSection>
+                )}
 
+                {showCat('resources') && (
                 <FindingSection title="Internal Resources">
                   <SuggestionList
-                    items={phase1.internalResources}
+                    items={phase1.internalResources.filter((i) => statusFilter(i.reviewStatus))}
                     selectedIds={selectedIds}
                     setSelectedIds={setSelectedIds}
                     onStatus={(id, s, e) => setCollectionStatus('internalResources', id, s, e)}
                     onEvidence={setHighlight}
                   />
                 </FindingSection>
+                )}
 
+                {showCat('resources') && (
                 <FindingSection title="External Resources">
                   <SuggestionList
-                    items={phase1.externalResources}
+                    items={phase1.externalResources.filter((i) => statusFilter(i.reviewStatus))}
                     selectedIds={selectedIds}
                     setSelectedIds={setSelectedIds}
                     onStatus={(id, s, e) => setCollectionStatus('externalResources', id, s, e)}
                     onEvidence={setHighlight}
                   />
                 </FindingSection>
+                )}
 
+                {showCat('targets') && (
                 <FindingSection title="Target Candidates">
                   <SuggestionList
-                    items={phase1.targetCandidates}
+                    items={phase1.targetCandidates.filter((i) => statusFilter(i.reviewStatus))}
                     selectedIds={selectedIds}
                     setSelectedIds={setSelectedIds}
                     onStatus={(id, s, e) => setCollectionStatus('targetCandidates', id, s, e)}
                     onEvidence={setHighlight}
                   />
                 </FindingSection>
+                )}
 
+                {showCat('all') && (
                 <FindingSection title="Clinical Considerations">
                   <SuggestionList
-                    items={phase1.clinicalConsiderations}
+                    items={phase1.clinicalConsiderations.filter((i) => statusFilter(i.reviewStatus))}
                     selectedIds={selectedIds}
                     setSelectedIds={setSelectedIds}
                     onStatus={(id, s, e) => setCollectionStatus('clinicalConsiderations', id, s, e)}
                     onEvidence={setHighlight}
                   />
                 </FindingSection>
+                )}
                   </>
                 )}
               </section>
@@ -896,70 +985,6 @@ function PreviewBlock({ title, items }: { title: string; items: string[] }) {
   );
 }
 
-function EvidenceList({
-  evidence,
-  onEvidence,
-}: {
-  evidence: TranscriptEvidence[];
-  onEvidence: (excerpt: string) => void;
-}) {
-  if (!evidence?.length) return <p className="hint">No evidence excerpts returned</p>;
-  return (
-    <ul className="ci-evidence-list">
-      {evidence.map((e, i) => (
-        <li key={`${e.excerpt}-${i}`}>
-          <q>{e.excerpt}</q>
-          {e.speaker && <span className="hint">({e.speaker})</span>}
-          <button type="button" className="btn ghost" onClick={() => onEvidence(e.excerpt)}>
-            View Evidence
-          </button>
-        </li>
-      ))}
-    </ul>
-  );
-}
-
-function ReviewActions({
-  status,
-  onStatus,
-}: {
-  status: ReviewStatus;
-  onStatus: (s: ReviewStatus, edited?: string) => void;
-}) {
-  const [editing, setEditing] = useState(false);
-  const [draft, setDraft] = useState('');
-  return (
-    <div className="ci-review-actions">
-      <span className="hint">Status: {status}</span>
-      <button type="button" className="btn" onClick={() => onStatus('approved')}>
-        Approve
-      </button>
-      {!editing ? (
-        <button type="button" className="btn" onClick={() => setEditing(true)}>
-          Edit
-        </button>
-      ) : (
-        <>
-          <input value={draft} onChange={(e) => setDraft(e.target.value)} placeholder="Edited value" />
-          <button
-            type="button"
-            className="btn primary"
-            onClick={() => {
-              onStatus('edited', draft);
-              setEditing(false);
-            }}
-          >
-            Save edit
-          </button>
-        </>
-      )}
-      <button type="button" className="btn ghost" onClick={() => onStatus('rejected')}>
-        Reject
-      </button>
-    </div>
-  );
-}
-
 function SuggestionList({
   items,
   selectedIds,
@@ -1007,18 +1032,18 @@ function SuggestionCard({
   onEvidence: (excerpt: string) => void;
 }) {
   return (
-    <article className={`ci-finding-card status-${item.reviewStatus}`}>
-      <label className="ci-select">
-        <input type="checkbox" checked={selected} onChange={(e) => onSelect(e.target.checked)} />
-        Select
-      </label>
-      <h4>{title}</h4>
-      <p>
-        Confidence: {item.confidence} · Evidence level: {item.evidenceLevel}
-      </p>
-      <EvidenceList evidence={item.evidence} onEvidence={onEvidence} />
-      <ReviewActions status={item.reviewStatus} onStatus={onStatus} />
-    </article>
+    <CompactFindingCard
+      finding={title}
+      evidenceLevel={item.evidenceLevel}
+      confidence={item.confidence}
+      reviewStatus={item.reviewStatus}
+      evidence={item.evidence}
+      findingDelta={item.findingDelta}
+      selected={selected}
+      onSelect={onSelect}
+      onStatus={onStatus}
+      onViewEvidence={onEvidence}
+    />
   );
 }
 
@@ -1036,23 +1061,25 @@ function MemoryCard({
   onEvidence: (excerpt: string) => void;
 }) {
   return (
-    <article className={`ci-finding-card status-${memory.reviewStatus}`}>
-      <label className="ci-select">
-        <input type="checkbox" checked={selected} onChange={(e) => onSelect(e.target.checked)} />
-        Select
-      </label>
-      <h4>{memory.headline}</h4>
-      <p>
-        {memory.approximateAge != null ? `Age ~${memory.approximateAge} · ` : ''}
-        Confidence: {memory.confidence} · Evidence level: {memory.evidenceLevel}
-      </p>
-      {memory.description && <p>{memory.description}</p>}
-      {memory.possibleTouchstoneCandidate && (
-        <p className="hint">Possible touchstone candidate (requires therapist confirmation)</p>
-      )}
-      <EvidenceList evidence={memory.evidence} onEvidence={onEvidence} />
-      <ReviewActions status={memory.reviewStatus} onStatus={onStatus} />
-    </article>
+    <CompactFindingCard
+      finding={memory.headline}
+      evidenceLevel={memory.evidenceLevel}
+      confidence={memory.confidence}
+      reviewStatus={memory.reviewStatus}
+      evidence={memory.evidence}
+      findingDelta={memory.findingDelta}
+      selected={selected}
+      onSelect={onSelect}
+      onStatus={onStatus}
+      onViewEvidence={onEvidence}
+      meta={[
+        memory.approximateAge != null ? `Age ~${memory.approximateAge}` : null,
+        memory.possibleTouchstoneCandidate ? 'Possible touchstone candidate' : null,
+        memory.description || null,
+      ]
+        .filter(Boolean)
+        .join(' · ')}
+    />
   );
 }
 
@@ -1070,23 +1097,19 @@ function ThemeCard({
   onEvidence: (excerpt: string) => void;
 }) {
   return (
-    <article className={`ci-finding-card status-${theme.reviewStatus}`}>
-      <label className="ci-select">
-        <input type="checkbox" checked={selected} onChange={(e) => onSelect(e.target.checked)} />
-        Select
-      </label>
-      <h4>{CLINICAL_THEME_LABELS[theme.theme]}</h4>
-      <p>
-        Confidence: {theme.confidence} · Evidence level: {theme.evidenceLevel}
-      </p>
-      <p>
-        <strong>Why this may fit</strong>
-        <br />
-        {theme.reasoning}
-      </p>
-      <EvidenceList evidence={theme.evidence} onEvidence={onEvidence} />
-      <ReviewActions status={theme.reviewStatus} onStatus={onStatus} />
-    </article>
+    <CompactFindingCard
+      finding={CLINICAL_THEME_LABELS[theme.theme]}
+      evidenceLevel={theme.evidenceLevel}
+      confidence={theme.confidence}
+      reviewStatus={theme.reviewStatus}
+      evidence={theme.evidence}
+      findingDelta={theme.findingDelta}
+      selected={selected}
+      onSelect={onSelect}
+      onStatus={onStatus}
+      onViewEvidence={onEvidence}
+      meta={theme.reasoning}
+    />
   );
 }
 
@@ -1104,21 +1127,18 @@ function CognitionCard({
   onEvidence: (excerpt: string) => void;
 }) {
   return (
-    <article className={`ci-finding-card status-${item.reviewStatus}`}>
-      <label className="ci-select">
-        <input type="checkbox" checked={selected} onChange={(e) => onSelect(e.target.checked)} />
-        Select
-      </label>
-      <h4>
-        {item.kind === 'explicit' ? 'Explicit' : 'Suggested'}{' '}
-        {item.polarity === 'negative' ? 'NC' : 'PC'}
-      </h4>
-      <p>{effectiveValue(item)}</p>
-      <p>
-        Confidence: {item.confidence} · Evidence level: {item.evidenceLevel}
-      </p>
-      <EvidenceList evidence={item.evidence} onEvidence={onEvidence} />
-      <ReviewActions status={item.reviewStatus} onStatus={onStatus} />
-    </article>
+    <CompactFindingCard
+      finding={effectiveValue(item)}
+      evidenceLevel={item.evidenceLevel}
+      confidence={item.confidence}
+      reviewStatus={item.reviewStatus}
+      evidence={item.evidence}
+      findingDelta={item.findingDelta}
+      selected={selected}
+      onSelect={onSelect}
+      onStatus={onStatus}
+      onViewEvidence={onEvidence}
+      meta={`${item.kind === 'explicit' ? 'Explicit' : 'Suggested'} ${item.polarity === 'negative' ? 'NC' : 'PC'}`}
+    />
   );
 }

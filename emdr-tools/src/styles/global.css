@@ -4402,3 +4402,210 @@ html:has(.join-page.live),
   font: inherit;
 }
 
+.ci-sticky-toolbar {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  background: var(--pf-surface, #fff);
+  padding: 0.65rem 0;
+  border-bottom: 1px solid var(--pf-border, #e2e8f0);
+  margin-bottom: 0.75rem;
+}
+
+.ci-review-filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  margin-bottom: 0.85rem;
+}
+.ci-review-filters button {
+  border: 1px solid #cbd5e1;
+  background: #fff;
+  border-radius: 999px;
+  padding: 0.25rem 0.7rem;
+  font-size: 0.8rem;
+  cursor: pointer;
+}
+.ci-review-filters button.is-active {
+  background: #0f172a;
+  color: #fff;
+  border-color: #0f172a;
+}
+
+.ci-transcript-pane.is-sticky {
+  position: sticky;
+  top: 4.5rem;
+  align-self: start;
+  max-height: calc(100vh - 6rem);
+  overflow: auto;
+}
+
+.ci-compact-card {
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  padding: 0.65rem 0.75rem;
+  margin: 0.5rem 0;
+  background: #fff;
+}
+.ci-compact-card.status-approved { border-color: #86efac; background: #f0fdf4; }
+.ci-compact-card.status-edited { border-color: #93c5fd; background: #eff6ff; }
+.ci-compact-card.status-rejected { opacity: 0.65; }
+.ci-compact-main {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 0.5rem 0.75rem;
+  align-items: start;
+}
+.ci-compact-actions {
+  grid-column: 1 / -1;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  align-items: center;
+}
+.ci-compact-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem 1.25rem;
+  margin: 0.35rem 0 0;
+}
+.ci-compact-meta dt {
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--pf-text-muted, #64748b);
+}
+.ci-compact-meta dd {
+  margin: 0;
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+.ci-compact-finding {
+  display: flex;
+  gap: 0.5rem;
+  align-items: flex-start;
+  justify-content: space-between;
+}
+.ci-compact-text {
+  margin: 0;
+  font-weight: 600;
+}
+.ci-compact-evidence {
+  margin-top: 0.55rem;
+  padding-top: 0.55rem;
+  border-top: 1px dashed #cbd5e1;
+}
+.ci-inline-edit {
+  display: inline-flex;
+  gap: 0.35rem;
+  align-items: center;
+}
+.ci-inline-edit input {
+  min-width: 12rem;
+}
+
+.ci-prong-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.75rem;
+}
+@media (max-width: 900px) {
+  .ci-prong-grid { grid-template-columns: 1fr; }
+}
+.ci-prong-col {
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  padding: 0.75rem;
+  background: #f8fafc;
+}
+.ci-prong-col h3 {
+  margin-top: 0;
+  letter-spacing: 0.06em;
+}
+.ci-prong-col li {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  margin-bottom: 0.55rem;
+}
+.ci-prong-select {
+  max-width: 8rem;
+  font: inherit;
+}
+
+.ci-theme-summary-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.92rem;
+}
+.ci-theme-summary-table th,
+.ci-theme-summary-table td {
+  border-bottom: 1px solid #e2e8f0;
+  text-align: left;
+  padding: 0.5rem 0.4rem;
+  vertical-align: top;
+}
+.ci-strength {
+  display: inline-block;
+  padding: 0.15rem 0.45rem;
+  border-radius: 4px;
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+.ci-strength.strength-strong-evidence { background: #dcfce7; color: #166534; }
+.ci-strength.strength-moderate-evidence { background: #dbeafe; color: #1e40af; }
+.ci-strength.strength-limited-evidence { background: #ffedd5; color: #9a3412; }
+.ci-strength.strength-not-established { background: #f1f5f9; color: #64748b; }
+
+.ci-network-map {
+  overflow-x: auto;
+}
+.ci-network-map svg {
+  width: 100%;
+  min-height: 320px;
+  background: #f8fafc;
+  border-radius: 8px;
+  border: 1px solid #e2e8f0;
+}
+.ci-network-type {
+  font-size: 9px;
+  fill: #64748b;
+  text-transform: uppercase;
+}
+.ci-network-label {
+  font-size: 11px;
+  fill: #0f172a;
+  font-weight: 600;
+}
+.ci-network-edge-label {
+  font-size: 9px;
+  fill: #64748b;
+}
+.ci-network-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.65rem;
+  list-style: none;
+  padding: 0;
+  margin: 0.75rem 0 0;
+  font-size: 0.8rem;
+}
+.ci-network-legend span {
+  display: inline-block;
+  width: 0.65rem;
+  height: 0.65rem;
+  border-radius: 2px;
+  margin-right: 0.3rem;
+  vertical-align: middle;
+}
+
+.ci-session-change-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 0.75rem;
+}
+.ci-session-change-group h4 {
+  margin: 0 0 0.35rem;
+  font-size: 0.85rem;
+}
+

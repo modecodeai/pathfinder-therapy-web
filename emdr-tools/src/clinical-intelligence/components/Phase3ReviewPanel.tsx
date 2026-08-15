@@ -3,30 +3,9 @@ import type {
   CognitionSuggestion,
   Phase3AssessmentAnalysis,
   ReviewStatus,
-  TranscriptEvidence,
 } from '../types';
-import { DeltaBadge, NotEstablished, ReviewActions } from './ReviewShared';
-
-function EvidenceList({
-  evidence,
-  onHighlight,
-}: {
-  evidence: TranscriptEvidence[];
-  onHighlight: (excerpt: string) => void;
-}) {
-  if (!evidence?.length) return null;
-  return (
-    <ul className="ci-evidence-list">
-      {evidence.map((e, i) => (
-        <li key={i}>
-          <button type="button" className="btn ghost" onClick={() => onHighlight(e.excerpt)}>
-            “{e.excerpt}”{e.speaker ? ` (${e.speaker})` : ''}
-          </button>
-        </li>
-      ))}
-    </ul>
-  );
-}
+import { CompactFindingCard } from './CompactFindingCard';
+import { NotEstablished } from './ReviewShared';
 
 function FieldCard({
   title,
@@ -43,26 +22,24 @@ function FieldCard({
 }) {
   if (!item) return <NotEstablished label={title} />;
   return (
-    <article className={`ci-finding-card status-${item.reviewStatus}`}>
-      <header className="ci-finding-head">
-        <h4>{title}</h4>
-        <DeltaBadge delta={item.findingDelta} />
-      </header>
-      <p>{item.value}</p>
-      {extra && <p className="hint">{extra}</p>}
-      {'kind' in item && (
-        <p className="hint">
-          {item.kind} · {item.polarity} · {item.evidenceLevel} · {item.confidence}
-        </p>
-      )}
-      {!('kind' in item) && (
-        <p className="hint">
-          {item.evidenceLevel} · {item.confidence}
-        </p>
-      )}
-      <EvidenceList evidence={item.evidence} onHighlight={onHighlight} />
-      <ReviewActions status={item.reviewStatus} onStatus={onStatus} />
-    </article>
+    <CompactFindingCard
+      finding={`${title}: ${item.value}`}
+      evidenceLevel={item.evidenceLevel}
+      confidence={item.confidence}
+      reviewStatus={item.reviewStatus}
+      evidence={item.evidence}
+      findingDelta={item.findingDelta}
+      onStatus={onStatus}
+      onViewEvidence={onHighlight}
+      meta={
+        [
+          extra,
+          'kind' in item ? `${item.kind} · ${item.polarity}` : null,
+        ]
+          .filter(Boolean)
+          .join(' · ') || undefined
+      }
+    />
   );
 }
 

@@ -12,6 +12,7 @@ import type {
   TargetAssessmentDraft,
   TranscriptAnalysis,
 } from '../../src/clinical-intelligence/types';
+import { computeSessionChange } from '../../src/clinical-intelligence/lib/formulation';
 
 export function emptyClientRecord(
   id: string,
@@ -30,6 +31,11 @@ export function emptyClientRecord(
     resources: [],
     targetCandidates: [],
     processingNotes: [],
+    adaptiveInformation: [],
+    futureTemplates: [],
+    cognitions: [],
+    sessionChanges: [],
+    prongAssignments: {},
     createdAt: nowIso,
     updatedAt: nowIso,
   };
@@ -159,6 +165,25 @@ export function applyPhase3ToTarget(
   };
   if (draft.nc) next.approvedNc = draft.nc;
   if (draft.pc) next.approvedPc = draft.pc;
+  next.cognitions = [...(client.cognitions ?? [])];
+  if (draft.nc && !next.cognitions.some((c) => c.polarity === 'negative' && c.text.toLowerCase() === draft.nc!.toLowerCase())) {
+    next.cognitions.push({
+      id: `nc_${analysisId}`,
+      polarity: 'negative',
+      text: draft.nc,
+      sourceAnalysisId: analysisId,
+      approvedAt: nowIso,
+    });
+  }
+  if (draft.pc && !next.cognitions.some((c) => c.polarity === 'positive' && c.text.toLowerCase() === draft.pc!.toLowerCase())) {
+    next.cognitions.push({
+      id: `pc_${analysisId}`,
+      polarity: 'positive',
+      text: draft.pc,
+      sourceAnalysisId: analysisId,
+      approvedAt: nowIso,
+    });
+  }
 
   const push = (
     fieldPath: string,
@@ -222,6 +247,7 @@ function applyPhase4Findings(
   const next: ClientRecord = {
     ...client,
     processingNotes: [...(client.processingNotes ?? [])],
+    adaptiveInformation: [...(client.adaptiveInformation ?? [])],
     memories: [...client.memories],
     updatedAt: nowIso,
   };
@@ -267,6 +293,20 @@ function applyPhase4Findings(
     push('processingNotes.sequence', step, step.evidence, step.reviewStatus, step.therapistEditedValue);
   }
 
+  for (const a of analysis.adaptiveInformation) {
+    if (!isApprovedStatus(a.reviewStatus)) continue;
+    if (a.findingDelta === 'already-known') continue;
+    const value = a.reviewStatus === 'edited' ? (a.therapistEditedValue ?? a.value) : a.value;
+    if (next.adaptiveInformation!.some((x) => x.text.toLowerCase() === value.toLowerCase())) continue;
+    next.adaptiveInformation!.push({
+      id: a.id,
+      text: value,
+      sourceAnalysisId: analysisId,
+      approvedAt: nowIso,
+    });
+    push('adaptiveInformation', a.value, a.evidence, a.reviewStatus, a.therapistEditedValue);
+  }
+
   for (const m of analysis.newMemories) {
     if (!isApprovedStatus(m.reviewStatus)) continue;
     if (m.findingDelta === 'already-known') continue;
@@ -310,14 +350,35 @@ export function applyApprovedFindings(
     nowIso: string;
   },
 ): { client: ClientRecord; audit: AuditProvenance[]; conflictsRemaining: string[] } {
+  const priorSnapshot: ClientRecord = JSON.parse(JSON.stringify(client));
+  let result: { client: ClientRecord; audit: AuditProvenance[]; conflictsRemaining: string[] };
   if (analysis.analysisKind === 'phase3-assessment') {
     const r = applyPhase3ToTarget(client, analysis, analysisId, opts.nowIso);
-    return { client: r.client, audit: r.audit, conflictsRemaining: [] };
+    result = { client: r.client, audit: r.audit, conflictsRemaining: [] };
+  } else if (analysis.analysisKind === 'phase4-desensitisation') {
+    result = applyPhase4Findings(client, analysis, analysisId, opts.nowIso);
+  } else {
+    result = applyPhase1Findings(client, analysis, analysisId, opts);
   }
-  if (analysis.analysisKind === 'phase4-desensitisation') {
-    return applyPhase4Findings(client, analysis, analysisId, opts.nowIso);
-  }
-  return applyPhase1Findings(client, analysis, analysisId, opts);
+
+  if (result.conflictsRemaining.length) return result;
+
+  const phase =
+    analysis.analysisKind === 'phase3-assessment'
+      ? 'assessment'
+      : analysis.analysisKind === 'phase4-desensitisation'
+        ? 'desensitisation'
+        : 'history';
+  const change = computeSessionChange(priorSnapshot, result.client, {
+    analysisId,
+    phase,
+    nowIso: opts.nowIso,
+  });
+  result.client = {
+    ...result.client,
+    sessionChanges: [...(result.client.sessionChanges ?? []), change],
+  };
+  return result;
 }
 
 function applyPhase1Findings(
@@ -340,6 +401,10 @@ function applyPhase1Findings(
     themes: [...client.themes],
     resources: [...client.resources],
     targetCandidates: [...client.targetCandidates],
+    cognitions: [...(client.cognitions ?? [])],
+    adaptiveInformation: [...(client.adaptiveInformation ?? [])],
+    futureTemplates: [...(client.futureTemplates ?? [])],
+    sessionChanges: [...(client.sessionChanges ?? [])],
     updatedAt: opts.nowIso,
   };
 
@@ -505,6 +570,16 @@ function applyPhase1Findings(
     if (nc.findingDelta === 'already-known') continue;
     const value = nc.reviewStatus === 'edited' ? (nc.therapistEditedValue ?? nc.value) : nc.value;
     if (!next.approvedNc) next.approvedNc = value;
+    next.cognitions = next.cognitions ?? [];
+    if (!next.cognitions.some((c) => c.polarity === 'negative' && c.text.toLowerCase() === value.toLowerCase())) {
+      next.cognitions.push({
+        id: nc.id,
+        polarity: 'negative',
+        text: value,
+        sourceAnalysisId: analysisId,
+        approvedAt: opts.nowIso,
+      });
+    }
     pushAudit('negativeCognitions', nc.value, nc.evidence, nc.reviewStatus, nc.therapistEditedValue);
   }
   for (const pc of analysis.positiveCognitions) {
@@ -512,6 +587,16 @@ function applyPhase1Findings(
     if (pc.findingDelta === 'already-known') continue;
     const value = pc.reviewStatus === 'edited' ? (pc.therapistEditedValue ?? pc.value) : pc.value;
     if (!next.approvedPc) next.approvedPc = value;
+    next.cognitions = next.cognitions ?? [];
+    if (!next.cognitions.some((c) => c.polarity === 'positive' && c.text.toLowerCase() === value.toLowerCase())) {
+      next.cognitions.push({
+        id: pc.id,
+        polarity: 'positive',
+        text: value,
+        sourceAnalysisId: analysisId,
+        approvedAt: opts.nowIso,
+      });
+    }
     pushAudit('positiveCognitions', pc.value, pc.evidence, pc.reviewStatus, pc.therapistEditedValue);
   }
 

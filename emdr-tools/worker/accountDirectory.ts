@@ -13,6 +13,7 @@ import {
   emptyClientRecord,
   toApprovedClientContext,
 } from './clinical-ai/applyFindings';
+import { computeSessionChange } from '../src/clinical-intelligence/lib/formulation';
 
 interface TherapistRow {
   id: string;
@@ -530,6 +531,15 @@ export class AccountDirectory extends DurableObject {
       body.analysisId,
       nowIso,
     );
+    const change = computeSessionChange(client, result.client, {
+      analysisId: body.analysisId,
+      phase: 'assessment',
+      nowIso,
+    });
+    result.client = {
+      ...result.client,
+      sessionChanges: [...(result.client.sessionChanges ?? []), change],
+    };
     this.saveClient(result.client, now);
     for (const a of result.audit) {
       this.ctx.storage.sql.exec(

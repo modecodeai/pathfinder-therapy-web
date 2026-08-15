@@ -4,30 +4,8 @@ import type {
   Phase4DesensitisationAnalysis,
   ProcessingSequenceStep,
   ReviewStatus,
-  TranscriptEvidence,
 } from '../types';
-import { DeltaBadge, ReviewActions } from './ReviewShared';
-
-function EvidenceList({
-  evidence,
-  onHighlight,
-}: {
-  evidence: TranscriptEvidence[];
-  onHighlight: (excerpt: string) => void;
-}) {
-  if (!evidence?.length) return null;
-  return (
-    <ul className="ci-evidence-list">
-      {evidence.map((e, i) => (
-        <li key={i}>
-          <button type="button" className="btn ghost" onClick={() => onHighlight(e.excerpt)}>
-            “{e.excerpt}”{e.speaker ? ` (${e.speaker})` : ''}
-          </button>
-        </li>
-      ))}
-    </ul>
-  );
-}
+import { CompactFindingCard } from './CompactFindingCard';
 
 function patchStatus<T extends { id: string; reviewStatus: ReviewStatus; value?: string; headline?: string }>(
   items: T[],
@@ -61,7 +39,12 @@ export function Phase4ReviewPanel({ result, onChange, onHighlight }: Props) {
   const setStep = (id: string, status: ReviewStatus, edited?: string) => {
     onChange({ ...result, sequence: patchStatus(result.sequence, id, status, edited) });
   };
-  const setList = (key: keyof Phase4DesensitisationAnalysis, id: string, status: ReviewStatus, edited?: string) => {
+  const setList = (
+    key: keyof Phase4DesensitisationAnalysis,
+    id: string,
+    status: ReviewStatus,
+    edited?: string,
+  ) => {
     const arr = result[key];
     if (!Array.isArray(arr)) return;
     onChange({ ...result, [key]: patchStatus(arr as ClinicalSuggestion[], id, status, edited) });
@@ -73,52 +56,51 @@ export function Phase4ReviewPanel({ result, onChange, onHighlight }: Props) {
         Resolution status from AI: <strong>{result.resolutionStatus}</strong> (therapist-judged only —
         Clinical Intelligence will not declare a target resolved).
       </p>
-      <article className={`ci-finding-card status-${result.summary.reviewStatus}`}>
-        <header className="ci-finding-head">
-          <h4>Summary</h4>
-          <DeltaBadge delta={result.summary.findingDelta} />
-        </header>
-        <p>{result.summary.value}</p>
-        <EvidenceList evidence={result.summary.evidence} onHighlight={onHighlight} />
-        <ReviewActions
-          status={result.summary.reviewStatus}
-          onStatus={(s, e) =>
-            onChange({
-              ...result,
-              summary: {
-                ...result.summary,
-                reviewStatus: s,
-                ...(s === 'edited'
-                  ? {
-                      originalAIValue: result.summary.value,
-                      therapistEditedValue: e,
-                      value: e ?? result.summary.value,
-                    }
-                  : {}),
-              },
-            })
-          }
-        />
-      </article>
+      <CompactFindingCard
+        finding={result.summary.value}
+        evidenceLevel={result.summary.evidenceLevel}
+        confidence={result.summary.confidence}
+        reviewStatus={result.summary.reviewStatus}
+        evidence={result.summary.evidence}
+        findingDelta={result.summary.findingDelta}
+        meta="Summary"
+        onStatus={(s, e) =>
+          onChange({
+            ...result,
+            summary: {
+              ...result.summary,
+              reviewStatus: s,
+              ...(s === 'edited'
+                ? {
+                    originalAIValue: result.summary.value,
+                    therapistEditedValue: e,
+                    value: e ?? result.summary.value,
+                  }
+                : {}),
+            },
+          })
+        }
+        onViewEvidence={onHighlight}
+      />
 
       <div className="ci-finding-section">
         <h3>Processing sequence (transcript order)</h3>
         <ol className="ci-processing-sequence">
           {result.sequence.map((step: ProcessingSequenceStep) => (
-            <li key={step.id} className={`ci-finding-card status-${step.reviewStatus}`}>
-              <header className="ci-finding-head">
-                <strong>
-                  {step.order}. {step.sequenceLabel}
-                </strong>
-                <DeltaBadge delta={step.findingDelta} />
-              </header>
-              <p className="hint">
-                {step.category}
-                {step.timestamp ? ` · ${step.timestamp}` : ' · no clock time'}
-              </p>
-              <p>{step.value}</p>
-              <EvidenceList evidence={step.evidence} onHighlight={onHighlight} />
-              <ReviewActions status={step.reviewStatus} onStatus={(s, e) => setStep(step.id, s, e)} />
+            <li key={step.id}>
+              <CompactFindingCard
+                finding={step.value}
+                evidenceLevel={step.evidenceLevel}
+                confidence={step.confidence}
+                reviewStatus={step.reviewStatus}
+                evidence={step.evidence}
+                findingDelta={step.findingDelta}
+                meta={`${step.order}. ${step.sequenceLabel} · ${step.category}${
+                  step.timestamp ? ` · ${step.timestamp}` : ' · no clock time'
+                }`}
+                onStatus={(s, e) => setStep(step.id, s, e)}
+                onViewEvidence={onHighlight}
+              />
             </li>
           ))}
         </ol>
@@ -141,14 +123,17 @@ export function Phase4ReviewPanel({ result, onChange, onHighlight }: Props) {
           <div className="ci-finding-section" key={key}>
             <h3>{label}</h3>
             {items.map((item) => (
-              <article key={item.id} className={`ci-finding-card status-${item.reviewStatus}`}>
-                <header className="ci-finding-head">
-                  <p>{item.value}</p>
-                  <DeltaBadge delta={item.findingDelta} />
-                </header>
-                <EvidenceList evidence={item.evidence} onHighlight={onHighlight} />
-                <ReviewActions status={item.reviewStatus} onStatus={(s, e) => setList(key, item.id, s, e)} />
-              </article>
+              <CompactFindingCard
+                key={item.id}
+                finding={item.value}
+                evidenceLevel={item.evidenceLevel}
+                confidence={item.confidence}
+                reviewStatus={item.reviewStatus}
+                evidence={item.evidence}
+                findingDelta={item.findingDelta}
+                onStatus={(s, e) => setList(key, item.id, s, e)}
+                onViewEvidence={onHighlight}
+              />
             ))}
           </div>
         );
@@ -158,23 +143,25 @@ export function Phase4ReviewPanel({ result, onChange, onHighlight }: Props) {
         <div className="ci-finding-section">
           <h3>New memories</h3>
           {result.newMemories.map((m: MemorySuggestion) => (
-            <article key={m.id} className={`ci-finding-card status-${m.reviewStatus}`}>
-              <header className="ci-finding-head">
-                <p>
-                  <strong>{m.headline}</strong>
-                  {m.approximateAge != null ? ` (age ~${m.approximateAge})` : ''}
-                </p>
-                <DeltaBadge delta={m.findingDelta} />
-              </header>
-              {m.description && <p>{m.description}</p>}
-              <EvidenceList evidence={m.evidence} onHighlight={onHighlight} />
-              <ReviewActions
-                status={m.reviewStatus}
-                onStatus={(s, e) =>
-                  onChange({ ...result, newMemories: patchStatus(result.newMemories, m.id, s, e) })
-                }
-              />
-            </article>
+            <CompactFindingCard
+              key={m.id}
+              finding={m.headline}
+              evidenceLevel={m.evidenceLevel}
+              confidence={m.confidence}
+              reviewStatus={m.reviewStatus}
+              evidence={m.evidence}
+              findingDelta={m.findingDelta}
+              meta={[
+                m.approximateAge != null ? `Age ~${m.approximateAge}` : null,
+                m.description || null,
+              ]
+                .filter(Boolean)
+                .join(' · ')}
+              onStatus={(s, e) =>
+                onChange({ ...result, newMemories: patchStatus(result.newMemories, m.id, s, e) })
+              }
+              onViewEvidence={onHighlight}
+            />
           ))}
         </div>
       )}

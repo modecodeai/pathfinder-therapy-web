@@ -321,6 +321,62 @@ export interface ClientProcessingNote {
   approvedAt?: string;
 }
 
+export type TemporalProng = 'past' | 'present' | 'future';
+
+export type ThemeEvidenceStrength =
+  | 'strong-evidence'
+  | 'moderate-evidence'
+  | 'limited-evidence'
+  | 'not-established';
+
+export const THEME_EVIDENCE_LABELS: Record<ThemeEvidenceStrength, string> = {
+  'strong-evidence': 'Strong evidence',
+  'moderate-evidence': 'Moderate evidence',
+  'limited-evidence': 'Limited evidence',
+  'not-established': 'Not established',
+};
+
+export interface ClientAdaptiveItem {
+  id: string;
+  text: string;
+  sourceAnalysisId?: string;
+  approvedAt?: string;
+}
+
+export interface ClientFutureTemplate {
+  id: string;
+  text: string;
+  desiredResponse?: string;
+  sourceAnalysisId?: string;
+  approvedAt?: string;
+}
+
+export interface ClientCognition {
+  id: string;
+  polarity: 'negative' | 'positive';
+  text: string;
+  sourceAnalysisId?: string;
+  approvedAt?: string;
+}
+
+export type SessionChangeKind = 'new' | 'updated' | 'unchanged' | 'possible-conflict' | 'needs-clarification';
+
+export interface SessionChangeItem {
+  id: string;
+  kind: SessionChangeKind;
+  category: string;
+  label: string;
+  detail?: string;
+}
+
+export interface SessionChangeSummary {
+  id: string;
+  analysisId: string;
+  phase: string;
+  createdAt: string;
+  items: SessionChangeItem[];
+}
+
 export interface AuditProvenance {
   id: string;
   clientId: string;
@@ -354,9 +410,15 @@ export interface ClientRecord {
   };
   approvedNc?: string;
   approvedPc?: string;
+  cognitions?: ClientCognition[];
   resources: ClientResource[];
   targetCandidates: ClientTargetCandidate[];
   processingNotes?: ClientProcessingNote[];
+  adaptiveInformation?: ClientAdaptiveItem[];
+  futureTemplates?: ClientFutureTemplate[];
+  /** Therapist overrides for PAST | PRESENT | FUTURE organisation (keyed by item id) */
+  prongAssignments?: Record<string, TemporalProng>;
+  sessionChanges?: SessionChangeSummary[];
   lastSessionSummary?: string;
   createdAt: string;
   updatedAt: string;
