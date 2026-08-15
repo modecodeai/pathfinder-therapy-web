@@ -5691,3 +5691,127 @@ button.pain-resource-card strong {
   font-size: 0.85rem;
 }
 
+
+/* Session Preparation & Debrief */
+.session-prep {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  max-width: 720px;
+}
+.session-prep-hero {
+  margin-bottom: 0.25rem;
+}
+.session-prep-delta {
+  border-left: 3px solid var(--pf-teal, #2a6f6f);
+}
+.session-prep-delta-list {
+  margin: 0.5rem 0 0;
+  padding-left: 1.1rem;
+  line-height: 1.55;
+}
+.session-prep-delta-list li[data-kind='unchanged'] {
+  color: #617070;
+}
+.session-prep-snapshot {
+  line-height: 1.6;
+  font-size: 1.02rem;
+  margin: 0.35rem 0 0.5rem;
+}
+.session-prep-list {
+  margin: 0.5rem 0 0;
+  padding-left: 1.1rem;
+  line-height: 1.55;
+}
+.session-prep-suggestions {
+  opacity: 0.95;
+}
+.session-prep-ready {
+  text-align: left;
+}
+.ci-ai-label {
+  display: inline-block;
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  color: #617070;
+  margin: 0 0 0.5rem;
+}
+.session-debrief {
+  max-width: 800px;
+}
+.session-debrief-summary {
+  width: 100%;
+  min-height: 8rem;
+  font: inherit;
+  line-height: 1.5;
+  padding: 0.75rem 0.9rem;
+  border: 1px solid #d5dbe3;
+  border-radius: 8px;
+  background: #fff;
+  resize: vertical;
+}
+.session-debrief-compare-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.92rem;
+}
+.session-debrief-compare-table th,
+.session-debrief-compare-table td {
+  border: 1px solid #e6e8ee;
+  padding: 0.5rem 0.65rem;
+  text-align: left;
+  vertical-align: top;
+}
+.session-debrief-compare-table thead th {
+  background: #f4f6f8;
+  font-weight: 600;
+}
+.session-debrief-plans {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+}
+.session-debrief-plans label {
+  display: flex;
+  gap: 0.65rem;
+  align-items: flex-start;
+  cursor: pointer;
+}
+.session-debrief-plans .pf-meta {
+  display: block;
+  margin-top: 0.15rem;
+}
+.session-debrief-actions {
+  margin: 0.5rem 0 2rem;
+}
+.session-timeline {
+  list-style: none;
+  margin: 1rem 0 0;
+  padding: 0;
+  border-left: 2px solid #d5dbe3;
+}
+.session-timeline li {
+  position: relative;
+  padding: 0.55rem 0 0.55rem 1.1rem;
+  display: grid;
+  gap: 0.15rem;
+}
+.session-timeline li::before {
+  content: '';
+  position: absolute;
+  left: -5px;
+  top: 0.85rem;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--pf-teal, #2a6f6f);
+}
+.session-finish-banner {
+  margin-bottom: 1rem;
+  border-left: 3px solid var(--pf-teal, #2a6f6f);
+}

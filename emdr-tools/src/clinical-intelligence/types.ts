@@ -377,6 +377,89 @@ export interface SessionChangeSummary {
   items: SessionChangeItem[];
 }
 
+/** Therapist-approved outstanding clarifying questions (longitudinal). */
+export interface OutstandingQuestion {
+  id: string;
+  text: string;
+  source?: 'gap' | 'transcript' | 'therapist' | 'debrief';
+  status: 'open' | 'resolved';
+  createdAt: string;
+  resolvedAt?: string;
+}
+
+export type SessionTimelineKind =
+  | 'preparation'
+  | 'practice'
+  | 'transcript'
+  | 'clinical-intelligence'
+  | 'approved'
+  | 'debrief'
+  | 'formulation-updated';
+
+export interface SessionTimelineEvent {
+  id: string;
+  kind: SessionTimelineKind;
+  label: string;
+  at: string;
+  analysisId?: string;
+  debriefId?: string;
+  href?: string;
+}
+
+/** Snapshot of formulation fields for before/after debrief comparison. */
+export interface FormulationSnapshot {
+  presentingProblems: string[];
+  primaryTheme?: string;
+  secondaryThemes: string[];
+  currentTrigger?: string;
+  currentTarget?: string;
+  nc?: string;
+  pc?: string;
+  resources: string[];
+  sud?: number | null;
+  voc?: number | null;
+}
+
+export type TreatmentPlanSuggestionId =
+  | 'continue'
+  | 'pause'
+  | 'preparation'
+  | 'next-target'
+  | 'review-resources';
+
+export interface TreatmentPlanSuggestion {
+  id: TreatmentPlanSuggestionId;
+  label: string;
+  rationale: string;
+}
+
+/** Therapist-reviewed session debrief — nothing enters record until approved. */
+export interface SessionDebriefRecord {
+  id: string;
+  analysisId?: string;
+  phase?: string;
+  createdAt: string;
+  approvedAt?: string;
+  status: 'draft' | 'approved';
+  sessionSummary: string;
+  whatChanged: string[];
+  priorFormulation: FormulationSnapshot;
+  updatedFormulation: FormulationSnapshot;
+  targetStatus: {
+    headline?: string;
+    status: string;
+    sud?: number | null;
+    voc?: number | null;
+    outstandingWork: string[];
+  };
+  treatmentPlanSuggestions: TreatmentPlanSuggestion[];
+  /** Therapist-selected plan ids (subset of suggestions) */
+  approvedPlanIds?: TreatmentPlanSuggestionId[];
+  homework: string[];
+  nextSessionPrep: string[];
+  outstandingQuestions: string[];
+}
+
 export interface AuditProvenance {
   id: string;
   clientId: string;
@@ -424,6 +507,20 @@ export interface ClientRecord {
   prongAssignments?: Record<string, TemporalProng>;
   sessionChanges?: SessionChangeSummary[];
   lastSessionSummary?: string;
+  /** Open clarifying questions carried into Session Preparation */
+  outstandingQuestions?: OutstandingQuestion[];
+  /** Therapist-approved planning bullets (not AI-directed) */
+  treatmentStrategy?: string[];
+  /** Hints auto-created from the latest approved debrief for next preparation */
+  nextSessionPrepHints?: string[];
+  /** Approved session debriefs (newest last) */
+  sessionDebriefs?: SessionDebriefRecord[];
+  /** Chronological clinical cycle events */
+  sessionTimeline?: SessionTimelineEvent[];
+  /** Session count for display (increments on approved debrief) */
+  sessionCount?: number;
+  /** Preferred protocol label for preparation briefing */
+  currentProtocol?: string;
   createdAt: string;
   updatedAt: string;
 }

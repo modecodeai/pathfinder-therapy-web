@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState, type FormEvent } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { AppHeader } from '../emdr/guided/components/AppHeader';
 import { useAuth } from '../hooks/useAuth';
 import { CLINICAL_THEME_LABELS, type ClientRecord } from './types';
@@ -11,6 +11,7 @@ import {
   listClientAnalyses,
   listClients,
 } from './lib/api';
+import { SessionPreparationView } from './SessionPreparationView';
 
 type ListFilter = 'all' | 'active' | 'archived';
 
@@ -317,24 +318,46 @@ function NewClientModal({
 
 type DashTab =
   | 'overview'
-  | 'formulation'
+  | 'preparation'
   | 'targets'
   | 'sessions'
-  | 'clinical-intelligence'
   | 'documents'
   | 'audit';
+
+const TAB_FROM_QUERY: Record<string, DashTab> = {
+  overview: 'overview',
+  preparation: 'preparation',
+  targets: 'targets',
+  sessions: 'sessions',
+  documents: 'documents',
+  audit: 'audit',
+};
 
 export function ClientDetailPage({ clientId }: { clientId: string }) {
   const auth = useAuth();
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
   const [client, setClient] = useState<ClientRecord | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [tab, setTab] = useState<DashTab>('overview');
+  const initialTab = TAB_FROM_QUERY[searchParams.get('tab') ?? ''] ?? 'overview';
+  const [tab, setTab] = useState<DashTab>(initialTab);
   const [analyses, setAnalyses] = useState<
     Array<{ id: string; phase: string; reviewStatus: string; createdAt: string }>
   >([]);
   const [confirmArchive, setConfirmArchive] = useState(false);
   const [busy, setBusy] = useState(false);
+
+  useEffect(() => {
+    const q = searchParams.get('tab');
+    if (q && TAB_FROM_QUERY[q] && TAB_FROM_QUERY[q] !== tab) {
+      setTab(TAB_FROM_QUERY[q]!);
+    }
+  }, [searchParams, tab]);
+
+  const selectTab = (id: DashTab) => {
+    setTab(id);
+    setSearchParams(id === 'overview' ? {} : { tab: id }, { replace: true });
+  };
 
   useEffect(() => {
     if (!auth.isAuthenticated) return;
@@ -388,13 +411,20 @@ export function ClientDetailPage({ clientId }: { clientId: string }) {
             </div>
             {client && (
               <div className="stack-btns horizontal wrap">
-                <Link
+                <button
+                  type="button"
                   className="btn primary"
+                  onClick={() => selectTab('preparation')}
+                >
+                  Session Preparation
+                </button>
+                <Link
+                  className="btn secondary"
                   to={`/practice/standard?clientId=${encodeURIComponent(client.id)}`}
                 >
-                  Continue Guided Practice
+                  Guided Practice
                 </Link>
-                <Link className="btn secondary" to={`/clients/${client.id}/clinical-intelligence`}>
+                <Link className="btn tertiary" to={`/clients/${client.id}/clinical-intelligence`}>
                   Analyse Transcript
                 </Link>
               </div>
@@ -417,35 +447,51 @@ export function ClientDetailPage({ clientId }: { clientId: string }) {
               {(
                 [
                   ['overview', 'Overview'],
+                  ['preparation', 'Preparation'],
+                  ['practice', 'Practice'],
+                  ['clinical-reasoning', 'Clinical Reasoning'],
                   ['formulation', 'Formulation'],
                   ['targets', 'Targets'],
                   ['sessions', 'Sessions'],
-                  ['clinical-intelligence', 'Clinical Intelligence'],
                   ['documents', 'Documents'],
-                  ['audit', 'Audit'],
                 ] as const
-              ).map(([id, label]) => (
-                <button
-                  key={id}
-                  type="button"
-                  role="tab"
-                  className={tab === id ? 'is-active' : ''}
-                  aria-selected={tab === id}
-                  onClick={() => {
-                    if (id === 'formulation') {
-                      navigate(`/clients/${client.id}/aip-formulation`);
-                      return;
-                    }
-                    if (id === 'clinical-intelligence') {
-                      navigate(`/clients/${client.id}/clinical-intelligence`);
-                      return;
-                    }
-                    setTab(id);
-                  }}
-                >
-                  {label}
-                </button>
-              ))}
+              ).map(([id, label]) => {
+                const isInline =
+                  id === 'overview' ||
+                  id === 'preparation' ||
+                  id === 'targets' ||
+                  id === 'sessions' ||
+                  id === 'documents';
+                const active = isInline && tab === id;
+                return (
+                  <button
+                    key={id}
+                    type="button"
+                    role="tab"
+                    className={active ? 'is-active' : ''}
+                    aria-selected={active}
+                    onClick={() => {
+                      if (id === 'formulation') {
+                        navigate(`/clients/${client.id}/aip-formulation`);
+                        return;
+                      }
+                      if (id === 'clinical-reasoning') {
+                        navigate(`/clients/${client.id}/clinical-intelligence`);
+                        return;
+                      }
+                      if (id === 'practice') {
+                        navigate(
+                          `/practice/standard?clientId=${encodeURIComponent(client.id)}`,
+                        );
+                        return;
+                      }
+                      if (isInline) selectTab(id);
+                    }}
+                  >
+                    {label}
+                  </button>
+                );
+              })}
             </div>
 
             {tab === 'overview' && (
@@ -501,9 +547,21 @@ export function ClientDetailPage({ clientId }: { clientId: string }) {
                       {client.updatedAt ? new Date(client.updatedAt).toLocaleDateString() : '—'}
                     </dd>
                   </dl>
-                  <Link className="btn secondary" to={`/practice/standard?clientId=${encodeURIComponent(client.id)}`}>
-                    Continue Guided Practice
-                  </Link>
+                  <div className="stack-btns horizontal wrap">
+                    <button
+                      type="button"
+                      className="btn primary"
+                      onClick={() => selectTab('preparation')}
+                    >
+                      Open Preparation
+                    </button>
+                    <Link
+                      className="btn secondary"
+                      to={`/practice/standard?clientId=${encodeURIComponent(client.id)}`}
+                    >
+                      Guided Practice
+                    </Link>
+                  </div>
                 </section>
 
                 <section className="pf-surface-card">
@@ -550,6 +608,17 @@ export function ClientDetailPage({ clientId }: { clientId: string }) {
               </div>
             )}
 
+            {tab === 'preparation' && (
+              <SessionPreparationView
+                client={client}
+                therapistName={
+                  auth.therapist
+                    ? `${auth.therapist.firstName} ${auth.therapist.lastName}`.trim()
+                    : undefined
+                }
+              />
+            )}
+
             {tab === 'targets' && (
               <section className="panel">
                 <h2>Active target</h2>
@@ -579,19 +648,55 @@ export function ClientDetailPage({ clientId }: { clientId: string }) {
 
             {tab === 'sessions' && (
               <section className="panel">
-                <h2>Sessions</h2>
+                <h2>Session timeline</h2>
                 <p className="hint">
-                  Analysis history from Clinical Intelligence. Guided Practice console drafts remain
-                  on-device until applied to this client record.
+                  Each completed cycle links preparation → practice → transcript → clinical
+                  intelligence → approved findings → debrief → formulation update.
                 </p>
+                {(client.sessionTimeline ?? []).length > 0 ? (
+                  <ol className="session-timeline">
+                    {(client.sessionTimeline ?? [])
+                      .slice()
+                      .reverse()
+                      .map((ev) => (
+                        <li key={ev.id}>
+                          <time dateTime={ev.at}>{new Date(ev.at).toLocaleString()}</time>
+                          <strong>{ev.label}</strong>
+                          <span className="pf-meta">{ev.kind}</span>
+                        </li>
+                      ))}
+                  </ol>
+                ) : (
+                  <p className="pf-meta">
+                    No timeline events yet. Approve a Session Debrief after Clinical Intelligence to
+                    start the longitudinal record.
+                  </p>
+                )}
+                <h3 style={{ marginTop: '1.5rem' }}>Analyses</h3>
                 <ul className="client-activity-list">
                   {analyses.map((a) => (
                     <li key={a.id}>
                       {new Date(a.createdAt).toLocaleString()} · {a.phase} · {a.reviewStatus}
+                      {(a.reviewStatus === 'reviewed' || a.reviewStatus === 'applied') && (
+                        <>
+                          {' · '}
+                          <Link to={`/clients/${client.id}/debrief?analysisId=${encodeURIComponent(a.id)}`}>
+                            Debrief
+                          </Link>
+                        </>
+                      )}
                     </li>
                   ))}
                   {!analyses.length && <li className="hint">No sessions recorded yet</li>}
                 </ul>
+                <div className="stack-btns horizontal wrap" style={{ marginTop: '1rem' }}>
+                  <Link className="btn secondary" to={`/clients/${client.id}/debrief`}>
+                    Open Session Debrief
+                  </Link>
+                  <button type="button" className="btn tertiary" onClick={() => selectTab('audit' as DashTab)}>
+                    Audit
+                  </button>
+                </div>
               </section>
             )}
 

@@ -10,6 +10,7 @@ import {
   SettingsHomePage,
 } from '../clinical-intelligence/ClinicalIntelligenceSettingsPage';
 import { ClientDetailPage, ClientsListPage } from '../clinical-intelligence/ClientsPage';
+import { SessionDebriefPage } from '../clinical-intelligence/SessionDebriefPage';
 import { PainProtocolPage } from '../emdr/components/emdr-pain/PainProtocolPage';
 import {
   ClinicalLibraryDetailPage,
@@ -50,6 +51,12 @@ function AipFormulationRoute() {
   return <AipFormulationPage clientId={clientId} />;
 }
 
+function SessionDebriefRoute() {
+  const { clientId } = useParams<{ clientId: string }>();
+  if (!clientId) return <Navigate to="/clients" replace />;
+  return <SessionDebriefPage clientId={clientId} />;
+}
+
 export default function App() {
   return (
     <BrowserRouter>
@@ -80,6 +87,7 @@ export default function App() {
         <Route path="/clients/:clientId" element={<ClientDetailRoute />} />
         <Route path="/clients/:clientId/clinical-intelligence" element={<AnalyseRoute />} />
         <Route path="/clients/:clientId/aip-formulation" element={<AipFormulationRoute />} />
+        <Route path="/clients/:clientId/debrief" element={<SessionDebriefRoute />} />
         <Route path="/account" element={<AccountPage />} />
         <Route path="/join/:roomId" element={<JoinPage />} />
         <Route path="/client/session/:roomId" element={<JoinPage />} />

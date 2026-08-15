@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 import { BlsStage } from '../../../components/BlsStage';
 import { GuidedPracticeConsole } from '../../guided/components/GuidedPracticeConsole';
 import { LiveBlsPanel } from '../../guided/components/LiveBlsPanel';
@@ -78,6 +78,8 @@ function stepsForPhase(state: StandardSessionState): GuidedScriptStep[] {
 }
 
 export function StandardEmdrConsolePage() {
+  const [searchParams] = useSearchParams();
+  const linkedClientId = searchParams.get('clientId');
   const {
     bls,
     clientDisplay,
@@ -101,6 +103,11 @@ export function StandardEmdrConsolePage() {
   const [helper, setHelper] = useState<'none' | 'cognitions' | 'themes'>('none');
   const [cogQuery, setCogQuery] = useState('');
   const [showPhasePicker, setShowPhasePicker] = useState(true);
+
+  const finishSessionHref = linkedClientId
+    ? `/clients/${encodeURIComponent(linkedClientId)}/clinical-intelligence?finish=1`
+    : '/clients';
+
 
   useEffect(() => {
     saveStandardSession(ws);
@@ -245,9 +252,18 @@ export function StandardEmdrConsolePage() {
               clientDisplay={clientDisplay}
               onOpenClientPanel={() => setRemotePanelOpen(true)}
               rightSlot={
-                <button type="button" className="btn ghost pf-header-btn" onClick={() => setShowPhasePicker(true)}>
-                  Change phase
-                </button>
+                <div className="stack-btns horizontal wrap">
+                  <Link className="btn secondary pf-header-btn" to={finishSessionHref}>
+                    Finish Session
+                  </Link>
+                  <button
+                    type="button"
+                    className="btn ghost pf-header-btn"
+                    onClick={() => setShowPhasePicker(true)}
+                  >
+                    Change phase
+                  </button>
+                </div>
               }
             />
             <SessionStatusStrip
@@ -353,7 +369,7 @@ export function StandardEmdrConsolePage() {
               </div>
             )}
             {ws.phase === 'closure' && (
-              <div className="stack-btns horizontal">
+              <div className="stack-btns horizontal wrap">
                 <button
                   type="button"
                   className={`btn${ws.closureBranch === 'complete' ? ' primary' : ''}`}
@@ -368,6 +384,9 @@ export function StandardEmdrConsolePage() {
                 >
                   Incomplete Target Session
                 </button>
+                <Link className="btn primary" to={finishSessionHref}>
+                  Finish Session → Transcript
+                </Link>
               </div>
             )}
             {ws.phase === 'reevaluation' && (

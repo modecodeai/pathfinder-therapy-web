@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { AppHeader } from '../emdr/guided/components/AppHeader';
 import { useAuth } from '../hooks/useAuth';
 import {
@@ -89,6 +89,8 @@ function isApproved(s: ReviewStatus) {
 export function AnalyseTranscriptPage({ clientId }: { clientId: string }) {
   const auth = useAuth();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const finishFlow = searchParams.get('finish') === '1';
   const [client, setClient] = useState<ClientRecord | null>(null);
   const [ciReady, setCiReady] = useState<boolean | null>(null);
   const [protocol, setProtocol] = useState<'standard-emdr'>('standard-emdr');
@@ -310,7 +312,9 @@ export function AnalyseTranscriptPage({ clientId }: { clientId: string }) {
           setError(res.error ?? 'Could not apply to target assessment');
           return;
         }
-        navigate(`/clients/${clientId}`);
+        navigate(
+          `/clients/${clientId}/debrief?analysisId=${encodeURIComponent(analysisId)}`,
+        );
       } catch {
         setError('Could not apply to target assessment');
       } finally {
@@ -351,7 +355,9 @@ export function AnalyseTranscriptPage({ clientId }: { clientId: string }) {
         setError(res.error ?? 'Could not apply findings');
         return;
       }
-      navigate(`/clients/${clientId}`);
+      navigate(
+        `/clients/${clientId}/debrief${analysisId ? `?analysisId=${encodeURIComponent(analysisId)}` : ''}`,
+      );
     } catch {
       setError('Could not apply findings');
     } finally {
@@ -409,6 +415,16 @@ export function AnalyseTranscriptPage({ clientId }: { clientId: string }) {
           <h1>Clinical Intelligence</h1>
           <p className="lede">Client: {client?.displayName || '…'}</p>
         </header>
+
+        {finishFlow && auth.isAuthenticated && view === 'form' && (
+          <section className="pf-surface-card session-finish-banner">
+            <h2>Finish session</h2>
+            <p>
+              Paste the transcript below → review Clinical Intelligence → apply approved findings →
+              Session Debrief opens automatically.
+            </p>
+          </section>
+        )}
 
         {!auth.isAuthenticated && (
           <section className="panel">

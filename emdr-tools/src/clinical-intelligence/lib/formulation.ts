@@ -544,12 +544,23 @@ export function computeSessionChange(
       prior.activeTarget.sud !== next.activeTarget.sud ||
       prior.activeTarget.voc !== next.activeTarget.voc
     ) {
+      const parts: string[] = [];
+      if (prior.activeTarget.sud !== next.activeTarget.sud) {
+        parts.push(
+          `SUD ${prior.activeTarget.sud ?? '—'} → ${next.activeTarget.sud ?? '—'}`,
+        );
+      }
+      if (prior.activeTarget.voc !== next.activeTarget.voc) {
+        parts.push(
+          `VoC ${prior.activeTarget.voc ?? '—'} → ${next.activeTarget.voc ?? '—'}`,
+        );
+      }
       items.push({
         id: 'updated_target_metrics',
         kind: 'updated',
         category: 'activeTarget',
         label: next.activeTarget.headline,
-        detail: `VoC/SUD updated`,
+        detail: parts.join('; ') || 'VoC/SUD updated',
       });
     } else {
       items.push({
