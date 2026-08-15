@@ -20,6 +20,8 @@ import {
 import { PRIMARY_APPROACH_LABELS, type PrimaryTreatmentApproach } from './clinicalReasoning';
 import { hasCoreFormulationContent } from './lib/intake';
 import { inferPrimaryApproach } from './lib/lensGovernance';
+import { IntakeClinicalView } from './IntakeClinicalView';
+import { firstSessionPreparationPlainText } from './lib/firstSessionPrep';
 
 type ListFilter = 'all' | 'active' | 'archived';
 
@@ -526,43 +528,7 @@ export function ClientDetailPage({ clientId }: { clientId: string }) {
             )}
 
             {tab === 'intake' && (
-              <section className="pf-surface-card">
-                <h2>Intake</h2>
-                {client.intake?.riskReviewRequired && (
-                  <div className="pf-clinical-review-alert" role="alert">
-                    <strong>CLINICAL REVIEW REQUIRED</strong>
-                    <p>Risk-related content is present in intake material.</p>
-                  </div>
-                )}
-                {client.intake ? (
-                  <>
-                    <p className="pf-meta">
-                      Last updated{' '}
-                      {client.intake.updatedAt
-                        ? new Date(client.intake.updatedAt).toLocaleString()
-                        : '—'}
-                    </p>
-                    <Link className="btn primary" to={`/clients/${client.id}/setup`}>
-                      Continue intake / setup
-                    </Link>
-                  </>
-                ) : (
-                  <div className="pf-empty">
-                    <p>
-                      Initial formulation not yet established. Add intake information or clinical
-                      material to begin.
-                    </p>
-                    <div className="stack-btns horizontal wrap">
-                      <Link className="btn primary" to={`/clients/${client.id}/setup`}>
-                        Add Intake
-                      </Link>
-                      <Link className="btn secondary" to={`/clients/${client.id}/setup`}>
-                        Add Transcript
-                      </Link>
-                    </div>
-                  </div>
-                )}
-              </section>
+              <IntakeClinicalView client={client} onClientUpdate={setClient} />
             )}
 
             {tab === 'preparation' && (
@@ -726,7 +692,7 @@ function ClientOverviewPanel({
   const core = client.coreFormulation;
   const hasCore = hasCoreFormulationContent(core);
 
-  if (!hasCore && !client.intake && !(client.clinicalMaterials ?? []).length) {
+  if (!hasCore && !client.intake && !client.structuredIntake && !(client.clinicalMaterials ?? []).length) {
     return (
       <div className="client-overview-stack">
         <section className="pf-surface-card">
@@ -767,85 +733,98 @@ function ClientOverviewPanel({
       </section>
 
       <section className="pf-surface-card">
+        <h2>Presenting concerns</h2>
+        <p>
+          {(core?.presentingProblems?.map((p) => p.text).join('; ') ||
+            client.presentingProblems.join('; ') ||
+            client.presentingProblem) ??
+            '—'}
+        </p>
+      </section>
+
+      <section className="pf-surface-card">
+        <h2>Client goals</h2>
+        <p>{(core?.goals ?? []).map((g) => g.text).join('; ') || '—'}</p>
+      </section>
+
+      <section className="pf-surface-card">
         <h2>Current understanding</h2>
         <dl className="ci-kv">
-          <dt>Presenting problems</dt>
-          <dd>
-            {(core?.presentingProblems?.map((p) => p.text).join('; ') ||
-              client.presentingProblems.join('; ') ||
-              client.presentingProblem) ??
-              '—'}
-          </dd>
           <dt>Working formulation</dt>
           <dd>
             {hasCore
-              ? 'Core clinical understanding established'
+              ? 'Core clinical understanding established (modality-neutral)'
               : primaryTheme
                 ? CLINICAL_THEME_LABELS[primaryTheme.theme]
                 : 'Not yet established'}
           </dd>
           <dt>Key patterns</dt>
           <dd>{(core?.repeatingPatterns ?? []).map((p) => p.text).join('; ') || '—'}</dd>
-          <dt>Resources</dt>
-          <dd>
-            {(core?.resources ?? []).map((r) => r.text).join('; ') ||
-              client.resources.map((r) => r.text).join('; ') ||
-              '—'}
-          </dd>
+          <dt>Working hypotheses</dt>
+          <dd>{(core?.workingHypotheses ?? []).map((h) => h.statement).join('; ') || '—'}</dd>
         </dl>
       </section>
 
       <section className="pf-surface-card">
-        <h2>Current work</h2>
-        <dl className="ci-kv">
-          <dt>Current contract / strategy</dt>
-          <dd>{strategy.length ? strategy.join('; ') : 'None accepted yet'}</dd>
-          <dt>Outstanding questions</dt>
-          <dd>{openQs.length ? `${openQs.length} open` : 'None open'}</dd>
-        </dl>
+        <h2>Resources / strengths</h2>
+        <p>
+          {[
+            ...(core?.resources ?? []).map((r) => r.text),
+            ...(core?.strengths ?? []).map((s) => s.text),
+            ...client.resources.map((r) => r.text),
+          ]
+            .filter(Boolean)
+            .join('; ') || '—'}
+        </p>
       </section>
 
       <section className="pf-surface-card">
-        <h2>Next session</h2>
+        <h2>Outstanding questions</h2>
+        <p>
+          {openQs.length
+            ? openQs.map((q) => q.text).join('; ')
+            : (core?.outstandingQuestions ?? []).map((q) => q.text).join('; ') || 'None open'}
+        </p>
+        {strategy.length > 0 && (
+          <p className="pf-meta">Current work: {strategy.join('; ')}</p>
+        )}
+      </section>
+
+      <section className="pf-surface-card">
+        <h2>Next step</h2>
         <p className="pf-meta">
-          {client.activeCycle?.workflowStatus === 'complete' || !client.activeCycle
-            ? 'Preparation ready'
-            : 'Cycle in progress'}
+          {client.firstSessionPreparation
+            ? 'First Session Preparation ready'
+            : client.activeCycle?.workflowStatus === 'complete' || !client.activeCycle
+              ? 'Prepare First Session'
+              : 'Cycle in progress'}
         </p>
         <button type="button" className="btn primary" onClick={onPrepare}>
-          Prepare Session
+          Prepare First Session
         </button>
-      </section>
-
-      <section className="pf-surface-card">
-        <h2>Recent clinical material</h2>
-        <ul className="client-activity-list">
-          {(client.clinicalMaterials ?? [])
-            .slice()
-            .reverse()
-            .slice(0, 5)
-            .map((m) => (
-              <li key={m.id}>
-                {m.label} · {m.sourceType} · {new Date(m.createdAt).toLocaleDateString()}
-              </li>
-            ))}
-          {!(client.clinicalMaterials ?? []).length && (
-            <li className="hint">No intake or transcripts added yet</li>
-          )}
-        </ul>
-        {client.lastSessionSummary && (
-          <p className="pf-meta">Latest debrief: {client.lastSessionSummary}</p>
+        {client.firstSessionPreparation && (
+          <pre className="pf-session-prep" style={{ marginTop: '1rem' }}>
+            {firstSessionPreparationPlainText(client.firstSessionPreparation)}
+          </pre>
         )}
       </section>
 
       <section className="pf-surface-card">
         <h2>Clinical Reasoning</h2>
         <p className="pf-meta" style={{ marginBottom: 16 }}>
-          {pendingCi ? `${pendingCi} findings awaiting review` : 'No pending reviews'}
+          {pendingCi ? `${pendingCi} findings awaiting review` : 'No pending transcript reviews'}
+          {client.intakeClinicalStatus === 'ai-review-ready' || client.intakeClinicalStatus === 'submitted'
+            ? ' · Intake awaiting review'
+            : ''}
         </p>
-        <Link className="btn primary" to={`/clients/${client.id}/clinical-reasoning`}>
-          Review
-        </Link>
+        <div className="stack-btns horizontal wrap">
+          <Link className="btn secondary" to={`/clients/${client.id}?tab=intake`}>
+            Intake
+          </Link>
+          <Link className="btn primary" to={`/clients/${client.id}/clinical-reasoning`}>
+            Review
+          </Link>
+        </div>
       </section>
     </div>
   );

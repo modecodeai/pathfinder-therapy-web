@@ -39,6 +39,39 @@ Dashboard primary action is **+ New Client**. Global EMDR start actions do not d
 
 ---
 
+## PATHFINDER INITIAL CLINICAL INFORMATION PRINCIPLE
+
+The intake is the first clinical evidence source in Pathfinder.
+
+It is not merely an administrative form.
+
+Pathfinder preserves the client's original account, organises that information into structured evidence, and supports the therapist in developing an initial modality-neutral understanding.
+
+The client's words remain primary.
+
+Clinical interpretation remains provisional.
+
+The therapist remains the author of the formulation.
+
+**Pipeline**
+
+```
+RAW INTAKE (immutable)
+  → STRUCTURED INTAKE (pathfinder-intake-v1)
+  → CORE CLINICAL REASONING (observe → … → working hypothesis)
+  → THERAPIST REVIEW (Approve / Edit / Reject)
+  → INITIAL CLINICAL UNDERSTANDING
+  → FIRST SESSION PREPARATION
+```
+
+Nothing AI-derived enters the approved formulation until therapist review.
+
+Intake records remain distinct from clinical session notes (linked by client ID only).
+
+Form versioning: every submission stores `formVersion` (e.g. `pathfinder-intake-v1`).
+
+---
+
 ## Pathfinder Integrative Reasoning Principle
 
 The client comes before the model.

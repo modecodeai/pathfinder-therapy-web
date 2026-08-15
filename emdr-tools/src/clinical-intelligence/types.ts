@@ -595,6 +595,16 @@ export interface ClientRecord {
   pronouns?: string;
   /** Structured intake — first-class clinical evidence (not a diagnosis) */
   intake?: import('./lib/intake').ClientIntakeRecord;
+  /** Immutable raw intake submissions (never overwrite with AI) */
+  rawIntakeSubmissions?: import('./lib/pathfinderIntakeForm').RawIntakeSubmission[];
+  /** Structured reflection of Pathfinder Client Intake Form */
+  structuredIntake?: import('./lib/pathfinderIntakeForm').StructuredIntake;
+  /** Core-only intake findings pending / reviewed */
+  intakeCoreFindings?: import('./lib/intakeReasoning').IntakeCoreFinding[];
+  /** Clinical intake workflow status */
+  intakeClinicalStatus?: import('./lib/pathfinderIntakeForm').IntakeClinicalStatus;
+  /** First session briefing from approved intake */
+  firstSessionPreparation?: import('./lib/firstSessionPrep').FirstSessionPreparation;
   /** Labelled clinical material (intake paste, transcript, referral, notes) */
   clinicalMaterials?: import('./lib/intake').ClinicalMaterialSource[];
   /** New-client setup progress — steps are optional / skippable */

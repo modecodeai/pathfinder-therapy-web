@@ -6333,3 +6333,22 @@ a.pf-public-card:hover {
   flex-direction: column;
   gap: 0.15rem;
 }
+
+.pf-raw-intake,
+.pf-session-prep {
+  white-space: pre-wrap;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 0.8rem;
+  background: #f7f8f9;
+  border: 1px solid var(--pf-border);
+  border-radius: 10px;
+  padding: 0.85rem 1rem;
+  max-height: 320px;
+  overflow: auto;
+}
+.pf-session-prep {
+  font-family: inherit;
+  font-size: 0.92rem;
+  line-height: 1.45;
+  max-height: none;
+}

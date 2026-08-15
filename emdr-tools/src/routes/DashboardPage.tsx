@@ -18,6 +18,7 @@ type ClientRow = {
   status?: string;
   currentPhase?: string;
   intakeStatus?: string;
+  intakeClinicalStatus?: string;
   ciPending?: number;
 };
 
@@ -87,7 +88,11 @@ export function DashboardPage() {
   const attention = useMemo(() => {
     const items: Array<{ id: string; name: string; reason: string; href: string }> = [];
     for (const c of active) {
-      if (c.intakeStatus === 'submitted') {
+      if (
+        c.intakeStatus === 'submitted' ||
+        c.intakeClinicalStatus === 'submitted' ||
+        c.intakeClinicalStatus === 'ai-review-ready'
+      ) {
         items.push({
           id: `${c.id}-intake`,
           name: c.displayName,

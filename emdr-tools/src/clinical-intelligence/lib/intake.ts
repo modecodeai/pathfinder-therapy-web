@@ -9,7 +9,9 @@ export type ClinicalSourceType =
   | 'transcript'
   | 'referral'
   | 'therapist-note'
-  | 'assessment';
+  | 'assessment'
+  | 'client-document'
+  | 'session-debrief';
 
 export type IntakeFieldKey =
   | 'personalInformation'
