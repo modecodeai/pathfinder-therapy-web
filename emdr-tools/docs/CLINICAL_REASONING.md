@@ -62,8 +62,7 @@ RAW INTAKE (immutable)
   → STRUCTURED INTAKE (pathfinder-intake-v1) — form selections preserved (null stays null)
   → SEMANTIC CORROBORATION — narrative evidence across the intake
   → CORE CLINICAL REASONING (observe → … → working hypothesis)
-  → THERAPIST REVIEW (Approve / Edit / Reject)
-  → INITIAL CLINICAL UNDERSTANDING
+  → INITIAL CLINICAL REVIEW (person-first briefing; confirm → analyse → approve)
   → FIRST SESSION PREPARATION (core-first; no TA/EMDR leakage)
 ```
 
@@ -80,6 +79,28 @@ Nothing AI-derived enters the approved formulation until therapist review. “Th
 Intake records remain distinct from clinical session notes (linked by client ID only).
 
 Form versioning: every submission stores `formVersion` (e.g. `pathfinder-intake-v1`).
+
+---
+
+## INITIAL CLINICAL REVIEW PRINCIPLE
+
+The therapist is not reviewing a form.
+
+The therapist is orienting themselves to a person's initial story.
+
+Pathfinder should surface what matters clinically first, while preserving the original intake and its provenance underneath.
+
+**Initial Clinical Review** presents:
+
+1. Initial Clinical Brief (≈150–200 words, modality-neutral)
+2. Current situation, what the client wants, current difficulties
+3. Client-identified patterns, resources & current costs
+4. Clinical review required (when risk language is present — no invented tier)
+5. Important questions / clarifications
+6. Working hypotheses (visually separate from facts)
+7. Client details secondary; raw submission collapsed
+
+No TA drivers, injunctions, ego states, or EMDR targets appear on this screen.
 
 ---
 

@@ -120,9 +120,13 @@ describe('Intake Reader — Stage A document extraction', () => {
 
   it('UI separates extraction review from clinical JSON dump', () => {
     const view = readFileSync(resolve(root, 'src/clinical-intelligence/IntakeClinicalView.tsx'), 'utf8');
-    expect(view).toContain('Review extracted intake');
-    expect(view).toContain('Confirm extraction & Analyse clinically');
-    expect(view).toContain('View Original Submission');
+    const icr = readFileSync(
+      resolve(root, 'src/clinical-intelligence/components/InitialClinicalReview.tsx'),
+      'utf8',
+    );
+    expect(view).toContain('Initial Clinical Review');
+    expect(icr).toContain('Confirm initial information & analyse');
+    expect(icr).toContain('View original submission');
     expect(view).toContain('Re-extract Intake');
     expect(view).not.toContain('parsePastedIntakeToAnswers');
     expect(view).toContain('extractIntakeFromPaste');

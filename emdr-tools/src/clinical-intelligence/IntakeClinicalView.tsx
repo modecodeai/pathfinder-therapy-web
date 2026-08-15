@@ -15,15 +15,10 @@ import {
   analyseIntakeCoreOnly,
   approvedFindingsToCore,
   type IntakeCoreFinding,
-  type IntakeFindingCategory,
 } from './lib/intakeReasoning';
 import { analyseConfirmedIntake } from './lib/intakeAnalysisPipeline';
-import {
-  formatDisplayList,
-  formatGoalsAsBullets,
-  prioritiseExtractionWarnings,
-  type ClinicalEvidence,
-} from './lib/intakeSemanticEvidence';
+import { buildSemanticClinicalEvidence, type ClinicalEvidence } from './lib/intakeSemanticEvidence';
+import { extractedToStructuredIntake } from './lib/intakeExtraction';
 import {
   buildFirstSessionPreparation,
   firstSessionPreparationPlainText,
@@ -33,333 +28,14 @@ import { PRIMARY_APPROACH_LABELS, type PrimaryTreatmentApproach } from './clinic
 import { setPrimaryTreatmentApproach } from './lib/lensGovernance';
 import {
   INTAKE_READER_VERSION,
-  displayExtractedValue,
-  extractedToStructuredIntake,
   hasCriticalExtractionErrors,
   type ExtractedIntake,
   type IntakeExtractionRecord,
   type IntakeExtractionWarning,
 } from './lib/intakeExtraction';
+import { InitialClinicalReview } from './components/InitialClinicalReview';
 
-const REVIEW_SECTIONS: Array<{ title: string; cats: IntakeFindingCategory[] }> = [
-  { title: 'Presenting Concerns', cats: ['presenting-problem', 'functional-impact'] },
-  { title: 'Current Symptoms / Difficulties', cats: ['symptom', 'lifestyle', 'current-stressor'] },
-  { title: 'Current Life Context', cats: ['medical-consideration', 'psychological-history', 'veteran-information'] },
-  { title: 'Relevant History', cats: ['significant-experience', 'trauma-adversity'] },
-  { title: 'Relationships', cats: ['relational-pattern'] },
-  { title: 'Resources and Strengths', cats: ['strength', 'internal-resource', 'external-resource', 'current-support'] },
-  { title: 'Risk / Clinical Review', cats: ['risk-clinical-review', 'clinical-consideration', 'reported-diagnosis'] },
-  { title: 'Client Goals', cats: ['therapeutic-goal'] },
-  { title: 'Working Hypotheses', cats: ['working-hypothesis', 'protective-process'] },
-  { title: 'Information Still Needed', cats: ['outstanding-question', 'not-established'] },
-];
-
-type ViewMode = 'view' | 'paste' | 'manual' | 'extraction-review';
-
-function FieldRow({ label, value }: { label: string; value: string }) {
-  const uncertain = value === 'Not established';
-  return (
-    <div className="pf-extraction-field">
-      <dt>{label}</dt>
-      <dd className={uncertain ? 'pf-extraction-unknown' : undefined}>{value}</dd>
-    </div>
-  );
-}
-
-function ExtractionReviewSections({
-  extracted,
-  onEditField,
-}: {
-  extracted: ExtractedIntake;
-  onEditField: (path: string, current: string) => void;
-}) {
-  const p = extracted.personalInformation;
-  const r = extracted.referralInformation;
-  const pp = extracted.presentingProblem;
-  const g = extracted.goals;
-  const m = extracted.medicalHistory;
-  const psy = extracted.psychologicalHistory;
-  const life = extracted.lifestyleAndSymptoms;
-  const soc = extracted.psychosocialFactors;
-  const dev = extracted.developmentalHistory;
-  const tr = extracted.traumaHistory;
-  const id = extracted.identityAndSelfDescription;
-
-  const sections: Array<{
-    title: string;
-    rows: Array<{ label: string; path: string; value: string }>;
-    goalsList?: string[];
-  }> = [
-    {
-      title: 'Personal Details',
-      rows: [
-        { label: 'Full name', path: 'personalInformation.fullName', value: displayExtractedValue(p.fullName) },
-        { label: 'Preferred name', path: 'personalInformation.preferredName', value: displayExtractedValue(p.preferredName) },
-        { label: 'Pronouns', path: 'personalInformation.pronouns', value: displayExtractedValue(p.pronouns) },
-        { label: 'Date of birth', path: 'personalInformation.dateOfBirth', value: displayExtractedValue(p.dateOfBirth) },
-        { label: 'Current age', path: 'personalInformation.currentAge', value: displayExtractedValue(p.currentAge) },
-        { label: 'Email', path: 'personalInformation.email', value: displayExtractedValue(p.email) },
-        { label: 'Telephone', path: 'personalInformation.telephone', value: displayExtractedValue(p.telephone) },
-        { label: 'Home address', path: 'personalInformation.homeAddress', value: displayExtractedValue(p.homeAddress) },
-      ],
-    },
-    {
-      title: 'Presenting Concerns',
-      rows: [
-        { label: 'Summary', path: 'presentingProblem.summary', value: displayExtractedValue(pp.summary) },
-        { label: 'Severity', path: 'presentingProblem.severity', value: displayExtractedValue(pp.severity) },
-        {
-          label: 'Why this therapist',
-          path: 'referralInformation.whyThisTherapist',
-          value: displayExtractedValue(r.whyThisTherapist),
-        },
-        { label: 'Referral source', path: 'referralInformation.referralSource', value: displayExtractedValue(r.referralSource) },
-        { label: 'GP practice', path: 'referralInformation.gpPractice', value: displayExtractedValue(r.gpPractice) },
-      ],
-    },
-    {
-      title: 'Goals',
-      rows: [
-        { label: 'Therapy goals', path: 'goals.therapyGoals', value: displayExtractedValue(g.therapyGoals) },
-      ],
-      goalsList: formatGoalsAsBullets(g.therapyGoals),
-    },
-    {
-      title: 'Medical / Psychological History',
-      rows: [
-        {
-          label: 'Diagnosed conditions',
-          path: 'medicalHistory.diagnosedConditions',
-          value: displayExtractedValue(m.diagnosedConditions),
-        },
-        {
-          label: 'Medication',
-          path: 'medicalHistory.prescribedMedication',
-          value: displayExtractedValue(m.prescribedMedication),
-        },
-        { label: 'Chronic pain', path: 'medicalHistory.chronicPain', value: displayExtractedValue(m.chronicPain) },
-        {
-          label: 'Previous therapy',
-          path: 'psychologicalHistory.previousTherapyDetails',
-          value: displayExtractedValue(psy.previousTherapyDetails ?? boolDisplay(psy.previousTherapy)),
-        },
-        {
-          label: 'Family mental health',
-          path: 'psychologicalHistory.familyMentalHealthDetails',
-          value: psy.familyMentalHealthDetails
-            ? `Reported family mental-health history: ${psy.familyMentalHealthDetails}. Relationship to client: Not established.`
-            : displayExtractedValue(boolDisplay(psy.familyMentalHealthHistory)),
-        },
-      ],
-    },
-    {
-      title: 'Lifestyle / Symptoms',
-      rows: [
-        {
-          label: 'Sleep problems (form)',
-          path: 'lifestyleAndSymptoms.sleepProblems',
-          value: displayExtractedValue(life.sleepProblems),
-        },
-        { label: 'Sleep rating (form)', path: 'lifestyleAndSymptoms.sleepRating', value: displayExtractedValue(life.sleepRating) },
-        {
-          label: 'Exercise',
-          path: 'lifestyleAndSymptoms.exerciseFrequency',
-          value: formatDisplayList(
-            [life.exerciseFrequency, ...(life.exerciseTypes ?? [])].filter(Boolean) as string[],
-          ),
-        },
-        {
-          label: 'Anxiety (form checkbox)',
-          path: 'lifestyleAndSymptoms.anxietyPanicPhobias',
-          value: displayExtractedValue(life.anxietyPanicPhobias),
-        },
-        {
-          label: 'Anxiety details',
-          path: 'lifestyleAndSymptoms.anxietyDetails',
-          value: displayExtractedValue(life.anxietyDetails),
-        },
-        {
-          label: 'Depression / grief',
-          path: 'lifestyleAndSymptoms.depressionGriefDetails',
-          value: displayExtractedValue(life.depressionGriefDetails),
-        },
-        {
-          label: 'Food / body image',
-          path: 'lifestyleAndSymptoms.foodBodyImageDetails',
-          value: displayExtractedValue(life.foodBodyImageDetails),
-        },
-        {
-          label: 'Relationship length',
-          path: 'lifestyleAndSymptoms.relationshipLength',
-          value: displayExtractedValue(life.relationshipLength),
-        },
-      ],
-    },
-    {
-      title: 'Relationships / Social',
-      rows: [
-        { label: 'Household', path: 'psychosocialFactors.household', value: displayExtractedValue(soc.household) },
-        { label: 'Occupation', path: 'psychosocialFactors.occupation', value: displayExtractedValue(soc.occupation) },
-        {
-          label: 'Family conflict',
-          path: 'psychosocialFactors.familyConflict',
-          value: displayExtractedValue(soc.familyConflict),
-        },
-        {
-          label: 'Social network',
-          path: 'psychosocialFactors.socialNetwork',
-          value: displayExtractedValue(soc.socialNetwork),
-        },
-      ],
-    },
-    {
-      title: 'Childhood / Trauma',
-      rows: [
-        {
-          label: 'Childhood',
-          path: 'developmentalHistory.childhoodDescription',
-          value: displayExtractedValue(dev.childhoodDescription),
-        },
-        {
-          label: 'School',
-          path: 'developmentalHistory.schoolExperience',
-          value: displayExtractedValue(dev.schoolExperience),
-        },
-        {
-          label: 'Traumatic events',
-          path: 'traumaHistory.traumaticEventDetails',
-          value: displayExtractedValue(tr.traumaticEventDetails),
-        },
-        {
-          label: 'Childhood / adolescent abuse',
-          path: 'traumaHistory.abuseDetails',
-          value: displayExtractedValue(tr.abuseDetails),
-        },
-      ],
-    },
-    {
-      title: 'Strengths / Self-description',
-      rows: [
-        {
-          label: 'Five words',
-          path: 'identityAndSelfDescription.fiveWords',
-          value: formatDisplayList(id.fiveWords),
-        },
-        {
-          label: 'Most important thing',
-          path: 'identityAndSelfDescription.mostImportantThing',
-          value: displayExtractedValue(id.mostImportantThing),
-        },
-        {
-          label: 'Significant achievement',
-          path: 'identityAndSelfDescription.significantAchievement',
-          value: displayExtractedValue(id.significantAchievement),
-        },
-        { label: 'Strengths', path: 'strengths.strengths', value: displayExtractedValue(extracted.strengths.strengths) },
-        {
-          label: 'Weaknesses / vulnerabilities',
-          path: 'vulnerabilities.weaknesses',
-          value: displayExtractedValue(extracted.vulnerabilities.weaknesses),
-        },
-      ],
-    },
-  ];
-
-  return (
-    <>
-      {sections.map((sec) => (
-        <details key={sec.title} className="pf-intake-section" open>
-          <summary>{sec.title}</summary>
-          {sec.goalsList && sec.goalsList.length > 0 ? (
-            <div className="pf-goals-list">
-              <p className="pf-meta">Therapy goals</p>
-              <ul>
-                {sec.goalsList.map((goal) => (
-                  <li key={goal}>{goal}</li>
-                ))}
-              </ul>
-              <button
-                type="button"
-                className="btn ghost"
-                onClick={() => onEditField('goals.therapyGoals', sec.goalsList!.join('\n'))}
-              >
-                Edit
-              </button>
-            </div>
-          ) : (
-            <dl className="pf-extraction-dl">
-              {sec.rows.map((row) => (
-                <div key={row.path} className="pf-extraction-row">
-                  <FieldRow label={row.label} value={row.value} />
-                  <button type="button" className="btn ghost" onClick={() => onEditField(row.path, row.value)}>
-                    Edit
-                  </button>
-                </div>
-              ))}
-            </dl>
-          )}
-        </details>
-      ))}
-    </>
-  );
-}
-
-function boolDisplay(v: boolean | null): string | null {
-  if (v === null) return null;
-  return v ? 'Yes' : 'No';
-}
-
-function setByPath(obj: ExtractedIntake, path: string, value: string): ExtractedIntake {
-  const next = structuredClone(obj);
-  const parts = path.split('.');
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  let cur: any = next;
-  for (let i = 0; i < parts.length - 1; i++) cur = cur[parts[i]!];
-  const leaf = parts[parts.length - 1]!;
-  const trimmed = value.trim();
-  if (!trimmed || trimmed === 'Not established') {
-    cur[leaf] = null;
-  } else if (leaf === 'therapyGoals' || leaf === 'fiveWords' || leaf === 'exerciseTypes' || leaf === 'diagnosedConditions' || leaf === 'prescribedMedication') {
-    cur[leaf] = trimmed.split(/[\n,]+/).map((s) => s.trim()).filter(Boolean);
-  } else if (
-    ['currentAge', 'severity', 'physicalHealthRating', 'sleepRating', 'relationshipRating', 'familyRelationshipRating'].includes(
-      leaf,
-    )
-  ) {
-    const n = Number(trimmed);
-    cur[leaf] = Number.isFinite(n) ? n : null;
-  } else if (
-    [
-      'permissionToCall',
-      'permissionToEmail',
-      'currentInvestigations',
-      'chronicPain',
-      'previousTherapy',
-      'psychiatricMedicationHistory',
-      'familyMentalHealthHistory',
-      'sleepProblems',
-      'foodBodyImageIssues',
-      'depressionGriefSadness',
-      'anxietyPanicPhobias',
-      'alcoholDrugs',
-      'romanticRelationship',
-      'familyConflict',
-      'socialNetwork',
-      'enjoysWork',
-      'religiousSpiritual',
-      'traumaticEvent',
-      'childhoodAdolescentAbuse',
-    ].includes(leaf)
-  ) {
-    const lower = trimmed.toLowerCase();
-    if (lower === 'yes' || lower === 'true') cur[leaf] = true;
-    else if (lower === 'no' || lower === 'false') cur[leaf] = false;
-    else cur[leaf] = null;
-  } else {
-    cur[leaf] = trimmed;
-  }
-  return next;
-}
+type ViewMode = 'view' | 'paste' | 'manual' | 'clinical-review';
 
 function rawTextFromClient(client: ClientRecord): string | null {
   const raws = client.rawIntakeSubmissions ?? [];
@@ -370,81 +46,9 @@ function rawTextFromClient(client: ClientRecord): string | null {
   return JSON.stringify(last.rawPayload, null, 2);
 }
 
-function ExtractionWarningsPanel({ warnings }: { warnings: IntakeExtractionWarning[] }) {
-  const groups = prioritiseExtractionWarnings(warnings);
-  const renderGroup = (title: string, items: ReturnType<typeof prioritiseExtractionWarnings>['important']) => {
-    if (!items.length) return null;
-    return (
-      <details className="pf-warning-group" open={title.startsWith('IMPORTANT')}>
-        <summary>
-          {title} ({items.length})
-        </summary>
-        <ul>
-          {items.map((w) => (
-            <li key={w.key}>
-              {w.message}
-              {w.fieldPath ? ` (${w.fieldPath})` : ''}
-            </li>
-          ))}
-        </ul>
-      </details>
-    );
-  };
-  return (
-    <div className="pf-extraction-warnings-panel">
-      {renderGroup('IMPORTANT TO REVIEW', groups.important)}
-      {renderGroup('FORM SELECTIONS NOT RECOVERABLE', groups.formUnrecoverable)}
-      {renderGroup('OTHER', groups.other)}
-    </div>
-  );
-}
-
-function ClinicalEvidenceBrief({ evidence }: { evidence: ClinicalEvidence[] }) {
-  if (!evidence.length) return null;
-  const byConcept = new Map<string, ClinicalEvidence>();
-  for (const e of evidence) {
-    if (e.contradicts) continue;
-    const prev = byConcept.get(e.concept);
-    if (!prev || (e.corroborates?.length ?? 0) > (prev.corroborates?.length ?? 0)) {
-      byConcept.set(e.concept, e);
-    }
-  }
-  const items = [...byConcept.values()];
-  if (!items.length) return null;
-  return (
-    <details className="pf-intake-section">
-      <summary>Clinical evidence (narrative corroboration)</summary>
-      <p className="pf-meta">
-        Form values stay as extracted. This layer shows what the client explicitly reported elsewhere.
-      </p>
-      <ul className="pf-finding-list">
-        {items.map((e) => (
-          <li key={e.id}>
-            <div className="pf-finding-main">
-              <strong>{e.statement}</strong>
-              <span className="pf-meta">
-                Clinical evidence: {e.evidenceLevel.replace(/-/g, ' ')} · Confidence: {e.confidence}
-                {e.formFieldId
-                  ? ` · Form value: ${e.formSelectionStatus === 'unknown' || e.formSelectionStatus === 'absent' ? 'Not established' : e.formSelectionStatus}`
-                  : ''}
-                {e.corroborates && e.corroborates.length > 0
-                  ? ` · ${1 + e.corroborates.length} supporting intake sources`
-                  : ''}
-              </span>
-              <span className="pf-meta">
-                Source: {e.sourceField} · “{e.sourceExcerpt.slice(0, 100)}
-                {e.sourceExcerpt.length > 100 ? '…' : ''}”
-              </span>
-            </div>
-          </li>
-        ))}
-      </ul>
-    </details>
-  );
-}
-
 /**
- * Clinician intake workspace — extraction review and clinical reasoning remain distinct.
+ * Clinician intake workspace — Initial Clinical Review is person-first.
+ * Extraction architecture is unchanged.
  */
 export function IntakeClinicalView({
   client,
@@ -453,9 +57,16 @@ export function IntakeClinicalView({
   client: ClientRecord;
   onClientUpdate?: (c: ClientRecord) => void;
 }) {
-  const [mode, setMode] = useState<ViewMode>(
-    client.intakeClinicalStatus === 'extraction-ready' ? 'extraction-review' : 'view',
-  );
+  const defaultMode = (): ViewMode => {
+    const s = client.intakeClinicalStatus;
+    if (s === 'extraction-ready' || s === 'clinical-reasoning-ready' || s === 'ai-review-ready') {
+      return 'clinical-review';
+    }
+    if (s === 'therapist-reviewed') return 'clinical-review';
+    return 'view';
+  };
+
+  const [mode, setMode] = useState<ViewMode>(defaultMode);
   const [paste, setPaste] = useState('');
   const [answers, setAnswers] = useState<IntakeAnswerMap>({});
   const [extracted, setExtracted] = useState<ExtractedIntake | null>(
@@ -479,14 +90,31 @@ export function IntakeClinicalView({
       ? firstSessionPreparationPlainText(client.firstSessionPreparation)
       : '',
   );
+  const [riskMarked, setRiskMarked] = useState(false);
 
   const status: IntakeClinicalStatus = client.intakeClinicalStatus ?? 'not-requested';
   const extractionConfirmed = isExtractionConfirmedStatus(status);
   const criticalErrors = hasCriticalExtractionErrors(warnings);
-  const clinicalReview = useMemo(
-    () => findings.some((f) => f.clinicalReviewRequired) || findings.some((f) => f.category === 'risk-clinical-review'),
-    [findings],
-  );
+  const needsConfirm =
+    Boolean(extracted || client.intakeExtraction?.extracted) &&
+    !client.intakeExtraction?.confirmed &&
+    (status === 'extraction-ready' || !extractionConfirmed);
+
+  const activeExtracted = extracted ?? client.intakeExtraction?.extracted ?? null;
+
+  /** Preview semantic evidence before confirm so the brief is clinically useful immediately. */
+  const previewEvidence = useMemo(() => {
+    if (clinicalEvidence.length) return clinicalEvidence;
+    if (client.clinicalEvidence?.length) return client.clinicalEvidence;
+    if (!activeExtracted) return [];
+    const { answerMap, structured } = extractedToStructuredIntake(activeExtracted);
+    return buildSemanticClinicalEvidence({
+      answers: answerMap,
+      structured,
+      extracted: activeExtracted,
+    }).evidence;
+  }, [clinicalEvidence, client.clinicalEvidence, activeExtracted]);
+
   const explorePain = useMemo(
     () => findings.some((f) => /chronic pain/i.test(f.text)),
     [findings],
@@ -557,25 +185,24 @@ export function IntakeClinicalView({
       };
 
       const history = [
-        ...(client.intakeExtraction && !client.intakeExtraction.confirmed
-          ? [{ ...client.intakeExtraction, superseded: true }]
-          : client.intakeExtraction
-            ? [{ ...client.intakeExtraction, superseded: true }]
-            : []),
+        ...(client.intakeExtraction
+          ? [{ ...client.intakeExtraction, superseded: true as const }]
+          : []),
         ...(client.intakeExtractionHistory ?? []),
       ];
 
       setExtracted(res.extracted);
       setWarnings(record.warnings);
       setFindings([]);
+      setClinicalEvidence([]);
       const next = await persist({
         structuredIntake: res.structuredIntake,
         intakeExtraction: record,
         intakeExtractionHistory: history,
         intakeCoreFindings: [],
+        clinicalEvidence: [],
         intakeClinicalStatus: 'extraction-ready',
         intakeStatus: 'submitted',
-        // Do NOT mark therapist-reviewed; do not copy broken fields into identity blindly
         email: res.extracted.personalInformation.email ?? client.email,
         phone: res.extracted.personalInformation.telephone ?? client.phone,
         preferredName: res.extracted.personalInformation.preferredName ?? client.preferredName,
@@ -594,7 +221,7 @@ export function IntakeClinicalView({
           extractedFindings: [],
         },
       });
-      setMode('extraction-review');
+      setMode('clinical-review');
       onClientUpdate?.(next);
     } catch (e) {
       setExtractionFailed(true);
@@ -610,15 +237,15 @@ export function IntakeClinicalView({
   };
 
   const confirmExtractionAndAnalyse = async () => {
-    if (!extracted) return;
+    if (!activeExtracted) return;
     setBusy(true);
     setError(null);
     try {
-      const { structured, answerMap } = extractedToStructuredIntake(extracted);
+      const { structured, answerMap } = extractedToStructuredIntake(activeExtracted);
       const analysis = analyseConfirmedIntake({
         answers: answerMap,
         structured,
-        extracted,
+        extracted: activeExtracted,
         rawSubmissionId: client.intakeExtraction?.rawSubmissionId,
       });
       const record: IntakeExtractionRecord = {
@@ -630,10 +257,10 @@ export function IntakeClinicalView({
           warnings,
           rawSubmissionId: undefined,
         }),
-        extracted,
+        extracted: activeExtracted,
         structuredIntake: structured,
         answerMap,
-        warnings: extracted.extractionWarnings ?? warnings,
+        warnings: activeExtracted.extractionWarnings ?? warnings,
         confirmed: true,
         confirmedAt: new Date().toISOString(),
       };
@@ -661,7 +288,7 @@ export function IntakeClinicalView({
           riskReviewRequired: analysis.clinicalReviewRequired,
         },
       });
-      setMode('view');
+      setMode('clinical-review');
       onClientUpdate?.(next);
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Could not confirm extraction');
@@ -685,106 +312,6 @@ export function IntakeClinicalView({
       setExtracted(null);
       const next = await persist({
         structuredIntake: structured,
-        intakeExtraction: {
-          extractorVersion: 'manual-entry',
-          extractedAt: new Date().toISOString(),
-          extracted: {
-            personalInformation: {
-              fullName: answerMap.fullName ?? null,
-              preferredName: answerMap.preferredName ?? null,
-              pronouns: answerMap.pronouns ?? null,
-              dateOfBirth: answerMap.dateOfBirth ?? null,
-              currentAge: answerMap.currentAge ? Number(answerMap.currentAge) : null,
-              homeAddress: answerMap.homeAddress ?? null,
-              telephone: answerMap.telephone ?? null,
-              permissionToCall: null,
-              email: answerMap.email ?? null,
-              permissionToEmail: null,
-            },
-            referralInformation: {
-              gpPractice: answerMap.gpPractice ?? null,
-              relationshipStatus: answerMap.relationshipStatus ?? null,
-              referralSource: answerMap.referralSource ?? null,
-              whyThisTherapist: answerMap.whyThisTherapist ?? null,
-            },
-            presentingProblem: {
-              summary: answerMap.mainProblems ?? null,
-              severity: answerMap.currentSeverity ? Number(answerMap.currentSeverity) : null,
-            },
-            goals: {
-              therapyGoals: answerMap.therapyGoals
-                ? answerMap.therapyGoals.split(/\n+/).map((s) => s.trim()).filter(Boolean)
-                : null,
-            },
-            medicalHistory: {
-              physicalHealthRating: null,
-              diagnosedConditions: null,
-              prescribedMedication: null,
-              currentInvestigations: null,
-              chronicPain: null,
-            },
-            psychologicalHistory: {
-              previousTherapy: null,
-              previousTherapyDetails: answerMap.previousTherapy ?? null,
-              psychiatricMedicationHistory: null,
-              familyMentalHealthHistory: null,
-              familyMentalHealthDetails: null,
-            },
-            lifestyleAndSymptoms: {
-              sleepProblems: null,
-              sleepRating: null,
-              exerciseFrequency: null,
-              exerciseTypes: null,
-              foodBodyImageIssues: null,
-              foodBodyImageDetails: null,
-              depressionGriefSadness: null,
-              depressionGriefDetails: null,
-              anxietyPanicPhobias: null,
-              anxietyDetails: null,
-              alcoholDrugs: null,
-              alcoholDrugDetails: null,
-              romanticRelationship: null,
-              relationshipLength: null,
-              relationshipRating: null,
-            },
-            psychosocialFactors: {
-              household: answerMap.household ?? null,
-              familyRelationshipRating: null,
-              familyConflict: null,
-              socialNetwork: null,
-              socialisingFrequency: null,
-              occupation: answerMap.occupation ?? null,
-              enjoysWork: null,
-              workStress: null,
-              religiousSpiritual: null,
-              faithDescription: null,
-            },
-            developmentalHistory: {
-              childhoodDescription: answerMap.childhood ?? null,
-              schoolExperience: answerMap.schoolExperience ?? null,
-            },
-            traumaHistory: {
-              traumaticEvent: null,
-              traumaticEventDetails: answerMap.trauma ?? null,
-              childhoodAdolescentAbuse: null,
-              abuseDetails: answerMap.childhoodAdolescentAbuse ?? null,
-            },
-            identityAndSelfDescription: {
-              fiveWords: null,
-              mostImportantThing: answerMap.mostImportantThingInLife ?? null,
-              significantAchievement: answerMap.significantAchievement ?? null,
-            },
-            strengths: { strengths: answerMap.strengths ?? null },
-            vulnerabilities: { weaknesses: answerMap.weaknesses ?? null },
-            extractionWarnings: [],
-          },
-          structuredIntake: structured,
-          answerMap,
-          warnings: [],
-          confirmed: true,
-          confirmedAt: new Date().toISOString(),
-          rawSubmissionId: rawId,
-        },
         intakeCoreFindings: analysis.findings,
         intakeClinicalStatus: 'clinical-reasoning-ready',
         intakeStatus: 'submitted',
@@ -806,7 +333,7 @@ export function IntakeClinicalView({
           riskReviewRequired: analysis.clinicalReviewRequired,
         },
       });
-      setMode('view');
+      setMode('clinical-review');
       onClientUpdate?.(next);
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Analyse failed');
@@ -825,9 +352,21 @@ export function IntakeClinicalView({
     await runExtract(text, { skipNewRaw: true, rawSubmissionId: lastRaw?.id });
   };
 
+  const saveReview = async () => {
+    setBusy(true);
+    setError(null);
+    try {
+      await persist({ intakeCoreFindings: findings, clinicalEvidence: clinicalEvidence.length ? clinicalEvidence : previewEvidence });
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'Could not save review');
+    } finally {
+      setBusy(false);
+    }
+  };
+
   const applyReview = async () => {
-    if (!canApproveIntoFormulation(status) || !extractionConfirmed) {
-      setError('Confirm extraction before approving into Core Formulation.');
+    if (!canApproveIntoFormulation(status) && status !== 'clinical-reasoning-ready' && status !== 'ai-review-ready') {
+      setError('Confirm initial information before approving into Core Formulation.');
       return;
     }
     if (criticalErrors) {
@@ -842,6 +381,7 @@ export function IntakeClinicalView({
       setPrepText(firstSessionPreparationPlainText(prep));
       let nextClient = await persist({
         intakeCoreFindings: findings,
+        clinicalEvidence: clinicalEvidence.length ? clinicalEvidence : previewEvidence,
         coreFormulation: core,
         firstSessionPreparation: prep,
         intakeClinicalStatus: 'therapist-reviewed',
@@ -871,14 +411,8 @@ export function IntakeClinicalView({
     }
   };
 
-  const approveDisabled =
-    busy ||
-    !findings.length ||
-    !canApproveIntoFormulation(status) ||
-    criticalErrors ||
-    status === 'extraction-ready' ||
-    status === 'raw-received' ||
-    status === 'extraction-pending';
+  const showClinicalReview =
+    mode === 'clinical-review' && Boolean(activeExtracted || findings.length);
 
   return (
     <div className="pf-intake-clinical">
@@ -886,32 +420,18 @@ export function IntakeClinicalView({
         <h2>Intake</h2>
         <p className="pf-meta">
           Status: <strong>{INTAKE_CLINICAL_STATUS_LABELS[status]}</strong>
-          {' · '}Form version: {client.structuredIntake?.formVersion ?? PATHFINDER_INTAKE_FORM_VERSION}
-          {client.intakeExtraction?.extractorVersion
-            ? ` · Extractor: ${client.intakeExtraction.extractorVersion}`
-            : ''}
+          {' · '}Form: {client.structuredIntake?.formVersion ?? PATHFINDER_INTAKE_FORM_VERSION}
         </p>
         <p className="hint">
-          Intake record is confidential client information and is kept separate from clinical session notes.
-          Document extraction and clinical reasoning are separate steps.
+          Confidential client information — kept separate from clinical session notes.
         </p>
-        {clinicalReview && (
-          <div className="pf-clinical-review-alert" role="alert">
-            <strong>CLINICAL REVIEW REQUIRED</strong>
-            <p>Risk-related or safeguarding language appears in intake. Do not invent severity, intent, plan, or means.</p>
-          </div>
-        )}
         <div className="clients-filters" role="group" aria-label="Intake actions">
-          <button type="button" className={mode === 'view' ? 'is-active' : ''} onClick={() => setMode('view')}>
-            Review
-          </button>
           <button
             type="button"
-            className={mode === 'extraction-review' ? 'is-active' : ''}
-            onClick={() => setMode('extraction-review')}
-            disabled={!extracted && !client.intakeExtraction}
+            className={mode === 'clinical-review' || mode === 'view' ? 'is-active' : ''}
+            onClick={() => setMode(activeExtracted || findings.length ? 'clinical-review' : 'view')}
           >
-            Extracted intake
+            Initial Clinical Review
           </button>
           <button type="button" className={mode === 'paste' ? 'is-active' : ''} onClick={() => setMode('paste')}>
             Paste intake
@@ -936,15 +456,16 @@ export function IntakeClinicalView({
                 type="button"
                 className="btn primary"
                 disabled={busy || !(paste.trim() || rawTextFromClient(client))}
-                onClick={() => void runExtract(paste.trim() || rawTextFromClient(client) || '', { skipNewRaw: Boolean(rawTextFromClient(client)) })}
+                onClick={() =>
+                  void runExtract(paste.trim() || rawTextFromClient(client) || '', {
+                    skipNewRaw: Boolean(rawTextFromClient(client)),
+                  })
+                }
               >
                 Try Again
               </button>
               <button type="button" className="btn tertiary" onClick={() => setMode('manual')}>
                 Enter Manually
-              </button>
-              <button type="button" className="btn ghost" onClick={() => setMode('view')}>
-                Review Original
               </button>
             </div>
           )}
@@ -955,8 +476,7 @@ export function IntakeClinicalView({
         <section className="pf-surface-card">
           <h3>Paste completed intake</h3>
           <p className="pf-meta">
-            OpenAI Intake Reader extracts what the client wrote. Clinical reasoning runs only after you confirm
-            extraction.
+            Intake Reader extracts what the client wrote. Clinical review follows confirmation.
           </p>
           <textarea
             className="ci-transcript-editor"
@@ -1003,256 +523,77 @@ export function IntakeClinicalView({
         </section>
       )}
 
-      {mode === 'extraction-review' && (extracted || client.intakeExtraction?.extracted) && (
+      {showClinicalReview && (
+        <InitialClinicalReview
+          client={client}
+          extracted={activeExtracted}
+          evidence={previewEvidence}
+          findings={findings}
+          warnings={warnings.length ? warnings : activeExtracted?.extractionWarnings ?? []}
+          busy={busy}
+          needsConfirm={needsConfirm}
+          onConfirmAndAnalyse={() => void confirmExtractionAndAnalyse()}
+          onFindingsChange={setFindings}
+          onSaveReview={() => void saveReview()}
+          onApproveAndPrepare={() => void applyReview()}
+          onMarkRiskReviewed={() => {
+            setRiskMarked(true);
+            setFindings((prev) =>
+              prev.map((f) =>
+                f.category === 'risk-clinical-review' ? { ...f, reviewStatus: 'approved' as const } : f,
+              ),
+            );
+          }}
+          rawText={rawTextFromClient(client)}
+        />
+      )}
+
+      {mode === 'view' && !showClinicalReview && (
         <section className="pf-surface-card">
-          <h3>Review extracted intake</h3>
-          <p className="pf-meta">
-            Confirm what the client wrote before clinical analysis. “Not established” means selection or answer
-            could not be reliably determined.
-          </p>
-          {(warnings.length > 0 || (extracted ?? client.intakeExtraction!.extracted).extractionWarnings?.length > 0) && (
-            <ExtractionWarningsPanel
-              warnings={
-                warnings.length
-                  ? warnings
-                  : (extracted ?? client.intakeExtraction!.extracted).extractionWarnings
-              }
-            />
-          )}
-          <ExtractionReviewSections
-            extracted={extracted ?? client.intakeExtraction!.extracted}
-            onEditField={(path, current) => {
-              const edited = window.prompt(`Edit ${path}`, current === 'Not established' ? '' : current);
-              if (edited == null) return;
-              const base = extracted ?? client.intakeExtraction!.extracted;
-              setExtracted(setByPath(base, path, edited));
-            }}
-          />
-          <div className="stack-btns horizontal wrap">
-            <button
-              type="button"
-              className="btn primary"
-              disabled={busy || criticalErrors}
-              onClick={() => void confirmExtractionAndAnalyse()}
-            >
-              {busy ? 'Analysing…' : 'Confirm extraction & Analyse clinically'}
-            </button>
-            <button type="button" className="btn tertiary" disabled={busy} onClick={() => void reExtract()}>
-              Re-extract
+          <div className="pf-empty">
+            <p>No intake yet. Paste the Pathfinder Client Intake Form to begin Initial Clinical Review.</p>
+            <button type="button" className="btn primary" onClick={() => setMode('paste')}>
+              Add Intake
             </button>
           </div>
         </section>
       )}
 
-      {mode === 'view' && (
-        <>
-          {(client.rawIntakeSubmissions?.length ?? 0) > 0 && (
-            <details className="pf-intake-section">
-              <summary>View Original Submission</summary>
-              <pre className="pf-raw-intake">{rawTextFromClient(client)}</pre>
-            </details>
-          )}
-
-          {client.intakeExtraction && !client.intakeExtraction.confirmed && status === 'extraction-ready' && (
-            <section className="pf-surface-card">
-              <h3>Extraction ready for review</h3>
-              <p>Structured answers are ready. Confirm them before clinical reasoning.</p>
-              <button type="button" className="btn primary" onClick={() => setMode('extraction-review')}>
-                Review extracted intake
-              </button>
-            </section>
-          )}
-
-          {client.intakeExtraction?.confirmed && client.structuredIntake && (
-            <details className="pf-intake-section">
-              <summary>Confirmed structured intake (summary)</summary>
-              <p className="pf-meta">
-                Extractor {client.intakeExtraction.extractorVersion}
-                {client.intakeExtraction.confirmedAt
-                  ? ` · Confirmed ${new Date(client.intakeExtraction.confirmedAt).toLocaleString()}`
-                  : ''}
-              </p>
-              <dl className="pf-extraction-dl">
-                <FieldRow
-                  label="Full name"
-                  value={displayExtractedValue(client.structuredIntake.personalInformation.fullName)}
-                />
-                <FieldRow
-                  label="Presenting problems"
-                  value={displayExtractedValue(client.structuredIntake.presentingProblem.mainProblems)}
-                />
-                <FieldRow
-                  label="Goals"
-                  value={formatDisplayList(client.structuredIntake.goals.clientStatedGoals)}
-                />
-                <FieldRow
-                  label="Anxiety (form)"
-                  value={displayExtractedValue(client.structuredIntake.lifestyleAndSymptoms.anxietyPanicPhobias)}
-                />
-              </dl>
-            </details>
-          )}
-
-          <ClinicalEvidenceBrief evidence={clinicalEvidence.length ? clinicalEvidence : (client.clinicalEvidence ?? [])} />
-
-          <section className="pf-surface-card">
-            <h3>INITIAL CLINICAL UNDERSTANDING</h3>
-            <p className="pf-meta">
-              Core only — after confirmed extraction + semantic corroboration. Clinical record status: Approve /
-              Edit / Reject. Form value ≠ clinical evidence ≠ approved record.
-            </p>
-            {REVIEW_SECTIONS.map((sec) => {
-              const items = findings.filter((f) => sec.cats.includes(f.category));
-              if (!items.length) return null;
-              return (
-                <details key={sec.title} className="pf-intake-section" open>
-                  <summary>{sec.title}</summary>
-                  <ul className="pf-finding-list">
-                    {items.map((f) => (
-                      <li key={f.id}>
-                        <div className="pf-finding-main">
-                          {f.clientStatement && (
-                            <p>
-                              <em>Client statement:</em> “{f.clientStatement}”
-                            </p>
-                          )}
-                          <strong>{f.therapistEditedValue ?? f.text}</strong>
-                          <span className="pf-meta">{f.framing.replace(/-/g, ' ')}</span>
-                          {f.evidence[0] && (
-                            <span className="pf-meta">
-                              Source: Intake → {f.evidence[0].sectionLabel} · “{f.evidence[0].questionLabel}” ·
-                              Response: {f.evidence[0].clientResponse.slice(0, 120)}
-                              {f.evidence[0].clientResponse.length > 120 ? '…' : ''}
-                            </span>
-                          )}
-                          {f.provenanceStatus === 'corroborated' && (
-                            <span className="pf-meta">Already known / corroborated</span>
-                          )}
-                        </div>
-                        <div className="stack-btns horizontal wrap">
-                          <button
-                            type="button"
-                            className="btn tertiary"
-                            onClick={() =>
-                              setFindings((prev) =>
-                                prev.map((x) => (x.id === f.id ? { ...x, reviewStatus: 'approved' } : x)),
-                              )
-                            }
-                          >
-                            Approve
-                          </button>
-                          <button
-                            type="button"
-                            className="btn ghost"
-                            onClick={() => {
-                              const edited = window.prompt('Edit finding', f.therapistEditedValue ?? f.text);
-                              if (edited == null) return;
-                              setFindings((prev) =>
-                                prev.map((x) =>
-                                  x.id === f.id
-                                    ? { ...x, reviewStatus: 'edited', therapistEditedValue: edited }
-                                    : x,
-                                ),
-                              );
-                            }}
-                          >
-                            Edit
-                          </button>
-                          <button
-                            type="button"
-                            className="btn ghost"
-                            onClick={() =>
-                              setFindings((prev) =>
-                                prev.map((x) => (x.id === f.id ? { ...x, reviewStatus: 'rejected' } : x)),
-                              )
-                            }
-                          >
-                            Reject
-                          </button>
-                        </div>
-                      </li>
-                    ))}
-                  </ul>
-                </details>
-              );
-            })}
-            {!findings.length && (
-              <div className="pf-empty">
-                <p>
-                  {status === 'extraction-ready'
-                    ? 'Confirm extracted intake before clinical analysis.'
-                    : 'No intake analysis yet. Paste the Pathfinder Client Intake Form, then confirm extraction.'}
-                </p>
-                <button type="button" className="btn primary" onClick={() => setMode(status === 'extraction-ready' ? 'extraction-review' : 'paste')}>
-                  {status === 'extraction-ready' ? 'Review extraction' : 'Add Intake'}
-                </button>
-              </div>
-            )}
-          </section>
-
-          {explorePain && (
-            <section className="pf-surface-card">
-              <h3>Possible complementary lenses</h3>
-              <p>
-                <strong>Pain / Somatic</strong> — Potentially relevant because chronic pain was reported.
-                This is a perspective, not a treatment recommendation. Pathfinder does not activate the
-                Pain protocol automatically.
-              </p>
-              <p className="hint">Explore Pain / Somatic Lens — therapist decides.</p>
-            </section>
-          )}
-
-          <section className="pf-surface-card">
-            <h3>Current Treatment Approach</h3>
-            <label className="field">
-              <span>Approach (default: Not yet decided)</span>
-              <select
-                value={approach}
-                onChange={(e) => setApproach(e.target.value as PrimaryTreatmentApproach)}
-              >
-                {(
-                  [
-                    'unspecified',
-                    'transactional-analysis',
-                    'emdr',
-                    'integrated-ta-emdr',
-                    'general-integrative',
-                    'pain',
-                    'other',
-                  ] as PrimaryTreatmentApproach[]
-                ).map((a) => (
-                  <option key={a} value={a}>
-                    {a === 'integrated-ta-emdr' ? 'Integrated' : PRIMARY_APPROACH_LABELS[a]}
-                  </option>
-                ))}
-              </select>
-            </label>
-            <button
-              type="button"
-              className="btn primary"
-              disabled={approveDisabled}
-              title={
-                approveDisabled
-                  ? 'Confirm extraction and complete clinical review first'
-                  : undefined
-              }
-              onClick={() => void applyReview()}
+      {showClinicalReview && !needsConfirm && (
+        <section className="pf-surface-card" style={{ marginTop: '1rem' }}>
+          <h3>Current treatment approach</h3>
+          <label className="field">
+            <span>Approach (default: Not yet decided) — lens analysis comes after core review</span>
+            <select
+              value={approach}
+              onChange={(e) => setApproach(e.target.value as PrimaryTreatmentApproach)}
             >
-              {busy ? 'Saving…' : 'Approve into Core Formulation & First Session Prep'}
-            </button>
-            {approveDisabled && findings.length > 0 && (
-              <p className="hint">Available after extraction is confirmed and clinical findings are ready.</p>
-            )}
-          </section>
-
-          {prepText && (
-            <section className="pf-surface-card">
-              <h3>FIRST SESSION PREPARATION</h3>
-              <p className="pf-meta">Pre-session information from client intake.</p>
-              <pre className="pf-session-prep">{prepText}</pre>
-            </section>
+              {(
+                [
+                  'unspecified',
+                  'transactional-analysis',
+                  'emdr',
+                  'integrated-ta-emdr',
+                  'general-integrative',
+                  'pain',
+                  'other',
+                ] as PrimaryTreatmentApproach[]
+              ).map((a) => (
+                <option key={a} value={a}>
+                  {a === 'integrated-ta-emdr' ? 'Integrated' : PRIMARY_APPROACH_LABELS[a]}
+                </option>
+              ))}
+            </select>
+          </label>
+          {explorePain && (
+            <p className="hint">
+              Pain / Somatic may be relevant (chronic pain reported). Not activated automatically.
+            </p>
           )}
-        </>
+          {prepText && riskMarked && (
+            <p className="pf-meta">Clinical review items marked reviewed where applicable.</p>
+          )}
+        </section>
       )}
     </div>
   );

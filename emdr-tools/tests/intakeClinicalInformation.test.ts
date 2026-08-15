@@ -178,7 +178,12 @@ describe('Pathfinder intake clinical information', () => {
       resolve(root, 'src/clinical-intelligence/IntakeClinicalView.tsx'),
       'utf8',
     );
-    expect(view).toContain('separate from clinical session notes');
-    expect(view).toContain('View Original Submission');
+    expect(view).toContain('Confidential client information');
+    expect(view).toContain('Initial Clinical Review');
+    const icr = readFileSync(
+      resolve(root, 'src/clinical-intelligence/components/InitialClinicalReview.tsx'),
+      'utf8',
+    );
+    expect(icr).toContain('View original submission');
   });
 });
