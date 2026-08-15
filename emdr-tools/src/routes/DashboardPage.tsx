@@ -3,7 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { AppShell } from '../components/shell';
 import { IconPlus } from '../components/icons';
 import { useAuth } from '../hooks/useAuth';
-import { createClient, listClients } from '../clinical-intelligence/lib/api';
+import { createClient, listClients, patchClient } from '../clinical-intelligence/lib/api';
 
 type ClientRow = {
   id: string;
@@ -240,20 +240,11 @@ function NewClientIdentityModal({
         status,
         preferredName: preferredName.trim() || undefined,
       });
-      // Optional demographics via patch — never block create
-      if (dateOfBirth.trim() || pronouns.trim()) {
-        const { patchClient } = await import('../clinical-intelligence/lib/api');
-        await patchClient(c.id, {
-          dateOfBirth: dateOfBirth.trim() || undefined,
-          pronouns: pronouns.trim() || undefined,
-          setupProgress: { basicDetailsComplete: true, lastStep: 'intake' },
-        });
-      } else {
-        const { patchClient } = await import('../clinical-intelligence/lib/api');
-        await patchClient(c.id, {
-          setupProgress: { basicDetailsComplete: true, lastStep: 'intake' },
-        });
-      }
+      await patchClient(c.id, {
+        dateOfBirth: dateOfBirth.trim() || undefined,
+        pronouns: pronouns.trim() || undefined,
+        setupProgress: { basicDetailsComplete: true, lastStep: 'intake' },
+      });
       onCreated(c.id);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Could not create client');
