@@ -260,6 +260,16 @@ export type TaEgoState =
   | 'adapted-child'
   | 'free-child';
 
+export const TA_EGO_STATE_LABELS: Record<TaEgoState, string> = {
+  parent: 'Parent',
+  adult: 'Adult',
+  child: 'Child',
+  'critical-parent': 'Critical Parent',
+  'nurturing-parent': 'Nurturing Parent',
+  'adapted-child': 'Adapted Child',
+  'free-child': 'Free Child',
+};
+
 export type TaDriverId =
   | 'be-perfect'
   | 'be-strong'

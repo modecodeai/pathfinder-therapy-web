@@ -6,10 +6,13 @@ import type { IntakeCoreFinding } from '../lib/intakeReasoning';
 import {
   buildInitialClinicalReviewModel,
   countUnresolvedHighPriority,
+  filterFindingsByQueue,
+  findingQueueBucket,
   findingsEligibleForApproveAllConfirmed,
   reviewStatsWithEligible,
   type ClinicalReviewItem,
   type ReviewConfidenceLabel,
+  type ReviewQueueFilter,
 } from '../lib/initialClinicalBrief';
 import {
   buildFirstSessionPreparation,
@@ -53,6 +56,7 @@ function FactCard({
   onApprove,
   onEdit,
   onReject,
+  onReopen,
 }: {
   item: ClinicalReviewItem;
   finding?: IntakeCoreFinding;
@@ -60,10 +64,12 @@ function FactCard({
   onApprove?: (id: string) => void;
   onEdit?: (id: string) => void;
   onReject?: (id: string) => void;
+  onReopen?: (id: string) => void;
 }) {
   const status = finding?.reviewStatus;
+  const isTerminal = status === 'approved' || status === 'edited' || status === 'rejected';
   return (
-    <article className={`pf-icr-card pf-icr-fact${status === 'rejected' ? ' is-rejected' : ''}`}>
+    <article className={`pf-icr-card pf-icr-fact${status === 'rejected' ? ' is-rejected' : ''}${status === 'approved' || status === 'edited' ? ' is-approved' : ''}`}>
       <div className="pf-icr-card-head">
         <h4>{item.title}</h4>
         <ConfidenceChip label={item.confidence} />
@@ -71,16 +77,90 @@ function FactCard({
       <p className="pf-icr-card-body">{item.body}</p>
       {item.formSelectionNote && <p className="pf-icr-form-note">{item.formSelectionNote}</p>}
       <SourceToggle excerpt={item.sourceExcerpt} field={item.sourceField} />
-      {showActions && finding && onApprove && (
+      {finding && (
         <div className="pf-icr-card-actions">
           <span className="pf-meta">
             Clinical record:{' '}
             {status === 'approved' || status === 'edited'
-              ? 'Approved'
+              ? status === 'edited'
+                ? 'Approved (edited)'
+                : 'Approved'
               : status === 'rejected'
                 ? 'Rejected'
                 : 'Pending'}
           </span>
+          {showActions && !isTerminal && onApprove && (
+            <>
+              <button type="button" className="btn tertiary" onClick={() => onApprove(finding.id)}>
+                Approve
+              </button>
+              {onEdit && (
+                <button type="button" className="btn ghost" onClick={() => onEdit(finding.id)}>
+                  Edit
+                </button>
+              )}
+              {onReject && (
+                <button type="button" className="btn ghost" onClick={() => onReject(finding.id)}>
+                  Reject
+                </button>
+              )}
+            </>
+          )}
+          {isTerminal && onReopen && (
+            <>
+              <button type="button" className="btn ghost" onClick={() => onReopen(finding.id)}>
+                Reopen review
+              </button>
+              {onEdit && (status === 'approved' || status === 'edited') && (
+                <button type="button" className="btn ghost" onClick={() => onEdit(finding.id)}>
+                  Edit approved
+                </button>
+              )}
+            </>
+          )}
+        </div>
+      )}
+    </article>
+  );
+}
+
+function HypothesisCard({
+  item,
+  finding,
+  onApprove,
+  onEdit,
+  onReject,
+  onReopen,
+}: {
+  item: ClinicalReviewItem;
+  finding?: IntakeCoreFinding;
+  onApprove?: (id: string) => void;
+  onEdit?: (id: string) => void;
+  onReject?: (id: string) => void;
+  onReopen?: (id: string) => void;
+}) {
+  const status = finding?.reviewStatus;
+  const isTerminal = status === 'approved' || status === 'edited' || status === 'rejected';
+  return (
+    <article className={`pf-icr-card pf-icr-hypothesis${isTerminal ? ' is-approved' : ''}`}>
+      <div className="pf-icr-card-head">
+        <h4>
+          {status === 'approved' || status === 'edited'
+            ? 'Approved working hypothesis'
+            : item.title}
+        </h4>
+        <span className={`pf-icr-chip ${isTerminal ? 'is-confirmed' : 'is-suggested'}`}>
+          {status === 'approved' || status === 'edited'
+            ? 'Approved'
+            : status === 'rejected'
+              ? 'Rejected'
+              : 'Suggested'}
+        </span>
+      </div>
+      <p className="pf-icr-card-body">{item.body}</p>
+      <SourceToggle excerpt={item.sourceExcerpt} field="Evidence" />
+      {finding && !isTerminal && onApprove && (
+        <div className="pf-icr-card-actions">
           <button type="button" className="btn tertiary" onClick={() => onApprove(finding.id)}>
             Approve
           </button>
@@ -96,46 +176,11 @@ function FactCard({
           )}
         </div>
       )}
-    </article>
-  );
-}
-
-function HypothesisCard({
-  item,
-  finding,
-  onApprove,
-  onEdit,
-  onReject,
-}: {
-  item: ClinicalReviewItem;
-  finding?: IntakeCoreFinding;
-  onApprove?: (id: string) => void;
-  onEdit?: (id: string) => void;
-  onReject?: (id: string) => void;
-}) {
-  return (
-    <article className="pf-icr-card pf-icr-hypothesis">
-      <div className="pf-icr-card-head">
-        <h4>{item.title}</h4>
-        <span className="pf-icr-chip is-suggested">Suggested</span>
-      </div>
-      <p className="pf-icr-card-body">{item.body}</p>
-      <SourceToggle excerpt={item.sourceExcerpt} field="Evidence" />
-      {finding && onApprove && (
+      {finding && isTerminal && onReopen && (
         <div className="pf-icr-card-actions">
-          <button type="button" className="btn tertiary" onClick={() => onApprove(finding.id)}>
-            Approve
+          <button type="button" className="btn ghost" onClick={() => onReopen(finding.id)}>
+            Reopen review
           </button>
-          {onEdit && (
-            <button type="button" className="btn ghost" onClick={() => onEdit(finding.id)}>
-              Edit
-            </button>
-          )}
-          {onReject && (
-            <button type="button" className="btn ghost" onClick={() => onReject(finding.id)}>
-              Reject
-            </button>
-          )}
         </div>
       )}
     </article>
@@ -189,6 +234,8 @@ export function InitialClinicalReview({
   rawText: string | null;
 }) {
   const [showIndividual, setShowIndividual] = useState(false);
+  const [queueFilters, setQueueFilters] = useState<ReviewQueueFilter[]>(['pending', 'needs-review']);
+  const [approvedOpen, setApprovedOpen] = useState(false);
 
   const model = useMemo(
     () =>
@@ -244,6 +291,7 @@ export function InitialClinicalReview({
 
   const approve = (id: string) => setStatus(id, 'approved');
   const reject = (id: string) => setStatus(id, 'rejected');
+  const reopen = (id: string) => setStatus(id, 'pending');
   const edit = (id: string) => {
     const f = findingById.get(id);
     if (!f) return;
@@ -258,6 +306,46 @@ export function InitialClinicalReview({
       findings.map((f) => (set.has(f.id) ? { ...f, reviewStatus: 'approved' as const } : f)),
     );
   };
+
+  const toggleFilter = (f: ReviewQueueFilter) => {
+    if (f === 'all') {
+      setQueueFilters(['all']);
+      return;
+    }
+    setQueueFilters((prev) => {
+      const withoutAll = prev.filter((x) => x !== 'all');
+      if (withoutAll.includes(f)) {
+        const next = withoutAll.filter((x) => x !== f);
+        return next.length ? next : ['pending', 'needs-review'];
+      }
+      return [...withoutAll, f];
+    });
+  };
+
+  const queueFindings = useMemo(
+    () => filterFindingsByQueue(findings, queueFilters),
+    [findings, queueFilters],
+  );
+  const approvedFindings = useMemo(
+    () => findings.filter((f) => findingQueueBucket(f) === 'approved'),
+    [findings],
+  );
+  const pendingHypotheses = useMemo(
+    () =>
+      model.hypotheses.filter((item) => {
+        const f = item.findingId ? findingById.get(item.findingId) : undefined;
+        return !f || f.reviewStatus === 'pending' || !f.reviewStatus;
+      }),
+    [model.hypotheses, findingById],
+  );
+  const approvedHypotheses = useMemo(
+    () =>
+      model.hypotheses.filter((item) => {
+        const f = item.findingId ? findingById.get(item.findingId) : undefined;
+        return f && (f.reviewStatus === 'approved' || f.reviewStatus === 'edited');
+      }),
+    [model.hypotheses, findingById],
+  );
 
   const matchFinding = (item: ClinicalReviewItem): IntakeCoreFinding | undefined => {
     if (item.findingId) return findingById.get(item.findingId);
@@ -279,16 +367,6 @@ export function InitialClinicalReview({
     ...model.warningGroups.other,
     ...model.warningGroups.important.filter((w) => !importantWarnings.some((i) => i.key === w.key)),
   ];
-
-  const exceptionFindings = findings.filter(
-    (f) =>
-      (f.reviewStatus === 'pending' || !f.reviewStatus) &&
-      f.category !== 'working-hypothesis' &&
-      f.category !== 'risk-clinical-review' &&
-      (f.category === 'outstanding-question' ||
-        f.clinicalReviewRequired ||
-        /source inconsistency|ambiguous|femur/i.test(f.text)),
-  );
 
   return (
     <div className="pf-icr">
@@ -345,15 +423,39 @@ export function InitialClinicalReview({
 
           {!needsConfirm && findings.length > 0 && (
             <section className="pf-icr-bulk" aria-label="Review summary">
-              <h3>
-                {stats.total} findings
-              </h3>
+              <h3>{stats.total} findings</h3>
               <ul className="pf-icr-bulk-stats">
-                <li>{stats.confirmedFacts} confirmed facts</li>
-                <li>{stats.clinicalReviewItems} clinical-review items</li>
-                <li>{stats.workingHypotheses} working hypotheses</li>
-                <li>{stats.needClarification} need clarification</li>
+                <li>{stats.approved} approved</li>
+                <li>{stats.clinicalReviewItems} need clinical review</li>
+                <li>{stats.workingHypothesesPending} working hypotheses pending</li>
+                {stats.ambiguity > 0 ? <li>{stats.ambiguity} ambiguity</li> : null}
+                {stats.rejected > 0 ? <li>{stats.rejected} rejected</li> : null}
+                {stats.confirmedFactsPending > 0 ? (
+                  <li>{stats.confirmedFactsPending} confirmed facts awaiting approval</li>
+                ) : stats.confirmedFactsApproved > 0 ? (
+                  <li>{stats.confirmedFactsApproved} confirmed facts approved</li>
+                ) : null}
               </ul>
+              <div className="pf-icr-filters" role="group" aria-label="Review filters">
+                {(
+                  [
+                    ['pending', 'Pending'],
+                    ['needs-review', 'Needs Review'],
+                    ['approved', 'Approved'],
+                    ['rejected', 'Rejected'],
+                    ['all', 'All'],
+                  ] as Array<[ReviewQueueFilter, string]>
+                ).map(([id, label]) => (
+                  <button
+                    key={id}
+                    type="button"
+                    className={queueFilters.includes(id) ? 'is-active' : ''}
+                    onClick={() => toggleFilter(id)}
+                  >
+                    {label}
+                  </button>
+                ))}
+              </div>
               <div className="pf-icr-bulk-actions">
                 <button
                   type="button"
@@ -373,6 +475,7 @@ export function InitialClinicalReview({
               </div>
               <p className="pf-meta">
                 Approves high-confidence facts only — not hypotheses, risk assumptions, or ambiguous items.
+                Default filter: Pending + Needs Review.
               </p>
             </section>
           )}
@@ -558,11 +661,11 @@ export function InitialClinicalReview({
             </ul>
           </Section>
 
-          {!needsConfirm && model.hypotheses.length > 0 && (
+          {!needsConfirm && pendingHypotheses.length > 0 && (
             <Section title="Working hypotheses">
               <p className="pf-meta">Suggested only — separate from confirmed facts. No TA/EMDR language.</p>
               <div className="pf-icr-grid">
-                {model.hypotheses.map((item) => (
+                {pendingHypotheses.map((item) => (
                   <HypothesisCard
                     key={item.id}
                     item={item}
@@ -570,37 +673,91 @@ export function InitialClinicalReview({
                     onApprove={approve}
                     onEdit={edit}
                     onReject={reject}
+                    onReopen={reopen}
                   />
                 ))}
               </div>
             </Section>
           )}
 
-          {!needsConfirm && exceptionFindings.length > 0 && (
-            <Section title="Exceptions still pending">
-              <p className="pf-meta">Review by exception — approve, edit, or reject these before relying on them in the record.</p>
+          {!needsConfirm && queueFindings.length > 0 && (queueFilters.includes('pending') || queueFilters.includes('needs-review') || queueFilters.includes('all') || queueFilters.includes('rejected')) && (
+            <Section title="Review queue">
+              <p className="pf-meta">Canonical review status from intake findings — Approve moves items out of Pending.</p>
               <div className="pf-icr-grid">
-                {exceptionFindings.map((f) => (
+                {queueFindings
+                  .filter((f) => findingQueueBucket(f) !== 'approved')
+                  .map((f) => (
                   <article key={f.id} className="pf-icr-card">
                     <div className="pf-icr-card-head">
                       <h4>{f.therapistEditedValue ?? f.text}</h4>
-                      <span className="pf-icr-chip is-review">{f.category.replace(/-/g, ' ')}</span>
+                      <span className="pf-icr-chip is-review">{findingQueueBucket(f).replace(/-/g, ' ')}</span>
                     </div>
-                    <div className="pf-icr-card-actions">
-                      <button type="button" className="btn tertiary" onClick={() => approve(f.id)}>
-                        Approve
-                      </button>
-                      <button type="button" className="btn ghost" onClick={() => edit(f.id)}>
-                        Edit
-                      </button>
-                      <button type="button" className="btn ghost" onClick={() => reject(f.id)}>
-                        Reject
-                      </button>
-                    </div>
+                    {(f.reviewStatus === 'pending' || !f.reviewStatus) && (
+                      <div className="pf-icr-card-actions">
+                        <button type="button" className="btn tertiary" onClick={() => approve(f.id)}>
+                          Approve
+                        </button>
+                        <button type="button" className="btn ghost" onClick={() => edit(f.id)}>
+                          Edit
+                        </button>
+                        <button type="button" className="btn ghost" onClick={() => reject(f.id)}>
+                          Reject
+                        </button>
+                      </div>
+                    )}
+                    {f.reviewStatus === 'rejected' && (
+                      <div className="pf-icr-card-actions">
+                        <button type="button" className="btn ghost" onClick={() => reopen(f.id)}>
+                          Reopen review
+                        </button>
+                      </div>
+                    )}
                   </article>
                 ))}
               </div>
             </Section>
+          )}
+
+          {!needsConfirm && (approvedFindings.length > 0 || approvedHypotheses.length > 0) && (
+            <details
+              className="pf-icr-approved"
+              open={approvedOpen || queueFilters.includes('approved')}
+              onToggle={(e) => setApprovedOpen((e.target as HTMLDetailsElement).open)}
+            >
+              <summary>
+                Approved information ({approvedFindings.length + approvedHypotheses.length})
+              </summary>
+              <div className="pf-icr-grid" style={{ marginTop: '0.75rem' }}>
+                {approvedHypotheses.map((item) => (
+                  <HypothesisCard
+                    key={item.id}
+                    item={item}
+                    finding={item.findingId ? findingById.get(item.findingId) : undefined}
+                    onReopen={reopen}
+                    onEdit={edit}
+                  />
+                ))}
+                {approvedFindings
+                  .filter((f) => f.category !== 'working-hypothesis')
+                  .slice(0, 40)
+                  .map((f) => (
+                    <article key={f.id} className="pf-icr-card is-approved">
+                      <div className="pf-icr-card-head">
+                        <h4>{f.therapistEditedValue ?? f.text}</h4>
+                        <span className="pf-icr-chip is-confirmed">Approved</span>
+                      </div>
+                      <div className="pf-icr-card-actions">
+                        <button type="button" className="btn ghost" onClick={() => reopen(f.id)}>
+                          Reopen review
+                        </button>
+                        <button type="button" className="btn ghost" onClick={() => edit(f.id)}>
+                          Edit approved
+                        </button>
+                      </div>
+                    </article>
+                  ))}
+              </div>
+            </details>
           )}
 
           {!needsConfirm && (
@@ -714,6 +871,8 @@ export function InitialClinicalReview({
               </select>
             </label>
             <p className="pf-meta" style={{ marginTop: '0.5rem' }}>
+              Core formulation: {hasApproved ? 'Approved (pending save into record)' : 'Awaiting approval'}
+              <br />
               Clinical lens status: Not yet applied to intake review.
               <br />
               Core formulation remains modality-neutral.

@@ -13,6 +13,11 @@ import type {
   TreatmentStrategyItem,
 } from '../types';
 import { appendTimeline } from './sessionBriefing';
+import {
+  phaseLabelForProtocol,
+  protocolLabelForClient,
+  shouldShowEmdrPrepFields,
+} from './primaryLensPrep';
 
 function randomId(prefix: string): string {
   const bytes = new Uint8Array(8);
@@ -77,14 +82,16 @@ export function createClinicalCycle(
   opts?: { protocol?: string; phase?: string },
 ): ClinicalCycleState {
   const now = new Date().toISOString();
+  const protocol = opts?.protocol ?? protocolLabelForClient(client);
+  const emdr = shouldShowEmdrPrepFields(client) || /standard emdr/i.test(protocol);
   return {
     sessionId: newSessionId(),
     clientId: client.id,
-    protocol: opts?.protocol ?? client.currentProtocol ?? 'Standard EMDR',
-    phase: opts?.phase ?? client.currentPhase,
-    targetHeadline: client.activeTarget?.headline,
-    sud: client.activeTarget?.sud ?? null,
-    voc: client.activeTarget?.voc ?? null,
+    protocol,
+    phase: opts?.phase ?? client.currentPhase ?? phaseLabelForProtocol(protocol),
+    targetHeadline: emdr ? client.activeTarget?.headline : undefined,
+    sud: emdr ? (client.activeTarget?.sud ?? null) : null,
+    voc: emdr ? (client.activeTarget?.voc ?? null) : null,
     sessionDate: now.slice(0, 10),
     workflowStatus: 'in-progress',
     transcriptStatus: 'no-transcript',
@@ -138,7 +145,6 @@ export function resumeCycleHref(client: ClientRecord): { label: string; href: st
     };
   }
   const sid = encodeURIComponent(cycle.sessionId);
-  const cid = encodeURIComponent(client.id);
   switch (cycle.workflowStatus) {
     case 'not-started':
     case 'in-progress':
@@ -147,7 +153,7 @@ export function resumeCycleHref(client: ClientRecord): { label: string; href: st
       }
       return {
         label: 'Resume Clinical Cycle',
-        href: `/practice/standard?clientId=${cid}&sessionId=${sid}`,
+        href: practiceHref(client.id, cycle.sessionId, cycle.protocol),
       };
     case 'awaiting-transcript':
       return {
@@ -185,7 +191,11 @@ export function resumeCycleHref(client: ClientRecord): { label: string; href: st
   };
 }
 
-export function practiceHref(clientId: string, sessionId: string): string {
+export function practiceHref(clientId: string, sessionId: string, protocol?: string): string {
+  // Guided EMDR console only when protocol is explicitly Standard EMDR
+  if (protocol && !/standard emdr/i.test(protocol)) {
+    return `/clients/${encodeURIComponent(clientId)}?tab=preparation&sessionId=${encodeURIComponent(sessionId)}`;
+  }
   return `/practice/standard?clientId=${encodeURIComponent(clientId)}&sessionId=${encodeURIComponent(sessionId)}`;
 }
 
@@ -212,8 +222,11 @@ export function markPracticeStarted(
 ): ClientRecord {
   const next = patchCycle(cycle, {
     workflowStatus: 'in-progress',
-    phase: cycle.phase || client.currentPhase || 'Guided Practice',
+    phase: cycle.phase || client.currentPhase || phaseLabelForProtocol(cycle.protocol),
   });
+  const practiceLabel = /emdr/i.test(next.protocol)
+    ? `Guided Practice · ${next.protocol}`
+    : `Session · ${next.protocol}`;
   return {
     ...client,
     activeCycle: next,
@@ -221,10 +234,10 @@ export function markPracticeStarted(
     sessionTimeline: appendTimeline(client.sessionTimeline ?? [], [
       {
         kind: 'practice',
-        label: `Guided Practice · ${next.protocol}${next.phase ? ` · ${next.phase}` : ''}`,
+        label: `${practiceLabel}${next.phase ? ` · ${next.phase}` : ''}`,
         at: next.updatedAt,
         sessionId: next.sessionId,
-        href: practiceHref(client.id, next.sessionId),
+        href: practiceHref(client.id, next.sessionId, next.protocol),
       },
     ]),
   };

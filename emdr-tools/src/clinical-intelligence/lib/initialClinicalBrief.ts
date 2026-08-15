@@ -63,12 +63,56 @@ export interface InitialClinicalReviewModel {
 
 export interface ReviewFindingStats {
   total: number;
+  /** Confirmed facts still eligible for Approve All Confirmed */
+  confirmedFactsPending: number;
+  /** Confirmed-style facts already approved/edited */
+  confirmedFactsApproved: number;
+  /** @deprecated use confirmedFactsPending — kept for transitional UI */
   confirmedFacts: number;
   clinicalReviewItems: number;
   workingHypotheses: number;
+  workingHypothesesPending: number;
   needClarification: number;
+  ambiguity: number;
   approved: number;
   pending: number;
+  rejected: number;
+  needsReview: number;
+}
+
+export type ReviewQueueFilter = 'pending' | 'needs-review' | 'approved' | 'rejected' | 'all';
+
+export function findingQueueBucket(
+  f: IntakeCoreFinding,
+): 'pending' | 'needs-review' | 'approved' | 'rejected' {
+  if (f.reviewStatus === 'approved' || f.reviewStatus === 'edited') return 'approved';
+  if (f.reviewStatus === 'rejected') return 'rejected';
+  if (
+    f.category === 'risk-clinical-review' ||
+    f.clinicalReviewRequired ||
+    f.category === 'working-hypothesis' ||
+    f.category === 'outstanding-question' ||
+    /ambiguous|source inconsistency|femur/i.test(f.text)
+  ) {
+    return 'needs-review';
+  }
+  return 'pending';
+}
+
+export function filterFindingsByQueue(
+  findings: IntakeCoreFinding[],
+  filters: ReviewQueueFilter[],
+): IntakeCoreFinding[] {
+  if (filters.includes('all')) return findings;
+  const set = new Set(filters);
+  return findings.filter((f) => {
+    const bucket = findingQueueBucket(f);
+    if (bucket === 'pending' && set.has('pending')) return true;
+    if (bucket === 'needs-review' && set.has('needs-review')) return true;
+    if (bucket === 'approved' && set.has('approved')) return true;
+    if (bucket === 'rejected' && set.has('rejected')) return true;
+    return false;
+  });
 }
 
 /** Clinician-facing display normalisation — does not mutate raw/source. */
@@ -135,19 +179,43 @@ export function dedupeClarifications(items: ClinicalReviewItem[]): ClinicalRevie
 }
 
 export function computeReviewFindingStats(findings: IntakeCoreFinding[]): ReviewFindingStats {
+  const eligiblePending = findingsEligibleForApproveAllConfirmed(findings);
+  const confirmedFactsApproved = findings.filter(
+    (f) =>
+      (f.reviewStatus === 'approved' || f.reviewStatus === 'edited') &&
+      f.category !== 'working-hypothesis' &&
+      f.category !== 'risk-clinical-review' &&
+      f.category !== 'outstanding-question' &&
+      f.category !== 'not-established',
+  ).length;
   const pending = findings.filter((f) => f.reviewStatus === 'pending' || !f.reviewStatus);
+  const needsReview = findings.filter((f) => findingQueueBucket(f) === 'needs-review').length;
   return {
     total: findings.length,
-    confirmedFacts: 0, // filled by caller after eligible known — see withEligibleStats
+    confirmedFactsPending: eligiblePending.length,
+    confirmedFactsApproved,
+    confirmedFacts: eligiblePending.length,
     clinicalReviewItems: findings.filter((f) => f.category === 'risk-clinical-review').length,
     workingHypotheses: findings.filter((f) => f.category === 'working-hypothesis').length,
+    workingHypothesesPending: findings.filter(
+      (f) =>
+        f.category === 'working-hypothesis' &&
+        (f.reviewStatus === 'pending' || !f.reviewStatus),
+    ).length,
     needClarification: findings.filter(
       (f) =>
         f.category === 'outstanding-question' ||
         (f.category === 'not-established' && (f.reviewStatus === 'pending' || !f.reviewStatus)),
     ).length,
+    ambiguity: findings.filter(
+      (f) =>
+        (f.reviewStatus === 'pending' || !f.reviewStatus) &&
+        /ambiguous|source inconsistency|femur/i.test(f.text),
+    ).length,
     approved: findings.filter((f) => f.reviewStatus === 'approved' || f.reviewStatus === 'edited').length,
     pending: pending.length,
+    rejected: findings.filter((f) => f.reviewStatus === 'rejected').length,
+    needsReview,
   };
 }
 
@@ -721,11 +789,7 @@ export function findingsEligibleForApproveAllConfirmed(findings: IntakeCoreFindi
 }
 
 export function reviewStatsWithEligible(findings: IntakeCoreFinding[]): ReviewFindingStats {
-  const base = computeReviewFindingStats(findings);
-  return {
-    ...base,
-    confirmedFacts: findingsEligibleForApproveAllConfirmed(findings).length,
-  };
+  return computeReviewFindingStats(findings);
 }
 
 export function countUnresolvedHighPriority(findings: IntakeCoreFinding[]): number {

@@ -392,6 +392,15 @@ export function IntakeClinicalView({
           ]),
         ],
         outstandingQuestions: core.outstandingQuestions,
+        primaryClinicalLens:
+          client.primaryClinicalLens ??
+          (approach === 'transactional-analysis' || approach === 'integrated-ta-emdr'
+            ? 'transactional-analysis'
+            : approach === 'emdr' || approach === 'pain'
+              ? 'emdr'
+              : approach === 'general-integrative'
+                ? 'transactional-analysis'
+                : 'none'),
       });
       if (approach !== (client.primaryTreatmentApproach ?? 'unspecified')) {
         nextClient = setPrimaryTreatmentApproach(nextClient, approach);
@@ -534,7 +543,13 @@ export function IntakeClinicalView({
           approach={approach}
           onApproachChange={setApproach}
           onConfirmAndAnalyse={() => void confirmExtractionAndAnalyse()}
-          onFindingsChange={setFindings}
+          onFindingsChange={(next) => {
+            setFindings(next);
+            // Persist canonical review state so counters / prep stay in sync without reload
+            void patchClient(client.id, { intakeCoreFindings: next }).then((res) => {
+              if (res.client) onClientUpdate?.(res.client);
+            });
+          }}
           onSaveReview={() => void saveReview()}
           onApproveAndPrepare={() => {
             const eligible = new Set(findingsEligibleForApproveAllConfirmed(findings));
@@ -545,11 +560,15 @@ export function IntakeClinicalView({
             void applyReview(next);
           }}
           onMarkRiskReviewed={() => {
-            setFindings((prev) =>
-              prev.map((f) =>
+            setFindings((prev) => {
+              const next = prev.map((f) =>
                 f.category === 'risk-clinical-review' ? { ...f, reviewStatus: 'approved' as const } : f,
-              ),
-            );
+              );
+              void patchClient(client.id, { intakeCoreFindings: next }).then((res) => {
+                if (res.client) onClientUpdate?.(res.client);
+              });
+              return next;
+            });
           }}
           onAddSafetyQuestion={() => {
             const title = 'Clarify current safety / risk status';
@@ -563,7 +582,7 @@ export function IntakeClinicalView({
               ) {
                 return prev;
               }
-              return [
+              const next = [
                 ...prev,
                 {
                   id: `icf_safety_q_${Date.now().toString(36)}`,
@@ -575,6 +594,10 @@ export function IntakeClinicalView({
                   reviewStatus: 'pending' as const,
                 },
               ];
+              void patchClient(client.id, { intakeCoreFindings: next }).then((res) => {
+                if (res.client) onClientUpdate?.(res.client);
+              });
+              return next;
             });
           }}
           rawText={rawTextFromClient(client)}
