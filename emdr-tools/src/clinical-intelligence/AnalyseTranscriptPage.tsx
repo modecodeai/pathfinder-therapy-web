@@ -398,7 +398,7 @@ export function AnalyseTranscriptPage({ clientId }: { clientId: string }) {
 
   return (
     <div className="practice-shell library-page">
-      <AppHeader activeNav="settings" />
+      <AppHeader activeNav="clients" />
       <main className="practice-main ci-analyse-page">
         <header className="pf-page-header">
           <p className="pf-breadcrumb">

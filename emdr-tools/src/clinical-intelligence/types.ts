@@ -393,6 +393,10 @@ export interface ClientRecord {
   id: string;
   therapistId: string;
   displayName: string;
+  preferredName?: string;
+  reference?: string;
+  status?: 'active' | 'archived';
+  currentPhase?: string;
   presentingProblem?: string;
   presentingProblems: string[];
   triggers: ClientTrigger[];

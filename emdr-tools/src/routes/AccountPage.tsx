@@ -50,23 +50,23 @@ export function AccountPage() {
           <h1>Welcome, {displayName}</h1>
           <p className="lede">Free Therapist Account</p>
           <p className="hint">
-            Pathfinder EMDR Tools supports clinical delivery and does not replace professional
-            training, supervision, consultation or clinical judgement.
+            Pathfinder EMDR supports clinical delivery and does not replace professional training,
+            supervision, consultation or clinical judgement.
           </p>
           <div className="cta-row">
-            <Link className="btn primary large" to="/session">
-              Start EMDR Session
+            <Link className="btn primary large" to="/practice/standard">
+              Continue Session
             </Link>
-            <Link className="btn large" to="/tools">
-              Open BLS Studio
+            <Link className="btn large" to="/clients">
+              Clients
             </Link>
           </div>
           <div className="cta-row cta-utility">
-            <Link className="btn ghost" to="/settings/clinical-intelligence">
-              Clinical Intelligence
+            <Link className="btn ghost" to="/settings">
+              Settings
             </Link>
-            <Link className="btn ghost" to="/clients">
-              Clients
+            <Link className="btn ghost" to="/settings/clinical-intelligence">
+              Clinical Intelligence (provider)
             </Link>
             <Link className="btn ghost" to="/resources">
               Script Library

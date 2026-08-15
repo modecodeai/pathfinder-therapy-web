@@ -52,25 +52,50 @@ export async function testCIConnection(): Promise<CITestResult> {
 }
 
 export async function listClients(): Promise<
-  Array<{ id: string; displayName: string; presentingProblem?: string; updatedAt: string }>
+  Array<{
+    id: string;
+    displayName: string;
+    presentingProblem?: string;
+    updatedAt: string;
+    status?: string;
+    currentPhase?: string;
+    ciPending?: number;
+  }>
 > {
   const res = await fetch('/api/clients', { headers: authHeaders() });
   if (!res.ok) throw new Error(res.status === 401 ? 'Sign in required' : 'Could not load clients');
   const data = await parseJson<{
-    clients: Array<{ id: string; displayName: string; presentingProblem?: string; updatedAt: string }>;
+    clients: Array<{
+      id: string;
+      displayName: string;
+      presentingProblem?: string;
+      updatedAt: string;
+      status?: string;
+      currentPhase?: string;
+      ciPending?: number;
+    }>;
   }>(res);
   return data.clients;
 }
 
-export async function createClient(displayName: string): Promise<ClientRecord> {
+export async function createClient(
+  displayName: string,
+  opts?: { reference?: string; preferredName?: string; status?: 'active' | 'archived' },
+): Promise<ClientRecord> {
   const res = await fetch('/api/clients', {
     method: 'POST',
     headers: authHeaders(),
-    body: JSON.stringify({ displayName }),
+    body: JSON.stringify({ displayName, ...opts }),
   });
   const data = await parseJson<{ ok?: boolean; client?: ClientRecord; error?: string }>(res);
   if (!res.ok || !data.client) throw new Error(data.error ?? 'Could not create client');
   return data.client;
+}
+
+export async function archiveClient(clientId: string): Promise<ClientRecord> {
+  const res = await patchClient(clientId, { status: 'archived' });
+  if (!res.ok || !res.client) throw new Error(res.error ?? 'Could not archive client');
+  return res.client;
 }
 
 export async function getClient(clientId: string): Promise<ClientRecord> {

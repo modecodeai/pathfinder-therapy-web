@@ -2,7 +2,11 @@ import { BrowserRouter, Navigate, Route, Routes, useParams } from 'react-router-
 import { AnalyseTranscriptPage } from '../clinical-intelligence/AnalyseTranscriptPage';
 import { AipFormulationPage } from '../clinical-intelligence/AipFormulationPage';
 import {
+  AppearanceSettingsPage,
   ClinicalIntelligenceSettingsPage,
+  DataRetentionSettingsPage,
+  RemoteSessionsSettingsPage,
+  SecurityPrivacySettingsPage,
   SettingsHomePage,
 } from '../clinical-intelligence/ClinicalIntelligenceSettingsPage';
 import { ClientDetailPage, ClientsListPage } from '../clinical-intelligence/ClientsPage';
@@ -66,6 +70,10 @@ export default function App() {
         <Route path="/resources" element={<ResourcesPage />} />
         <Route path="/settings" element={<SettingsHomePage />} />
         <Route path="/settings/clinical-intelligence" element={<ClinicalIntelligenceSettingsPage />} />
+        <Route path="/settings/security" element={<SecurityPrivacySettingsPage />} />
+        <Route path="/settings/data-retention" element={<DataRetentionSettingsPage />} />
+        <Route path="/settings/appearance" element={<AppearanceSettingsPage />} />
+        <Route path="/settings/remote-sessions" element={<RemoteSessionsSettingsPage />} />
         <Route path="/clients" element={<ClientsListPage />} />
         <Route path="/clients/:clientId" element={<ClientDetailRoute />} />
         <Route path="/clients/:clientId/clinical-intelligence" element={<AnalyseRoute />} />

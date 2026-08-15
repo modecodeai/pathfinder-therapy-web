@@ -335,7 +335,13 @@ export class AccountDirectory extends DurableObject {
     const body = (await request.json()) as Record<string, unknown>;
     const id = String(body.id ?? `cs_${randomHex(10)}`);
     const now = Date.now();
-    // Privacy-first: store reference + operational clinical markers only (NC/PC as therapist-entered text in target_json — no required identity fields)
+    const existing = this.ctx.storage.sql
+      .exec(`SELECT therapist_id FROM clinical_sessions WHERE id = ?`, id)
+      .toArray() as Array<{ therapist_id: string }>;
+    if (existing[0] && existing[0].therapist_id !== user.id) {
+      return Response.json({ error: 'Forbidden' }, { status: 403 });
+    }
+    // Privacy-first: store reference + operational clinical markers only
     this.ctx.storage.sql.exec(
       `INSERT INTO clinical_sessions
         (id, therapist_id, reference_label, phase, target_json, sets_json, total_processing_ms, created_at, updated_at)
@@ -346,7 +352,8 @@ export class AccountDirectory extends DurableObject {
          target_json = excluded.target_json,
          sets_json = excluded.sets_json,
          total_processing_ms = excluded.total_processing_ms,
-         updated_at = excluded.updated_at`,
+         updated_at = excluded.updated_at
+       WHERE clinical_sessions.therapist_id = excluded.therapist_id`,
       id,
       user.id,
       String(body.referenceLabel ?? 'Anonymous session'),
@@ -384,26 +391,44 @@ export class AccountDirectory extends DurableObject {
       .toArray() as Array<{ id: string; display_name: string; record_json: string; updated_at: number }>;
     const clients = rows.map((r) => {
       const record = JSON.parse(r.record_json) as ClientRecord;
+      const pendingAnalyses = this.ctx.storage.sql
+        .exec(
+          `SELECT COUNT(*) AS c FROM clinical_ai_analyses WHERE therapist_id = ? AND client_id = ? AND review_status IN ('pending', 'partially-reviewed')`,
+          user.id,
+          r.id,
+        )
+        .toArray() as Array<{ c: number }>;
       return {
         id: r.id,
         displayName: r.display_name,
         presentingProblem: record.presentingProblem,
+        status: record.status ?? 'active',
+        currentPhase: record.currentPhase,
+        ciPending: Number(pendingAnalyses[0]?.c ?? 0),
         updatedAt: new Date(r.updated_at).toISOString(),
       };
     });
-    return Response.json({ clients });
+    return this.jsonNoStore({ clients });
   }
 
   private async createClient(request: Request): Promise<Response> {
     const user = await this.userFromAuth(request);
     if (!user) return Response.json({ error: 'Unauthorized' }, { status: 401 });
-    const body = (await request.json()) as { displayName?: string };
+    const body = (await request.json()) as {
+      displayName?: string;
+      reference?: string;
+      preferredName?: string;
+      status?: 'active' | 'archived';
+    };
     const displayName = String(body.displayName ?? '').trim();
     if (!displayName) return Response.json({ error: 'displayName required' }, { status: 400 });
     const id = `c_${randomHex(10)}`;
     const now = Date.now();
     const nowIso = new Date(now).toISOString();
     const record = emptyClientRecord(id, user.id, displayName, nowIso);
+    record.reference = body.reference?.trim() || undefined;
+    record.preferredName = body.preferredName?.trim() || undefined;
+    record.status = body.status === 'archived' ? 'archived' : 'active';
     this.ctx.storage.sql.exec(
       `INSERT INTO clients (id, therapist_id, display_name, record_json, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?)`,
       id,
@@ -413,6 +438,10 @@ export class AccountDirectory extends DurableObject {
       now,
       now,
     );
+    this.insertAudit(user.id, id, 'system', {
+      event: 'client_created',
+      displayName,
+    });
     return Response.json({ ok: true, client: record });
   }
 
@@ -422,7 +451,7 @@ export class AccountDirectory extends DurableObject {
     const id = path.split('/').pop()!;
     const client = this.loadClient(user.id, id);
     if (!client) return Response.json({ error: 'Not found' }, { status: 404 });
-    return Response.json({ client });
+    return this.jsonNoStore({ client });
   }
 
   private async patchClient(request: Request, path: string): Promise<Response> {
@@ -441,6 +470,9 @@ export class AccountDirectory extends DurableObject {
       updatedAt: new Date(now).toISOString(),
     };
     if (body.displayName) next.displayName = String(body.displayName).trim() || existing.displayName;
+    if (body.status === 'archived' && existing.status !== 'archived') {
+      this.insertAudit(user.id, id, 'system', { event: 'client_archived' });
+    }
     this.saveClient(next, now);
     return Response.json({ ok: true, client: next });
   }
@@ -538,6 +570,7 @@ export class AccountDirectory extends DurableObject {
     });
     result.client = {
       ...result.client,
+      currentPhase: 'Phase 3 — Assessment',
       sessionChanges: [...(result.client.sessionChanges ?? []), change],
     };
     this.saveClient(result.client, now);
@@ -639,7 +672,14 @@ export class AccountDirectory extends DurableObject {
       body.parentAnalysisId ?? null,
       body.segmentIndex ?? null,
     );
-    return Response.json({
+    this.insertAudit(user.id, body.clientId, analysisId, {
+      event: 'transcript_analysed',
+      phase: body.phase,
+      protocol: body.protocol,
+      // never include transcript text
+      rawTranscriptId: transcriptId,
+    });
+    return this.jsonNoStore({
       ok: true,
       analysis: record,
       rawTranscriptId: transcriptId,
@@ -727,25 +767,48 @@ export class AccountDirectory extends DurableObject {
       reviewStatus?: string;
     };
     const rows = this.ctx.storage.sql
-      .exec(`SELECT id FROM clinical_ai_analyses WHERE id = ? AND therapist_id = ?`, id, user.id)
-      .toArray();
+      .exec(
+        `SELECT id, client_id FROM clinical_ai_analyses WHERE id = ? AND therapist_id = ?`,
+        id,
+        user.id,
+      )
+      .toArray() as Array<{ id: string; client_id: string }>;
     if (!rows.length) return Response.json({ error: 'Not found' }, { status: 404 });
+    const clientId = rows[0].client_id;
     const reviewed = body.reviewedResult ?? body.structuredResult;
+    const nextStatus = body.reviewStatus ?? (reviewed ? 'partially-reviewed' : undefined);
     if (reviewed) {
       this.ctx.storage.sql.exec(
-        `UPDATE clinical_ai_analyses SET reviewed_result_json = ?, review_status = ? WHERE id = ?`,
+        `UPDATE clinical_ai_analyses SET reviewed_result_json = ?, review_status = ? WHERE id = ? AND therapist_id = ?`,
         JSON.stringify(reviewed),
-        body.reviewStatus ?? 'partially-reviewed',
+        nextStatus ?? 'partially-reviewed',
         id,
+        user.id,
       );
     } else if (body.reviewStatus) {
       this.ctx.storage.sql.exec(
-        `UPDATE clinical_ai_analyses SET review_status = ? WHERE id = ?`,
+        `UPDATE clinical_ai_analyses SET review_status = ? WHERE id = ? AND therapist_id = ?`,
         body.reviewStatus,
         id,
+        user.id,
       );
     }
-    return Response.json({ ok: true });
+    const status = nextStatus ?? body.reviewStatus;
+    if (status === 'approved' || status === 'reviewed') {
+      this.insertAudit(user.id, clientId, id, { event: 'ai_finding_approved' });
+    } else if (status === 'rejected') {
+      this.insertAudit(user.id, clientId, id, { event: 'ai_finding_rejected' });
+    } else if (reviewed) {
+      this.insertAudit(user.id, clientId, id, { event: 'ai_finding_edited' });
+    }
+    return this.jsonNoStore({ ok: true });
+  }
+
+  /** Clinical JSON responses must not be cached by browsers or intermediaries */
+  private jsonNoStore(data: unknown, init?: ResponseInit): Response {
+    const headers = new Headers(init?.headers);
+    headers.set('Cache-Control', 'no-store');
+    return Response.json(data, { ...init, headers });
   }
 
   private loadClient(therapistId: string, clientId: string): ClientRecord | null {
@@ -768,6 +831,25 @@ export class AccountDirectory extends DurableObject {
       now,
       client.id,
       client.therapistId,
+    );
+  }
+
+  /** Lightweight audit — never store full transcript text */
+  private insertAudit(
+    therapistId: string,
+    clientId: string,
+    analysisId: string,
+    payload: Record<string, unknown>,
+  ): void {
+    const id = `aud_${randomHex(8)}`;
+    this.ctx.storage.sql.exec(
+      `INSERT INTO clinical_ai_audit (id, therapist_id, client_id, analysis_id, payload_json, created_at) VALUES (?, ?, ?, ?, ?, ?)`,
+      id,
+      therapistId,
+      clientId,
+      analysisId,
+      JSON.stringify({ ...payload, at: new Date().toISOString() }),
+      Date.now(),
     );
   }
 

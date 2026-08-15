@@ -27,4 +27,4 @@ tag = "v2"
 new_sqlite_classes = ["AccountDirectory"]
 
 [vars]
-APP_NAME = "Pathfinder EMDR Tools"
+APP_NAME = "Pathfinder EMDR"

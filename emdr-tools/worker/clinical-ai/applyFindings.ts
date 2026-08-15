@@ -24,6 +24,7 @@ export function emptyClientRecord(
     id,
     therapistId,
     displayName,
+    status: 'active',
     presentingProblems: [],
     triggers: [],
     memories: [],
@@ -376,6 +377,12 @@ export function applyApprovedFindings(
   });
   result.client = {
     ...result.client,
+    currentPhase:
+      analysis.analysisKind === 'phase3-assessment'
+        ? 'Phase 3 — Assessment'
+        : analysis.analysisKind === 'phase4-desensitisation'
+          ? 'Phase 4 — Desensitisation'
+          : 'Phase 1 — History',
     sessionChanges: [...(result.client.sessionChanges ?? []), change],
   };
   return result;
