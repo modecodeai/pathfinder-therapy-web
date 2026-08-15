@@ -157,18 +157,13 @@ function SettingsCard({
   to,
   title,
   description,
-  icon,
 }: {
   to: string;
   title: string;
   description: string;
-  icon: string;
 }) {
   return (
     <Link className="settings-card" to={to}>
-      <span className="settings-card-icon" aria-hidden>
-        {icon}
-      </span>
       <span className="settings-card-body">
         <h2>{title}</h2>
         <p>{description}</p>
@@ -182,44 +177,42 @@ export function SettingsHomePage() {
     <div className="practice-shell library-page">
       <AppHeader activeNav="settings" />
       <main className="practice-main">
-        <header className="pf-page-header">
-          <h1>Settings</h1>
-          <p className="lede">Account, security and product preferences — not clinical workspaces.</p>
+        <header className="pf-page-hero">
+          <div>
+            <h1 className="pf-title">Settings</h1>
+            <p className="pf-subtitle">
+              Account, security and product preferences — not clinical workspaces.
+            </p>
+          </div>
         </header>
         <div className="settings-card-grid">
           <SettingsCard
             to="/account"
-            icon="👤"
             title="Account"
             description="Profile and practice details."
           />
           <SettingsCard
             to="/settings/clinical-intelligence"
-            icon="◎"
             title="Clinical Intelligence"
             description="OpenAI model, connection status and analysis preferences."
           />
           <SettingsCard
             to="/settings/security"
-            icon="🔒"
             title="Security & Privacy"
             description="Session security, transcript retention and data controls."
           />
           <SettingsCard
             to="/settings/appearance"
-            icon="◇"
             title="Appearance"
             description="Display preferences for the clinical console."
           />
           <SettingsCard
             to="/settings/data-retention"
-            icon="☰"
             title="Data & Retention"
             description="Raw transcript retention, archive/export and deletion controls."
           />
           <SettingsCard
             to="/settings/remote-sessions"
-            icon="⇄"
             title="Remote Sessions"
             description="Remote-client link expiry and connection defaults."
           />

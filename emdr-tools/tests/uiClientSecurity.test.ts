@@ -16,10 +16,11 @@ describe('UI information architecture', () => {
     expect(header).toContain('Practice');
     expect(header).toContain('Clients');
     expect(header).toContain('Protocols');
-    expect(header).toContain('Resources');
+    expect(header).toContain('Knowledge');
     // Settings must not be a primary clinical nav destination
     expect(header).not.toMatch(/NavLink to="\/settings"/);
     expect(header).toContain('to="/settings"'); // account menu only
+    expect(header).toContain('NavLink to="/protocols"');
   });
 
   it('registers client workspace routes at /clients', () => {
@@ -47,9 +48,9 @@ describe('UI information architecture', () => {
 
   it('Clients workspace uses production list + new-client flow', () => {
     const clients = readSrc('src/clinical-intelligence/ClientsPage.tsx');
-    expect(clients).toContain('+ New Client');
+    expect(clients).toContain('New Client');
     expect(clients).toContain('Search clients');
-    expect(clients).toContain('Current focus');
+    expect(clients).toContain('Current Focus');
     expect(clients).toContain('Create Client');
     expect(clients).toContain('client-dash-tabs');
   });

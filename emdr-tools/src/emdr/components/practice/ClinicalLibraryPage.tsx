@@ -185,16 +185,15 @@ export function ClinicalLibraryPage() {
 
   return (
     <div className="practice-shell library-page">
-      <AppHeader activeNav="resources" />
+      <AppHeader activeNav="knowledge" />
       <main className="practice-main">
-        <header className="pf-page-header">
-          <p className="pf-breadcrumb">
-            <Link to="/practice">Practice</Link>
-            <span aria-hidden> › </span>
-            Clinical Library
-          </p>
-          <h1>Clinical Library</h1>
-          <p className="lede">Structured EMDR scripts, guidance and clinical reference tools.</p>
+        <header className="pf-page-hero">
+          <div>
+            <h1 className="pf-title">Knowledge</h1>
+            <p className="pf-subtitle">
+              Structured EMDR scripts, guidance and clinical reference tools.
+            </p>
+          </div>
         </header>
 
         <div className="pf-library-toolbar">

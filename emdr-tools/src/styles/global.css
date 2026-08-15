@@ -1,23 +1,40 @@
 :root {
+  /* Pathfinder UI Polish v0.1 — calm clinical system */
   --pf-primary: #0f766e;
   --pf-primary-hover: #0d665f;
-  --pf-accent: #14b8a6;
-  --pf-bg: #f5f7f8;
+  --pf-primary-soft: #e8f5f3;
+  --pf-accent: #0f766e;
+  --pf-bg: #f7f9fa;
   --pf-panel: #ffffff;
   --pf-stage: #242628;
-  --pf-text: #172026;
-  --pf-text-muted: #66737a;
-  --pf-border: #dce3e6;
-  --pf-success: #15803d;
-  --pf-warning: #b45309;
-  --pf-danger: #b91c1c;
+  --pf-text: #14181a;
+  --pf-text-muted: #5c6b73;
+  --pf-border: #e3e8eb;
+  --pf-border-strong: #d0d8dc;
+  --pf-success: #2f6b4f;
+  --pf-warning: #9a6b2f;
+  --pf-danger: #a84848;
   --pf-radius: 12px;
-  --pf-font: 'Figtree', system-ui, sans-serif;
-  --pf-serif: 'Source Serif 4', Georgia, serif;
+  --pf-shadow: 0 1px 2px rgba(20, 24, 26, 0.04), 0 4px 16px rgba(20, 24, 26, 0.04);
+  --pf-shadow-hover: 0 2px 4px rgba(20, 24, 26, 0.06), 0 8px 24px rgba(20, 24, 26, 0.08);
+  --pf-font: 'Figtree', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --pf-space-1: 8px;
+  --pf-space-2: 16px;
+  --pf-space-3: 24px;
+  --pf-space-4: 32px;
+  --pf-space-5: 48px;
+  --pf-space-6: 64px;
+  --pf-title: 34px;
+  --pf-section: 24px;
+  --pf-card-title: 18px;
+  --pf-body: 16px;
+  --pf-meta: 13px;
+  --pf-btn-h: 44px;
   color: var(--pf-text);
   background: var(--pf-bg);
   font-family: var(--pf-font);
-  line-height: 1.45;
+  font-size: var(--pf-body);
+  line-height: 1.55;
   font-synthesis: none;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
@@ -29,8 +46,6 @@
   box-sizing: border-box;
 }
 
-/* Default: normal document scroll (Practice, Library, marketing).
-   Viewport lock is applied only when a live clinical shell is present. */
 html,
 body,
 #root {
@@ -42,81 +57,507 @@ body,
 body {
   overflow-y: auto;
   background: var(--pf-bg);
+  color: var(--pf-text);
 }
 
 a {
   color: var(--pf-primary);
+  text-decoration: none;
+}
+
+a:hover {
+  color: var(--pf-primary-hover);
 }
 
 button,
-input {
+input,
+select,
+textarea {
   font: inherit;
 }
 
 button:focus-visible,
 input:focus-visible,
-a:focus-visible {
-  outline: 2px solid var(--pf-accent);
+select:focus-visible,
+a:focus-visible,
+textarea:focus-visible {
+  outline: 2px solid var(--pf-primary);
   outline-offset: 2px;
 }
 
 h1,
-h2 {
-  font-family: var(--pf-serif);
+h2,
+h3,
+h4 {
+  font-family: var(--pf-font);
   font-weight: 600;
   letter-spacing: -0.02em;
-  line-height: 1.2;
+  line-height: 1.25;
+  color: var(--pf-text);
+  margin: 0;
 }
 
+/* —— Buttons (4 styles only, 44px) —— */
 .btn {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 0.35rem;
-  border: 1px solid var(--pf-border);
+  gap: 8px;
+  border: 1px solid var(--pf-border-strong);
   background: var(--pf-panel);
   color: var(--pf-text);
-  border-radius: 999px;
-  padding: 0.55rem 1rem;
+  border-radius: 10px;
+  padding: 0 18px;
   cursor: pointer;
-  text-decoration: none;
-  min-height: 2.5rem;
+  text-decoration: none !important;
+  min-height: var(--pf-btn-h);
+  height: var(--pf-btn-h);
+  font-size: 15px;
+  font-weight: 550;
+  line-height: 1;
+  transition: background 0.12s ease, border-color 0.12s ease, color 0.12s ease, box-shadow 0.12s ease,
+    transform 0.12s ease;
 }
 
 .btn:hover {
   border-color: var(--pf-primary);
+  color: var(--pf-primary);
 }
 
 .btn:disabled {
   opacity: 0.45;
   cursor: not-allowed;
+  transform: none !important;
 }
 
-.btn.primary {
+.btn.primary,
+.btn.primary:visited {
   background: var(--pf-primary);
   border-color: var(--pf-primary);
-  color: #fff;
+  color: #fff !important;
 }
 
 .btn.primary:hover {
   background: var(--pf-primary-hover);
+  border-color: var(--pf-primary-hover);
+  color: #fff !important;
+}
+
+.btn.secondary,
+.btn.secondary:visited {
+  background: #fff;
+  border-color: var(--pf-primary);
+  color: var(--pf-primary) !important;
+}
+
+.btn.secondary:hover {
+  background: var(--pf-primary-soft);
+}
+
+.btn.tertiary,
+.btn.ghost,
+.btn.tertiary:visited,
+.btn.ghost:visited {
+  background: transparent;
+  border-color: transparent;
+  color: var(--pf-text-muted) !important;
+  box-shadow: none;
+}
+
+.btn.tertiary:hover,
+.btn.ghost:hover {
+  background: var(--pf-primary-soft);
+  color: var(--pf-primary) !important;
 }
 
 .btn.danger {
-  color: var(--pf-danger);
-  border-color: color-mix(in srgb, var(--pf-danger) 35%, var(--pf-border));
+  background: #fff;
+  color: var(--pf-danger) !important;
+  border-color: color-mix(in srgb, var(--pf-danger) 45%, var(--pf-border));
 }
 
-.btn.ghost {
-  background: transparent;
+.btn.danger:hover {
+  background: color-mix(in srgb, var(--pf-danger) 8%, white);
 }
 
 .btn.icon {
-  width: 2.25rem;
-  min-width: 2.25rem;
+  width: var(--pf-btn-h);
+  min-width: var(--pf-btn-h);
   padding: 0;
+}
+
+.btn.large {
+  /* same height — consistency over size variants */
+  min-height: var(--pf-btn-h);
+}
+
+/* —— Page chrome —— */
+.pf-title {
+  font-size: var(--pf-title);
+  font-weight: 650;
+  letter-spacing: -0.03em;
+  line-height: 1.15;
+}
+
+.pf-subtitle,
+.pf-page-header .lede,
+.pf-page-hero .lede {
+  margin: 8px 0 0;
+  font-size: var(--pf-body);
+  color: var(--pf-text-muted);
+  line-height: 1.55;
+  max-width: 36rem;
+  font-weight: 400;
+}
+
+.pf-section-title {
+  font-size: var(--pf-section);
+  font-weight: 600;
+  margin: 0 0 var(--pf-space-2);
+}
+
+.pf-card-title {
+  font-size: var(--pf-card-title);
+  font-weight: 600;
+  margin: 0;
+}
+
+.pf-meta,
+.pf-page-header .hint,
+.hint {
+  font-size: var(--pf-meta);
+  color: var(--pf-text-muted);
+  line-height: 1.45;
+}
+
+.pf-page-hero,
+.pf-page-header.clients-header,
+.clients-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--pf-space-3);
+  margin-bottom: var(--pf-space-4);
+}
+
+.pf-page-header h1,
+.pf-page-hero h1 {
+  font-size: var(--pf-title);
+  font-family: var(--pf-font);
+}
+
+.pf-stack {
+  display: flex;
+  flex-direction: column;
+  gap: var(--pf-space-3);
+}
+
+.pf-surface-card,
+.panel,
+.settings-card,
+.client-overview-card,
+.pf-practice-card,
+.pf-resume-card {
+  background: var(--pf-panel);
+  border: 1px solid var(--pf-border);
+  border-radius: var(--pf-radius);
+  box-shadow: var(--pf-shadow);
+  padding: var(--pf-space-3);
+  transition: transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease;
+}
+
+a.pf-surface-card:hover,
+a.pf-practice-card:hover,
+a.settings-card:hover,
+a.pf-protocol-card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--pf-shadow-hover);
+  border-color: color-mix(in srgb, var(--pf-primary) 28%, var(--pf-border));
+}
+
+.pf-continue-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--pf-space-2);
+  text-decoration: none !important;
+  color: inherit;
+  padding: var(--pf-space-3) var(--pf-space-4);
+}
+
+.pf-text-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--pf-primary);
+  font-weight: 600;
+  font-size: 15px;
+  white-space: nowrap;
+}
+
+.pf-empty {
+  display: grid;
+  gap: var(--pf-space-2);
+  padding: var(--pf-space-2) 0;
+  color: var(--pf-text-muted);
+}
+
+.pf-empty p {
+  margin: 0;
+  max-width: 28rem;
+  line-height: 1.55;
+}
+
+.pf-recent-list {
+  list-style: none;
+  margin: var(--pf-space-2) 0 0;
+  padding: 0;
+}
+
+.pf-recent-list a {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--pf-space-2);
+  padding: 12px 0;
+  border-bottom: 1px solid var(--pf-border);
+  text-decoration: none !important;
+  color: inherit;
+  min-height: 44px;
+}
+
+.pf-recent-list li:last-child a {
+  border-bottom: none;
+}
+
+.pf-recent-list a:hover .pf-recent-name {
+  color: var(--pf-primary);
+}
+
+.pf-recent-name {
+  font-weight: 600;
+}
+
+/* Protocols */
+.pf-protocol-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--pf-space-2);
+  max-width: 720px;
+}
+
+.pf-protocol-card {
+  display: flex;
+  align-items: center;
+  gap: var(--pf-space-2);
+  padding: var(--pf-space-3);
+  background: #fff;
+  border: 1px solid var(--pf-border);
+  border-radius: var(--pf-radius);
+  box-shadow: var(--pf-shadow);
+  text-decoration: none !important;
+  color: inherit;
+  min-height: 88px;
+  transition: transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease;
+}
+
+.pf-protocol-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  background: var(--pf-primary-soft);
+  color: var(--pf-primary);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.pf-protocol-copy {
+  flex: 1;
+  min-width: 0;
+  display: grid;
+  gap: 4px;
+}
+
+.pf-protocol-title {
+  font-size: var(--pf-card-title);
+  font-weight: 600;
+}
+
+.pf-protocol-sub {
+  font-size: var(--pf-meta);
+  color: var(--pf-text-muted);
+}
+
+.pf-protocol-open {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--pf-primary);
+  font-weight: 600;
+  font-size: 15px;
+}
+
+/* Skeleton loaders */
+.pf-skeleton {
+  background: linear-gradient(90deg, #eef2f4 0%, #f7f9fa 50%, #eef2f4 100%);
+  background-size: 200% 100%;
+  animation: pf-shimmer 1.2s ease-in-out infinite;
   border-radius: 8px;
 }
+
+.pf-skeleton-line {
+  height: 14px;
+  margin-bottom: 10px;
+}
+
+.pf-skeleton-line.lg {
+  height: 22px;
+  width: 40%;
+}
+
+@keyframes pf-shimmer {
+  0% {
+    background-position: 100% 0;
+  }
+  100% {
+    background-position: -100% 0;
+  }
+}
+
+/* Forms */
+.field {
+  display: grid;
+  gap: 8px;
+  margin-bottom: var(--pf-space-2);
+}
+
+.field > span,
+.field > label {
+  font-size: var(--pf-meta);
+  font-weight: 600;
+  color: var(--pf-text-muted);
+}
+
+.field input,
+.field select,
+.field textarea,
+.clients-search input {
+  min-height: var(--pf-btn-h);
+  border: 1px solid var(--pf-border-strong);
+  border-radius: 10px;
+  padding: 10px 14px;
+  background: #fff;
+  color: var(--pf-text);
+}
+
+.field input:focus,
+.field select:focus,
+.field textarea:focus {
+  border-color: var(--pf-primary);
+  outline: none;
+  box-shadow: 0 0 0 3px var(--pf-primary-soft);
+}
+
+.practice-main {
+  max-width: 1080px;
+  margin: 0 auto;
+  padding: var(--pf-space-4) var(--pf-space-3) var(--pf-space-6);
+}
+
+.practice-shell {
+  min-height: 100vh;
+  background: var(--pf-bg);
+}
+
+/* Collapsible clinical sections */
+.pf-collapse {
+  border: 1px solid var(--pf-border);
+  border-radius: var(--pf-radius);
+  background: #fff;
+  box-shadow: var(--pf-shadow);
+  overflow: hidden;
+}
+
+.pf-collapse + .pf-collapse {
+  margin-top: var(--pf-space-2);
+}
+
+.pf-collapse-summary {
+  list-style: none;
+  cursor: pointer;
+  padding: var(--pf-space-2) var(--pf-space-3);
+  font-size: var(--pf-card-title);
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 56px;
+  user-select: none;
+}
+
+.pf-collapse-summary::-webkit-details-marker {
+  display: none;
+}
+
+.pf-collapse-summary::after {
+  content: '';
+  width: 8px;
+  height: 8px;
+  border-right: 2px solid var(--pf-text-muted);
+  border-bottom: 2px solid var(--pf-text-muted);
+  transform: rotate(45deg);
+  transition: transform 0.15s ease;
+  margin-left: 12px;
+  flex-shrink: 0;
+}
+
+.pf-collapse[open] > .pf-collapse-summary::after {
+  transform: rotate(-135deg);
+}
+
+.pf-collapse-body {
+  padding: 0 var(--pf-space-3) var(--pf-space-3);
+  animation: pf-fade 0.18s ease;
+}
+
+@keyframes pf-fade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.client-overview-stack {
+  display: flex;
+  flex-direction: column;
+  gap: var(--pf-space-2);
+}
+
+.client-overview-stack .panel h2,
+.client-overview-stack .pf-surface-card h2 {
+  font-size: var(--pf-card-title);
+  margin: 0 0 var(--pf-space-2);
+}
+
+.pf-breadcrumb {
+  font-size: var(--pf-meta);
+  color: var(--pf-text-muted);
+  margin: 0 0 8px;
+}
+
+.pf-breadcrumb a {
+  text-decoration: none !important;
+  color: var(--pf-text-muted);
+}
+
+.pf-breadcrumb a:hover {
+  color: var(--pf-primary);
+}
+
 
 .brand {
   display: inline-flex;
@@ -3576,10 +4017,14 @@ html:has(.join-page.live),
   align-items: center;
   justify-content: space-between;
   gap: 1rem;
-  padding: 0 1rem;
-  background: #fff;
-  border-bottom: 1px solid #dce4e4;
+  padding: 0 1.25rem;
+  background: rgba(255, 255, 255, 0.92);
+  backdrop-filter: saturate(1.2) blur(10px);
+  border-bottom: 1px solid var(--pf-border);
   box-sizing: border-box;
+  position: sticky;
+  top: 0;
+  z-index: 50;
 }
 
 .pf-app-header-left,
@@ -3637,12 +4082,12 @@ html:has(.join-page.live),
 
 .pf-nav-link {
   text-decoration: none !important;
-  color: #3f5454;
-  font-size: 0.9rem;
+  color: var(--pf-text-muted);
+  font-size: 0.92rem;
   font-weight: 500;
   min-height: 40px;
   min-width: 44px;
-  padding: 0.45rem 0.85rem;
+  padding: 0.4rem 0.9rem;
   border-radius: 10px;
   display: inline-flex;
   align-items: center;
@@ -3652,21 +4097,21 @@ html:has(.join-page.live),
 }
 
 .pf-nav-link:hover {
-  background: #f2f7f6;
-  color: #0f6d63;
+  background: var(--pf-primary-soft);
+  color: var(--pf-primary);
 }
 
 .pf-nav-link:focus-visible {
-  outline: 2px solid #0f6d63;
+  outline: 2px solid var(--pf-primary);
   outline-offset: 2px;
 }
 
 .pf-nav-link.is-active,
 .pf-nav-link[aria-current='page'] {
-  color: #0f6d63;
-  background: #e9f5f2;
+  color: var(--pf-primary);
+  background: var(--pf-primary-soft);
   font-weight: 600;
-  border-bottom-color: #0f6d63;
+  border-bottom-color: var(--pf-primary);
 }
 
 .pf-header-btn {

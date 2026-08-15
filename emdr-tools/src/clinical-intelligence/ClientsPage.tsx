@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { AppHeader } from '../emdr/guided/components/AppHeader';
 import { useAuth } from '../hooks/useAuth';
 import { CLINICAL_THEME_LABELS, type ClientRecord } from './types';
+import { IconPlus } from '../components/icons';
 import {
   archiveClient,
   createClient,
@@ -69,21 +70,23 @@ export function ClientsListPage() {
     <div className="practice-shell library-page">
       <AppHeader activeNav="clients" />
       <main className="practice-main clients-workspace">
-        <header className="pf-page-header clients-header">
+        <header className="pf-page-hero clients-header">
           <div>
-            <h1>Clients</h1>
-            <p className="lede">Clinical records, formulations and EMDR treatment workspaces.</p>
+            <h1 className="pf-title">Clients</h1>
+            <p className="pf-subtitle">
+              Manage clinical records, formulations and treatment.
+            </p>
           </div>
           {auth.isAuthenticated && (
             <button type="button" className="btn primary" onClick={() => setShowNew(true)}>
-              + New Client
+              <IconPlus /> New Client
             </button>
           )}
         </header>
 
         {!auth.isAuthenticated ? (
-          <section className="panel">
-            <p>Sign in to manage clients.</p>
+          <section className="pf-surface-card pf-empty">
+            <p>Sign in to manage clinical client records across devices.</p>
             <Link className="btn primary" to="/account">
               Sign in
             </Link>
@@ -97,16 +100,16 @@ export function ClientsListPage() {
                   e.preventDefault();
                 }}
               >
-                <label className="sr-only" htmlFor="client-search">
-                  Search clients
+                <label className="field" htmlFor="client-search" style={{ marginBottom: 0, flex: 1 }}>
+                  <span className="sr-only">Search clients</span>
+                  <input
+                    id="client-search"
+                    value={query}
+                    onChange={(e) => setQuery(e.target.value)}
+                    placeholder="Search by name or focus…"
+                  />
                 </label>
-                <input
-                  id="client-search"
-                  value={query}
-                  onChange={(e) => setQuery(e.target.value)}
-                  placeholder="Search clients…"
-                />
-                <button type="submit" className="btn">
+                <button type="submit" className="btn secondary">
                   Search
                 </button>
               </form>
@@ -132,17 +135,22 @@ export function ClientsListPage() {
 
             {error && <p className="ci-error-banner">{error}</p>}
             {loading ? (
-              <p>Loading…</p>
+              <div className="pf-surface-card" aria-busy="true" aria-label="Loading clients">
+                <div className="pf-skeleton pf-skeleton-line lg" />
+                <div className="pf-skeleton pf-skeleton-line" style={{ width: '90%' }} />
+                <div className="pf-skeleton pf-skeleton-line" style={{ width: '75%' }} />
+                <div className="pf-skeleton pf-skeleton-line" style={{ width: '85%' }} />
+              </div>
             ) : (
-              <div className="clients-table-wrap panel">
+              <div className="clients-table-wrap">
                 <table className="clients-table">
                   <thead>
                     <tr>
                       <th>Client</th>
-                      <th>Current focus</th>
-                      <th>Current phase</th>
-                      <th>Last session</th>
-                      <th>CI status</th>
+                      <th>Current Focus</th>
+                      <th>Current Phase</th>
+                      <th>Last Session</th>
+                      <th>Clinical Intelligence</th>
                       <th>Actions</th>
                     </tr>
                   </thead>
@@ -157,22 +165,24 @@ export function ClientsListPage() {
                         }}
                       >
                         <td>
-                          <strong>{c.displayName}</strong>
+                          <strong className="client-name">{c.displayName}</strong>
                           {(c.status ?? 'active') === 'archived' && (
                             <span className="clients-status-pill">Archived</span>
                           )}
                         </td>
                         <td>{c.presentingProblem || '—'}</td>
                         <td>{c.currentPhase || '—'}</td>
-                        <td>{c.updatedAt ? new Date(c.updatedAt).toLocaleDateString() : '—'}</td>
+                        <td className="pf-meta">
+                          {c.updatedAt ? new Date(c.updatedAt).toLocaleDateString() : '—'}
+                        </td>
                         <td>
                           {c.ciPending
-                            ? `${c.ciPending} findings awaiting review`
+                            ? `${c.ciPending} awaiting review`
                             : 'Up to date'}
                         </td>
                         <td>
                           <Link
-                            className="btn"
+                            className="btn secondary"
                             to={`/clients/${c.id}`}
                             onClick={(e) => e.stopPropagation()}
                           >
@@ -183,8 +193,23 @@ export function ClientsListPage() {
                     ))}
                     {!filtered.length && (
                       <tr>
-                        <td colSpan={6} className="hint">
-                          No clients match this view.
+                        <td colSpan={6}>
+                          <div className="pf-empty clients-empty">
+                            <p>
+                              {clients.length === 0
+                                ? 'No clients yet. Create a clinical record to begin formulations and treatment workspaces.'
+                                : 'No clients match this view.'}
+                            </p>
+                            {clients.length === 0 && (
+                              <button
+                                type="button"
+                                className="btn primary"
+                                onClick={() => setShowNew(true)}
+                              >
+                                <IconPlus /> New Client
+                              </button>
+                            )}
+                          </div>
                         </td>
                       </tr>
                     )}
@@ -363,10 +388,13 @@ export function ClientDetailPage({ clientId }: { clientId: string }) {
             </div>
             {client && (
               <div className="stack-btns horizontal wrap">
-                <Link className="btn primary" to="/practice/standard">
+                <Link
+                  className="btn primary"
+                  to={`/practice/standard?clientId=${encodeURIComponent(client.id)}`}
+                >
                   Continue Guided Practice
                 </Link>
-                <Link className="btn" to={`/clients/${client.id}/clinical-intelligence`}>
+                <Link className="btn secondary" to={`/clients/${client.id}/clinical-intelligence`}>
                   Analyse Transcript
                 </Link>
               </div>
@@ -421,46 +449,77 @@ export function ClientDetailPage({ clientId }: { clientId: string }) {
             </div>
 
             {tab === 'overview' && (
-              <div className="client-overview-grid">
-                <section className="panel">
-                  <h2>Current formulation</h2>
+              <div className="client-overview-stack">
+                <section className="pf-surface-card">
+                  <h2>Current Formulation</h2>
+                  {primaryTheme ? (
+                    <dl className="ci-kv">
+                      <dt>Primary theme</dt>
+                      <dd>{CLINICAL_THEME_LABELS[primaryTheme.theme]}</dd>
+                    </dl>
+                  ) : (
+                    <div className="pf-empty">
+                      <p>
+                        No approved formulation yet. Analyse the first transcript to begin building
+                        this client&apos;s AIP formulation.
+                      </p>
+                      <Link className="btn primary" to={`/clients/${client.id}/clinical-intelligence`}>
+                        Analyse Transcript
+                      </Link>
+                    </div>
+                  )}
+                  {primaryTheme && (
+                    <Link className="btn tertiary" to={`/clients/${client.id}/aip-formulation`}>
+                      Open AIP Formulation
+                    </Link>
+                  )}
+                </section>
+
+                <section className="pf-surface-card">
+                  <h2>Current Target</h2>
+                  {client.activeTarget?.headline ? (
+                    <dl className="ci-kv">
+                      <dt>Target</dt>
+                      <dd>{client.activeTarget.headline}</dd>
+                      <dt>SUD / VoC</dt>
+                      <dd>
+                        {client.activeTarget.sud ?? '—'} / {client.activeTarget.voc ?? '—'}
+                      </dd>
+                    </dl>
+                  ) : (
+                    <p className="pf-meta">No active target established yet.</p>
+                  )}
+                </section>
+
+                <section className="pf-surface-card">
+                  <h2>Current Session</h2>
                   <dl className="ci-kv">
-                    <dt>Primary theme</dt>
-                    <dd>
-                      {primaryTheme
-                        ? CLINICAL_THEME_LABELS[primaryTheme.theme]
-                        : 'Not established'}
-                    </dd>
-                    <dt>Current target</dt>
-                    <dd>{client.activeTarget?.headline || 'Not established'}</dd>
-                    <dt>Current phase</dt>
+                    <dt>Phase</dt>
                     <dd>{client.currentPhase || 'Not established'}</dd>
-                    <dt>SUD / VoC</dt>
+                    <dt>Last updated</dt>
                     <dd>
-                      {client.activeTarget?.sud ?? '—'} / {client.activeTarget?.voc ?? '—'}
+                      {client.updatedAt ? new Date(client.updatedAt).toLocaleDateString() : '—'}
                     </dd>
                   </dl>
-                  <Link className="btn ghost" to={`/clients/${client.id}/aip-formulation`}>
-                    Open AIP Formulation
+                  <Link className="btn secondary" to={`/practice/standard?clientId=${encodeURIComponent(client.id)}`}>
+                    Continue Guided Practice
                   </Link>
                 </section>
 
-                <section className="panel">
+                <section className="pf-surface-card">
                   <h2>Clinical Intelligence</h2>
-                  <p>
+                  <p className="pf-meta" style={{ marginBottom: 16 }}>
                     {pendingCi
                       ? `${pendingCi} findings awaiting review`
                       : 'No pending reviews'}
                   </p>
-                  <div className="stack-btns horizontal wrap">
-                    <Link className="btn primary" to={`/clients/${client.id}/clinical-intelligence`}>
-                      {pendingCi ? 'Review Findings' : 'Analyse Transcript'}
-                    </Link>
-                  </div>
+                  <Link className="btn primary" to={`/clients/${client.id}/clinical-intelligence`}>
+                    {pendingCi ? 'Review Findings' : 'Analyse Transcript'}
+                  </Link>
                 </section>
 
-                <section className="panel">
-                  <h2>Recent activity</h2>
+                <section className="pf-surface-card">
+                  <h2>Recent Sessions</h2>
                   {analyses.length ? (
                     <ul className="client-activity-list">
                       {analyses.slice(0, 8).map((a) => (
@@ -472,16 +531,21 @@ export function ClientDetailPage({ clientId }: { clientId: string }) {
                       ))}
                     </ul>
                   ) : (
-                    <p className="hint">No analyses yet</p>
+                    <p className="pf-meta">No session analyses recorded yet.</p>
                   )}
                 </section>
 
-                <section className="panel">
-                  <h2>Next planned work</h2>
-                  <p className="hint">
-                    Use Guided Practice or Analyse Transcript when you are ready for the next clinical
-                    step. Resolution is always therapist-confirmed.
+                <section className="pf-surface-card">
+                  <h2>Resources</h2>
+                  <p className="pf-meta">
+                    Open Knowledge for clinical scripts, or continue in Guided Practice when ready for
+                    the next clinical step.
                   </p>
+                  <div className="stack-btns horizontal wrap">
+                    <Link className="btn secondary" to="/practice/library">
+                      Knowledge
+                    </Link>
+                  </div>
                 </section>
               </div>
             )}

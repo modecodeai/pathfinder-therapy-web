@@ -3,12 +3,14 @@ import { Link, NavLink, useNavigate } from 'react-router-dom';
 import type { TherapistClientDisplay } from '../../hooks/useTherapistClientDisplay';
 import { clientDisplayStatus } from '../../components/ClientDisplayPanel';
 import { useAuth } from '../../../hooks/useAuth';
+import { IconSearch } from '../../../components/icons';
 
 export type AppHeaderNav =
   | 'practice'
   | 'clients'
   | 'protocols'
   | 'resources'
+  | 'knowledge'
   | 'settings'
   | 'session';
 
@@ -18,12 +20,11 @@ interface Props {
   onOpenClientPanel?: () => void;
   rightSlot?: ReactNode;
   activeNav?: AppHeaderNav;
-  /** Compact live-session mode — hide secondary chrome */
   live?: boolean;
 }
 
 /**
- * Product application bar — Pathfinder EMDR primary clinical navigation.
+ * Application shell — calm primary nav for all-day clinical use.
  */
 export function AppHeader({
   protocolLabel,
@@ -94,20 +95,24 @@ export function AppHeader({
         <NavLink to="/clients" className={navClass('clients')}>
           Clients
         </NavLink>
-        <NavLink to="/pain" className={navClass('protocols')}>
+        <NavLink to="/protocols" className={navClass('protocols')}>
           Protocols
         </NavLink>
-        <NavLink to="/practice/library" className={navClass('resources')}>
-          Resources
+        <NavLink
+          to="/practice/library"
+          className={navClass(activeNav === 'resources' ? 'resources' : 'knowledge')}
+        >
+          Knowledge
         </NavLink>
       </nav>
 
       <div className="pf-app-header-right">
         {clientDisplay && (
-          <button type="button" className="btn ghost pf-header-btn" onClick={onOpenClientPanel}>
+          <button type="button" className="btn tertiary pf-header-btn" onClick={onOpenClientPanel}>
             Client Display
           </button>
         )}
+        {rightSlot}
         <button
           type="button"
           className="pf-header-icon-btn"
@@ -115,23 +120,22 @@ export function AppHeader({
           title="Search"
           onClick={() => navigate('/clients')}
         >
-          <SearchIcon />
+          <IconSearch />
         </button>
         <div className="pf-account-menu" ref={menuRef}>
-          <button
-            type="button"
-            className="pf-account-avatar"
-            aria-expanded={accountOpen}
-            aria-haspopup="menu"
-            aria-label="Account menu"
-            onClick={() => setAccountOpen((v) => !v)}
-          >
-            {initials}
-          </button>
-          {accountOpen && (
-            <div className="pf-menu-popover pf-account-popover" role="menu">
-              {auth.isAuthenticated ? (
-                <>
+          {auth.isAuthenticated ? (
+            <>
+              <button
+                type="button"
+                className="pf-account-avatar"
+                aria-expanded={accountOpen}
+                aria-haspopup="menu"
+                onClick={() => setAccountOpen((v) => !v)}
+              >
+                {initials}
+              </button>
+              {accountOpen && (
+                <div className="pf-menu-popover" role="menu">
                   <p className="pf-account-popover-email">{auth.therapist?.email}</p>
                   <Link to="/account" role="menuitem" onClick={() => setAccountOpen(false)}>
                     Profile
@@ -141,8 +145,8 @@ export function AppHeader({
                   </Link>
                   <button
                     type="button"
-                    role="menuitem"
                     className="pf-menu-action"
+                    role="menuitem"
                     onClick={() => {
                       setAccountOpen(false);
                       void auth.logout().then(() => navigate('/'));
@@ -150,31 +154,16 @@ export function AppHeader({
                   >
                     Sign out
                   </button>
-                </>
-              ) : (
-                <>
-                  <Link to="/account" role="menuitem" onClick={() => setAccountOpen(false)}>
-                    Sign in
-                  </Link>
-                  <Link to="/settings" role="menuitem" onClick={() => setAccountOpen(false)}>
-                    Settings
-                  </Link>
-                </>
+                </div>
               )}
-            </div>
+            </>
+          ) : (
+            <Link className="btn secondary" to="/account">
+              Sign in
+            </Link>
           )}
         </div>
-        {rightSlot}
       </div>
     </header>
-  );
-}
-
-function SearchIcon() {
-  return (
-    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden>
-      <circle cx="11" cy="11" r="6.5" stroke="currentColor" strokeWidth="2" />
-      <path d="M16 16l4.5 4.5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-    </svg>
   );
 }

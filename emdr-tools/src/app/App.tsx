@@ -19,6 +19,7 @@ import { EmdPage } from '../emdr/components/practice/EmdPage';
 import { FloatbackPage } from '../emdr/components/practice/FloatbackPage';
 import { FutureTemplatePage } from '../emdr/components/practice/FutureTemplatePage';
 import { PracticeHomePage } from '../emdr/components/practice/PracticeHomePage';
+import { ProtocolsPage } from '../emdr/components/practice/ProtocolsPage';
 import { RecentEventsPage } from '../emdr/components/practice/RecentEventsPage';
 import { RdiPage } from '../emdr/components/practice/RdiPage';
 import { SafeCalmPage } from '../emdr/components/practice/SafeCalmPage';
@@ -55,6 +56,7 @@ export default function App() {
       <Routes>
         <Route path="/" element={<LandingPage />} />
         <Route path="/practice" element={<PracticeHomePage />} />
+        <Route path="/protocols" element={<ProtocolsPage />} />
         <Route path="/practice/standard" element={<StandardEmdrConsolePage />} />
         <Route path="/practice/safe-calm" element={<SafeCalmPage />} />
         <Route path="/practice/rdi" element={<RdiPage />} />

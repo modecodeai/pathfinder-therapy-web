@@ -8,17 +8,21 @@ import { getClient, patchClient } from './lib/api';
 import { AipNetworkMap } from './components/AipNetworkMap';
 import { SessionChangePanel } from './components/SessionChangePanel';
 
-function Section({ title, children }: { title: string; children: React.ReactNode }) {
+function Section({ title, children, open = true }: { title: string; children: React.ReactNode; open?: boolean }) {
   return (
-    <section className="panel ci-aip-section">
-      <h2>{title}</h2>
-      {children}
-    </section>
+    <details className="pf-collapse" open={open}>
+      <summary className="pf-collapse-summary">{title}</summary>
+      <div className="pf-collapse-body">{children}</div>
+    </details>
   );
 }
 
 function Empty({ label = 'Not established' }: { label?: string }) {
-  return <p className="hint">{label}</p>;
+  return (
+    <div className="pf-empty">
+      <p>{label}</p>
+    </div>
+  );
 }
 
 export function AipFormulationPage({ clientId }: { clientId: string }) {
