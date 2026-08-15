@@ -135,6 +135,29 @@ describe('applyApprovedFindings', () => {
     });
     expect(conflictsRemaining.some((c) => /conflict/i.test(c))).toBe(true);
   });
+
+  it('allows approving multiple new themes together without false conflict', () => {
+    const client = emptyClientRecord('c1', 't1', 'Test', new Date().toISOString());
+    const analysis = sampleAnalysis();
+    analysis.themes.push({
+      id: 'th2',
+      theme: 'power-control',
+      confidence: 'low',
+      evidenceLevel: 'unknown',
+      reasoning: 'Weak / not dominant',
+      evidence: [],
+      relatedMemories: [],
+      relatedTriggers: [],
+      possibleCognitions: [],
+      reviewStatus: 'approved',
+    });
+    const { conflictsRemaining, client: next } = applyApprovedFindings(client, analysis, 'ai1', {
+      nowIso: new Date().toISOString(),
+    });
+    expect(conflictsRemaining).toEqual([]);
+    expect(next.themes.length).toBeGreaterThanOrEqual(2);
+    expect(next.themes.filter((t) => t.primary).length).toBe(1);
+  });
 });
 
 describe('synthetic transcript fixture', () => {

@@ -174,10 +174,11 @@ export function applyApprovedFindings(
   for (const theme of analysis.themes) {
     if (theme.reviewStatus !== 'approved' && theme.reviewStatus !== 'edited') continue;
     const resolution = opts.themeConflicts?.find((c) => c.theme === theme.theme)?.resolution;
-    const existingPrimary = next.themes.find((t) => t.primary);
-    if (existingPrimary && existingPrimary.theme !== theme.theme && !resolution) {
+    const priorPrimary = client.themes.find((t) => t.primary)?.theme;
+    const existingPrimaryInNext = next.themes.find((t) => t.primary);
+    if (priorPrimary && priorPrimary !== theme.theme && !resolution) {
       conflictsRemaining.push(
-        `Possible conflict: existing primary theme ${existingPrimary.theme} vs ${theme.theme}`,
+        `Possible conflict: existing primary theme ${priorPrimary} vs ${theme.theme}`,
       );
       continue;
     }
@@ -185,20 +186,22 @@ export function applyApprovedFindings(
       pushAudit('themes.keep-existing', theme, theme.evidence, 'rejected');
       continue;
     }
-    if (resolution === 'replace' && existingPrimary) {
+    if (resolution === 'replace' && existingPrimaryInNext) {
       next.themes = next.themes.map((t) => ({ ...t, primary: false }));
     }
     const already = next.themes.find((t) => t.theme === theme.theme);
+    const makePrimary =
+      resolution === 'replace' || (!priorPrimary && !existingPrimaryInNext);
     if (already) {
       already.confidence = theme.confidence;
       already.notes = theme.reasoning;
-      if (resolution === 'replace' || !existingPrimary) already.primary = true;
+      if (makePrimary) already.primary = true;
     } else {
       next.themes.push({
         theme: theme.theme,
         confidence: theme.confidence,
         notes: theme.reasoning,
-        primary: resolution === 'replace' || !existingPrimary,
+        primary: makePrimary,
         sourceAnalysisId: analysisId,
         approvedAt: opts.nowIso,
       });

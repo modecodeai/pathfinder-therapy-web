@@ -38,8 +38,17 @@ def req(method: str, path: str, token: str | None = None, body: dict | None = No
         headers['Authorization'] = f'Bearer {token}'
     request = urllib.request.Request(BASE + path, data=data, headers=headers, method=method)
     ctx = ssl.create_default_context()
-    with urllib.request.urlopen(request, timeout=180, context=ctx) as response:
-        return response.status, json.loads(response.read().decode())
+    try:
+        with urllib.request.urlopen(request, timeout=180, context=ctx) as response:
+            return response.status, json.loads(response.read().decode())
+    except urllib.error.HTTPError as e:
+        raw = e.read().decode()
+        try:
+            parsed = json.loads(raw)
+        except Exception:
+            parsed = {'raw': raw[:2000]}
+        print('HTTP', e.code, path, parsed)
+        raise
 
 
 def main() -> None:
@@ -82,9 +91,10 @@ def main() -> None:
     print('presenting', [x['value'] for x in sr['presentingProblems']])
     print('triggers', [x['value'] for x in sr['triggers']])
     print('memories', [(m['headline'], m.get('approximateAge')) for m in sr['memories']])
-    print('themes', [(t['theme'], t['confidence']) for t in sr['themes']])
+    print('associative', [x['value'] for x in sr.get('associativeLinks', [])])
+    print('themes', [(t['theme'], t['confidence'], t.get('evidenceLevel')) for t in sr['themes']])
     print('NCs', [(c['kind'], c['value']) for c in sr['negativeCognitions']])
-    print('PCs', sr['positiveCognitions'])
+    print('PCs', [(c.get('kind'), c.get('value')) for c in sr.get('positiveCognitions', [])])
     print('resources in', [x['value'] for x in sr['internalResources']], 'ext', [x['value'] for x in sr['externalResources']])
     print('targets', [x['value'] for x in sr['targetCandidates']])
     print('unanswered', sr['unansweredQuestions'])
@@ -94,32 +104,60 @@ def main() -> None:
         'presentingProblems',
         'triggers',
         'memories',
+        'associativeLinks',
         'themes',
         'negativeCognitions',
         'internalResources',
         'externalResources',
         'targetCandidates',
     ]:
-        for item in sr[key]:
+        for item in sr.get(key, []):
             if not item.get('evidence'):
                 missing_ev.append(key)
     print('missing evidence count', len(missing_ev))
 
     unanswered = ' '.join(sr['unansweredQuestions']).lower()
-    assert 'voc' in unanswered or 'sud' in unanswered or 'image' in unanswered or 'positive' in unanswered
+    assert 'voc' in unanswered or 'sud' in unanswered or 'image' in unanswered or 'positive' in unanswered or 'pc' in unanswered
+
+    missing_required_ev = []
+    for key in [
+        'presentingProblems',
+        'triggers',
+        'memories',
+        'associativeLinks',
+        'negativeCognitions',
+        'internalResources',
+        'externalResources',
+        'targetCandidates',
+    ]:
+        for item in sr.get(key, []):
+            if item.get('evidenceLevel') != 'unknown' and not item.get('evidence'):
+                missing_required_ev.append((key, item.get('id')))
+    for item in sr.get('themes', []):
+        if item.get('evidenceLevel') in ('inferred', 'suggested', 'explicit') and not item.get('evidence'):
+            missing_required_ev.append(('themes', item.get('id')))
+    print('missing required evidence', missing_required_ev)
+    assert not missing_required_ev
 
     for key in [
         'presentingProblems',
         'triggers',
         'memories',
+        'associativeLinks',
         'themes',
         'negativeCognitions',
         'internalResources',
         'externalResources',
         'targetCandidates',
     ]:
-        for item in sr[key]:
-            item['reviewStatus'] = 'approved'
+        for item in sr.get(key, []):
+            # Only approve themes with real support in smoke
+            if key == 'themes' and item.get('evidenceLevel') in ('unknown',) and item.get('confidence') == 'low':
+                item['reviewStatus'] = 'rejected'
+            else:
+                item['reviewStatus'] = 'approved'
+    for item in sr.get('positiveCognitions', []):
+        item['reviewStatus'] = 'rejected'
     sr['summary']['reviewStatus'] = 'approved'
 
     status, applied = req(
