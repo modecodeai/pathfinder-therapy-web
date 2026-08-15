@@ -1,4 +1,5 @@
 import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom';
+import { PainProtocolPage } from '../emdr/components/emdr-pain/PainProtocolPage';
 import { SessionCompanionPage } from '../emdr/components/SessionCompanion';
 import { ResourcesPage } from '../emdr/help/ResourcesPage';
 import { AboutPage } from '../routes/AboutPage';
@@ -14,6 +15,7 @@ export default function App() {
         <Route path="/" element={<LandingPage />} />
         <Route path="/tools" element={<ToolsPage />} />
         <Route path="/session" element={<SessionCompanionPage />} />
+        <Route path="/pain" element={<PainProtocolPage />} />
         <Route path="/resources" element={<ResourcesPage />} />
         <Route path="/account" element={<AccountPage />} />
         <Route path="/join/:roomId" element={<JoinPage />} />
