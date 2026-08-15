@@ -90,17 +90,22 @@ The therapist is orienting themselves to a person's initial story.
 
 Pathfinder should surface what matters clinically first, while preserving the original intake and its provenance underneath.
 
+**Operate by exception:** Pathfinder organises obvious factual material quietly. The therapist spends attention on ambiguity, risk, hypotheses, conflicts, and clinically meaningful uncertainty — not forty individual fact approvals.
+
 **Initial Clinical Review** presents:
 
 1. Initial Clinical Brief (≈150–200 words, modality-neutral)
-2. Current situation, what the client wants, current difficulties
-3. Client-identified patterns, resources & current costs
-4. Clinical review required (when risk language is present — no invented tier)
-5. Important questions / clarifications
-6. Working hypotheses (visually separate from facts)
-7. Client details secondary; raw submission collapsed
+2. Finding counts with **Approve all confirmed** as the primary action
+3. Current situation, what the client wants, current difficulties
+4. Client-identified patterns; impact/costs without repeating the same narrative
+5. Grouped self-described qualities (one evidence group)
+6. Clinical review required (when risk language is present — no invented tier)
+7. Deduplicated clarifications; working hypotheses (visually separate from facts)
+8. Preview from pending evidence vs Approved First Session Preparation
+9. First-session readiness checklist; sticky Save / Approve all / Approve & prepare
+10. Client details secondary; import notes collapsed; raw submission collapsed
 
-No TA drivers, injunctions, ego states, or EMDR targets appear on this screen.
+No TA drivers, injunctions, ego states, or EMDR targets appear on this screen. Clinical lenses are not applied from this screen.
 
 ---
 

@@ -7,6 +7,7 @@ import {
   buildInitialClinicalReviewModel,
   countUnresolvedHighPriority,
   findingsEligibleForApproveAllConfirmed,
+  reviewStatsWithEligible,
   type ClinicalReviewItem,
   type ReviewConfidenceLabel,
 } from '../lib/initialClinicalBrief';
@@ -15,6 +16,7 @@ import {
   firstSessionPreparationPlainText,
 } from '../lib/firstSessionPrep';
 import type { ClientRecord } from '../types';
+import { PRIMARY_APPROACH_LABELS, type PrimaryTreatmentApproach } from '../clinicalReasoning';
 
 function ConfidenceChip({ label }: { label: ReviewConfidenceLabel }) {
   const cls =
@@ -47,12 +49,14 @@ function SourceToggle({ excerpt, field }: { excerpt?: string; field?: string }) 
 function FactCard({
   item,
   finding,
+  showActions,
   onApprove,
   onEdit,
   onReject,
 }: {
   item: ClinicalReviewItem;
   finding?: IntakeCoreFinding;
+  showActions?: boolean;
   onApprove?: (id: string) => void;
   onEdit?: (id: string) => void;
   onReject?: (id: string) => void;
@@ -67,7 +71,7 @@ function FactCard({
       <p className="pf-icr-card-body">{item.body}</p>
       {item.formSelectionNote && <p className="pf-icr-form-note">{item.formSelectionNote}</p>}
       <SourceToggle excerpt={item.sourceExcerpt} field={item.sourceField} />
-      {finding && onApprove && (
+      {showActions && finding && onApprove && (
         <div className="pf-icr-card-actions">
           <span className="pf-meta">
             Clinical record:{' '}
@@ -138,24 +142,11 @@ function HypothesisCard({
   );
 }
 
-function Section({
-  title,
-  children,
-  onEditSection,
-}: {
-  title: string;
-  children: ReactNode;
-  onEditSection?: () => void;
-}) {
+function Section({ title, children }: { title: string; children: ReactNode }) {
   return (
     <section className="pf-icr-section">
       <div className="pf-icr-section-head">
         <h3>{title}</h3>
-        {onEditSection && (
-          <button type="button" className="btn ghost pf-icr-section-edit" onClick={onEditSection}>
-            Edit section
-          </button>
-        )}
       </div>
       {children}
     </section>
@@ -170,11 +161,14 @@ export function InitialClinicalReview({
   warnings,
   busy,
   needsConfirm,
+  approach,
+  onApproachChange,
   onConfirmAndAnalyse,
   onFindingsChange,
   onSaveReview,
   onApproveAndPrepare,
   onMarkRiskReviewed,
+  onAddSafetyQuestion,
   rawText,
 }: {
   client: ClientRecord;
@@ -184,13 +178,18 @@ export function InitialClinicalReview({
   warnings: IntakeExtractionWarning[];
   busy: boolean;
   needsConfirm: boolean;
+  approach: PrimaryTreatmentApproach;
+  onApproachChange: (a: PrimaryTreatmentApproach) => void;
   onConfirmAndAnalyse: () => void;
   onFindingsChange: (next: IntakeCoreFinding[]) => void;
   onSaveReview: () => void;
   onApproveAndPrepare: () => void;
   onMarkRiskReviewed: () => void;
+  onAddSafetyQuestion: () => void;
   rawText: string | null;
 }) {
+  const [showIndividual, setShowIndividual] = useState(false);
+
   const model = useMemo(
     () =>
       buildInitialClinicalReviewModel({
@@ -202,14 +201,31 @@ export function InitialClinicalReview({
     [extracted, evidence, findings, warnings],
   );
 
-  const prepPreview = useMemo(() => {
-    if (!findings.length) return '';
-    const prep = buildFirstSessionPreparation(client, findings);
-    return firstSessionPreparationPlainText(prep);
+  const stats = useMemo(() => reviewStatsWithEligible(findings), [findings]);
+  const eligibleIds = useMemo(() => findingsEligibleForApproveAllConfirmed(findings), [findings]);
+  const unresolved = countUnresolvedHighPriority(findings);
+  const hasApproved = stats.approved > 0;
+  const preparationApproved = Boolean(client.firstSessionPreparation) && client.intakeClinicalStatus === 'therapist-reviewed';
+
+  /** Official prep from approved findings only */
+  const approvedPrep = useMemo(() => {
+    const approved = findings.filter((f) => f.reviewStatus === 'approved' || f.reviewStatus === 'edited');
+    if (!approved.length) return '';
+    return firstSessionPreparationPlainText(buildFirstSessionPreparation(client, approved));
   }, [client, findings]);
 
-  const unresolved = countUnresolvedHighPriority(findings);
-  const eligibleIds = findingsEligibleForApproveAllConfirmed(findings);
+  /** Non-record preview: treat eligible + already approved as approved */
+  const pendingPreview = useMemo(() => {
+    if (!findings.length) return '';
+    const eligible = new Set(eligibleIds);
+    const simulated = findings.map((f) =>
+      eligible.has(f.id) || f.reviewStatus === 'approved' || f.reviewStatus === 'edited'
+        ? { ...f, reviewStatus: 'approved' as const }
+        : f,
+    );
+    return firstSessionPreparationPlainText(buildFirstSessionPreparation(client, simulated));
+  }, [client, findings, eligibleIds]);
+
   const findingById = useMemo(() => new Map(findings.map((f) => [f.id, f])), [findings]);
 
   const setStatus = (id: string, reviewStatus: IntakeCoreFinding['reviewStatus'], edited?: string) => {
@@ -245,17 +261,34 @@ export function InitialClinicalReview({
 
   const matchFinding = (item: ClinicalReviewItem): IntakeCoreFinding | undefined => {
     if (item.findingId) return findingById.get(item.findingId);
-    // Soft match by text/category for facts linked after corroboration
     const t = item.title.toLowerCase();
     return findings.find((f) => {
       const blob = `${f.text} ${f.clientStatement ?? ''}`.toLowerCase();
-      if (item.kind === 'fact' && /anxiety/.test(t) && /anxiety/.test(blob) && f.category === 'symptom')
-        return true;
+      if (item.kind === 'fact' && /anxiety/.test(t) && /anxiety/.test(blob) && f.category === 'symptom') return true;
       if (item.kind === 'fact' && /sleep/.test(t) && /sleep/.test(blob)) return true;
       if (item.kind === 'pattern' && blob.includes(t.slice(0, 20).toLowerCase())) return true;
       return false;
     });
   };
+
+  const importantWarnings = model.warningGroups.important.filter(
+    (w) => w.code === 'truncated' || /trauma|abuse|risk|hopeless|femur/i.test(w.message + (w.fieldPath ?? '')),
+  );
+  const importNotes = [
+    ...model.warningGroups.formUnrecoverable,
+    ...model.warningGroups.other,
+    ...model.warningGroups.important.filter((w) => !importantWarnings.some((i) => i.key === w.key)),
+  ];
+
+  const exceptionFindings = findings.filter(
+    (f) =>
+      (f.reviewStatus === 'pending' || !f.reviewStatus) &&
+      f.category !== 'working-hypothesis' &&
+      f.category !== 'risk-clinical-review' &&
+      (f.category === 'outstanding-question' ||
+        f.clinicalReviewRequired ||
+        /source inconsistency|ambiguous|femur/i.test(f.text)),
+  );
 
   return (
     <div className="pf-icr">
@@ -277,33 +310,21 @@ export function InitialClinicalReview({
             <p>{model.brief || 'Confirm initial information to generate a clinical brief.'}</p>
           </section>
 
-          {model.warningGroups.important.length > 0 && (
-            <details className="pf-icr-warnings" open>
-              <summary>Important to review ({model.warningGroups.important.length})</summary>
+          {importantWarnings.length > 0 && (
+            <details className="pf-icr-warnings is-important" open>
+              <summary>IMPORTANT TO REVIEW ({importantWarnings.length})</summary>
               <ul>
-                {model.warningGroups.important.map((w) => (
+                {importantWarnings.map((w) => (
                   <li key={w.key}>{w.message}</li>
                 ))}
               </ul>
             </details>
           )}
-          {model.warningGroups.formUnrecoverable.length > 0 && (
-            <details className="pf-icr-warnings">
-              <summary>
-                Form responses not recoverable ({model.warningGroups.formUnrecoverable.length})
-              </summary>
+          {importNotes.length > 0 && (
+            <details className="pf-icr-warnings is-import-notes">
+              <summary>Import / form extraction notes ({importNotes.length})</summary>
               <ul>
-                {model.warningGroups.formUnrecoverable.map((w) => (
-                  <li key={w.key}>{w.message}</li>
-                ))}
-              </ul>
-            </details>
-          )}
-          {model.warningGroups.other.length > 0 && (
-            <details className="pf-icr-warnings">
-              <summary>Other ({model.warningGroups.other.length})</summary>
-              <ul>
-                {model.warningGroups.other.map((w) => (
+                {importNotes.map((w) => (
                   <li key={w.key}>{w.message}</li>
                 ))}
               </ul>
@@ -320,6 +341,40 @@ export function InitialClinicalReview({
                 {busy ? 'Analysing…' : 'Confirm initial information & analyse'}
               </button>
             </div>
+          )}
+
+          {!needsConfirm && findings.length > 0 && (
+            <section className="pf-icr-bulk" aria-label="Review summary">
+              <h3>
+                {stats.total} findings
+              </h3>
+              <ul className="pf-icr-bulk-stats">
+                <li>{stats.confirmedFacts} confirmed facts</li>
+                <li>{stats.clinicalReviewItems} clinical-review items</li>
+                <li>{stats.workingHypotheses} working hypotheses</li>
+                <li>{stats.needClarification} need clarification</li>
+              </ul>
+              <div className="pf-icr-bulk-actions">
+                <button
+                  type="button"
+                  className="btn primary"
+                  disabled={busy || !eligibleIds.length}
+                  onClick={approveAllConfirmed}
+                >
+                  Approve all confirmed
+                </button>
+                <button
+                  type="button"
+                  className="btn ghost"
+                  onClick={() => setShowIndividual((v) => !v)}
+                >
+                  {showIndividual ? 'Hide individual review' : 'Review individually'}
+                </button>
+              </div>
+              <p className="pf-meta">
+                Approves high-confidence facts only — not hypotheses, risk assumptions, or ambiguous items.
+              </p>
+            </section>
           )}
 
           <Section title="Current situation">
@@ -356,9 +411,10 @@ export function InitialClinicalReview({
                   key={item.id}
                   item={item}
                   finding={!needsConfirm ? matchFinding(item) : undefined}
-                  onApprove={!needsConfirm ? approve : undefined}
-                  onEdit={!needsConfirm ? edit : undefined}
-                  onReject={!needsConfirm ? reject : undefined}
+                  showActions={showIndividual && !needsConfirm}
+                  onApprove={approve}
+                  onEdit={edit}
+                  onReject={reject}
                 />
               ))}
               {!model.difficulties.length && (
@@ -380,23 +436,17 @@ export function InitialClinicalReview({
             )}
           </Section>
 
-          <Section title="Patterns the client identifies">
-            <p className="pf-meta">Client-identified patterns — not theoretical constructs.</p>
-            <div className="pf-icr-grid">
+          <Section title="Client-identified patterns">
+            <p className="pf-meta">From the client&apos;s own description — not theoretical constructs.</p>
+            <ul className="pf-icr-bullets">
               {model.patterns.map((item) => (
-                <FactCard
-                  key={item.id}
-                  item={item}
-                  finding={!needsConfirm ? matchFinding(item) : undefined}
-                  onApprove={!needsConfirm ? approve : undefined}
-                  onEdit={!needsConfirm ? edit : undefined}
-                  onReject={!needsConfirm ? reject : undefined}
-                />
+                <li key={item.id}>
+                  {item.title}
+                  <SourceToggle excerpt={item.sourceExcerpt} field={item.sourceField} />
+                </li>
               ))}
-              {!model.patterns.length && (
-                <p className="pf-icr-empty">Not established from available intake.</p>
-              )}
-            </div>
+              {!model.patterns.length && <li className="pf-icr-empty">Not established from available intake.</li>}
+            </ul>
           </Section>
 
           <Section title="Resources & strengths">
@@ -404,10 +454,23 @@ export function InitialClinicalReview({
               {model.resources.map((item) => (
                 <FactCard key={item.id} item={item} />
               ))}
+              {model.selfDescribedQualities && (
+                <article className="pf-icr-card pf-icr-fact">
+                  <div className="pf-icr-card-head">
+                    <h4>Self-described qualities</h4>
+                    <ConfidenceChip label="High confidence" />
+                  </div>
+                  <p className="pf-icr-card-body">{model.selfDescribedQualities.display}</p>
+                  <SourceToggle
+                    excerpt={model.selfDescribedQualities.rawWords.join('\n')}
+                    field="Five words describing self (raw)"
+                  />
+                </article>
+              )}
             </div>
             {model.currentCosts.length > 0 && (
               <>
-                <h4 className="pf-icr-subhead">Current costs / difficulties</h4>
+                <h4 className="pf-icr-subhead">Impact / current costs</h4>
                 <div className="pf-icr-grid">
                   {model.currentCosts.map((item) => (
                     <FactCard key={item.id} item={item} />
@@ -472,9 +535,14 @@ export function InitialClinicalReview({
               </dl>
               <p className="pf-meta">No risk tier is assigned from intake alone.</p>
               {!needsConfirm && (
-                <button type="button" className="btn tertiary" onClick={onMarkRiskReviewed}>
-                  Mark reviewed
-                </button>
+                <div className="stack-btns horizontal wrap">
+                  <button type="button" className="btn tertiary" onClick={onMarkRiskReviewed}>
+                    Mark reviewed
+                  </button>
+                  <button type="button" className="btn ghost" onClick={onAddSafetyQuestion}>
+                    Add to first-session questions
+                  </button>
+                </div>
               )}
             </section>
           )}
@@ -484,12 +552,15 @@ export function InitialClinicalReview({
               {model.clarifications.map((c) => (
                 <li key={c.id}>{c.title}</li>
               ))}
+              {!model.clarifications.length && (
+                <li className="pf-icr-empty">None outstanding from current intake.</li>
+              )}
             </ul>
           </Section>
 
           {!needsConfirm && model.hypotheses.length > 0 && (
             <Section title="Working hypotheses">
-              <p className="pf-meta">Suggested only — visually separate from confirmed facts. No TA/EMDR language.</p>
+              <p className="pf-meta">Suggested only — separate from confirmed facts. No TA/EMDR language.</p>
               <div className="pf-icr-grid">
                 {model.hypotheses.map((item) => (
                   <HypothesisCard
@@ -505,11 +576,51 @@ export function InitialClinicalReview({
             </Section>
           )}
 
-          {!needsConfirm && prepPreview && (
+          {!needsConfirm && exceptionFindings.length > 0 && (
+            <Section title="Exceptions still pending">
+              <p className="pf-meta">Review by exception — approve, edit, or reject these before relying on them in the record.</p>
+              <div className="pf-icr-grid">
+                {exceptionFindings.map((f) => (
+                  <article key={f.id} className="pf-icr-card">
+                    <div className="pf-icr-card-head">
+                      <h4>{f.therapistEditedValue ?? f.text}</h4>
+                      <span className="pf-icr-chip is-review">{f.category.replace(/-/g, ' ')}</span>
+                    </div>
+                    <div className="pf-icr-card-actions">
+                      <button type="button" className="btn tertiary" onClick={() => approve(f.id)}>
+                        Approve
+                      </button>
+                      <button type="button" className="btn ghost" onClick={() => edit(f.id)}>
+                        Edit
+                      </button>
+                      <button type="button" className="btn ghost" onClick={() => reject(f.id)}>
+                        Reject
+                      </button>
+                    </div>
+                  </article>
+                ))}
+              </div>
+            </Section>
+          )}
+
+          {!needsConfirm && (
             <section className="pf-icr-prep">
-              <h3>First session preparation preview</h3>
-              <p className="pf-meta">Updates as findings are approved or edited.</p>
-              <pre className="pf-icr-prep-pre">{prepPreview}</pre>
+              {preparationApproved || (hasApproved && approvedPrep && !approvedPrep.includes('Not established from approved intake.')) ? (
+                <>
+                  <h3>Approved First Session Preparation</h3>
+                  <p className="pf-meta">From approved clinical record items.</p>
+                  <pre className="pf-icr-prep-pre">{approvedPrep || 'Approve confirmed facts to build preparation.'}</pre>
+                </>
+              ) : (
+                <>
+                  <h3>Preview from pending evidence</h3>
+                  <p className="pf-icr-preview-banner">
+                    Preview only — not yet part of the clinical record. Shows what First Session Preparation would
+                    look like if current confirmed items were approved.
+                  </p>
+                  <pre className="pf-icr-prep-pre">{pendingPreview}</pre>
+                </>
+              )}
             </section>
           )}
 
@@ -521,25 +632,95 @@ export function InitialClinicalReview({
 
         <aside className="pf-icr-side">
           <div className="pf-icr-side-card">
-            <h3>Review status</h3>
-            <p className="pf-meta">
-              {needsConfirm
-                ? 'Awaiting confirmation of initial information'
-                : `${findings.filter((f) => f.reviewStatus === 'approved' || f.reviewStatus === 'edited').length} approved · ${findings.filter((f) => f.reviewStatus === 'pending' || !f.reviewStatus).length} pending`}
-            </p>
+            <h3>First-session readiness</h3>
+            <ul className="pf-icr-readiness">
+              <li className="is-done">
+                <span className="pf-icr-readiness-mark" aria-hidden="true">
+                  ✓
+                </span>
+                Intake extracted
+              </li>
+              <li className={needsConfirm ? 'is-todo' : 'is-done'}>
+                <span className="pf-icr-readiness-mark" aria-hidden="true">
+                  {needsConfirm ? '○' : '✓'}
+                </span>
+                Core evidence identified
+              </li>
+              <li
+                className={
+                  eligibleIds.length > 0 && stats.approved === 0 ? 'is-todo' : 'is-done'
+                }
+              >
+                <span className="pf-icr-readiness-mark" aria-hidden="true">
+                  {eligibleIds.length > 0 && stats.approved === 0 ? '○' : '✓'}
+                </span>
+                {eligibleIds.length > 0 && stats.approved === 0
+                  ? 'Confirmed facts awaiting approval'
+                  : 'Confirmed facts'}
+              </li>
+              <li className={unresolved > 0 ? 'is-warn' : 'is-done'}>
+                <span className="pf-icr-readiness-mark" aria-hidden="true">
+                  {unresolved > 0 ? '⚠' : '✓'}
+                </span>
+                {unresolved > 0
+                  ? `${unresolved} item${unresolved === 1 ? '' : 's'} require clinical review`
+                  : 'Clinical review items addressed'}
+              </li>
+              <li className={preparationApproved ? 'is-done' : 'is-todo'}>
+                <span className="pf-icr-readiness-mark" aria-hidden="true">
+                  {preparationApproved ? '✓' : '○'}
+                </span>
+                {preparationApproved
+                  ? 'First Session Preparation approved'
+                  : 'First Session Preparation not yet approved'}
+              </li>
+            </ul>
             {!needsConfirm && (
               <button
                 type="button"
-                className="btn tertiary"
+                className="btn primary"
+                style={{ marginTop: '0.65rem', width: '100%' }}
                 disabled={busy || !eligibleIds.length}
                 onClick={approveAllConfirmed}
               >
                 Approve all confirmed
               </button>
             )}
-            <p className="pf-meta">
-              Approves high-confidence facts only — not hypotheses, risk assumptions, or ambiguous items.
+          </div>
+
+          <div className="pf-icr-side-card">
+            <h3>Clinical approach</h3>
+            <label className="field">
+              <span>Current approach</span>
+              <select
+                value={approach}
+                onChange={(e) => onApproachChange(e.target.value as PrimaryTreatmentApproach)}
+              >
+                {(
+                  [
+                    'unspecified',
+                    'transactional-analysis',
+                    'emdr',
+                    'integrated-ta-emdr',
+                    'general-integrative',
+                    'pain',
+                    'other',
+                  ] as PrimaryTreatmentApproach[]
+                ).map((a) => (
+                  <option key={a} value={a}>
+                    {a === 'integrated-ta-emdr' ? 'Integrated' : PRIMARY_APPROACH_LABELS[a]}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <p className="pf-meta" style={{ marginTop: '0.5rem' }}>
+              Clinical lens status: Not yet applied to intake review.
+              <br />
+              Core formulation remains modality-neutral.
             </p>
+            <button type="button" className="btn ghost" disabled title="Available after core approval — not from this screen">
+              Run TA Lens After Core Approval
+            </button>
           </div>
 
           <div className="pf-icr-side-card">
@@ -554,33 +735,25 @@ export function InitialClinicalReview({
               {!model.clientDetails.length && <p className="pf-icr-empty">Not established</p>}
             </dl>
           </div>
-
-          <div className="pf-icr-side-card">
-            <h3>First-session readiness</h3>
-            <p className="pf-meta">
-              {needsConfirm
-                ? 'Confirm information first'
-                : unresolved > 0
-                  ? `${unresolved} item${unresolved === 1 ? '' : 's'} still require clinical review`
-                  : 'Ready to prepare first session'}
-            </p>
-          </div>
         </aside>
       </div>
 
       {!needsConfirm && (
         <div className="pf-icr-sticky" role="region" aria-label="Review actions">
-          {unresolved > 0 && (
-            <p className="pf-icr-sticky-note">
-              {unresolved} item{unresolved === 1 ? '' : 's'} still require clinical review.
-            </p>
-          )}
           <div className="pf-icr-sticky-actions">
             <button type="button" className="btn tertiary" disabled={busy} onClick={onSaveReview}>
               Save review
             </button>
+            <button
+              type="button"
+              className="btn tertiary"
+              disabled={busy || !eligibleIds.length}
+              onClick={approveAllConfirmed}
+            >
+              Approve all confirmed
+            </button>
             <button type="button" className="btn primary" disabled={busy} onClick={onApproveAndPrepare}>
-              {busy ? 'Saving…' : 'Approve confirmed & prepare first session'}
+              {busy ? 'Saving…' : 'Approve & prepare first session'}
             </button>
           </div>
         </div>

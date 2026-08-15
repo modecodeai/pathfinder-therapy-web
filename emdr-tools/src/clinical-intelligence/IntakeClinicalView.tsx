@@ -24,7 +24,7 @@ import {
   firstSessionPreparationPlainText,
 } from './lib/firstSessionPrep';
 import { extractIntakeFromPaste, patchClient } from './lib/api';
-import { PRIMARY_APPROACH_LABELS, type PrimaryTreatmentApproach } from './clinicalReasoning';
+import type { PrimaryTreatmentApproach } from './clinicalReasoning';
 import { setPrimaryTreatmentApproach } from './lib/lensGovernance';
 import {
   INTAKE_READER_VERSION,
@@ -33,6 +33,7 @@ import {
   type IntakeExtractionRecord,
   type IntakeExtractionWarning,
 } from './lib/intakeExtraction';
+import { findingsEligibleForApproveAllConfirmed } from './lib/initialClinicalBrief';
 import { InitialClinicalReview } from './components/InitialClinicalReview';
 
 type ViewMode = 'view' | 'paste' | 'manual' | 'clinical-review';
@@ -85,12 +86,11 @@ export function IntakeClinicalView({
   const [approach, setApproach] = useState<PrimaryTreatmentApproach>(
     client.primaryTreatmentApproach ?? 'unspecified',
   );
-  const [prepText, setPrepText] = useState(
+  const [, setPrepText] = useState(
     client.firstSessionPreparation
       ? firstSessionPreparationPlainText(client.firstSessionPreparation)
       : '',
   );
-  const [riskMarked, setRiskMarked] = useState(false);
 
   const status: IntakeClinicalStatus = client.intakeClinicalStatus ?? 'not-requested';
   const extractionConfirmed = isExtractionConfirmedStatus(status);
@@ -114,11 +114,6 @@ export function IntakeClinicalView({
       extracted: activeExtracted,
     }).evidence;
   }, [clinicalEvidence, client.clinicalEvidence, activeExtracted]);
-
-  const explorePain = useMemo(
-    () => findings.some((f) => /chronic pain/i.test(f.text)),
-    [findings],
-  );
 
   const persist = async (patch: Partial<ClientRecord>) => {
     const res = await patchClient(client.id, patch);
@@ -364,7 +359,7 @@ export function IntakeClinicalView({
     }
   };
 
-  const applyReview = async () => {
+  const applyReview = async (findingsOverride?: IntakeCoreFinding[]) => {
     if (!canApproveIntoFormulation(status) && status !== 'clinical-reasoning-ready' && status !== 'ai-review-ready') {
       setError('Confirm initial information before approving into Core Formulation.');
       return;
@@ -373,14 +368,18 @@ export function IntakeClinicalView({
       setError('Resolve critical extraction errors before approving into formulation.');
       return;
     }
+    const useFindings = findingsOverride ?? findings;
     setBusy(true);
     setError(null);
     try {
-      const core = approvedFindingsToCore(findings, client.coreFormulation);
-      const prep = buildFirstSessionPreparation({ ...client, intakeCoreFindings: findings }, findings);
+      const core = approvedFindingsToCore(useFindings, client.coreFormulation);
+      const prep = buildFirstSessionPreparation(
+        { ...client, intakeCoreFindings: useFindings },
+        useFindings,
+      );
       setPrepText(firstSessionPreparationPlainText(prep));
       let nextClient = await persist({
-        intakeCoreFindings: findings,
+        intakeCoreFindings: useFindings,
         clinicalEvidence: clinicalEvidence.length ? clinicalEvidence : previewEvidence,
         coreFormulation: core,
         firstSessionPreparation: prep,
@@ -532,17 +531,51 @@ export function IntakeClinicalView({
           warnings={warnings.length ? warnings : activeExtracted?.extractionWarnings ?? []}
           busy={busy}
           needsConfirm={needsConfirm}
+          approach={approach}
+          onApproachChange={setApproach}
           onConfirmAndAnalyse={() => void confirmExtractionAndAnalyse()}
           onFindingsChange={setFindings}
           onSaveReview={() => void saveReview()}
-          onApproveAndPrepare={() => void applyReview()}
+          onApproveAndPrepare={() => {
+            const eligible = new Set(findingsEligibleForApproveAllConfirmed(findings));
+            const next = findings.map((f) =>
+              eligible.has(f.id) ? { ...f, reviewStatus: 'approved' as const } : f,
+            );
+            setFindings(next);
+            void applyReview(next);
+          }}
           onMarkRiskReviewed={() => {
-            setRiskMarked(true);
             setFindings((prev) =>
               prev.map((f) =>
                 f.category === 'risk-clinical-review' ? { ...f, reviewStatus: 'approved' as const } : f,
               ),
             );
+          }}
+          onAddSafetyQuestion={() => {
+            const title = 'Clarify current safety / risk status';
+            setFindings((prev) => {
+              if (
+                prev.some(
+                  (f) =>
+                    f.category === 'outstanding-question' &&
+                    /safety|risk status/i.test(f.text),
+                )
+              ) {
+                return prev;
+              }
+              return [
+                ...prev,
+                {
+                  id: `icf_safety_q_${Date.now().toString(36)}`,
+                  category: 'outstanding-question' as const,
+                  text: title,
+                  framing: 'information-requiring-clarification' as const,
+                  evidence: [],
+                  provenanceStatus: 'single' as const,
+                  reviewStatus: 'pending' as const,
+                },
+              ];
+            });
           }}
           rawText={rawTextFromClient(client)}
         />
@@ -556,43 +589,6 @@ export function IntakeClinicalView({
               Add Intake
             </button>
           </div>
-        </section>
-      )}
-
-      {showClinicalReview && !needsConfirm && (
-        <section className="pf-surface-card" style={{ marginTop: '1rem' }}>
-          <h3>Current treatment approach</h3>
-          <label className="field">
-            <span>Approach (default: Not yet decided) — lens analysis comes after core review</span>
-            <select
-              value={approach}
-              onChange={(e) => setApproach(e.target.value as PrimaryTreatmentApproach)}
-            >
-              {(
-                [
-                  'unspecified',
-                  'transactional-analysis',
-                  'emdr',
-                  'integrated-ta-emdr',
-                  'general-integrative',
-                  'pain',
-                  'other',
-                ] as PrimaryTreatmentApproach[]
-              ).map((a) => (
-                <option key={a} value={a}>
-                  {a === 'integrated-ta-emdr' ? 'Integrated' : PRIMARY_APPROACH_LABELS[a]}
-                </option>
-              ))}
-            </select>
-          </label>
-          {explorePain && (
-            <p className="hint">
-              Pain / Somatic may be relevant (chronic pain reported). Not activated automatically.
-            </p>
-          )}
-          {prepText && riskMarked && (
-            <p className="pf-meta">Clinical review items marked reviewed where applicable.</p>
-          )}
         </section>
       )}
     </div>
