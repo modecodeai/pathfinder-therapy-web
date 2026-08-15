@@ -24,7 +24,7 @@ Use the following EMDR clinical-theme framework — assess ALL four; if evidence
 3. Safety / Vulnerability (theme id: safety-vulnerability)
 4. Power / Control / Choices (theme id: power-control)
 
-If information is missing, list it under unansweredQuestions (Information still needed) and leave related arrays empty.
+If information is missing, list it under unansweredQuestions (Information still needed) and leave related arrays empty or null fields as null.
 Never invent a Positive Cognition, VOC, SUD, target image, or body sensation that was not discussed.
 
 Negative Cognitions:
@@ -69,7 +69,56 @@ Theme pattern guides (context-sensitive, not mechanical phrase matching):
 
 Keep evidence excerpts short. Assign unique string ids to every suggestion object.
 Set reviewStatus to "pending" for every suggestion.
+Set analysisKind to "phase1-history".
 For summary, use evidenceLevel inferred or suggested as appropriate with brief evidence.`;
+
+export const PHASE3_ASSESSMENT_EXTRACTION = `Fully supported analysis mode: Standard EMDR — Phase 3 Assessment.
+
+Extract ONLY what is established in this transcript segment for the current target assessment:
+- target (memory / incident label)
+- worstPart (worst part of the memory, if stated)
+- image (picture that represents the worst part)
+- negativeCognition (self-referential NC about the target)
+- positiveCognition (preferred PC about the target — only if clearly established)
+- voc + vocNumeric — ONLY when an explicit numeric Validity of Cognition is stated (typically 1–7). Never infer or estimate a number. If not stated: voc=null, vocNumeric=null, and add "VoC not established" to unansweredQuestions.
+- emotion
+- sud + sudNumeric — ONLY when an explicit numeric Subjective Units of Disturbance is stated (typically 0–10). Never infer or estimate a number. If not stated: sud=null, sudNumeric=null, and add "SUD not established" to unansweredQuestions.
+- bodyLocation
+
+Missing fields MUST be null (not invented) and listed under unansweredQuestions as "… not established".
+Do not invent VoC or SUD from emotional intensity language.
+Do not declare assessment complete.
+
+Set analysisKind to "phase3-assessment".
+Assign unique string ids. Set reviewStatus to "pending" on every suggestion object.
+Keep evidence excerpts short.`;
+
+export const PHASE4_DESENSITISATION_EXTRACTION = `Fully supported analysis mode: Standard EMDR — Phase 4 Desensitisation.
+
+Extract an ordered processing sequence that preserves transcript order (sequence[].order ascending).
+For each clinically notable change or association, add a sequence step with:
+- sequenceLabel: ordinal narrative label (e.g. "Set 1", "After first channel", "Later association") — do NOT invent clock timestamps
+- timestamp: null unless an explicit time is spoken in the transcript
+- category: image | thought | emotion | body | association | new-memory | adaptive | sud | feeder | blocking-belief | intervention | other
+- value: concise clinical note of what changed / was reported
+
+Also populate parallel arrays (may overlap sequence content for review convenience):
+- associations
+- newMemories
+- adaptiveInformation
+- sudChanges (only when SUD is explicitly restated or compared — never invent numbers)
+- feederMemories (possible feeder / earlier contributing memories — mark as suggested)
+- blockingBeliefs (possible blocking beliefs — mark as suggested; do not declare established)
+- therapistInterventions (e.g. "go with that", cognitive interweave, return to target)
+- imageThoughtEmotionBodyChanges
+
+resolutionStatus MUST be one of: not-established | in-progress | incomplete.
+NEVER declare the target resolved / completed / SUD=0 as fact. Resolution is therapist-judged only.
+If the transcript ends mid-processing, use in-progress or incomplete.
+
+Set analysisKind to "phase4-desensitisation".
+Assign unique string ids. Set reviewStatus to "pending".
+Keep evidence excerpts short.`;
 
 export function buildAnalyseUserInput(args: {
   transcript: string;
@@ -77,16 +126,24 @@ export function buildAnalyseUserInput(args: {
   protocol: string;
   phase: string;
   sessionDate?: string;
+  priorApprovedSummary?: unknown;
+  isSegment?: boolean;
 }): string {
   return [
     `Protocol: ${args.protocol}`,
     `Phase: ${args.phase}`,
     args.sessionDate ? `Session date: ${args.sessionDate}` : null,
+    args.isSegment
+      ? 'Mode: INCREMENTAL SEGMENT — extract only what is new or changed in this segment; do not restate already-approved material unless it is updated or in conflict.'
+      : null,
     '',
     'Approved client context (therapist-approved only; may be empty):',
     JSON.stringify(args.clientContext ?? {}, null, 2),
+    args.priorApprovedSummary
+      ? `\nPreviously approved findings from parent analysis (do not duplicate):\n${JSON.stringify(args.priorApprovedSummary, null, 2)}`
+      : null,
     '',
-    'SESSION TRANSCRIPT (raw — do not rewrite; extract only):',
+    args.isSegment ? 'NEW TRANSCRIPT SEGMENT (raw — do not rewrite; extract only):' : 'SESSION TRANSCRIPT (raw — do not rewrite; extract only):',
     args.transcript,
   ]
     .filter((line) => line !== null)

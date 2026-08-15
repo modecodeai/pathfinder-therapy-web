@@ -6,6 +6,7 @@
 export type EvidenceLevel = 'explicit' | 'inferred' | 'suggested' | 'unknown';
 export type ConfidenceLevel = 'high' | 'moderate' | 'low';
 export type ReviewStatus = 'pending' | 'approved' | 'edited' | 'rejected';
+export type FindingDelta = 'new' | 'updated' | 'possible-conflict' | 'already-known';
 export type ClinicalThemeId =
   | 'responsibility-defectiveness'
   | 'belonging'
@@ -35,6 +36,8 @@ export interface ClinicalSuggestion<T = string> {
   reviewStatus: ReviewStatus;
   originalAIValue?: T;
   therapistEditedValue?: T;
+  /** Present when analysing an incremental transcript segment */
+  findingDelta?: FindingDelta;
 }
 
 export interface TriggerSuggestion extends ClinicalSuggestion<string> {
@@ -54,6 +57,7 @@ export interface MemorySuggestion {
   reviewStatus: ReviewStatus;
   originalAIValue?: string;
   therapistEditedValue?: string;
+  findingDelta?: FindingDelta;
 }
 
 export interface ClinicalThemeAnalysis {
@@ -69,6 +73,7 @@ export interface ClinicalThemeAnalysis {
   reviewStatus: ReviewStatus;
   originalAIValue?: string;
   therapistEditedValue?: string;
+  findingDelta?: FindingDelta;
 }
 
 export interface CognitionSuggestion extends ClinicalSuggestion<string> {
@@ -83,6 +88,7 @@ export interface TargetSuggestion extends ClinicalSuggestion<string> {
 }
 
 export interface TranscriptAnalysis {
+  analysisKind: 'phase1-history';
   summary: ClinicalSuggestion<string>;
   presentingProblems: ClinicalSuggestion<string>[];
   symptoms: ClinicalSuggestion<string>[];
@@ -101,8 +107,88 @@ export interface TranscriptAnalysis {
   clarificationSuggestions: string[];
 }
 
-export const PROMPT_VERSION = 'ci-v0.2-phase1-history';
-export const SCHEMA_VERSION = 'ci-transcript-analysis-v2';
+/** Phase 3 — Assessment. Numeric VoC/SUD only when explicitly stated in transcript. */
+export interface Phase3AssessmentAnalysis {
+  analysisKind: 'phase3-assessment';
+  summary: ClinicalSuggestion<string>;
+  target: ClinicalSuggestion<string>;
+  worstPart: ClinicalSuggestion<string> | null;
+  image: ClinicalSuggestion<string> | null;
+  negativeCognition: CognitionSuggestion | null;
+  positiveCognition: CognitionSuggestion | null;
+  /** Explicit numeric VoC only; null = not established (never invent). */
+  voc: ClinicalSuggestion<string> | null;
+  vocNumeric: number | null;
+  emotion: ClinicalSuggestion<string> | null;
+  /** Explicit numeric SUD only; null = not established (never invent). */
+  sud: ClinicalSuggestion<string> | null;
+  sudNumeric: number | null;
+  bodyLocation: ClinicalSuggestion<string> | null;
+  unansweredQuestions: string[];
+  clarificationSuggestions: string[];
+}
+
+export type ProcessingStepCategory =
+  | 'image'
+  | 'thought'
+  | 'emotion'
+  | 'body'
+  | 'association'
+  | 'new-memory'
+  | 'adaptive'
+  | 'sud'
+  | 'feeder'
+  | 'blocking-belief'
+  | 'intervention'
+  | 'other';
+
+export interface ProcessingSequenceStep {
+  id: string;
+  order: number;
+  /** Ordinal / narrative label from transcript order — do not invent clock times */
+  sequenceLabel: string;
+  timestamp: string | null;
+  category: ProcessingStepCategory;
+  value: string;
+  evidenceLevel: EvidenceLevel;
+  confidence: ConfidenceLevel;
+  evidence: TranscriptEvidence[];
+  reviewStatus: ReviewStatus;
+  originalAIValue?: string;
+  therapistEditedValue?: string;
+  findingDelta?: FindingDelta;
+}
+
+export interface Phase4DesensitisationAnalysis {
+  analysisKind: 'phase4-desensitisation';
+  summary: ClinicalSuggestion<string>;
+  /** Ordered processing sequence — preserve transcript order; never invent timestamps */
+  sequence: ProcessingSequenceStep[];
+  associations: ClinicalSuggestion<string>[];
+  newMemories: MemorySuggestion[];
+  adaptiveInformation: ClinicalSuggestion<string>[];
+  sudChanges: ClinicalSuggestion<string>[];
+  feederMemories: ClinicalSuggestion<string>[];
+  blockingBeliefs: ClinicalSuggestion<string>[];
+  therapistInterventions: ClinicalSuggestion<string>[];
+  imageThoughtEmotionBodyChanges: ClinicalSuggestion<string>[];
+  /** Always remind that resolution is therapist-judged */
+  resolutionStatus: 'not-established' | 'in-progress' | 'incomplete';
+  unansweredQuestions: string[];
+  clarificationSuggestions: string[];
+}
+
+export type AnyStructuredAnalysis =
+  | TranscriptAnalysis
+  | Phase3AssessmentAnalysis
+  | Phase4DesensitisationAnalysis;
+
+export type SupportedAnalysisPhase = 'history' | 'assessment' | 'desensitisation';
+
+export const PROMPT_VERSION = 'ci-v0.3-phase1-3-4';
+export const SCHEMA_VERSION = 'ci-transcript-analysis-v3';
+export const PHASE3_SCHEMA_VERSION = 'ci-phase3-assessment-v1';
+export const PHASE4_SCHEMA_VERSION = 'ci-phase4-desensitisation-v1';
 
 export interface ClinicalAIAnalysisRecord {
   id: string;
@@ -117,10 +203,58 @@ export interface ClinicalAIAnalysisRecord {
   createdAt: string;
   rawTranscriptId: string;
   /** Immutable OpenAI structured output */
-  structuredResult: TranscriptAnalysis;
+  structuredResult: AnyStructuredAnalysis;
   /** Therapist Approve/Edit/Reject state; null until review begins */
-  reviewedResult?: TranscriptAnalysis | null;
+  reviewedResult?: AnyStructuredAnalysis | null;
   reviewStatus: 'pending' | 'partially-reviewed' | 'reviewed';
+  parentAnalysisId?: string;
+  segmentIndex?: number;
+}
+
+/** Draft for Apply to Target Assessment (console + client activeTarget). */
+export interface TargetAssessmentDraft {
+  label?: string;
+  age?: string;
+  image?: string;
+  nc?: string;
+  pc?: string;
+  voc?: number | null;
+  sud?: number | null;
+  emotion?: string;
+  body?: string;
+  unanswered: string[];
+}
+
+export interface AnalyseTranscriptRequest {
+  clientId: string;
+  sessionId?: string;
+  protocol: 'standard-emdr';
+  phase: SupportedAnalysisPhase;
+  transcript: string;
+  sessionDate?: string;
+  /** When set, treat as incremental segment relative to this analysis */
+  parentAnalysisId?: string;
+}
+
+export interface ApplyFindingsRequest {
+  clientId: string;
+  analysisId: string;
+  structuredResult: AnyStructuredAnalysis;
+  themeConflicts?: Array<{
+    theme: ClinicalThemeId;
+    resolution: 'keep-existing' | 'add-additional' | 'replace';
+  }>;
+  memoryDuplicates?: Array<{
+    suggestionId: string;
+    existingMemoryId: string;
+    resolution: 'merge' | 'keep-separate';
+  }>;
+}
+
+export interface ApplyToTargetRequest {
+  clientId: string;
+  analysisId: string;
+  reviewedResult: Phase3AssessmentAnalysis;
 }
 
 export interface RawTranscriptRecord {
@@ -177,6 +311,16 @@ export interface ClientTargetCandidate {
   approvedAt?: string;
 }
 
+export interface ClientProcessingNote {
+  id: string;
+  order: number;
+  sequenceLabel: string;
+  category: string;
+  value: string;
+  sourceAnalysisId?: string;
+  approvedAt?: string;
+}
+
 export interface AuditProvenance {
   id: string;
   clientId: string;
@@ -200,13 +344,19 @@ export interface ClientRecord {
   themes: ClientTheme[];
   activeTarget?: {
     headline: string;
+    image?: string;
     nc?: string;
     pc?: string;
+    voc?: number | null;
+    sud?: number | null;
+    emotion?: string;
+    body?: string;
   };
   approvedNc?: string;
   approvedPc?: string;
   resources: ClientResource[];
   targetCandidates: ClientTargetCandidate[];
+  processingNotes?: ClientProcessingNote[];
   lastSessionSummary?: string;
   createdAt: string;
   updatedAt: string;
@@ -219,32 +369,18 @@ export interface ApprovedClientContext {
   triggers?: string[];
   memories?: Array<{ headline: string; approximateAge?: number; description?: string }>;
   themes?: Array<{ theme: ClinicalThemeId; primary?: boolean }>;
-  activeTarget?: { headline: string; nc?: string; pc?: string };
+  activeTarget?: {
+    headline: string;
+    image?: string;
+    nc?: string;
+    pc?: string;
+    voc?: number | null;
+    sud?: number | null;
+    emotion?: string;
+    body?: string;
+  };
   approvedNc?: string;
   approvedPc?: string;
   lastSessionSummary?: string;
-}
-
-export interface AnalyseTranscriptRequest {
-  clientId: string;
-  sessionId?: string;
-  protocol: 'standard-emdr';
-  phase: 'history';
-  transcript: string;
-  sessionDate?: string;
-}
-
-export interface ApplyFindingsRequest {
-  clientId: string;
-  analysisId: string;
-  structuredResult: TranscriptAnalysis;
-  themeConflicts?: Array<{
-    theme: ClinicalThemeId;
-    resolution: 'keep-existing' | 'add-additional' | 'replace';
-  }>;
-  memoryDuplicates?: Array<{
-    suggestionId: string;
-    existingMemoryId: string;
-    resolution: 'merge' | 'keep-separate';
-  }>;
+  recentProcessingNotes?: string[];
 }

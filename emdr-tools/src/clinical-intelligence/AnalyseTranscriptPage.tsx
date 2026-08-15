@@ -4,6 +4,7 @@ import { AppHeader } from '../emdr/guided/components/AppHeader';
 import { useAuth } from '../hooks/useAuth';
 import {
   CLINICAL_THEME_LABELS,
+  type AnyStructuredAnalysis,
   type ClientRecord,
   type ClinicalSuggestion,
   type ClinicalThemeAnalysis,
@@ -11,17 +12,23 @@ import {
   type CognitionSuggestion,
   type MemorySuggestion,
   type ReviewStatus,
+  type SupportedAnalysisPhase,
   type TranscriptAnalysis,
   type TranscriptEvidence,
 } from './types';
 import {
+  SYNTHETIC_PHASE3_TRANSCRIPT,
+  SYNTHETIC_PHASE4_TRANSCRIPT,
   SYNTHETIC_TEST_TRANSCRIPT,
   analyseTranscript,
   applyFindings,
+  applyToTarget,
   fetchCIStatus,
   getClient,
   saveReviewedAnalysis,
 } from './lib/api';
+import { Phase3ReviewPanel } from './components/Phase3ReviewPanel';
+import { Phase4ReviewPanel } from './components/Phase4ReviewPanel';
 
 type View = 'form' | 'review' | 'apply-preview';
 
@@ -29,7 +36,8 @@ const PROTOCOLS = [{ id: 'standard-emdr', label: 'Standard EMDR' }] as const;
 const PHASES = [
   { id: 'history', label: 'Phase 1 — History / Treatment Planning', supported: true },
   { id: 'preparation', label: 'Phase 2 — Preparation', supported: false },
-  { id: 'assessment', label: 'Phase 3 — Assessment', supported: false },
+  { id: 'assessment', label: 'Phase 3 — Assessment', supported: true },
+  { id: 'desensitisation', label: 'Phase 4 — Desensitisation', supported: true },
 ] as const;
 
 function effectiveValue(item: ClinicalSuggestion | MemorySuggestion): string {
@@ -81,7 +89,7 @@ export function AnalyseTranscriptPage({ clientId }: { clientId: string }) {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [analysisId, setAnalysisId] = useState<string | null>(null);
-  const [result, setResult] = useState<TranscriptAnalysis | null>(null);
+  const [result, setResult] = useState<AnyStructuredAnalysis | null>(null);
   const [highlight, setHighlight] = useState<string | null>(null);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [themeResolutions, setThemeResolutions] = useState<
@@ -95,6 +103,9 @@ export function AnalyseTranscriptPage({ clientId }: { clientId: string }) {
 
   const phaseMeta = PHASES.find((p) => p.id === phase) ?? PHASES[0];
   const analysisSupported = protocol === 'standard-emdr' && phaseMeta.supported;
+  const phase1 = result?.analysisKind === 'phase1-history' ? result : null;
+  const phase3 = result?.analysisKind === 'phase3-assessment' ? result : null;
+  const phase4 = result?.analysisKind === 'phase4-desensitisation' ? result : null;
 
   useEffect(() => {
     if (!auth.isAuthenticated) return;
@@ -118,7 +129,7 @@ export function AnalyseTranscriptPage({ clientId }: { clientId: string }) {
       const res = await analyseTranscript({
         clientId,
         protocol,
-        phase: 'history',
+        phase: phase as SupportedAnalysisPhase,
         transcript,
         sessionDate,
       });
@@ -134,7 +145,6 @@ export function AnalyseTranscriptPage({ clientId }: { clientId: string }) {
       setView('review');
       setSelectedIds(new Set());
       setHighlight(null);
-      // refresh client for conflict comparison
       void getClient(clientId).then(setClient);
     } catch {
       setError(
@@ -145,7 +155,10 @@ export function AnalyseTranscriptPage({ clientId }: { clientId: string }) {
     }
   };
 
-  const persistReview = async (next: TranscriptAnalysis, status: 'partially-reviewed' | 'reviewed' = 'partially-reviewed') => {
+  const persistReview = async (
+    next: AnyStructuredAnalysis,
+    status: 'partially-reviewed' | 'reviewed' = 'partially-reviewed',
+  ) => {
     if (!analysisId) return;
     try {
       await saveReviewedAnalysis(analysisId, next, status);
@@ -154,7 +167,7 @@ export function AnalyseTranscriptPage({ clientId }: { clientId: string }) {
     }
   };
 
-  const updateResult = (next: TranscriptAnalysis) => {
+  const updateResult = (next: AnyStructuredAnalysis) => {
     setResult(next);
     void persistReview(next);
   };
@@ -165,18 +178,18 @@ export function AnalyseTranscriptPage({ clientId }: { clientId: string }) {
     status: ReviewStatus,
     edited?: string,
   ) => {
-    if (!result) return;
+    if (!phase1) return;
     if (collection === 'summary') {
       updateResult({
-        ...result,
+        ...phase1,
         summary: {
-          ...result.summary,
+          ...phase1.summary,
           reviewStatus: status,
           ...(status === 'edited'
             ? {
-                originalAIValue: result.summary.value,
+                originalAIValue: phase1.summary.value,
                 therapistEditedValue: edited,
-                value: edited ?? result.summary.value,
+                value: edited ?? phase1.summary.value,
               }
             : {}),
         },
@@ -184,56 +197,69 @@ export function AnalyseTranscriptPage({ clientId }: { clientId: string }) {
       return;
     }
     if (collection === 'memories') {
-      updateResult({ ...result, memories: patchStatus(result.memories, id, status, edited) });
+      updateResult({ ...phase1, memories: patchStatus(phase1.memories, id, status, edited) });
       return;
     }
     if (collection === 'themes') {
       updateResult({
-        ...result,
-        themes: result.themes.map((t) => (t.id === id ? { ...t, reviewStatus: status } : t)),
+        ...phase1,
+        themes: phase1.themes.map((t) => (t.id === id ? { ...t, reviewStatus: status } : t)),
       });
       return;
     }
-    const arr = result[collection];
+    const arr = phase1[collection];
     if (!Array.isArray(arr) || typeof arr[0] === 'string') return;
     updateResult({
-      ...result,
+      ...phase1,
       [collection]: patchStatus(arr as ClinicalSuggestion[], id, status, edited),
     } as TranscriptAnalysis);
   };
 
   const approveSelected = () => {
-    if (!result || !selectedIds.size) return;
+    if (!phase1 || !selectedIds.size) return;
     const mark = <T extends { id: string; reviewStatus: ReviewStatus }>(items: T[]) =>
       items.map((i) =>
         selectedIds.has(i.id) && i.reviewStatus === 'pending' ? { ...i, reviewStatus: 'approved' as const } : i,
       );
     updateResult({
-      ...result,
-      presentingProblems: mark(result.presentingProblems),
-      symptoms: mark(result.symptoms),
-      recentExamples: mark(result.recentExamples),
-      triggers: mark(result.triggers),
-      memories: mark(result.memories),
-      associativeLinks: mark(result.associativeLinks ?? []),
-      themes: mark(result.themes),
-      negativeCognitions: mark(result.negativeCognitions),
-      positiveCognitions: mark(result.positiveCognitions),
-      internalResources: mark(result.internalResources),
-      externalResources: mark(result.externalResources),
-      targetCandidates: mark(result.targetCandidates),
-      clinicalConsiderations: mark(result.clinicalConsiderations),
-      summary: selectedIds.has(result.summary.id)
-        ? { ...result.summary, reviewStatus: 'approved' }
-        : result.summary,
+      ...phase1,
+      presentingProblems: mark(phase1.presentingProblems),
+      symptoms: mark(phase1.symptoms),
+      recentExamples: mark(phase1.recentExamples),
+      triggers: mark(phase1.triggers),
+      memories: mark(phase1.memories),
+      associativeLinks: mark(phase1.associativeLinks ?? []),
+      themes: mark(phase1.themes),
+      negativeCognitions: mark(phase1.negativeCognitions),
+      positiveCognitions: mark(phase1.positiveCognitions),
+      internalResources: mark(phase1.internalResources),
+      externalResources: mark(phase1.externalResources),
+      targetCandidates: mark(phase1.targetCandidates),
+      clinicalConsiderations: mark(phase1.clinicalConsiderations),
+      summary: selectedIds.has(phase1.summary.id)
+        ? { ...phase1.summary, reviewStatus: 'approved' }
+        : phase1.summary,
     });
   };
 
   const localConflicts = useMemo(() => {
-    if (!result || !client) return [] as Array<{ kind: string; message: string; theme?: ClinicalThemeId; memoryId?: string; existingId?: string }>;
-    const out: Array<{ kind: string; message: string; theme?: ClinicalThemeId; memoryId?: string; existingId?: string }> = [];
+    if (!phase1 || !client)
+      return [] as Array<{
+        kind: string;
+        message: string;
+        theme?: ClinicalThemeId;
+        memoryId?: string;
+        existingId?: string;
+      }>;
+    const out: Array<{
+      kind: string;
+      message: string;
+      theme?: ClinicalThemeId;
+      memoryId?: string;
+      existingId?: string;
+    }> = [];
     const existingPrimary = client.themes.find((t) => t.primary)?.theme;
-    for (const t of result.themes.filter((x) => isApproved(x.reviewStatus))) {
+    for (const t of phase1.themes.filter((x) => isApproved(x.reviewStatus))) {
       if (existingPrimary && t.theme !== existingPrimary && !themeResolutions[t.theme]) {
         out.push({
           kind: 'theme',
@@ -242,7 +268,7 @@ export function AnalyseTranscriptPage({ clientId }: { clientId: string }) {
         });
       }
     }
-    for (const m of result.memories.filter((x) => isApproved(x.reviewStatus))) {
+    for (const m of phase1.memories.filter((x) => isApproved(x.reviewStatus))) {
       const headline = effectiveValue(m);
       const similar = client.memories.find((x) => x.headline.toLowerCase() === headline.toLowerCase());
       if (similar && !memoryResolutions[m.id]) {
@@ -255,11 +281,33 @@ export function AnalyseTranscriptPage({ clientId }: { clientId: string }) {
       }
     }
     return out;
-  }, [result, client, themeResolutions, memoryResolutions]);
+  }, [phase1, client, themeResolutions, memoryResolutions]);
 
   const onApply = async () => {
     if (!result || !analysisId) return;
-    if (localConflicts.length) {
+    if (phase3) {
+      setBusy(true);
+      setError(null);
+      try {
+        await saveReviewedAnalysis(analysisId, phase3, 'reviewed');
+        const res = await applyToTarget(clientId, {
+          clientId,
+          analysisId,
+          reviewedResult: phase3,
+        });
+        if (!res.ok) {
+          setError(res.error ?? 'Could not apply to target assessment');
+          return;
+        }
+        navigate(`/clients/${clientId}`);
+      } catch {
+        setError('Could not apply to target assessment');
+      } finally {
+        setBusy(false);
+      }
+      return;
+    }
+    if (phase1 && localConflicts.length) {
       setView('apply-preview');
       setError('Resolve conflicts before applying approved findings.');
       return;
@@ -304,17 +352,24 @@ export function AnalyseTranscriptPage({ clientId }: { clientId: string }) {
     !ciReady || busy || !transcript.trim() || !analysisSupported || !auth.isAuthenticated;
 
   const approvedPreview = useMemo(() => {
-    if (!result) return null;
-    const keep = <T extends { reviewStatus: ReviewStatus }>(items: T[]) => items.filter((i) => isApproved(i.reviewStatus));
+    if (!phase1) return null;
+    const keep = <T extends { reviewStatus: ReviewStatus }>(items: T[]) =>
+      items.filter((i) => isApproved(i.reviewStatus));
     return {
-      presentingProblems: keep(result.presentingProblems),
-      triggers: keep(result.triggers),
-      memories: keep(result.memories),
-      themes: keep(result.themes),
-      resources: [...keep(result.internalResources), ...keep(result.externalResources)],
-      targetCandidates: keep(result.targetCandidates),
+      presentingProblems: keep(phase1.presentingProblems),
+      triggers: keep(phase1.triggers),
+      memories: keep(phase1.memories),
+      themes: keep(phase1.themes),
+      resources: [...keep(phase1.internalResources), ...keep(phase1.externalResources)],
+      targetCandidates: keep(phase1.targetCandidates),
     };
-  }, [result]);
+  }, [phase1]);
+
+  const syntheticForPhase = () => {
+    if (phase === 'assessment') setTranscript(SYNTHETIC_PHASE3_TRANSCRIPT);
+    else if (phase === 'desensitisation') setTranscript(SYNTHETIC_PHASE4_TRANSCRIPT);
+    else setTranscript(SYNTHETIC_TEST_TRANSCRIPT);
+  };
 
   return (
     <div className="practice-shell library-page">
@@ -373,8 +428,8 @@ export function AnalyseTranscriptPage({ clientId }: { clientId: string }) {
 
             {!phaseMeta.supported && (
               <div className="ci-error-banner" role="status">
-                v0.2 fully supports Standard EMDR Phase 1 only. Other phases will use dedicated prompts
-                later — Analyse is disabled for this selection.
+                v0.3 supports Standard EMDR Phase 1, Phase 3 Assessment, and Phase 4 Desensitisation.
+                Analyse is disabled for this selection.
               </div>
             )}
 
@@ -413,7 +468,7 @@ export function AnalyseTranscriptPage({ clientId }: { clientId: string }) {
               <button
                 type="button"
                 className="btn ghost"
-                onClick={() => setTranscript(SYNTHETIC_TEST_TRANSCRIPT)}
+                onClick={syntheticForPhase}
               >
                 Load synthetic test transcript
               </button>
@@ -444,18 +499,31 @@ export function AnalyseTranscriptPage({ clientId }: { clientId: string }) {
               >
                 ← Back to transcript
               </button>
-              <button type="button" className="btn" onClick={approveSelected} disabled={!selectedIds.size}>
+              <button
+                type="button"
+                className="btn"
+                onClick={approveSelected}
+                disabled={!phase1 || !selectedIds.size}
+              >
                 Approve selected
               </button>
               <button
                 type="button"
                 className="btn primary"
                 onClick={() => {
+                  if (phase3 || phase4) {
+                    void onApply();
+                    return;
+                  }
                   setView('apply-preview');
                   setError(null);
                 }}
               >
-                Apply Approved Findings
+                {phase3
+                  ? 'Apply to Target Assessment'
+                  : phase4
+                    ? 'Apply Approved Processing Notes'
+                    : 'Apply Approved Findings'}
               </button>
             </div>
 
@@ -473,10 +541,28 @@ export function AnalyseTranscriptPage({ clientId }: { clientId: string }) {
               <section className="panel ci-findings-pane" aria-label="Clinical Intelligence">
                 <h2>Clinical Intelligence</h2>
 
+                {phase3 && (
+                  <Phase3ReviewPanel
+                    result={phase3}
+                    onChange={(n) => updateResult(n)}
+                    onHighlight={setHighlight}
+                  />
+                )}
+
+                {phase4 && (
+                  <Phase4ReviewPanel
+                    result={phase4}
+                    onChange={(n) => updateResult(n)}
+                    onHighlight={setHighlight}
+                  />
+                )}
+
+                {phase1 && (
+                  <>
                 <FindingSection title="Information Still Needed">
                   <ul className="ci-needed-list">
-                    {(result.unansweredQuestions.length
-                      ? result.unansweredQuestions
+                    {(phase1.unansweredQuestions.length
+                      ? phase1.unansweredQuestions
                       : ['Not established — model returned no unanswered items']
                     ).map((q) => (
                       <li key={q}>{q}</li>
@@ -487,27 +573,27 @@ export function AnalyseTranscriptPage({ clientId }: { clientId: string }) {
                 <FindingSection title="Possible Areas to Clarify">
                   <p className="hint">AI-assisted — not treatment instructions.</p>
                   <ul>
-                    {result.clarificationSuggestions.map((q) => (
+                    {phase1.clarificationSuggestions.map((q) => (
                       <li key={q}>{q}</li>
                     ))}
-                    {!result.clarificationSuggestions.length && <li className="hint">None</li>}
+                    {!phase1.clarificationSuggestions.length && <li className="hint">None</li>}
                   </ul>
                 </FindingSection>
 
                 <FindingSection title="Summary">
                   <SuggestionCard
                     title="Session summary"
-                    item={result.summary}
-                    selected={selectedIds.has(result.summary.id)}
-                    onSelect={(on) => toggleId(setSelectedIds, result.summary.id, on)}
-                    onStatus={(s, edited) => setCollectionStatus('summary', result.summary.id, s, edited)}
+                    item={phase1.summary}
+                    selected={selectedIds.has(phase1.summary.id)}
+                    onSelect={(on) => toggleId(setSelectedIds, phase1.summary.id, on)}
+                    onStatus={(s, edited) => setCollectionStatus('summary', phase1.summary.id, s, edited)}
                     onEvidence={setHighlight}
                   />
                 </FindingSection>
 
                 <FindingSection title="Presenting Problems">
                   <SuggestionList
-                    items={result.presentingProblems}
+                    items={phase1.presentingProblems}
                     selectedIds={selectedIds}
                     setSelectedIds={setSelectedIds}
                     onStatus={(id, s, e) => setCollectionStatus('presentingProblems', id, s, e)}
@@ -517,7 +603,7 @@ export function AnalyseTranscriptPage({ clientId }: { clientId: string }) {
 
                 <FindingSection title="Symptoms / Difficulties">
                   <SuggestionList
-                    items={result.symptoms}
+                    items={phase1.symptoms}
                     selectedIds={selectedIds}
                     setSelectedIds={setSelectedIds}
                     onStatus={(id, s, e) => setCollectionStatus('symptoms', id, s, e)}
@@ -527,7 +613,7 @@ export function AnalyseTranscriptPage({ clientId }: { clientId: string }) {
 
                 <FindingSection title="Recent Examples">
                   <SuggestionList
-                    items={result.recentExamples}
+                    items={phase1.recentExamples}
                     selectedIds={selectedIds}
                     setSelectedIds={setSelectedIds}
                     onStatus={(id, s, e) => setCollectionStatus('recentExamples', id, s, e)}
@@ -537,7 +623,7 @@ export function AnalyseTranscriptPage({ clientId }: { clientId: string }) {
 
                 <FindingSection title="Current Triggers">
                   <SuggestionList
-                    items={result.triggers}
+                    items={phase1.triggers}
                     selectedIds={selectedIds}
                     setSelectedIds={setSelectedIds}
                     onStatus={(id, s, e) => setCollectionStatus('triggers', id, s, e)}
@@ -546,8 +632,8 @@ export function AnalyseTranscriptPage({ clientId }: { clientId: string }) {
                 </FindingSection>
 
                 <FindingSection title="Memory Timeline / Earlier Experiences">
-                  {result.memories.length ? (
-                    result.memories.map((m) => (
+                  {phase1.memories.length ? (
+                    phase1.memories.map((m) => (
                       <MemoryCard
                         key={m.id}
                         memory={m}
@@ -564,7 +650,7 @@ export function AnalyseTranscriptPage({ clientId }: { clientId: string }) {
 
                 <FindingSection title="Possible Associative Links">
                   <SuggestionList
-                    items={result.associativeLinks ?? []}
+                    items={phase1.associativeLinks ?? []}
                     selectedIds={selectedIds}
                     setSelectedIds={setSelectedIds}
                     onStatus={(id, s, e) => setCollectionStatus('associativeLinks', id, s, e)}
@@ -573,7 +659,7 @@ export function AnalyseTranscriptPage({ clientId }: { clientId: string }) {
                 </FindingSection>
 
                 <FindingSection title="Clinical Themes">
-                  {result.themes.map((t) => (
+                  {phase1.themes.map((t) => (
                     <ThemeCard
                       key={t.id}
                       theme={t}
@@ -583,12 +669,12 @@ export function AnalyseTranscriptPage({ clientId }: { clientId: string }) {
                       onEvidence={setHighlight}
                     />
                   ))}
-                  {!result.themes.length && <p className="hint">Not established</p>}
+                  {!phase1.themes.length && <p className="hint">Not established</p>}
                 </FindingSection>
 
                 <FindingSection title="Possible NCs">
-                  {result.negativeCognitions.length ? (
-                    result.negativeCognitions.map((item) => (
+                  {phase1.negativeCognitions.length ? (
+                    phase1.negativeCognitions.map((item) => (
                       <CognitionCard
                         key={item.id}
                         item={item}
@@ -604,8 +690,8 @@ export function AnalyseTranscriptPage({ clientId }: { clientId: string }) {
                 </FindingSection>
 
                 <FindingSection title="Possible PCs">
-                  {result.positiveCognitions.length ? (
-                    result.positiveCognitions.map((item) => (
+                  {phase1.positiveCognitions.length ? (
+                    phase1.positiveCognitions.map((item) => (
                       <CognitionCard
                         key={item.id}
                         item={item}
@@ -622,7 +708,7 @@ export function AnalyseTranscriptPage({ clientId }: { clientId: string }) {
 
                 <FindingSection title="Internal Resources">
                   <SuggestionList
-                    items={result.internalResources}
+                    items={phase1.internalResources}
                     selectedIds={selectedIds}
                     setSelectedIds={setSelectedIds}
                     onStatus={(id, s, e) => setCollectionStatus('internalResources', id, s, e)}
@@ -632,7 +718,7 @@ export function AnalyseTranscriptPage({ clientId }: { clientId: string }) {
 
                 <FindingSection title="External Resources">
                   <SuggestionList
-                    items={result.externalResources}
+                    items={phase1.externalResources}
                     selectedIds={selectedIds}
                     setSelectedIds={setSelectedIds}
                     onStatus={(id, s, e) => setCollectionStatus('externalResources', id, s, e)}
@@ -642,7 +728,7 @@ export function AnalyseTranscriptPage({ clientId }: { clientId: string }) {
 
                 <FindingSection title="Target Candidates">
                   <SuggestionList
-                    items={result.targetCandidates}
+                    items={phase1.targetCandidates}
                     selectedIds={selectedIds}
                     setSelectedIds={setSelectedIds}
                     onStatus={(id, s, e) => setCollectionStatus('targetCandidates', id, s, e)}
@@ -652,13 +738,15 @@ export function AnalyseTranscriptPage({ clientId }: { clientId: string }) {
 
                 <FindingSection title="Clinical Considerations">
                   <SuggestionList
-                    items={result.clinicalConsiderations}
+                    items={phase1.clinicalConsiderations}
                     selectedIds={selectedIds}
                     setSelectedIds={setSelectedIds}
                     onStatus={(id, s, e) => setCollectionStatus('clinicalConsiderations', id, s, e)}
                     onEvidence={setHighlight}
                   />
                 </FindingSection>
+                  </>
+                )}
               </section>
             </div>
 

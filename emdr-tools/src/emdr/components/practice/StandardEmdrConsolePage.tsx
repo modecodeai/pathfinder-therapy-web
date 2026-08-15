@@ -39,6 +39,7 @@ import {
   PHASE7_INCOMPLETE_STEPS,
   STANDARD_SOURCE_LABEL,
 } from '../../data/scripts/standardPhases';
+import { ClinicalIntelligencePanel } from '../../../clinical-intelligence/components/ClinicalIntelligencePanel';
 import type { ConsoleViewMode, GuidedScriptStep } from '../../guided/types/guidedScript';
 
 const PHASES = Object.keys(STANDARD_PHASE_LABELS) as StandardPhaseId[];
@@ -450,6 +451,26 @@ export function StandardEmdrConsolePage() {
                 if (sud != null) patch({ target: { ...ws.target, sud } });
                 patch({ setCount: ws.setCount + 1 });
               }}
+            />
+            <ClinicalIntelligencePanel
+              consolePhase={ws.phase}
+              target={ws.target}
+              defaultCollapsed={ws.phase === 'desensitisation'}
+              onApplyTargetDraft={(draft) =>
+                patch({
+                  target: {
+                    ...ws.target,
+                    ...(draft.label != null ? { label: draft.label } : {}),
+                    ...(draft.image != null ? { image: draft.image } : {}),
+                    ...(draft.nc != null ? { nc: draft.nc } : {}),
+                    ...(draft.pc != null ? { pc: draft.pc } : {}),
+                    ...(draft.voc !== undefined ? { voc: draft.voc } : {}),
+                    ...(draft.sud !== undefined ? { sud: draft.sud } : {}),
+                    ...(draft.emotion != null ? { emotion: draft.emotion } : {}),
+                    ...(draft.body != null ? { body: draft.body } : {}),
+                  },
+                })
+              }
             />
           </>
         }

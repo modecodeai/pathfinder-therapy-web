@@ -1,8 +1,11 @@
 import type {
+  AnyStructuredAnalysis,
   ApplyFindingsRequest,
+  ApplyToTargetRequest,
   ClientRecord,
   ClinicalAIAnalysisRecord,
-  TranscriptAnalysis,
+  SupportedAnalysisPhase,
+  TargetAssessmentDraft,
 } from '../types';
 
 const TOKEN_KEY = 'pf-emdr-auth-token';
@@ -53,7 +56,9 @@ export async function listClients(): Promise<
 > {
   const res = await fetch('/api/clients', { headers: authHeaders() });
   if (!res.ok) throw new Error(res.status === 401 ? 'Sign in required' : 'Could not load clients');
-  const data = await parseJson<{ clients: Array<{ id: string; displayName: string; presentingProblem?: string; updatedAt: string }> }>(res);
+  const data = await parseJson<{
+    clients: Array<{ id: string; displayName: string; presentingProblem?: string; updatedAt: string }>;
+  }>(res);
   return data.clients;
 }
 
@@ -75,23 +80,44 @@ export async function getClient(clientId: string): Promise<ClientRecord> {
   return data.client;
 }
 
-export async function analyseTranscript(payload: {
-  clientId: string;
-  protocol: 'standard-emdr';
-  phase: 'history';
-  transcript: string;
-  sessionDate?: string;
-  sessionId?: string;
-}): Promise<{
+export type AnalyseResponse = {
   success: boolean;
   error?: string;
-  structuredResult?: TranscriptAnalysis;
+  structuredResult?: AnyStructuredAnalysis;
   analysis?: ClinicalAIAnalysisRecord;
   model?: string;
   latencyMs?: number;
   rawTranscriptId?: string;
-}> {
+  isSegment?: boolean;
+};
+
+export async function analyseTranscript(payload: {
+  clientId: string;
+  protocol: 'standard-emdr';
+  phase: SupportedAnalysisPhase;
+  transcript: string;
+  sessionDate?: string;
+  sessionId?: string;
+  parentAnalysisId?: string;
+}): Promise<AnalyseResponse> {
   const res = await fetch('/api/clinical-intelligence/analyse', {
+    method: 'POST',
+    headers: authHeaders(),
+    body: JSON.stringify(payload),
+  });
+  return parseJson(res);
+}
+
+export async function analyseTranscriptSegment(payload: {
+  clientId: string;
+  protocol: 'standard-emdr';
+  phase: SupportedAnalysisPhase;
+  transcript: string;
+  parentAnalysisId: string;
+  sessionDate?: string;
+  sessionId?: string;
+}): Promise<AnalyseResponse> {
+  const res = await fetch('/api/clinical-intelligence/analyse-segment', {
     method: 'POST',
     headers: authHeaders(),
     body: JSON.stringify(payload),
@@ -117,9 +143,26 @@ export async function applyFindings(
   return parseJson(res);
 }
 
+export async function applyToTarget(
+  clientId: string,
+  body: ApplyToTargetRequest,
+): Promise<{
+  ok: boolean;
+  client?: ClientRecord;
+  draft?: TargetAssessmentDraft;
+  error?: string;
+}> {
+  const res = await fetch(`/api/clients/${encodeURIComponent(clientId)}/apply-to-target`, {
+    method: 'POST',
+    headers: authHeaders(),
+    body: JSON.stringify(body),
+  });
+  return parseJson(res);
+}
+
 export async function saveReviewedAnalysis(
   analysisId: string,
-  reviewedResult: TranscriptAnalysis,
+  reviewedResult: AnyStructuredAnalysis,
   reviewStatus: 'partially-reviewed' | 'reviewed' = 'partially-reviewed',
 ): Promise<void> {
   const res = await fetch(`/api/clinical-intelligence/analyses/${encodeURIComponent(analysisId)}`, {
@@ -147,14 +190,16 @@ export async function listClientAnalyses(clientId: string): Promise<
     headers: authHeaders(),
   });
   if (!res.ok) throw new Error('Could not load analyses');
-  const data = await parseJson<{ analyses: Array<{
-    id: string;
-    protocol: string;
-    phase: string;
-    model: string;
-    reviewStatus: string;
-    createdAt: string;
-  }> }>(res);
+  const data = await parseJson<{
+    analyses: Array<{
+      id: string;
+      protocol: string;
+      phase: string;
+      model: string;
+      reviewStatus: string;
+      createdAt: string;
+    }>;
+  }>(res);
   return data.analyses;
 }
 
@@ -178,3 +223,59 @@ THERAPIST:
 Who do you have around you now?
 CLIENT:
 My wife is very supportive. Running helps me clear my head as well.`;
+
+export const SYNTHETIC_PHASE3_TRANSCRIPT = `THERAPIST:
+So the target we're working with is the school report memory around age ten. What image represents the worst part?
+CLIENT:
+I can see my mum's face when she opens the report and looks disappointed.
+THERAPIST:
+What words go with that that express your negative belief about yourself now?
+CLIENT:
+I'm not good enough.
+THERAPIST:
+When you bring up that image, what would you prefer to believe about yourself instead?
+CLIENT:
+I am good enough.
+THERAPIST:
+When you think of that image and those words "I am good enough", how true do they feel from 1 to 7?
+CLIENT:
+About a 3.
+THERAPIST:
+What emotion do you feel now?
+CLIENT:
+Shame.
+THERAPIST:
+On a scale of 0 to 10, how disturbing does it feel?
+CLIENT:
+A 7.
+THERAPIST:
+Where do you feel that in your body?
+CLIENT:
+In my chest.`;
+
+export const SYNTHETIC_PHASE4_TRANSCRIPT = `THERAPIST:
+Notice that image, the words "I'm not good enough", the shame in your chest, and follow my fingers. Let whatever comes up, come up.
+CLIENT:
+It's getting hotter in my chest.
+THERAPIST:
+Go with that.
+CLIENT:
+Now I'm thinking about another time at school when I got told off in front of the class.
+THERAPIST:
+Notice that. Go with that.
+CLIENT:
+The image of Mum's face is a bit softer now. Still there though.
+THERAPIST:
+What do you notice in your body?
+CLIENT:
+Still in my chest but less tight. Maybe a 5 now.
+THERAPIST:
+Go with that.
+CLIENT:
+I keep thinking I have to be perfect or people will leave. That feels stuck.
+THERAPIST:
+Just notice that belief. Go with that.
+CLIENT:
+Actually… she was stressed a lot. It wasn't only about me.
+THERAPIST:
+Notice that.`;

@@ -40,6 +40,7 @@ export const TRANSCRIPT_ANALYSIS_JSON_SCHEMA: Record<string, unknown> = {
   type: 'object',
   additionalProperties: false,
   properties: {
+    analysisKind: { type: 'string', enum: ['phase1-history'] },
     summary: suggestionBase,
     presentingProblems: { type: 'array', items: suggestionBase },
     symptoms: { type: 'array', items: suggestionBase },
@@ -166,6 +167,7 @@ export const TRANSCRIPT_ANALYSIS_JSON_SCHEMA: Record<string, unknown> = {
     clarificationSuggestions: { type: 'array', items: { type: 'string' } },
   },
   required: [
+    'analysisKind',
     'summary',
     'presentingProblems',
     'symptoms',
@@ -247,6 +249,7 @@ export function validateTranscriptAnalysis(data: unknown): { ok: true; value: im
   return {
     ok: true,
     value: {
+      analysisKind: 'phase1-history',
       summary: { ...(d.summary as object), reviewStatus: 'pending' } as import('../../src/clinical-intelligence/types').ClinicalSuggestion<string>,
       presentingProblems: ensurePending(d.presentingProblems as never[]),
       symptoms: ensurePending(d.symptoms as never[]),

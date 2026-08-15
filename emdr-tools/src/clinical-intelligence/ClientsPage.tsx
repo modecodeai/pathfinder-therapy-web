@@ -165,6 +165,35 @@ export function ClientDetailPage({ clientId }: { clientId: string }) {
             </section>
 
             <section className="panel">
+              <h2>Active Target Assessment</h2>
+              {client.activeTarget ? (
+                <dl className="ci-kv">
+                  <dt>Target</dt>
+                  <dd>{client.activeTarget.headline}</dd>
+                  <dt>Image</dt>
+                  <dd>{client.activeTarget.image || 'Not established'}</dd>
+                  <dt>NC / PC</dt>
+                  <dd>
+                    {client.activeTarget.nc || 'Not established'} /{' '}
+                    {client.activeTarget.pc || 'Not established'}
+                  </dd>
+                  <dt>VoC / SUD</dt>
+                  <dd>
+                    {client.activeTarget.voc ?? 'Not established'} /{' '}
+                    {client.activeTarget.sud ?? 'Not established'}
+                  </dd>
+                  <dt>Emotion / Body</dt>
+                  <dd>
+                    {client.activeTarget.emotion || 'Not established'} /{' '}
+                    {client.activeTarget.body || 'Not established'}
+                  </dd>
+                </dl>
+              ) : (
+                <p className="hint">No approved Phase 3 target assessment yet</p>
+              )}
+            </section>
+
+            <section className="panel">
               <h2>AIP Formulation — Clinical Themes</h2>
               {client.themes.length ? (
                 <ul>
@@ -227,6 +256,27 @@ export function ClientDetailPage({ clientId }: { clientId: string }) {
                 </ul>
               ) : (
                 <p className="hint">None approved</p>
+              )}
+            </section>
+
+            <section className="panel">
+              <h2>Processing notes (Phase 4)</h2>
+              {(client.processingNotes?.length ?? 0) ? (
+                <ol className="ci-processing-sequence">
+                  {[...(client.processingNotes ?? [])]
+                    .sort((a, b) => a.order - b.order)
+                    .map((n) => (
+                      <li key={n.id}>
+                        <strong>
+                          {n.order}. {n.sequenceLabel}
+                        </strong>{' '}
+                        <span className="hint">({n.category})</span>
+                        <div>{n.value}</div>
+                      </li>
+                    ))}
+                </ol>
+              ) : (
+                <p className="hint">No approved processing sequence notes yet</p>
               )}
             </section>
 

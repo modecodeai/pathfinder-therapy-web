@@ -1,11 +1,18 @@
 import { DurableObject } from 'cloudflare:workers';
 import type {
+  AnyStructuredAnalysis,
   ApplyFindingsRequest,
+  ApplyToTargetRequest,
   ClientRecord,
   ClinicalAIAnalysisRecord,
-  TranscriptAnalysis,
+  Phase3AssessmentAnalysis,
 } from '../src/clinical-intelligence/types';
-import { applyApprovedFindings, emptyClientRecord, toApprovedClientContext } from './clinical-ai/applyFindings';
+import {
+  applyApprovedFindings,
+  applyPhase3ToTarget,
+  emptyClientRecord,
+  toApprovedClientContext,
+} from './clinical-ai/applyFindings';
 
 interface TherapistRow {
   id: string;
@@ -117,6 +124,17 @@ export class AccountDirectory extends DurableObject {
       } catch {
         // column already exists
       }
+      // v0.3: incremental segment lineage
+      for (const col of [
+        `ALTER TABLE clinical_ai_analyses ADD COLUMN parent_analysis_id TEXT`,
+        `ALTER TABLE clinical_ai_analyses ADD COLUMN segment_index INTEGER`,
+      ]) {
+        try {
+          this.ctx.storage.sql.exec(col);
+        } catch {
+          // column already exists
+        }
+      }
     });
   }
 
@@ -166,6 +184,9 @@ export class AccountDirectory extends DurableObject {
       }
       if (path.match(/\/clients\/[^/]+\/apply-findings$/) && request.method === 'POST') {
         return this.applyFindings(request, path);
+      }
+      if (path.match(/\/clients\/[^/]+\/apply-to-target$/) && request.method === 'POST') {
+        return this.applyToTarget(request, path);
       }
       if (path.match(/\/clients\/[^/]+\/analyses$/) && request.method === 'GET') {
         return this.listAnalyses(request, path);
@@ -484,6 +505,58 @@ export class AccountDirectory extends DurableObject {
     return Response.json({ ok: true, client: result.client, auditCount: result.audit.length });
   }
 
+  private async applyToTarget(request: Request, path: string): Promise<Response> {
+    const user = await this.userFromAuth(request);
+    if (!user) return Response.json({ error: 'Unauthorized' }, { status: 401 });
+    const parts = path.split('/');
+    const clientId = parts[parts.length - 2];
+    const client = this.loadClient(user.id, clientId);
+    if (!client) return Response.json({ error: 'Not found' }, { status: 404 });
+    const body = (await request.json()) as ApplyToTargetRequest;
+    if (!body.analysisId || !body.reviewedResult) {
+      return Response.json({ error: 'analysisId and reviewedResult required' }, { status: 400 });
+    }
+    if (body.reviewedResult.analysisKind !== 'phase3-assessment') {
+      return Response.json(
+        { error: 'Apply to Target Assessment requires a Phase 3 analysis.' },
+        { status: 400 },
+      );
+    }
+    const now = Date.now();
+    const nowIso = new Date(now).toISOString();
+    const result = applyPhase3ToTarget(
+      client,
+      body.reviewedResult as Phase3AssessmentAnalysis,
+      body.analysisId,
+      nowIso,
+    );
+    this.saveClient(result.client, now);
+    for (const a of result.audit) {
+      this.ctx.storage.sql.exec(
+        `INSERT INTO clinical_ai_audit (id, therapist_id, client_id, analysis_id, payload_json, created_at) VALUES (?, ?, ?, ?, ?, ?)`,
+        a.id,
+        user.id,
+        clientId,
+        body.analysisId,
+        JSON.stringify(a),
+        now,
+      );
+    }
+    this.ctx.storage.sql.exec(
+      `UPDATE clinical_ai_analyses SET review_status = ?, reviewed_result_json = ? WHERE id = ? AND therapist_id = ?`,
+      'reviewed',
+      JSON.stringify(body.reviewedResult),
+      body.analysisId,
+      user.id,
+    );
+    return Response.json({
+      ok: true,
+      client: result.client,
+      draft: result.draft,
+      auditCount: result.audit.length,
+    });
+  }
+
   private async storeAnalysis(request: Request): Promise<Response> {
     const user = await this.userFromAuth(request);
     if (!user) return Response.json({ error: 'Unauthorized' }, { status: 401 });
@@ -496,7 +569,9 @@ export class AccountDirectory extends DurableObject {
       model: string;
       promptVersion: string;
       schemaVersion: string;
-      structuredResult: TranscriptAnalysis;
+      structuredResult: AnyStructuredAnalysis;
+      parentAnalysisId?: string;
+      segmentIndex?: number;
     };
     const client = this.loadClient(user.id, body.clientId);
     if (!client) return Response.json({ error: 'Client not found' }, { status: 404 });
@@ -532,11 +607,13 @@ export class AccountDirectory extends DurableObject {
       structuredResult: body.structuredResult,
       reviewedResult: null,
       reviewStatus: 'pending',
+      parentAnalysisId: body.parentAnalysisId,
+      segmentIndex: body.segmentIndex,
     };
     this.ctx.storage.sql.exec(
       `INSERT INTO clinical_ai_analyses
-        (id, therapist_id, client_id, session_id, protocol, phase, provider, model, prompt_version, schema_version, raw_transcript_id, structured_result_json, reviewed_result_json, review_status, created_at)
-       VALUES (?, ?, ?, ?, ?, ?, 'openai', ?, ?, ?, ?, ?, NULL, 'pending', ?)`,
+        (id, therapist_id, client_id, session_id, protocol, phase, provider, model, prompt_version, schema_version, raw_transcript_id, structured_result_json, reviewed_result_json, review_status, created_at, parent_analysis_id, segment_index)
+       VALUES (?, ?, ?, ?, ?, ?, 'openai', ?, ?, ?, ?, ?, NULL, 'pending', ?, ?, ?)`,
       analysisId,
       user.id,
       body.clientId,
@@ -549,6 +626,8 @@ export class AccountDirectory extends DurableObject {
       transcriptId,
       JSON.stringify(body.structuredResult),
       now,
+      body.parentAnalysisId ?? null,
+      body.segmentIndex ?? null,
     );
     return Response.json({
       ok: true,
@@ -620,6 +699,8 @@ export class AccountDirectory extends DurableObject {
         structuredResult: JSON.parse(String(row.structured_result_json)),
         reviewedResult: reviewedRaw ? JSON.parse(String(reviewedRaw)) : null,
         reviewStatus: row.review_status,
+        parentAnalysisId: row.parent_analysis_id ? String(row.parent_analysis_id) : undefined,
+        segmentIndex: row.segment_index == null ? undefined : Number(row.segment_index),
       },
       rawTranscript: trRows[0]?.raw_transcript ?? '',
     });
@@ -630,9 +711,9 @@ export class AccountDirectory extends DurableObject {
     if (!user) return Response.json({ error: 'Unauthorized' }, { status: 401 });
     const id = path.split('/').pop()!;
     const body = (await request.json()) as {
-      reviewedResult?: TranscriptAnalysis;
+      reviewedResult?: AnyStructuredAnalysis;
       /** @deprecated use reviewedResult — must not overwrite AI structured_result_json */
-      structuredResult?: TranscriptAnalysis;
+      structuredResult?: AnyStructuredAnalysis;
       reviewStatus?: string;
     };
     const rows = this.ctx.storage.sql

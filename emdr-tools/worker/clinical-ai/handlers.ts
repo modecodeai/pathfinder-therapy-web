@@ -5,7 +5,8 @@ import {
   isOpenAIConfigured,
 } from './openai';
 import { CONNECTION_TEST_PROMPT } from './prompts';
-import { analysePhase1Transcript, assertAnalyseRequest } from './analyse';
+import { analyseTranscript, assertAnalyseRequest } from './analyse';
+import type { AnyStructuredAnalysis, ApprovedClientContext } from '../../src/clinical-intelligence/types';
 
 function accountsStub(env: Env) {
   return env.ACCOUNTS.get(env.ACCOUNTS.idFromName('global'));
@@ -21,6 +22,58 @@ async function requireAuth(request: Request, env: Env): Promise<Response | null>
   );
   if (!res.ok) return Response.json({ error: 'Unauthorized' }, { status: 401 });
   return null;
+}
+
+async function loadClientContext(
+  request: Request,
+  env: Env,
+  clientId: string,
+): Promise<{ context: ApprovedClientContext } | Response> {
+  const stub = accountsStub(env);
+  const ctxRes = await stub.fetch(
+    new Request(`https://accounts/clients/${encodeURIComponent(clientId)}/context`, {
+      method: 'GET',
+      headers: request.headers,
+    }),
+  );
+  if (ctxRes.status === 404) {
+    return Response.json({ error: 'Client not found' }, { status: 404 });
+  }
+  if (!ctxRes.ok) {
+    return Response.json({ error: 'Unable to load client context' }, { status: ctxRes.status });
+  }
+  const ctxData = (await ctxRes.json()) as { context: ApprovedClientContext };
+  return { context: (ctxData.context ?? {}) as ApprovedClientContext };
+}
+
+async function storeAnalysis(
+  request: Request,
+  env: Env,
+  payload: {
+    clientId: string;
+    sessionId?: string;
+    protocol: string;
+    phase: string;
+    rawTranscript: string;
+    model: string;
+    promptVersion: string;
+    schemaVersion: string;
+    structuredResult: AnyStructuredAnalysis;
+    parentAnalysisId?: string;
+    segmentIndex?: number;
+  },
+) {
+  const stub = accountsStub(env);
+  return stub.fetch(
+    new Request('https://accounts/clinical-ai/store-analysis', {
+      method: 'POST',
+      headers: {
+        Authorization: request.headers.get('Authorization') ?? '',
+        'content-type': 'application/json',
+      },
+      body: JSON.stringify(payload),
+    }),
+  );
 }
 
 export async function handleClinicalIntelligenceRoutes(
@@ -68,9 +121,7 @@ export async function handleClinicalIntelligenceRoutes(
         model: result.model,
         response,
         latencyMs: result.latencyMs,
-        ...(ok
-          ? {}
-          : { error: 'Unexpected response from OpenAI connection test.' }),
+        ...(ok ? {} : { error: 'Unexpected response from OpenAI connection test.' }),
       });
     } catch (e) {
       const err = e instanceof ClinicalAIError ? e : null;
@@ -86,7 +137,11 @@ export async function handleClinicalIntelligenceRoutes(
     }
   }
 
-  if (path === '/api/clinical-intelligence/analyse' && request.method === 'POST') {
+  if (
+    (path === '/api/clinical-intelligence/analyse' ||
+      path === '/api/clinical-intelligence/analyse-segment') &&
+    request.method === 'POST'
+  ) {
     const denied = await requireAuth(request, env);
     if (denied) return denied;
     if (!isOpenAIConfigured(env)) {
@@ -106,6 +161,7 @@ export async function handleClinicalIntelligenceRoutes(
       return Response.json({ error: 'Invalid JSON body' }, { status: 400 });
     }
 
+    const isSegmentRoute = path.endsWith('analyse-segment');
     let req;
     try {
       req = assertAnalyseRequest(body);
@@ -117,49 +173,72 @@ export async function handleClinicalIntelligenceRoutes(
       );
     }
 
-    const stub = accountsStub(env);
-    const ctxRes = await stub.fetch(
-      new Request(`https://accounts/clients/${encodeURIComponent(req.clientId)}/context`, {
-        method: 'GET',
-        headers: request.headers,
-      }),
-    );
-    if (ctxRes.status === 404) {
-      return Response.json({ error: 'Client not found' }, { status: 404 });
+    if (isSegmentRoute && !req.parentAnalysisId) {
+      return Response.json(
+        { error: 'parentAnalysisId is required for segment analysis.' },
+        { status: 400 },
+      );
     }
-    if (!ctxRes.ok) {
-      return Response.json({ error: 'Unable to load client context' }, { status: ctxRes.status });
+
+    const ctxOrErr = await loadClientContext(request, env, req.clientId);
+    if (ctxOrErr instanceof Response) return ctxOrErr;
+
+    let parentReviewed: AnyStructuredAnalysis | null = null;
+    let segmentIndex: number | undefined;
+    if (req.parentAnalysisId) {
+      const stub = accountsStub(env);
+      const parentRes = await stub.fetch(
+        new Request(
+          `https://accounts/clinical-ai/analyses/${encodeURIComponent(req.parentAnalysisId)}`,
+          { method: 'GET', headers: request.headers },
+        ),
+      );
+      if (!parentRes.ok) {
+        return Response.json({ error: 'Parent analysis not found' }, { status: 404 });
+      }
+      const parentData = (await parentRes.json()) as {
+        analysis: {
+          phase: string;
+          structuredResult: AnyStructuredAnalysis;
+          reviewedResult?: AnyStructuredAnalysis | null;
+          segmentIndex?: number | null;
+        };
+      };
+      if (parentData.analysis.phase !== req.phase) {
+        return Response.json(
+          { error: 'Segment phase must match the parent analysis phase.' },
+          { status: 400 },
+        );
+      }
+      parentReviewed =
+        parentData.analysis.reviewedResult ?? parentData.analysis.structuredResult;
+      segmentIndex = (parentData.analysis.segmentIndex ?? 0) + 1;
     }
-    const ctxData = (await ctxRes.json()) as { context: unknown };
 
     try {
       // Privacy: do not log transcript or OpenAI payloads.
-      const analysed = await analysePhase1Transcript(env, {
+      const analysed = await analyseTranscript(env, {
+        phase: req.phase,
         transcript: req.transcript,
-        clientContext: (ctxData.context ?? {}) as import('../../src/clinical-intelligence/types').ApprovedClientContext,
+        clientContext: ctxOrErr.context,
         sessionDate: req.sessionDate,
+        parentReviewed,
+        isSegment: Boolean(req.parentAnalysisId) || isSegmentRoute,
       });
 
-      const storeRes = await stub.fetch(
-        new Request('https://accounts/clinical-ai/store-analysis', {
-          method: 'POST',
-          headers: {
-            Authorization: request.headers.get('Authorization') ?? '',
-            'content-type': 'application/json',
-          },
-          body: JSON.stringify({
-            clientId: req.clientId,
-            sessionId: req.sessionId,
-            protocol: req.protocol,
-            phase: req.phase,
-            rawTranscript: req.transcript,
-            model: analysed.model,
-            promptVersion: analysed.promptVersion,
-            schemaVersion: analysed.schemaVersion,
-            structuredResult: analysed.analysis,
-          }),
-        }),
-      );
+      const storeRes = await storeAnalysis(request, env, {
+        clientId: req.clientId,
+        sessionId: req.sessionId,
+        protocol: req.protocol,
+        phase: req.phase,
+        rawTranscript: req.transcript,
+        model: analysed.model,
+        promptVersion: analysed.promptVersion,
+        schemaVersion: analysed.schemaVersion,
+        structuredResult: analysed.analysis,
+        parentAnalysisId: req.parentAnalysisId,
+        segmentIndex,
+      });
       if (!storeRes.ok) {
         return Response.json(
           {
@@ -184,6 +263,7 @@ export async function handleClinicalIntelligenceRoutes(
         analysis: stored.analysis,
         structuredResult: analysed.analysis,
         rawTranscriptId: stored.rawTranscriptId,
+        isSegment: Boolean(req.parentAnalysisId) || isSegmentRoute,
       });
     } catch (e) {
       const err = e instanceof ClinicalAIError ? e : null;
@@ -194,7 +274,14 @@ export async function handleClinicalIntelligenceRoutes(
             err?.message ??
             'Clinical Intelligence could not analyse this transcript. The transcript has been preserved.',
         },
-        { status: err?.code === 'invalid_output' ? 502 : err?.status && err.status >= 400 ? err.status : 502 },
+        {
+          status:
+            err?.code === 'invalid_output'
+              ? 502
+              : err?.status && err.status >= 400
+                ? err.status
+                : 502,
+        },
       );
     }
   }
@@ -228,11 +315,14 @@ export async function handleClientRoutes(
   if (path === '/api/clients') {
     target = '/clients';
   } else {
-    const m = path.match(/^\/api\/clients\/([^/]+)(?:\/(context|apply-findings|analyses))?$/);
+    const m = path.match(
+      /^\/api\/clients\/([^/]+)(?:\/(context|apply-findings|apply-to-target|analyses))?$/,
+    );
     if (!m) return Response.json({ error: 'Not found' }, { status: 404 });
     const clientId = decodeURIComponent(m[1]);
     if (m[2] === 'context') target = `/clients/${clientId}/context`;
     else if (m[2] === 'apply-findings') target = `/clients/${clientId}/apply-findings`;
+    else if (m[2] === 'apply-to-target') target = `/clients/${clientId}/apply-to-target`;
     else if (m[2] === 'analyses') target = `/clients/${clientId}/analyses`;
     else target = `/clients/${clientId}`;
   }
