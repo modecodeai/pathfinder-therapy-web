@@ -193,6 +193,11 @@ export function PainProtocolPage() {
   const goStage = useCallback(
     (stage: PainProtocolStage) => {
       patchWs({ stage });
+      if (stage === 'dashboard') {
+        setFlowStep('treatment');
+        setSelectedClient(null);
+        setPendingVariant(null);
+      }
     },
     [patchWs],
   );
