@@ -23,9 +23,11 @@ export function LandingPage() {
           </span>
         </div>
         <nav className="site-nav">
-          <Link to="/session">Standard EMDR</Link>
+          <Link to="/practice">Practice</Link>
+          <Link to="/practice/standard">Standard EMDR</Link>
           <Link to="/pain">EMDR Pain</Link>
           <Link to="/resources">Scripts</Link>
+          <Link to="/practice/library">Resources</Link>
           <Link to="/tools">BLS Studio</Link>
           <Link to="/account">Account</Link>
           <Link to="/about">About</Link>
@@ -41,22 +43,28 @@ export function LandingPage() {
           Companion. One shared BLS engine across Studio, Session, and remote client view.
         </p>
         <div className="cta-row cta-hierarchy">
-          <Link className="btn primary large" to="/account">
+          <Link className="btn primary large" to="/practice">
+            Guided Practice
+          </Link>
+          <Link className="btn large" to="/account">
             Create free therapist account
           </Link>
-          <Link className="btn large" to="/session">
-            EMDR Session Companion
+          <Link className="btn large" to="/practice/standard">
+            Standard EMDR Console
           </Link>
           <Link className="btn large" to="/pain">
             EMDR Pain Protocol
           </Link>
         </div>
         <div className="cta-row cta-utility">
+          <Link className="btn ghost" to="/session">
+            Classic Session Companion
+          </Link>
           <Link className="btn ghost" to="/tools">
             Open BLS Studio
           </Link>
-          <Link className="btn ghost" to="/resources">
-            Therapist Script Library
+          <Link className="btn ghost" to="/practice/library">
+            Clinical Library
           </Link>
           <button type="button" className="btn ghost" onClick={() => setShowJoin((v) => !v)}>
             Join a Session

@@ -25,9 +25,14 @@ import {
   type PainWorkspaceState,
   type ProtocolScriptSection,
 } from '../../types/painProtocol';
-import { PainBlsControls } from './PainBlsControls';
+import { GuidedPracticeConsole } from '../../guided/components/GuidedPracticeConsole';
+import { LiveBlsPanel } from '../../guided/components/LiveBlsPanel';
+import { QuickResponsePanel } from '../../guided/components/QuickResponsePanel';
+import { SessionHeaderBar } from '../../guided/components/SessionHeaderBar';
+import { TherapistScriptPanel } from '../../guided/components/TherapistScriptPanel';
+import { useGuidedKeyboard } from '../../guided/hooks/useGuidedKeyboard';
+import { parsePlainScriptToSteps } from '../../guided/lib/parseScriptSteps';
 import { PainProtocolNavigator } from './PainProtocolNavigator';
-import { PainScriptPanel } from './PainScriptPanel';
 
 const PROTOCOL_TITLE = 'Mark Grant EMDR Pain Protocol';
 
@@ -116,6 +121,11 @@ export function PainProtocolPage() {
   const [aipExpanded, setAipExpanded] = useState(false);
   const [wmtDismissed, setWmtDismissed] = useState(false);
   const [checkInCount, setCheckInCount] = useState(0);
+  const [navCollapsed, setNavCollapsed] = useState(false);
+  const [followMode, setFollowMode] = useState(true);
+  const [autoScroll, setAutoScroll] = useState(true);
+  const [stepIndex, setStepIndex] = useState(0);
+  const [timelineNotes, setTimelineNotes] = useState<string[]>([]);
   const mountedRef = useRef(false);
 
   const bls = useBlsSession();
@@ -196,7 +206,7 @@ export function PainProtocolPage() {
     const ok = window.confirm(
       'Leave the EMDR Pain workspace and open Standard EMDR? Session data remains in this browser.',
     );
-    if (ok) navigate('/session');
+    if (ok) navigate('/practice/standard');
   }, [navigate]);
 
   const returnPainDefault = useCallback(() => {
@@ -218,6 +228,15 @@ export function PainProtocolPage() {
   const inProcessing = PROCESSING_STAGES.includes(ws.stage);
   const showVisual = bls.state.visualEnabled && !bls.state.audioOnly;
   const blsRunning = bls.state.running && !bls.state.paused;
+  const showLiveBls =
+    ws.stage !== 'dashboard' &&
+    ws.stage !== 'help' &&
+    ws.stage !== 'script-full' &&
+    ws.stage !== 'script-short';
+
+  const emergencyStop = useCallback(() => {
+    bls.stop();
+  }, [bls]);
 
   const currentScript = useMemo(() => {
     if (ws.pinnedScriptId) {
@@ -229,6 +248,36 @@ export function PainProtocolPage() {
     if (ws.stage === 'script-full' || ws.stage === 'script-short') return null;
     return scriptForStage(ws.stage, 'full');
   }, [ws.pinnedScriptId, ws.stage]);
+
+  const scriptSteps = useMemo(() => {
+    if (!currentScript?.script) return [];
+    return parsePlainScriptToSteps(currentScript.script, {
+      protocol: 'emdr-pain',
+      phase: ws.stage,
+      section: currentScript.id,
+      idPrefix: currentScript.id,
+      source: {
+        author: 'Mark Grant',
+        title: currentScript.source || 'EMDR Pain Protocol',
+      },
+    });
+  }, [currentScript, ws.stage]);
+
+  useEffect(() => {
+    setStepIndex(0);
+  }, [ws.stage, currentScript?.id]);
+
+  useGuidedKeyboard({
+    enabled: followMode && ws.stage !== 'dashboard',
+    blsRunning,
+    onToggleBls: () => {
+      if (blsRunning) bls.stop();
+      else void blsForControls.start();
+    },
+    onNext: () => setStepIndex((i) => Math.min(i + 1, Math.max(0, scriptSteps.length - 1))),
+    onPrev: () => setStepIndex((i) => Math.max(0, i - 1)),
+    onEmergencyStop: emergencyStop,
+  });
 
   const handleCheckIn = useCallback(() => {
     setCheckInCount((c) => c + 1);
@@ -1454,104 +1503,188 @@ export function PainProtocolPage() {
   const scriptNext = ws.stage !== 'dashboard' ? nextNavigatorStage(ws.stage) : null;
 
   return (
-    <div className="companion companion-v3 app-shell pain-protocol-page">
-      <header className="companion-top">
-        <div className="companion-brand">
-          <Link to="/" className="brand">
-            <span className="brand-mark" aria-hidden />
-            <span>
-              <strong>Pathfinder</strong> EMDR Pain
-            </span>
-          </Link>
-          <button
-            type="button"
-            className="chip protocol-source-badge"
-            onClick={() => setSourcesOpen((v) => !v)}
-            aria-expanded={sourcesOpen}
-          >
-            {PROTOCOL_TITLE}
-          </button>
-        </div>
-        <nav className="companion-meta pain-top-nav" aria-label="Workspace navigation">
-          <button type="button" className="btn ghost" onClick={leaveForStandard}>
-            Standard EMDR
-          </button>
-          <Link className="btn ghost" to="/session">
-            Working Memory Taxation
-          </Link>
-          <Link className="btn ghost" to="/pain" aria-current="page">
-            EMDR Pain
-          </Link>
-          <Link className="btn ghost" to="/resources">
-            Scripts
-          </Link>
-          <button type="button" className="btn ghost" onClick={() => goStage('help')}>
-            Help
-          </button>
-          <Link className="btn ghost" to="/account">
-            Settings
-          </Link>
-        </nav>
-      </header>
-
-      <div className="companion-chrome">
-        <div className="segmented protocol-mode-selector" role="group" aria-label="Protocol mode">
-          <button type="button" className="btn ghost" onClick={leaveForStandard}>
-            Standard EMDR
-          </button>
-          <button type="button" className="is-active" aria-pressed>
-            EMDR Pain
-          </button>
-        </div>
-        {sourcesOpen && (
-          <div className="banner soft pain-sources-list" role="region" aria-label="Protocol sources">
-            <p>
-              <strong>Source materials</strong>
-            </p>
-            <ul>
-              {PROTOCOL_SOURCES.map((s) => (
-                <li key={s}>{s}</li>
-              ))}
-            </ul>
-            <button type="button" className="btn ghost" onClick={() => setSourcesOpen(false)}>
-              Close
-            </button>
+    <div className="companion companion-v3 app-shell pain-protocol-page guided-practice-page">
+      {ws.stage === 'dashboard' ? (
+        <>
+          <header className="companion-top">
+            <div className="companion-brand">
+              <Link to="/practice" className="brand">
+                <span className="brand-mark" aria-hidden />
+                <span>
+                  <strong>Pathfinder</strong> EMDR Pain
+                </span>
+              </Link>
+              <button
+                type="button"
+                className="chip protocol-source-badge"
+                onClick={() => setSourcesOpen((v) => !v)}
+                aria-expanded={sourcesOpen}
+              >
+                {PROTOCOL_TITLE}
+              </button>
+            </div>
+            <nav className="companion-meta pain-top-nav" aria-label="Primary">
+              <Link className="btn ghost" to="/practice">
+                Practice
+              </Link>
+              <Link className="btn ghost" to="/pain" aria-current="page">
+                Protocols
+              </Link>
+              <Link className="btn ghost" to="/resources">
+                Scripts
+              </Link>
+              <Link className="btn ghost" to="/practice/library">
+                Resources
+              </Link>
+              <Link className="btn ghost" to="/account">
+                Settings
+              </Link>
+            </nav>
+          </header>
+          <div className="companion-chrome">
+            <div className="banner notice medical-safety-note" role="note">
+              <strong>Medical safety:</strong> EMDR pain work does not replace appropriate medical
+              assessment, diagnosis or treatment. Stop BLS if pain becomes intolerable.
+            </div>
+            {sourcesOpen && (
+              <div className="banner soft pain-sources-list" role="region" aria-label="Protocol sources">
+                <ul>
+                  {PROTOCOL_SOURCES.map((s) => (
+                    <li key={s}>{s}</li>
+                  ))}
+                </ul>
+              </div>
+            )}
           </div>
-        )}
-        <div className="banner notice medical-safety-note" role="note">
-          <strong>Medical safety:</strong> EMDR pain work does not replace appropriate medical
-          assessment, diagnosis or treatment. New, unexplained, rapidly worsening or otherwise
-          concerning pain requires appropriate medical evaluation. Do not diagnose pain origin in
-          this app. Stop BLS if pain becomes intolerable.
-        </div>
-      </div>
-
-      <div className="companion-workspace">
-        {ws.stage === 'dashboard' ? (
           <main className="pain-dashboard-main">{renderStageContent()}</main>
-        ) : (
-          <div className="companion-body pain-workspace-body">
-            <aside className="companion-side">
+        </>
+      ) : (
+        <GuidedPracticeConsole
+          viewMode="processing"
+          navCollapsed={navCollapsed}
+          onToggleNav={() => setNavCollapsed((v) => !v)}
+          header={
+            <>
+              <div className="guided-top-nav">
+                <Link to="/practice" className="brand">
+                  <span className="brand-mark" aria-hidden />
+                  <span>
+                    <strong>Pathfinder</strong> EMDR Pain
+                  </span>
+                </Link>
+                <nav className="stack-btns horizontal wrap" aria-label="Primary">
+                  <Link className="btn ghost" to="/practice">
+                    Practice
+                  </Link>
+                  <button type="button" className="btn ghost" onClick={leaveForStandard}>
+                    Standard EMDR
+                  </button>
+                  <button type="button" className="btn ghost" onClick={() => goStage('dashboard')}>
+                    Dashboard
+                  </button>
+                  <Link className="btn ghost" to="/practice/library">
+                    Resources
+                  </Link>
+                  <Link className="btn ghost" to="/account">
+                    Settings
+                  </Link>
+                </nav>
+              </div>
+              <SessionHeaderBar
+                model={{
+                  protocol: 'EMDR Pain',
+                  phase: PAIN_STAGE_LABELS[ws.stage] ?? ws.stage,
+                  target: ws.assessment.targetDescription || ws.assessment.painImageMetaphor || undefined,
+                  sud: ws.assessment.currentSud ?? ws.assessment.baselineSud,
+                  blsSummary: `${
+                    bls.state.audioOnly ? 'Auditory' : bls.state.visualEnabled ? 'Visual' : 'Off'
+                  }${bls.state.continuous || bls.state.setMode === 'continuous' ? ' · Continuous' : ''}`,
+                  elapsedLabel: bls.formatTime(bls.metrics.timeMs),
+                  extra: [
+                    {
+                      label: 'Body',
+                      value: ws.assessment.bodyLocations?.join(', ') || '—',
+                    },
+                  ],
+                }}
+                blsActive={blsRunning}
+                onEmergencyStop={emergencyStop}
+              />
+              <div className="banner notice medical-safety-note" role="note">
+                <strong>Medical safety:</strong> Stop BLS if pain becomes intolerable. This app does
+                not diagnose pain origin.
+              </div>
+            </>
+          }
+          navigator={
+            <>
               <PainProtocolNavigator
                 stage={ws.stage}
                 completed={ws.completedStages}
                 onSelect={goStage}
               />
               <div className="stack-btns">
-                <button type="button" className="btn ghost" onClick={() => goStage('dashboard')}>
-                  Dashboard
-                </button>
                 <button type="button" className="btn ghost" onClick={() => goStage('overview')}>
                   Overview
                 </button>
                 <button type="button" className="btn ghost" onClick={() => goStage('script-full')}>
-                  Scripts
+                  Full scripts
                 </button>
               </div>
-            </aside>
-
-            <section className="companion-stage pain-stage-center">
-              {showVisual && inProcessing && (
+            </>
+          }
+          script={
+            <TherapistScriptPanel
+              title={currentScript?.title ?? PAIN_STAGE_LABELS[ws.stage] ?? 'Therapist Script'}
+              sourceLabel={currentScript?.source ?? PROTOCOL_TITLE}
+              steps={scriptSteps}
+              plainText={!scriptSteps.length ? currentScript?.script : undefined}
+              followMode={followMode}
+              onFollowModeChange={setFollowMode}
+              autoScroll={autoScroll}
+              onAutoScrollChange={setAutoScroll}
+              stepIndex={stepIndex}
+              onStepIndexChange={setStepIndex}
+              onPrev={
+                scriptPrev
+                  ? () => {
+                      if (stepIndex > 0) setStepIndex((i) => i - 1);
+                      else goStage(scriptPrev);
+                    }
+                  : () => setStepIndex((i) => Math.max(0, i - 1))
+              }
+              onNext={
+                scriptNext
+                  ? () => {
+                      if (stepIndex < scriptSteps.length - 1) setStepIndex((i) => i + 1);
+                      else goStage(scriptNext);
+                    }
+                  : () => setStepIndex((i) => Math.min(i + 1, scriptSteps.length - 1))
+              }
+              onRepeat={() => setStepIndex((i) => i)}
+              onStartBls={() => void blsForControls.start()}
+              onStopBls={() => bls.stop()}
+              blsRunning={blsRunning}
+              toolbarExtra={
+                <button
+                  type="button"
+                  className="btn ghost"
+                  onClick={() =>
+                    patchWs({
+                      pinnedScriptId: ws.pinnedScriptId ? null : (currentScript?.id ?? null),
+                    })
+                  }
+                >
+                  {ws.pinnedScriptId ? 'Unpin Script' : 'Pin Script'}
+                </button>
+              }
+            >
+              <div className="pain-stage-inline">{renderStageContent()}</div>
+            </TherapistScriptPanel>
+          }
+          clinicalControls={
+            <>
+              {showLiveBls && showVisual && (
                 <BlsStage
                   attachCanvas={bls.attachCanvas}
                   label="Pain BLS"
@@ -1559,52 +1692,98 @@ export function PainProtocolPage() {
                   lockSize={blsRunning}
                 />
               )}
-              {inProcessing && !showVisual && (
+              {showLiveBls && !showVisual && (
                 <div className="panel pain-audio-only-stage">
-                  <p className="hint">
-                    Auditory BLS active — visual stage hidden per Grant Pain Default.
-                  </p>
                   <p>
-                    Status: {blsRunning ? 'Running' : bls.state.running ? 'Paused' : 'Ready'} ·{' '}
+                    {blsRunning ? '● Auditory BLS ACTIVE' : '○ BLS STOPPED'} ·{' '}
                     {bls.formatTime(bls.metrics.timeMs)}
                   </p>
+                  <p className="hint">Visual stage hidden while audio-only (Grant Pain Default).</p>
                 </div>
               )}
-              {renderStageContent()}
-            </section>
-
-            <aside className="companion-controls pain-stage-right">
-              <PainScriptPanel
-                section={currentScript}
-                open={ws.scriptPanelOpen}
-                onToggle={() => patchWs({ scriptPanelOpen: !ws.scriptPanelOpen })}
-                pinned={!!ws.pinnedScriptId}
-                onPin={() =>
-                  patchWs({
-                    pinnedScriptId: ws.pinnedScriptId ? null : (currentScript?.id ?? null),
-                  })
-                }
-                onCopy={() => copyScript(currentScript)}
-                note={ws.stageNotes[ws.stage] ?? ''}
-                onNote={(v) => setStageNote(ws.stage, v)}
-                onMarkComplete={() => completeStage(ws.stage)}
-                onPrev={scriptPrev ? () => goStage(scriptPrev) : undefined}
-                onNext={scriptNext ? () => goStage(scriptNext) : undefined}
-              />
-              {inProcessing && (
-                <PainBlsControls
+              {showLiveBls && (
+                <LiveBlsPanel
                   session={blsForControls}
-                  showWmtWarning={showWmtWarning}
-                  onDismissWmt={() => setWmtDismissed(true)}
-                  onReturnPainDefault={returnPainDefault}
-                  continuousPreferred={ws.continuousBlsPreferred}
-                  onContinuousPreferred={(v) => patchWs({ continuousBlsPreferred: v })}
-                />
+                  recommendedPreset="grantPainAuditory"
+                  presetOptions={[
+                    'grantPainAuditory',
+                    'painVisual',
+                    'painInstallation',
+                    'standardReprocessing',
+                  ]}
+                  showAdvancedTaxation={inProcessing}
+                  onEmergencyStop={emergencyStop}
+                  title="Pain BLS"
+                >
+                  {showWmtWarning && (
+                    <div className="taxation-advisory" role="status">
+                      <p>
+                        <strong>Clinical check</strong> — Advanced visual working-memory taxation is
+                        not part of the core Mark Grant Pain Protocol supplied here. Continue only
+                        with clinical judgement.
+                      </p>
+                      <div className="stack-btns horizontal">
+                        <button type="button" className="btn" onClick={() => setWmtDismissed(true)}>
+                          Continue
+                        </button>
+                        <button type="button" className="btn primary" onClick={returnPainDefault}>
+                          Return to Pain Default
+                        </button>
+                      </div>
+                    </div>
+                  )}
+                </LiveBlsPanel>
               )}
-            </aside>
-          </div>
-        )}
-      </div>
+              <QuickResponsePanel
+                title="What changed?"
+                onStopSignal={emergencyStop}
+                onSave={({ tags, words, sud }) => {
+                  setTimelineNotes((prev) => [
+                    ...prev,
+                    `${tags.join(', ')}${words ? `: ${words}` : ''}${sud != null ? ` · SUD ${sud}` : ''}`,
+                  ]);
+                  if (sud != null) updateSud(sud);
+                  if (words) setStageNote(ws.stage, `${ws.stageNotes[ws.stage] ?? ''}\n${words}`.trim());
+                }}
+              />
+              {timelineNotes.length > 0 && (
+                <ul className="hint-list">
+                  {timelineNotes.slice(-6).map((n) => (
+                    <li key={n}>
+                      {n}
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </>
+          }
+          footer={
+            <div className="guided-footer-record panel">
+              <label className="field">
+                <span>Session note / current response</span>
+                <textarea
+                  rows={2}
+                  value={ws.stageNotes[ws.stage] ?? ''}
+                  onChange={(e) => setStageNote(ws.stage, e.target.value)}
+                />
+              </label>
+              <div className="stack-btns horizontal wrap">
+                <button type="button" className="btn" onClick={handleCheckIn}>
+                  Check-in (keep BLS) · {checkInCount}
+                </button>
+                <button type="button" className="btn primary" onClick={() => completeStage(ws.stage)}>
+                  Mark stage complete
+                </button>
+                {scriptNext && (
+                  <button type="button" className="btn" onClick={() => goStage(scriptNext)}>
+                    Next stage
+                  </button>
+                )}
+              </div>
+            </div>
+          }
+        />
+      )}
     </div>
   );
 }
