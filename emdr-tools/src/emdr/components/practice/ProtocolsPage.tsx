@@ -12,31 +12,36 @@ const PROTOCOLS = [
   {
     to: '/practice/standard',
     title: 'Standard EMDR',
-    subtitle: 'Eight-phase protocol',
+    what: 'Guided eight-phase EMDR with live BLS, target tracking and clinical scripts.',
+    when: 'Use for standard trauma processing across Phases 1–8 when a full EMDR protocol is indicated.',
     Icon: IconPhases,
   },
   {
     to: '/pain',
     title: 'EMDR Pain',
-    subtitle: 'Mark Grant Protocol',
+    what: 'Mark Grant–informed workflows for chronic, present, phantom limb and trauma-related pain.',
+    when: 'Use when pain is the clinical focus and EMDR pain protocols are medically appropriate.',
     Icon: IconPain,
   },
   {
     to: '/practice/emd',
     title: 'EMD',
-    subtitle: 'Focused desensitisation',
+    what: 'Focused desensitisation with shorter BLS sets and repeated return to target.',
+    when: 'Use for contained, time-limited desensitisation when a full Standard EMDR arc is not required.',
     Icon: IconTarget,
   },
   {
     to: '/practice/safe-calm',
     title: 'Resourcing',
-    subtitle: 'Safe Place · Container · RDI',
+    what: 'Safe/Calm Place, Container, RDI and stabilisation tools with integrated BLS.',
+    when: 'Use for preparation, stabilisation, or when the client needs resources before processing.',
     Icon: IconShield,
   },
 ] as const;
 
 /**
- * Protocol templates — not active sessions.
+ * Treatment selection catalogue — templates, not active sessions.
+ * UX Rule #2: context before data (no session metrics here).
  */
 export function ProtocolsPage() {
   return (
@@ -45,27 +50,40 @@ export function ProtocolsPage() {
       <main className="practice-main">
         <header className="pf-page-hero">
           <div>
-            <h1 className="pf-title">Protocols</h1>
+            <p className="pf-eyebrow">Treatment selection</p>
+            <h1 className="pf-title">Choose a treatment</h1>
             <p className="pf-subtitle">
-              Clinical templates for guided EMDR delivery. Open a protocol to begin a session.
+              How do you want to work? Select a treatment workflow — client and session measures come
+              next.
             </p>
           </div>
         </header>
 
-        <div className="pf-protocol-list" role="list">
-          {PROTOCOLS.map(({ to, title, subtitle, Icon }) => (
-            <Link key={to} className="pf-protocol-card" to={to} role="listitem">
-              <span className="pf-protocol-icon" aria-hidden>
-                <Icon />
-              </span>
-              <span className="pf-protocol-copy">
-                <span className="pf-protocol-title">{title}</span>
-                <span className="pf-protocol-sub">{subtitle}</span>
-              </span>
-              <span className="pf-protocol-open">
-                Open <IconArrowRight size={16} />
-              </span>
-            </Link>
+        <div className="pf-protocol-list pf-treatment-list" role="list">
+          {PROTOCOLS.map(({ to, title, what, when, Icon }) => (
+            <article key={to} className="pf-surface-card pf-treatment-card" role="listitem">
+              <div className="pf-treatment-card-head">
+                <span className="pf-protocol-icon" aria-hidden>
+                  <Icon />
+                </span>
+                <h2 className="pf-card-title">{title}</h2>
+              </div>
+              <div className="pain-brief-block">
+                <h3 className="pf-meta" style={{ fontWeight: 700, color: 'var(--pf-text)' }}>
+                  What is this?
+                </h3>
+                <p>{what}</p>
+              </div>
+              <div className="pain-brief-block">
+                <h3 className="pf-meta" style={{ fontWeight: 700, color: 'var(--pf-text)' }}>
+                  When should I use it?
+                </h3>
+                <p>{when}</p>
+              </div>
+              <Link className="btn primary" to={to}>
+                Start treatment <IconArrowRight size={16} />
+              </Link>
+            </article>
           ))}
         </div>
       </main>

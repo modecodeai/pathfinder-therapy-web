@@ -10,7 +10,6 @@ import {
   IconPlus,
   IconShield,
   IconTarget,
-  IconUser,
 } from '../../../components/icons';
 import { listClients } from '../../../clinical-intelligence/lib/api';
 import { useAuth } from '../../../hooks/useAuth';
@@ -134,8 +133,13 @@ export function PainProtocolPage() {
   const [autoScroll, setAutoScroll] = useState(true);
   const [stepIndex, setStepIndex] = useState(0);
   const [timelineNotes, setTimelineNotes] = useState<string[]>([]);
-  const [clientPicker, setClientPicker] = useState<'start' | 'continue' | null>(null);
   const [pendingVariant, setPendingVariant] = useState<string | null>(null);
+  /** Treatment Selection → Client → Session choice (never show clinical data before context) */
+  const [flowStep, setFlowStep] = useState<'treatment' | 'client' | 'session'>('treatment');
+  const [clientQuery, setClientQuery] = useState('');
+  const [selectedClient, setSelectedClient] = useState<{ id: string; displayName: string } | null>(
+    null,
+  );
   const [clientOptions, setClientOptions] = useState<
     Array<{ id: string; displayName: string }>
   >([]);
@@ -236,7 +240,8 @@ export function PainProtocolPage() {
         };
       });
       setPendingVariant(null);
-      setClientPicker(null);
+      setFlowStep('treatment');
+      setSelectedClient(null);
     },
     [applyPainDefault, patchWs, pendingVariant, ws.protocolVariant],
   );
@@ -249,7 +254,8 @@ export function PainProtocolPage() {
         linkedClientName: opts?.clientName ?? prev.linkedClientName,
         stage: prev.stage === 'dashboard' ? firstOpenStage(prev) : prev.stage,
       }));
-      setClientPicker(null);
+      setFlowStep('treatment');
+      setSelectedClient(null);
     },
     [patchWs],
   );
@@ -259,42 +265,17 @@ export function PainProtocolPage() {
     Boolean(ws.assessment.targetDescription || ws.assessment.painImageMetaphor) ||
     ws.orientationComplete;
 
-  const requestStart = useCallback(
-    (variant?: string) => {
-      if (variant) setPendingVariant(variant);
-      if (ws.linkedClientId) {
-        startProtocol({
-          clientId: ws.linkedClientId,
-          clientName: ws.linkedClientName,
-          variant: variant ?? ws.protocolVariant,
-        });
-        return;
-      }
-      setClientPicker('start');
-    },
-    [startProtocol, ws.linkedClientId, ws.linkedClientName, ws.protocolVariant],
-  );
-
-  const requestContinue = useCallback(() => {
-    if (!hasExistingSession) {
-      requestStart();
-      return;
-    }
-    if (ws.linkedClientId) {
-      continueSession({ clientId: ws.linkedClientId, clientName: ws.linkedClientName });
-      return;
-    }
-    setClientPicker('continue');
-  }, [
-    continueSession,
-    hasExistingSession,
-    requestStart,
-    ws.linkedClientId,
-    ws.linkedClientName,
-  ]);
+  const beginTreatmentSelection = useCallback((variant?: string) => {
+    if (variant) setPendingVariant(variant);
+    else setPendingVariant((v) => v ?? 'standard');
+    setFlowStep('client');
+    setSelectedClient(null);
+    setClientQuery('');
+  }, []);
 
   useEffect(() => {
-    if (!clientPicker || !auth.isAuthenticated) return;
+    if (flowStep !== 'client' && flowStep !== 'session') return;
+    if (!auth.isAuthenticated) return;
     setPickerError(null);
     void listClients()
       .then((rows) =>
@@ -305,7 +286,7 @@ export function PainProtocolPage() {
         ),
       )
       .catch(() => setPickerError('Could not load clients. Sign in and try again.'));
-  }, [clientPicker, auth.isAuthenticated]);
+  }, [flowStep, auth.isAuthenticated]);
 
   const returnPainDefault = useCallback(() => {
     applyPainDefault();
@@ -344,7 +325,7 @@ export function PainProtocolPage() {
       ];
       if (!resource.includes(stage) && !ws.linkedClientId) {
         setPendingVariant(ws.protocolVariant ?? 'standard');
-        setClientPicker('start');
+        setFlowStep('client');
         return;
       }
       goStage(stage);
@@ -467,192 +448,74 @@ export function PainProtocolPage() {
     void navigator.clipboard.writeText(section.script);
   }, []);
 
-  const renderDashboard = () => (
-    <div className="pain-landing">
-      <header className="pf-page-hero pain-landing-hero">
-        <div>
-          <p className="pf-eyebrow">Mark Grant–informed</p>
-          <h1 className="pf-title">EMDR Pain</h1>
-          <p className="pf-subtitle">
-            Protocol templates and clinical resources for EMDR pain work. Choose how you want to
-            work — session measures appear only after you select a client and begin.
-          </p>
-        </div>
-      </header>
+  const filteredClients = useMemo(() => {
+    const q = clientQuery.trim().toLowerCase();
+    if (!q) return clientOptions;
+    return clientOptions.filter((c) => c.displayName.toLowerCase().includes(q));
+  }, [clientOptions, clientQuery]);
 
-      <section className="pain-landing-section" aria-label="Primary actions">
-        <div className="pain-primary-actions">
-          <button type="button" className="btn primary" onClick={() => requestStart('standard')}>
-            <IconPlus /> Start New Pain Session
-          </button>
-          <button type="button" className="btn secondary" onClick={() => requestContinue()}>
-            Continue Existing Pain Session
-          </button>
-          <Link className="btn secondary" to="/practice/library">
-            <IconBook size={18} /> Open Pain Library
-          </Link>
-          <button type="button" className="btn tertiary" onClick={() => goStage('overview')}>
-            Open Pain Protocol Reference
-          </button>
-        </div>
-        <p className="pf-meta pain-landing-note">
-          Medical safety: EMDR pain work does not replace appropriate medical assessment. Stop BLS if
-          pain becomes intolerable.
-        </p>
-      </section>
+  const variantLabel = (id: string | null | undefined) => {
+    switch (id) {
+      case 'present-pain':
+        return 'Present Pain Target';
+      case 'trauma-related':
+        return 'Trauma-related Pain';
+      case 'phantom-limb':
+        return 'Phantom Limb Pain';
+      case 'residual-limb':
+        return 'Residual Limb Pain';
+      case 'somatic':
+        return 'Somatic Pain';
+      default:
+        return 'Standard Pain Protocol';
+    }
+  };
 
-      <section className="pain-landing-section">
-        <h2 className="pf-section-title">Treatment protocols</h2>
-        <p className="pf-meta" style={{ marginBottom: 16 }}>
-          Templates only — not an active session. Starting any protocol asks you to select a client
-          first.
-        </p>
-        <div className="pain-protocol-grid">
-          {(
-            [
-              {
-                id: 'standard',
-                title: 'Standard Pain Protocol',
-                sub: 'Eight-phase Grant pain workflow',
-                Icon: IconPhases,
-              },
-              {
-                id: 'present-pain',
-                title: 'Present Pain Target',
-                sub: 'Present-moment sensory targeting',
-                Icon: IconPain,
-              },
-              {
-                id: 'trauma-related',
-                title: 'Trauma-related Pain',
-                sub: 'Pain linked to traumatic memory',
-                Icon: IconShield,
-              },
-              {
-                id: 'phantom-limb',
-                title: 'Phantom Limb Pain',
-                sub: 'Grant variation for phantom limb',
-                Icon: IconTarget,
-              },
-              {
-                id: 'residual-limb',
-                title: 'Residual Limb Pain',
-                sub: 'Grant variation for residual limb',
-                Icon: IconTarget,
-              },
-              {
-                id: 'somatic',
-                title: 'Somatic Pain',
-                sub: 'Somatic / body-focused framing',
-                Icon: IconPain,
-              },
-            ] as const
-          ).map(({ id, title, sub, Icon }) => (
-            <button
-              key={id}
-              type="button"
-              className="pf-protocol-card pain-template-card"
-              onClick={() => requestStart(id)}
-            >
-              <span className="pf-protocol-icon" aria-hidden>
-                <Icon />
-              </span>
-              <span className="pf-protocol-copy">
-                <span className="pf-protocol-title">{title}</span>
-                <span className="pf-protocol-sub">{sub}</span>
-              </span>
-              <span className="pf-protocol-open">
-                Open <IconArrowRight size={16} />
-              </span>
-            </button>
-          ))}
-        </div>
-      </section>
-
-      <section className="pain-landing-section">
-        <h2 className="pf-section-title">Resources</h2>
-        <div className="pain-resource-grid">
-          <button type="button" className="pf-surface-card pain-resource-card" onClick={() => goStage('script-full')}>
-            <IconBook size={22} />
-            <span>
-              <strong>Full Script</strong>
-              <span className="pf-meta">Complete Mark Grant protocol script</span>
-            </span>
+  const renderDashboard = () => {
+    if (flowStep === 'client') {
+      return (
+        <div className="pain-flow pain-flow-client">
+          <button type="button" className="btn tertiary" onClick={() => setFlowStep('treatment')}>
+            ← Back to treatment selection
           </button>
-          <button type="button" className="pf-surface-card pain-resource-card" onClick={() => goStage('help')}>
-            <IconPain size={22} />
-            <span>
-              <strong>Antidote Imagery</strong>
-              <span className="pf-meta">Antidote installation resources</span>
-            </span>
-          </button>
-          <button type="button" className="pf-surface-card pain-resource-card" onClick={() => goStage('help')}>
-            <IconShield size={22} />
-            <span>
-              <strong>Healing Imagery</strong>
-              <span className="pf-meta">Imaginal healing scripts</span>
-            </span>
-          </button>
-          <button type="button" className="pf-surface-card pain-resource-card" onClick={() => goStage('help')}>
-            <IconPhases size={22} />
-            <span>
-              <strong>Variations</strong>
-              <span className="pf-meta">Present pain, phantom limb and more</span>
-            </span>
-          </button>
-          <button type="button" className="pf-surface-card pain-resource-card" onClick={() => goStage('overview')}>
-            <IconBook size={22} />
-            <span>
-              <strong>Clinical Guidance</strong>
-              <span className="pf-meta">Integrative approach and safety notes</span>
-            </span>
-          </button>
-        </div>
-      </section>
-
-      {clientPicker && (
-        <div className="pf-modal-backdrop" role="presentation" onClick={() => setClientPicker(null)}>
-          <div
-            className="pf-modal panel"
-            role="dialog"
-            aria-labelledby="pain-client-picker-title"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <h2 id="pain-client-picker-title">Select a client</h2>
-            <p className="pf-meta">
-              Session measures (SUD, VoC, phase, target) appear only after a client is linked.
-            </p>
-            {!auth.isAuthenticated ? (
-              <div className="pf-empty">
-                <p>Sign in to link this pain session to a clinical client record.</p>
-                <Link className="btn primary" to="/account">
-                  Sign in
-                </Link>
-              </div>
-            ) : clientOptions.length === 0 ? (
-              <div className="pf-empty">
-                <p>{pickerError || 'No clients yet. Create a client record first.'}</p>
-                <Link className="btn secondary" to="/clients">
-                  <IconUser size={18} /> Open Clients
-                </Link>
-              </div>
-            ) : (
-              <ul className="pf-recent-list">
-                {clientOptions.map((c) => (
+          <header className="pf-page-hero">
+            <div>
+              <p className="pf-eyebrow">Step 2 of 3</p>
+              <h1 className="pf-title">Who are you working with today?</h1>
+              <p className="pf-subtitle">
+                Context before data — choose the client before any session measures appear.
+                {pendingVariant ? ` Treatment: ${variantLabel(pendingVariant)}.` : ''}
+              </p>
+            </div>
+          </header>
+          {!auth.isAuthenticated ? (
+            <div className="pf-surface-card pf-empty">
+              <p>Sign in to select a clinical client record.</p>
+              <Link className="btn primary" to="/account">
+                Sign in
+              </Link>
+            </div>
+          ) : (
+            <>
+              <label className="field">
+                <span>Search</span>
+                <input
+                  value={clientQuery}
+                  onChange={(e) => setClientQuery(e.target.value)}
+                  placeholder="Search clients…"
+                  autoFocus
+                />
+              </label>
+              {pickerError && <p className="ci-error-banner">{pickerError}</p>}
+              <ul className="pf-recent-list pain-client-list">
+                {filteredClients.map((c) => (
                   <li key={c.id}>
                     <button
                       type="button"
                       className="pain-client-pick"
                       onClick={() => {
-                        if (clientPicker === 'continue') {
-                          continueSession({ clientId: c.id, clientName: c.displayName });
-                        } else {
-                          startProtocol({
-                            clientId: c.id,
-                            clientName: c.displayName,
-                            variant: pendingVariant ?? 'standard',
-                          });
-                        }
+                        setSelectedClient(c);
+                        setFlowStep('session');
                       }}
                     >
                       <span className="pf-recent-name">{c.displayName}</span>
@@ -662,18 +525,263 @@ export function PainProtocolPage() {
                     </button>
                   </li>
                 ))}
+                {!filteredClients.length && (
+                  <li className="pf-meta" style={{ padding: '12px 0' }}>
+                    No matching clients.
+                  </li>
+                )}
               </ul>
-            )}
-            <div className="pf-modal-actions">
-              <button type="button" className="btn tertiary" onClick={() => setClientPicker(null)}>
-                Cancel
-              </button>
+              <Link className="btn secondary" to="/clients">
+                <IconPlus /> New Client
+              </Link>
+            </>
+          )}
+        </div>
+      );
+    }
+
+    if (flowStep === 'session' && selectedClient) {
+      return (
+        <div className="pain-flow pain-flow-session">
+          <button type="button" className="btn tertiary" onClick={() => setFlowStep('client')}>
+            ← Change client
+          </button>
+          <header className="pf-page-hero">
+            <div>
+              <p className="pf-eyebrow">Step 3 of 3</p>
+              <h1 className="pf-title">{selectedClient.displayName}</h1>
+              <p className="pf-subtitle">
+                {variantLabel(pendingVariant)} · Choose how to continue this treatment.
+              </p>
             </div>
+          </header>
+          <div className="pain-session-choice">
+            {hasExistingSession && (
+              <button
+                type="button"
+                className="pf-surface-card pain-choice-card"
+                onClick={() =>
+                  continueSession({
+                    clientId: selectedClient.id,
+                    clientName: selectedClient.displayName,
+                  })
+                }
+              >
+                <h2 className="pf-card-title">Continue previous session</h2>
+                <p className="pf-meta">
+                  Resume at {PAIN_STAGE_LABELS[firstOpenStage(ws)]}.
+                </p>
+                <span className="pf-text-link">
+                  Continue <IconArrowRight size={16} />
+                </span>
+              </button>
+            )}
+            <button
+              type="button"
+              className="pf-surface-card pain-choice-card is-primary-choice"
+              onClick={() =>
+                startProtocol({
+                  clientId: selectedClient.id,
+                  clientName: selectedClient.displayName,
+                  variant: pendingVariant ?? 'standard',
+                })
+              }
+            >
+              <h2 className="pf-card-title">Start new pain session</h2>
+              <p className="pf-meta">Begin from orientation with Grant Pain Default BLS.</p>
+              <span className="pf-text-link">
+                Begin <IconArrowRight size={16} />
+              </span>
+            </button>
           </div>
         </div>
-      )}
-    </div>
-  );
+      );
+    }
+
+    return (
+      <div className="pain-flow pain-treatment-selection">
+        <header className="pf-page-hero">
+          <div>
+            <p className="pf-eyebrow">Treatment selection</p>
+            <h1 className="pf-title">EMDR Pain</h1>
+            <p className="pf-subtitle">
+              Mark Grant–informed treatment workflows for chronic pain, phantom limb pain and
+              trauma-related pain.
+            </p>
+          </div>
+        </header>
+
+        <section className="pf-surface-card pain-brief">
+          <div className="pain-brief-block">
+            <h2 className="pf-card-title">What is this?</h2>
+            <p>
+              A guided Mark Grant EMDR Pain Protocol workspace for describing, targeting and
+              processing pain with bilateral stimulation, antidote imagery and imaginal healing —
+              without replacing medical care.
+            </p>
+          </div>
+          <div className="pain-brief-block">
+            <h2 className="pf-card-title">When should I use it?</h2>
+            <p>
+              Use when pain is the clinical focus: chronic or present pain, trauma-linked pain,
+              phantom or residual limb pain, or somatic pain presentations where EMDR pain protocols
+              are clinically indicated and medically appropriate.
+            </p>
+          </div>
+          <button
+            type="button"
+            className="btn primary pain-start-treatment"
+            onClick={() => beginTreatmentSelection('standard')}
+          >
+            <IconPlus /> Start treatment
+          </button>
+        </section>
+
+        <section className="pain-landing-section" aria-label="How to work">
+          <h2 className="pf-section-title">Choose how you want to work</h2>
+          <div className="pain-how-grid">
+            <button
+              type="button"
+              className="pf-surface-card pain-choice-card"
+              onClick={() => beginTreatmentSelection('standard')}
+            >
+              <h3 className="pf-card-title">Start New Session</h3>
+              <p className="pf-meta">Select a client, then begin a new pain protocol session.</p>
+            </button>
+            <button
+              type="button"
+              className="pf-surface-card pain-choice-card"
+              onClick={() => beginTreatmentSelection(ws.protocolVariant ?? 'standard')}
+            >
+              <h3 className="pf-card-title">Continue Session</h3>
+              <p className="pf-meta">
+                {hasExistingSession
+                  ? 'Pick the client and resume where you left off.'
+                  : 'No in-progress session yet — you can still start fresh after choosing a client.'}
+              </p>
+            </button>
+          </div>
+        </section>
+
+        <section className="pain-landing-section">
+          <h2 className="pf-section-title">Treatment protocols</h2>
+          <div className="pain-protocol-grid">
+            {(
+              [
+                {
+                  id: 'standard',
+                  title: 'Standard Pain',
+                  sub: 'Eight-phase Grant pain workflow',
+                  Icon: IconPhases,
+                },
+                {
+                  id: 'present-pain',
+                  title: 'Present Pain',
+                  sub: 'Present-moment sensory targeting',
+                  Icon: IconPain,
+                },
+                {
+                  id: 'trauma-related',
+                  title: 'Trauma-related Pain',
+                  sub: 'Pain linked to traumatic memory',
+                  Icon: IconShield,
+                },
+                {
+                  id: 'phantom-limb',
+                  title: 'Phantom Limb',
+                  sub: 'Grant variation for phantom limb',
+                  Icon: IconTarget,
+                },
+                {
+                  id: 'residual-limb',
+                  title: 'Residual Limb',
+                  sub: 'Grant variation for residual limb',
+                  Icon: IconTarget,
+                },
+                {
+                  id: 'somatic',
+                  title: 'Somatic Pain',
+                  sub: 'Somatic / body-focused framing',
+                  Icon: IconPain,
+                },
+              ] as const
+            ).map(({ id, title, sub, Icon }) => (
+              <button
+                key={id}
+                type="button"
+                className="pf-protocol-card pain-template-card"
+                onClick={() => beginTreatmentSelection(id)}
+              >
+                <span className="pf-protocol-icon" aria-hidden>
+                  <Icon />
+                </span>
+                <span className="pf-protocol-copy">
+                  <span className="pf-protocol-title">{title}</span>
+                  <span className="pf-protocol-sub">{sub}</span>
+                </span>
+                <span className="pf-protocol-open">
+                  Select <IconArrowRight size={16} />
+                </span>
+              </button>
+            ))}
+          </div>
+        </section>
+
+        <section className="pain-landing-section">
+          <h2 className="pf-section-title">Knowledge</h2>
+          <div className="pain-resource-grid">
+            <button type="button" className="pf-surface-card pain-resource-card" onClick={() => goStage('overview')}>
+              <IconBook size={22} />
+              <span>
+                <strong>Protocol Reference</strong>
+                <span className="pf-meta">Structure and phase overview</span>
+              </span>
+            </button>
+            <button type="button" className="pf-surface-card pain-resource-card" onClick={() => goStage('overview')}>
+              <IconBook size={22} />
+              <span>
+                <strong>Clinical Guidance</strong>
+                <span className="pf-meta">Integrative approach and safety</span>
+              </span>
+            </button>
+            <button type="button" className="pf-surface-card pain-resource-card" onClick={() => goStage('script-full')}>
+              <IconBook size={22} />
+              <span>
+                <strong>Scripts</strong>
+                <span className="pf-meta">Full and short protocol scripts</span>
+              </span>
+            </button>
+            <button type="button" className="pf-surface-card pain-resource-card" onClick={() => goStage('help')}>
+              <IconPhases size={22} />
+              <span>
+                <strong>Variations</strong>
+                <span className="pf-meta">Present pain, phantom limb and more</span>
+              </span>
+            </button>
+            <button type="button" className="pf-surface-card pain-resource-card" onClick={() => goStage('help')}>
+              <IconPain size={22} />
+              <span>
+                <strong>Antidote Imagery</strong>
+                <span className="pf-meta">Antidote installation resources</span>
+              </span>
+            </button>
+            <button type="button" className="pf-surface-card pain-resource-card" onClick={() => goStage('help')}>
+              <IconShield size={22} />
+              <span>
+                <strong>Healing Imagery</strong>
+                <span className="pf-meta">Imaginal healing scripts</span>
+              </span>
+            </button>
+          </div>
+        </section>
+
+        <p className="pf-meta pain-landing-note">
+          Medical safety: EMDR pain work does not replace appropriate medical assessment. Stop BLS if
+          pain becomes intolerable.
+        </p>
+      </div>
+    );
+  };
 
   const renderOrientation = () => {
     const section = GRANT_PAIN_FULL.find((s) => s.id === 'full-aip');
@@ -1789,7 +1897,7 @@ export function PainProtocolPage() {
   return (
     <div
       className={`companion companion-v3 app-shell pain-protocol-page guided-practice-page${
-        ws.stage === 'dashboard' ? ' pain-landing-shell' : ''
+        ws.stage === 'dashboard' ? ' pain-treatment-shell' : ''
       }`}
     >
       {isResourceStage ? (
@@ -1829,7 +1937,9 @@ export function PainProtocolPage() {
               {ws.linkedClientId ? (
                 <SessionStatusStrip
                   model={{
-                    protocol: 'EMDR Pain',
+                    protocol: ws.linkedClientName
+                      ? `${ws.linkedClientName} · Pain Protocol`
+                      : 'Pain Protocol',
                     phase: PAIN_STAGE_LABELS[ws.stage] ?? ws.stage,
                     target:
                       ws.assessment.targetDescription || ws.assessment.painImageMetaphor || undefined,
@@ -1840,12 +1950,9 @@ export function PainProtocolPage() {
                     elapsedLabel: bls.formatTime(bls.metrics.timeMs),
                     extra: [
                       {
-                        label: 'Client',
-                        value: ws.linkedClientName || 'Linked',
-                      },
-                      {
-                        label: 'Body',
-                        value: ws.assessment.bodyLocations?.join('/') || '—',
+                        label: 'VoC',
+                        value:
+                          ws.assessment.voc != null ? String(ws.assessment.voc) : '—',
                       },
                     ],
                   }}
