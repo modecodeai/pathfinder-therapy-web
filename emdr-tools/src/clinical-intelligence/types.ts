@@ -685,6 +685,17 @@ export interface ClientRecord {
   painFormulation?: import('./clinicalReasoning').PainLensFormulation;
   /** Therapist-selected current treatment frame — not a permanent client type */
   primaryTreatmentApproach?: import('./clinicalReasoning').PrimaryTreatmentApproach;
+  /**
+   * Primary clinical lens within the treatment approach (e.g. Integrated + TA-primary).
+   * Therapist-selected — never assume EMDR.
+   */
+  primaryClinicalLens?: import('./clinicalReasoning').LensId | 'none';
+  /** Pending TA findings from Core→Primary Lens analysis awaiting Approve/Edit/Reject */
+  pendingTaLensReview?: import('./lib/taLensFromApprovedCore').PendingTaFinding[];
+  /** When TA lens analysis was last run from approved core */
+  taLensAnalysedAt?: string;
+  /** Therapist deliberately opened EMDR as complementary/explore lens */
+  emdrLensExplored?: boolean;
   /** Lenses currently in active use (may be fewer than explored once) */
   activeClinicalLenses?: import('./clinicalReasoning').LensId[];
   /** Historical treatment-approach periods — never overwrite */

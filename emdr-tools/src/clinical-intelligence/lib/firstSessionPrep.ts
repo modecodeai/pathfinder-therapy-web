@@ -32,13 +32,17 @@ function pick(findings: IntakeCoreFinding[], cats: IntakeCoreFinding['category']
       (f.reviewStatus === 'approved' || f.reviewStatus === 'edited') && cats.includes(f.category),
   );
   if (!approved.length) return 'Not established from approved intake.';
-  return approved
-    .map((f) => {
-      const t = f.reviewStatus === 'edited' ? (f.therapistEditedValue ?? f.text) : f.text;
-      const quote = f.clientStatement && f.clientStatement !== t ? ` (“${f.clientStatement}”)` : '';
-      return `• ${t}${quote}`;
-    })
-    .join('\n');
+  // Concise clinical items — provenance stays behind View Evidence, not inline quotes
+  const seen = new Set<string>();
+  const lines: string[] = [];
+  for (const f of approved) {
+    const t = (f.reviewStatus === 'edited' ? (f.therapistEditedValue ?? f.text) : f.text).trim();
+    const key = t.toLowerCase().slice(0, 80);
+    if (seen.has(key)) continue;
+    seen.add(key);
+    lines.push(`• ${t}`);
+  }
+  return lines.join('\n');
 }
 
 function pickPatterns(findings: IntakeCoreFinding[]): string {

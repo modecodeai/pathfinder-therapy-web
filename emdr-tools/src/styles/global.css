@@ -6797,11 +6797,38 @@ a.pf-public-card:hover {
   display: grid;
   gap: 0.15rem;
 }
-.pf-icr-bulk-actions {
+.pf-icr-filters {
   display: flex;
   flex-wrap: wrap;
-  gap: 0.5rem;
-  align-items: center;
+  gap: 0.35rem;
+}
+.pf-icr-filters button {
+  border: 1px solid var(--pf-border);
+  background: #fff;
+  border-radius: 999px;
+  padding: 0.25rem 0.7rem;
+  font-size: 0.8rem;
+  cursor: pointer;
+}
+.pf-icr-filters button.is-active {
+  background: var(--pf-primary-soft);
+  border-color: var(--pf-primary);
+  font-weight: 600;
+}
+.pf-icr-approved {
+  border: 1px solid var(--pf-border);
+  border-radius: 14px;
+  padding: 0.65rem 0.9rem;
+  background: #f7faf8;
+}
+.pf-icr-approved summary {
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 0.95rem;
+}
+.pf-icr-card.is-approved {
+  border-color: color-mix(in srgb, #2f6f4e 35%, var(--pf-border));
+  background: #f7fbf8;
 }
 .pf-icr-warnings.is-important {
   border-color: color-mix(in srgb, var(--pf-warning) 55%, var(--pf-border));

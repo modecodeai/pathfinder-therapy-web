@@ -2,11 +2,19 @@
  * Session Preparation & Session Debrief builders.
  * All content is derived from therapist-approved ClientRecord fields only.
  * Suggestions are labelled AI-assisted planning — never treatment decisions.
+ * Preparation is a read model of approved Core + approved primary-lens formulation.
  */
 
 import { CLINICAL_THEME_LABELS, type ClientRecord, type DebriefUpdateSource, type FormulationSnapshot, type OutstandingQuestion, type SessionDebriefRecord, type SessionTimelineEvent, type SessionTimelineKind, type TreatmentPlanSuggestion } from '../types';
+import {
+  isEmdrPrimaryForPrep,
+  protocolLabelForClient,
+  shouldShowEmdrPrepFields,
+  taLensStatus,
+} from './primaryLensPrep';
+import { buildInitialClinicalBrief } from './initialClinicalBrief';
 
-const MAX_SNAPSHOT_WORDS = 250;
+const MAX_SNAPSHOT_WORDS = 200;
 
 function wordCount(text: string): number {
   return text.trim() ? text.trim().split(/\s+/).length : 0;
@@ -45,8 +53,14 @@ export function captureFormulationSnapshot(client: ClientRecord): FormulationSna
   };
 }
 
-/** Concise clinical briefing — max 250 words, approved data only. */
+/** Concise clinical briefing — max ~200 words, approved Core / brief preferred over raw dump. */
 export function buildClinicalSnapshot(client: ClientRecord): string {
+  // Prefer approved first-session / intake brief when EMDR formulation is not primary
+  if (!isEmdrPrimaryForPrep(client)) {
+    const fromBrief = snapshotFromApprovedCore(client);
+    if (fromBrief) return truncateWords(fromBrief, MAX_SNAPSHOT_WORDS);
+  }
+
   const parts: string[] = [];
   const name = client.preferredName || client.displayName;
   const theme = primaryThemeLabel(client);
@@ -67,26 +81,29 @@ export function buildClinicalSnapshot(client: ClientRecord): string {
       `${name}'s approved formulation currently centres on ${theme} as the dominant organising theme.`,
     );
   } else {
+    const coreSnap = snapshotFromApprovedCore(client);
+    if (coreSnap) return truncateWords(coreSnap, MAX_SNAPSHOT_WORDS);
     parts.push(
-      `${name} does not yet have an approved formulation summary. Analyse and approve transcript findings before relying on this briefing.`,
+      `${name} does not yet have an approved formulation summary. Analyse and approve findings before relying on this briefing.`,
     );
   }
 
-  if (trigger) {
-    parts.push(`Current triggers include ${trigger}.`);
+  if (isEmdrPrimaryForPrep(client)) {
+    if (trigger) parts.push(`Current triggers include ${trigger}.`);
+    if (target?.headline) {
+      const metrics: string[] = [];
+      if (target.sud != null) metrics.push(`SUD ${target.sud}`);
+      if (target.voc != null) metrics.push(`VoC ${target.voc}`);
+      parts.push(
+        `The current treatment target remains ${target.headline}${
+          metrics.length ? ` (${metrics.join(', ')})` : ''
+        }.`,
+      );
+      if (target.nc) parts.push(`Negative cognition: “${target.nc}”.`);
+      if (target.pc) parts.push(`Positive cognition: “${target.pc}”.`);
+    }
   }
-  if (target?.headline) {
-    const metrics: string[] = [];
-    if (target.sud != null) metrics.push(`SUD ${target.sud}`);
-    if (target.voc != null) metrics.push(`VoC ${target.voc}`);
-    parts.push(
-      `The current treatment target remains ${target.headline}${
-        metrics.length ? ` (${metrics.join(', ')})` : ''
-      }.`,
-    );
-    if (target.nc) parts.push(`Negative cognition: “${target.nc}”.`);
-    if (target.pc) parts.push(`Positive cognition: “${target.pc}”.`);
-  }
+
   if (adaptive.length) {
     parts.push(`Recent adaptive information includes: ${adaptive.join('; ')}.`);
   }
@@ -95,6 +112,50 @@ export function buildClinicalSnapshot(client: ClientRecord): string {
   }
 
   return truncateWords(parts.join(' '), MAX_SNAPSHOT_WORDS);
+}
+
+function snapshotFromApprovedCore(client: ClientRecord): string | null {
+  const name = client.preferredName || client.displayName;
+  const core = client.coreFormulation;
+  if (core) {
+    const problems = core.presentingProblems.map((p) => p.text).slice(0, 3);
+    const symptoms = core.symptoms.map((s) => s.text).slice(0, 5);
+    const patterns = core.repeatingPatterns.map((p) => p.text).slice(0, 5);
+    const resources = [...core.resources, ...core.strengths].map((r) => r.text).slice(0, 4);
+    const parts: string[] = [];
+    if (problems.length) {
+      parts.push(`${name} presents with ${problems.join('; ')}.`);
+    }
+    if (symptoms.length) {
+      parts.push(`Current difficulties include ${symptoms.join(', ')}.`);
+    }
+    if (patterns.length) {
+      parts.push(`${name} identifies patterns of ${patterns.join(', ')}.`);
+    }
+    if (resources.length) {
+      parts.push(`Resources include ${resources.join(', ')}.`);
+    }
+    if (parts.length) return parts.join(' ');
+  }
+
+  // Fall back to rebuilding brief from extraction if present
+  const extracted = client.intakeExtraction?.extracted;
+  if (extracted && (client.clinicalEvidence?.length || client.intakeCoreFindings?.length)) {
+    try {
+      return buildInitialClinicalBrief({
+        extracted,
+        evidence: client.clinicalEvidence ?? [],
+        findings: client.intakeCoreFindings,
+      });
+    } catch {
+      /* ignore */
+    }
+  }
+
+  // Truncated raw presenting problem is never acceptable as the primary snapshot
+  const raw = client.presentingProblems[0];
+  if (raw && raw.length > 220) return null;
+  return null;
 }
 
 export interface DeltaBullet {
@@ -107,16 +168,17 @@ export interface DeltaBullet {
 export function buildSinceLastSessionDelta(client: ClientRecord): DeltaBullet[] {
   const latest = (client.sessionChanges ?? []).slice(-1)[0];
   const bullets: DeltaBullet[] = [];
+  const emdr = shouldShowEmdrPrepFields(client);
 
   if (!latest) {
-    if (client.activeTarget?.headline) {
+    if (emdr && client.activeTarget?.headline) {
       bullets.push({
         id: 'target-remains',
         kind: 'unchanged',
         text: `Target remains: ${client.activeTarget.headline}`,
       });
     }
-    if (client.activeTarget?.nc) {
+    if (emdr && client.activeTarget?.nc) {
       bullets.push({
         id: 'nc-unchanged',
         kind: 'unchanged',
@@ -192,8 +254,9 @@ export function buildSinceLastSessionDelta(client: ClientRecord): DeltaBullet[] 
     }
   }
 
-  // Always surface current NC stability when present and not already listed
+  // Always surface current NC stability when present and not already listed (EMDR-primary only)
   if (
+    emdr &&
     client.activeTarget?.nc &&
     !bullets.some((b) => b.text.toLowerCase().includes('nc'))
   ) {
@@ -224,40 +287,74 @@ export interface StrategySuggestion {
 /** Rule-based planning suggestions from approved formulation — never auto-applied. */
 export function buildTreatmentStrategySuggestions(client: ClientRecord): StrategySuggestion[] {
   const suggestions: StrategySuggestion[] = [];
+  const emdr = shouldShowEmdrPrepFields(client);
+  const ta = taLensStatus(client);
   const target = client.activeTarget;
 
-  if (target?.headline) {
+  if (emdr) {
+    if (target?.headline) {
+      suggestions.push({
+        id: 'continue-target',
+        text: `Continue processing current target (${target.headline})`,
+      });
+    } else {
+      suggestions.push({
+        id: 'establish-target',
+        text: 'Establish or confirm an active treatment target before processing',
+      });
+    }
+    if (target && !target.image) {
+      suggestions.push({ id: 'clarify-image', text: 'Clarify target image' });
+    }
+    if (target && !target.pc && !client.approvedPc) {
+      suggestions.push({ id: 'confirm-pc', text: 'Confirm positive cognition (PC)' });
+    }
+    if (target?.sud != null && target.sud <= 3) {
+      suggestions.push({
+        id: 'check-gains',
+        text: 'Confirm whether previous SUD gains have been maintained',
+      });
+    }
+  } else if (ta === 'approved') {
     suggestions.push({
-      id: 'continue-target',
-      text: `Continue processing current target (${target.headline})`,
+      id: 'continue-assessment',
+      text: 'Continue assessment and contracting from the approved TA working formulation',
+    });
+    suggestions.push({
+      id: 'clarify-relational',
+      text: 'Clarify current relational pattern in light of approved driver / ego-state observations',
+    });
+    suggestions.push({
+      id: 'explore-avoidance',
+      text: 'Explore client-defined emotional avoidance where supported by approved material',
+    });
+    suggestions.push({
+      id: 'develop-shared',
+      text: 'Develop shared formulation with the client from approved Core + TA findings',
     });
   } else {
     suggestions.push({
-      id: 'establish-target',
-      text: 'Establish or confirm an active treatment target before processing',
+      id: 'continue-assessment',
+      text: 'Continue assessment and contracting',
+    });
+    suggestions.push({
+      id: 'clarify-relational',
+      text: 'Clarify current relational pattern',
+    });
+    suggestions.push({
+      id: 'run-primary-lens',
+      text: 'Run Primary Clinical Lens analysis before modality-specific strategy',
     });
   }
 
-  if (target && !target.image) {
-    suggestions.push({ id: 'clarify-image', text: 'Clarify target image' });
-  }
-  if (target && !target.pc && !client.approvedPc) {
-    suggestions.push({ id: 'confirm-pc', text: 'Confirm positive cognition (PC)' });
-  }
   if ((client.adaptiveInformation ?? []).length) {
     suggestions.push({
       id: 'review-adaptive',
       text: 'Review previous adaptive shift',
     });
   }
-  if (client.triggers.length) {
+  if (emdr && client.triggers.length) {
     suggestions.push({ id: 'assess-trigger', text: 'Assess current trigger' });
-  }
-  if (target?.sud != null && target.sud <= 3) {
-    suggestions.push({
-      id: 'check-gains',
-      text: 'Confirm whether previous SUD gains have been maintained',
-    });
   }
 
   return suggestions.slice(0, 6);
@@ -270,34 +367,47 @@ export function deriveOutstandingQuestions(client: ClientRecord): OutstandingQue
   const derived: OutstandingQuestion[] = [];
   const now = client.updatedAt || new Date().toISOString();
   const target = client.activeTarget;
+  const emdr = shouldShowEmdrPrepFields(client);
 
   const pushGap = (id: string, text: string) => {
     if (stored.some((q) => q.text.toLowerCase() === text.toLowerCase())) return;
     if (derived.some((q) => q.text.toLowerCase() === text.toLowerCase())) return;
-    // Never resurface from rejected/pending AI — gaps only from approved record shape
     derived.push({ id, text, source: 'gap', status: 'open', createdAt: now });
   };
 
-  if (target?.headline && !target.image) {
-    pushGap('gap-image', 'Target image still not confirmed.');
-  }
-  if (target?.headline && !target.body) {
-    pushGap('gap-body', 'Current body location not established.');
-  }
-  if (target?.headline && target.nc == null && !client.approvedNc) {
-    pushGap('gap-nc', 'Negative cognition for the current target is not established.');
-  }
-  if (target?.headline && target.pc == null && !client.approvedPc) {
-    pushGap('gap-pc', 'Positive cognition for the current target is not established.');
-  }
-  if (target?.sud == null && target?.headline) {
-    pushGap('gap-sud', 'Current SUD for the active target is not established.');
-  }
-  if (!client.triggers.length && client.presentingProblems.length) {
-    pushGap('gap-trigger', 'Current trigger activating the network is not established.');
+  // EMDR-specific gaps only when EMDR lens is active
+  if (emdr) {
+    if (target?.headline && !target.image) {
+      pushGap('gap-image', 'Target image still not confirmed.');
+    }
+    if (target?.headline && !target.body) {
+      pushGap('gap-body', 'Current body location not established.');
+    }
+    if (target?.headline && target.nc == null && !client.approvedNc) {
+      pushGap('gap-nc', 'Negative cognition for the current target is not established.');
+    }
+    if (target?.headline && target.pc == null && !client.approvedPc) {
+      pushGap('gap-pc', 'Positive cognition for the current target is not established.');
+    }
+    if (target?.sud == null && target?.headline) {
+      pushGap('gap-sud', 'Current SUD for the active target is not established.');
+    }
+    if (!client.triggers.length && client.presentingProblems.length) {
+      pushGap('gap-trigger', 'Current trigger activating the network is not established.');
+    }
   }
 
-  return [...stored, ...derived];
+  // Filter stored EMDR network questions when EMDR inactive
+  const filteredStored = emdr
+    ? stored
+    : stored.filter(
+        (q) =>
+          !/trigger activating the network|negative cognition|positive cognition|target image|SUD for the active target|VoC|memory network|AIP/i.test(
+            q.text,
+          ),
+      );
+
+  return [...filteredStored, ...derived];
 }
 
 export function buildThingsToReview(client: ClientRecord): string[] {
@@ -348,11 +458,12 @@ export function buildPreparationBriefing(
   opts?: { therapistName?: string },
 ): PreparationBriefing {
   const sessionNumber = client.sessionCount ?? (client.sessionDebriefs?.filter((d) => d.status === 'approved').length ?? 0) + 1;
+  const protocol = protocolLabelForClient(client);
   return {
     clientName: client.preferredName || client.displayName,
     sessionNumber,
-    protocol: client.currentProtocol || 'Standard EMDR',
-    currentPhase: client.currentPhase || 'Not established',
+    protocol,
+    currentPhase: client.currentPhase || (shouldShowEmdrPrepFields(client) ? 'Not established' : 'Session work'),
     dateLabel: new Date().toLocaleDateString(),
     lastSeenLabel: client.updatedAt
       ? new Date(client.updatedAt).toLocaleDateString()
@@ -366,8 +477,10 @@ export function buildPreparationBriefing(
     approvedStrategy: client.treatmentStrategy ?? [],
     outstandingQuestions: deriveOutstandingQuestions(client),
     thingsToReview: buildThingsToReview(client),
-    currentTarget: client.activeTarget?.headline,
-    futureCandidates: client.targetCandidates.map((t) => t.headline).slice(0, 4),
+    currentTarget: shouldShowEmdrPrepFields(client) ? client.activeTarget?.headline : undefined,
+    futureCandidates: shouldShowEmdrPrepFields(client)
+      ? client.targetCandidates.map((t) => t.headline).slice(0, 4)
+      : [],
     practiceHref: `/practice/standard?clientId=${encodeURIComponent(client.id)}`,
   };
 }
