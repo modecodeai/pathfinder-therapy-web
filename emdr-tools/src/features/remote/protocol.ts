@@ -1,4 +1,4 @@
-import type { RoomState } from '../../types/room';
+import { createDefaultRoomState, type RoomState } from '../../types/room';
 
 export type ClientRole = 'therapist' | 'client';
 
@@ -100,6 +100,16 @@ const TAXATION_MODES = new Set([
 const VAR_SPEED = new Set(['low', 'medium', 'high']);
 const COLOUR_FREQ = new Set(['low', 'medium', 'high']);
 const COLOUR_INTERVAL = new Set([2, 4, 6, 'random']);
+const DIR_RATE = new Set(['low', 'moderate', 'high']);
+const PATTERN_RATE = new Set(['low', 'moderate', 'high', 'random']);
+const TAX_TRAJ = new Set([
+  'horizontal',
+  'vertical',
+  'diagonal-a',
+  'diagonal-b',
+  'wide-arc',
+  'figure-eight',
+]);
 
 export function sanitizePartialRoomState(input: Record<string, unknown>): Partial<RoomState> {
   const out: Partial<RoomState> = {};
@@ -197,11 +207,55 @@ export function sanitizePartialRoomState(input: Record<string, unknown>): Partia
     out.taxationColourNamingMode = input.taxationColourNamingMode;
   }
   if (
+    typeof input.taxationDirectionShiftRate === 'string' &&
+    DIR_RATE.has(input.taxationDirectionShiftRate)
+  ) {
+    out.taxationDirectionShiftRate =
+      input.taxationDirectionShiftRate as RoomState['taxationDirectionShiftRate'];
+  }
+  if (
+    typeof input.taxationPatternSwitchRate === 'string' &&
+    PATTERN_RATE.has(input.taxationPatternSwitchRate)
+  ) {
+    out.taxationPatternSwitchRate =
+      input.taxationPatternSwitchRate as RoomState['taxationPatternSwitchRate'];
+  }
+  if (Array.isArray(input.taxationEnabledTrajectories)) {
+    out.taxationEnabledTrajectories = input.taxationEnabledTrajectories.filter(
+      (t): t is RoomState['taxationEnabledTrajectories'][number] =>
+        typeof t === 'string' && TAX_TRAJ.has(t),
+    );
+  }
+  if (
     input.taxationChaosLevel === 1 ||
     input.taxationChaosLevel === 2 ||
     input.taxationChaosLevel === 3
   ) {
     out.taxationChaosLevel = input.taxationChaosLevel;
+  }
+  if (input.taxationCustomToggles && typeof input.taxationCustomToggles === 'object') {
+    out.taxationCustomToggles = {
+      ...createDefaultRoomState().taxationCustomToggles,
+      ...(input.taxationCustomToggles as RoomState['taxationCustomToggles']),
+    };
+  }
+  if (
+    typeof input.taxationCustomIntensity === 'number' &&
+    Number.isFinite(input.taxationCustomIntensity)
+  ) {
+    out.taxationCustomIntensity = Math.min(
+      10,
+      Math.max(1, Math.round(input.taxationCustomIntensity)),
+    );
+  }
+  if (
+    typeof input.taxationCustomChangeFrequency === 'number' &&
+    Number.isFinite(input.taxationCustomChangeFrequency)
+  ) {
+    out.taxationCustomChangeFrequency = Math.min(
+      10,
+      Math.max(1, Math.round(input.taxationCustomChangeFrequency)),
+    );
   }
   if (typeof input.taxationReduceVisualVariation === 'boolean') {
     out.taxationReduceVisualVariation = input.taxationReduceVisualVariation;

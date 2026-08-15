@@ -168,12 +168,31 @@ export function useBlsSession(options: UseBlsSessionOptions = {}) {
         mapElapsedMs: (wall) => {
           const cfg = roomStateToTaxationConfig(stateRef.current);
           if (cfg.mode === 'standard') return wall;
+          // Direction/pattern/chaos/custom motion runtime applies speed itself
+          if (
+            cfg.mode === 'direction-shift' ||
+            cfg.mode === 'pattern-switch' ||
+            cfg.mode === 'chaos' ||
+            cfg.mode === 'custom'
+          ) {
+            return wall;
+          }
           return resolveEffectiveElapsed(cfg, wall);
         },
+        getTaxationConfig: () => roomStateToTaxationConfig(stateRef.current),
         getEffectiveColour: () => {
           const s = stateRef.current;
           const cfg = roomStateToTaxationConfig(s);
           if (cfg.mode === 'standard') return s.stimulusColour;
+          // Motion runtime supplies colour when active; this covers colour-only modes
+          if (
+            cfg.mode === 'direction-shift' ||
+            cfg.mode === 'pattern-switch' ||
+            cfg.mode === 'chaos' ||
+            cfg.mode === 'custom'
+          ) {
+            return s.stimulusColour;
+          }
           const wall =
             s.running && !s.paused && runStartedAtRef.current != null
               ? accumulatedMsRef.current + (performance.now() - runStartedAtRef.current)

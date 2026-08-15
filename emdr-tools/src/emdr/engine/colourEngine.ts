@@ -142,19 +142,28 @@ export function frequencyToApproxPasses(freq: ColourChangeFrequency): number {
 }
 
 export function shouldUseColourTaxation(config: TaxationConfig): boolean {
-  if (config.disableColourTaxation || config.reduceVisualVariation) return false;
+  if (config.disableColourTaxation) return false;
+  if (config.reduceVisualVariation && config.mode !== 'colour-shift' && config.mode !== 'random-colour') {
+    // Still allow explicit colour modes at reduced rate via motion runtime
+  }
+  if (config.disableColourTaxation) return false;
   return (
     config.mode === 'colour-shift' ||
     config.mode === 'random-colour' ||
-    (config.mode === 'chaos' && config.chaosLevel >= 1) ||
+    config.mode === 'chaos' ||
     (config.mode === 'custom' &&
-      (config.customToggles.colourChanges || config.customToggles.randomColours))
+      (config.customToggles.colourChanges || config.customToggles.randomColour))
   );
 }
 
 export function shouldUseVariableSpeed(config: TaxationConfig): boolean {
   if (config.mode === 'variable-speed') return true;
   if (config.mode === 'chaos') return true;
-  if (config.mode === 'custom' && config.customToggles.variableSpeed) return true;
+  if (
+    config.mode === 'custom' &&
+    (config.customToggles.variableSpeed || config.customToggles.randomSpeedChanges)
+  ) {
+    return true;
+  }
   return false;
 }

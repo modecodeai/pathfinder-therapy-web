@@ -2670,9 +2670,15 @@ body:has(.join-page.live) {
   list-style: none;
 }
 
-.btn.linkish {
-  text-align: left;
-  white-space: normal;
-  height: auto;
-  padding: 0.25rem 0.35rem;
+.taxation-check-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.15rem 0.5rem;
+}
+
+
+.taxation-check-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.15rem 0.5rem;
 }

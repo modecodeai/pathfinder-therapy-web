@@ -7,7 +7,11 @@ import {
   type ColourChangeFrequency,
   type ColourShiftInterval,
   type ChaosLevel,
+  type CustomTaxationToggles,
+  type DirectionShiftRate,
+  type PatternSwitchRate,
   type TaxationMode,
+  type TaxationTrajectory,
   type VariableSpeedPreset,
 } from '../emdr/types/emdrTaxation';
 
@@ -55,7 +59,13 @@ export interface RoomState {
   taxationColourPalette: string[];
   taxationColourChangeFrequency: ColourChangeFrequency;
   taxationColourNamingMode: boolean;
+  taxationDirectionShiftRate: DirectionShiftRate;
+  taxationPatternSwitchRate: PatternSwitchRate;
+  taxationEnabledTrajectories: TaxationTrajectory[];
   taxationChaosLevel: ChaosLevel;
+  taxationCustomToggles: CustomTaxationToggles;
+  taxationCustomIntensity: number;
+  taxationCustomChangeFrequency: number;
   taxationReduceVisualVariation: boolean;
   taxationDisableColour: boolean;
   /** Deterministic seed for taxation randomisation within a set */
@@ -162,7 +172,13 @@ export function createDefaultRoomState(): RoomState {
     taxationColourPalette: [...tax.colourPalette],
     taxationColourChangeFrequency: tax.colourChangeFrequency,
     taxationColourNamingMode: tax.colourNamingMode,
+    taxationDirectionShiftRate: tax.directionShiftRate,
+    taxationPatternSwitchRate: tax.patternSwitchRate,
+    taxationEnabledTrajectories: [...tax.enabledTrajectories],
     taxationChaosLevel: tax.chaosLevel,
+    taxationCustomToggles: { ...tax.customToggles },
+    taxationCustomIntensity: tax.customIntensity,
+    taxationCustomChangeFrequency: tax.customChangeFrequency,
     taxationReduceVisualVariation: tax.reduceVisualVariation,
     taxationDisableColour: tax.disableColourTaxation,
     taxationSeed: tax.seed,
@@ -172,6 +188,26 @@ export function createDefaultRoomState(): RoomState {
 /** Map RoomState taxation fields → TaxationConfig */
 export function roomStateToTaxationConfig(state: RoomState) {
   const base = createDefaultTaxationConfig();
+  const dirRaw = state.taxationDirectionShiftRate as string | undefined;
+  const directionShiftRate =
+    dirRaw === 'rare' || dirRaw === 'low'
+      ? 'low'
+      : dirRaw === 'frequent' || dirRaw === 'high'
+        ? 'high'
+        : dirRaw === 'moderate'
+          ? 'moderate'
+          : base.directionShiftRate;
+  const patRaw = state.taxationPatternSwitchRate as string | undefined;
+  const patternSwitchRate =
+    patRaw === 'every-2-5' || patRaw === 'high'
+      ? 'high'
+      : patRaw === 'every-5-10' || patRaw === 'moderate'
+        ? 'moderate'
+        : patRaw === 'low'
+          ? 'low'
+          : patRaw === 'random'
+            ? 'random'
+            : base.patternSwitchRate;
   return {
     ...base,
     mode: state.taxationMode ?? 'standard',
@@ -182,8 +218,19 @@ export function roomStateToTaxationConfig(state: RoomState) {
       : [...base.colourPalette],
     colourChangeFrequency:
       state.taxationColourChangeFrequency ?? base.colourChangeFrequency,
-    colourNamingMode: !!state.taxationColourNamingMode,
+    colourNamingMode:
+      !!state.taxationColourNamingMode ||
+      !!state.taxationCustomToggles?.colourNaming,
+    directionShiftRate,
+    patternSwitchRate,
+    enabledTrajectories: state.taxationEnabledTrajectories?.length
+      ? [...state.taxationEnabledTrajectories]
+      : [...base.enabledTrajectories],
     chaosLevel: state.taxationChaosLevel ?? 1,
+    customToggles: { ...base.customToggles, ...(state.taxationCustomToggles ?? {}) },
+    customIntensity: state.taxationCustomIntensity ?? base.customIntensity,
+    customChangeFrequency:
+      state.taxationCustomChangeFrequency ?? base.customChangeFrequency,
     reduceVisualVariation: !!state.taxationReduceVisualVariation,
     disableColourTaxation: !!state.taxationDisableColour,
     seed: state.taxationSeed || 1,

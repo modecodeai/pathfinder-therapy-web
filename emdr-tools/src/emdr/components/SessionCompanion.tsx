@@ -104,6 +104,11 @@ export function SessionCompanionPage() {
   const [installationTaxPrompt, setInstallationTaxPrompt] = useState(false);
   const publishRemoteRef = useRef<(state: RoomState) => void>(() => undefined);
   const colourNamingRef = useRef(false);
+  const taxationBaselineRef = useRef<{
+    speed01: number;
+    stimulusColour: string;
+    visualMode: RoomState['visualMode'];
+  } | null>(null);
 
   const session = useBlsSession({
     onSetComplete: (m) => {
@@ -254,11 +259,25 @@ export function SessionCompanionPage() {
     [timingDirty, session],
   );
 
-  const returnToStandardTaxation = useCallback(() => {
-    session.patchState({ taxationMode: 'standard' });
-    setColourPrompt(null);
-    setInstallationTaxPrompt(false);
-  }, [session]);
+  const returnToStandardTaxation = useCallback(
+    (opts?: { keepTask?: boolean }) => {
+      const baseline = taxationBaselineRef.current;
+      session.patchState({
+        taxationMode: 'standard',
+        ...(baseline
+          ? {
+              speed01: baseline.speed01,
+              stimulusColour: baseline.stimulusColour,
+              visualMode: baseline.visualMode,
+            }
+          : { visualMode: 'horizontal' as const }),
+      });
+      setColourPrompt(null);
+      setInstallationTaxPrompt(false);
+      if (!opts?.keepTask) setSecondaryTaskPrompt(null);
+    },
+    [session],
+  );
 
   const recordResponse = (response: SetResponse, note?: string) => {
     const tax = session.state;
@@ -347,6 +366,22 @@ export function SessionCompanionPage() {
   const onBlsChange = (partial: Partial<RoomState>) => {
     if (partial.visualMode !== undefined && isActive && partial.visualMode !== session.state.visualMode) {
       return;
+    }
+    // Snapshot clinician baseline when first leaving Standard taxation
+    if (
+      partial.taxationMode &&
+      partial.taxationMode !== 'standard' &&
+      session.state.taxationMode === 'standard' &&
+      !taxationBaselineRef.current
+    ) {
+      taxationBaselineRef.current = {
+        speed01: session.state.speed01,
+        stimulusColour: session.state.stimulusColour,
+        visualMode: session.state.visualMode,
+      };
+    }
+    if (partial.taxationMode === 'standard') {
+      // keep baseline for subsequent returns
     }
     if (
       partial.speed01 !== undefined ||
@@ -666,7 +701,11 @@ export function SessionCompanionPage() {
                 Default recommendation: Standard predictable stimulation.
               </p>
               <div className="stack-btns horizontal">
-                <button type="button" className="btn primary" onClick={returnToStandardTaxation}>
+                <button
+                  type="button"
+                  className="btn primary"
+                  onClick={() => returnToStandardTaxation({ keepTask: false })}
+                >
                   Return to Standard
                 </button>
                 <button

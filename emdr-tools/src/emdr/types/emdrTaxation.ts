@@ -19,8 +19,10 @@ export type WorkingMemoryLoad = 'standard' | 'low' | 'moderate' | 'high';
 export type VariableSpeedPreset = 'low' | 'medium' | 'high';
 export type ColourShiftInterval = 2 | 4 | 6 | 'random';
 export type ColourChangeFrequency = 'low' | 'medium' | 'high';
-export type DirectionShiftRate = 'rare' | 'moderate' | 'frequent';
-export type PatternSwitchRate = 'every-2-5' | 'every-5-10' | 'random';
+/** Direction Shift reversal frequency */
+export type DirectionShiftRate = 'low' | 'moderate' | 'high';
+/** Pattern Switch change frequency */
+export type PatternSwitchRate = 'low' | 'moderate' | 'high' | 'random';
 export type ChaosLevel = 1 | 2 | 3;
 
 export type TaxationTrajectory =
@@ -33,14 +35,48 @@ export type TaxationTrajectory =
 
 export interface CustomTaxationToggles {
   variableSpeed: boolean;
+  randomSpeedChanges: boolean;
   earlyDirectionReversal: boolean;
   colourChanges: boolean;
-  randomColours: boolean;
-  variableTrajectory: boolean;
+  randomColour: boolean;
+  patternSwitching: boolean;
+  randomPatternSelection: boolean;
   horizontal: boolean;
   vertical: boolean;
-  diagonal: boolean;
+  diagonalA: boolean;
+  diagonalB: boolean;
+  wideArc: boolean;
   figureEight: boolean;
+  showCognitivePrompts: boolean;
+  colourNaming: boolean;
+  numberTask: boolean;
+  verbalTask: boolean;
+  cognitiveSwitching: boolean;
+}
+
+/**
+ * Resolved modifier flags used by the shared taxation motion engine.
+ * Mode presets populate this; Custom exposes it directly.
+ */
+export interface ActiveTaxationModifiers {
+  variableSpeed: boolean;
+  directionShift: boolean;
+  colourShift: boolean;
+  randomColour: boolean;
+  patternSwitch: boolean;
+  intensity: number;
+  changeFrequency: number;
+  trajectories: TaxationTrajectory[];
+  directionRate: DirectionShiftRate;
+  patternRate: PatternSwitchRate;
+  variableSpeedPreset: VariableSpeedPreset;
+  colourShiftInterval: ColourShiftInterval;
+  colourChangeFrequency: ColourChangeFrequency;
+  colourPalette: string[];
+  reduceVisualVariation: boolean;
+  disableColourTaxation: boolean;
+  seed: number;
+  chaosLevel: ChaosLevel;
 }
 
 /** Operational taxation config synced for client display (visual params only). */
@@ -71,22 +107,7 @@ export interface TaxationRuntimeSnapshot {
   colour: string | null;
   colourChanged: boolean;
   stimulusLabel: 'bilateral-visual' | 'visual-working-memory-taxation';
-}
-
-export interface SetTaxationLog {
-  taxationMode: TaxationMode;
-  taxationLevel: WorkingMemoryLoad;
-  stimulusSpeed: number;
-  speedVariation: VariableSpeedPreset | null;
-  trajectory: string;
-  trajectoryVariation: boolean;
-  colourMode: 'fixed' | 'shift' | 'random' | 'disabled';
-  colourChangeFrequency: ColourChangeFrequency | ColourShiftInterval | null;
-  directionReversals: boolean;
-  secondaryTaskType: string | null;
-  secondaryTaskPrompt: string | null;
-  setDuration: number;
-  emdrPhase: string | null;
+  trajectory: TaxationTrajectory;
 }
 
 export const TAXATION_MODE_LABELS: Record<TaxationMode, string> = {
@@ -100,11 +121,31 @@ export const TAXATION_MODE_LABELS: Record<TaxationMode, string> = {
   custom: 'Custom',
 };
 
+export const TAXATION_MODE_ORDER: TaxationMode[] = [
+  'standard',
+  'variable-speed',
+  'colour-shift',
+  'random-colour',
+  'direction-shift',
+  'pattern-switch',
+  'chaos',
+  'custom',
+];
+
 export const WORKING_MEMORY_LOAD_LABELS: Record<WorkingMemoryLoad, string> = {
   standard: 'Standard',
   low: 'Low',
   moderate: 'Moderate',
   high: 'High',
+};
+
+export const TRAJECTORY_LABELS: Record<TaxationTrajectory, string> = {
+  horizontal: 'Horizontal',
+  vertical: 'Vertical',
+  'diagonal-a': 'Diagonal A',
+  'diagonal-b': 'Diagonal B',
+  'wide-arc': 'Wide Arc',
+  'figure-eight': 'Figure Eight',
 };
 
 export const DEFAULT_TAXATION_PALETTE = [
@@ -119,14 +160,23 @@ export const DEFAULT_TAXATION_PALETTE = [
 
 export const DEFAULT_CUSTOM_TOGGLES: CustomTaxationToggles = {
   variableSpeed: false,
+  randomSpeedChanges: false,
   earlyDirectionReversal: false,
   colourChanges: false,
-  randomColours: false,
-  variableTrajectory: false,
+  randomColour: false,
+  patternSwitching: false,
+  randomPatternSelection: false,
   horizontal: true,
   vertical: false,
-  diagonal: false,
+  diagonalA: false,
+  diagonalB: false,
+  wideArc: false,
   figureEight: false,
+  showCognitivePrompts: true,
+  colourNaming: false,
+  numberTask: false,
+  verbalTask: false,
+  cognitiveSwitching: false,
 };
 
 export function createDefaultTaxationConfig(): TaxationConfig {
@@ -138,7 +188,7 @@ export function createDefaultTaxationConfig(): TaxationConfig {
     colourChangeFrequency: 'medium',
     colourNamingMode: false,
     directionShiftRate: 'moderate',
-    patternSwitchRate: 'every-5-10',
+    patternSwitchRate: 'moderate',
     enabledTrajectories: ['horizontal'],
     chaosLevel: 1,
     customToggles: { ...DEFAULT_CUSTOM_TOGGLES },
@@ -148,4 +198,17 @@ export function createDefaultTaxationConfig(): TaxationConfig {
     disableColourTaxation: false,
     seed: 1,
   };
+}
+
+export function trajectoriesFromCustomToggles(
+  t: CustomTaxationToggles,
+): TaxationTrajectory[] {
+  const list: TaxationTrajectory[] = [];
+  if (t.horizontal) list.push('horizontal');
+  if (t.vertical) list.push('vertical');
+  if (t.diagonalA) list.push('diagonal-a');
+  if (t.diagonalB) list.push('diagonal-b');
+  if (t.wideArc) list.push('wide-arc');
+  if (t.figureEight) list.push('figure-eight');
+  return list.length ? list : ['horizontal'];
 }

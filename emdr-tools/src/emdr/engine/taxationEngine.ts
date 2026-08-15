@@ -5,8 +5,6 @@ import {
   integrateEffectiveElapsed,
   mulberry32,
   pickIndex,
-  shouldUseColourTaxation,
-  shouldUseVariableSpeed,
   speedScaleAtElapsed,
 } from './colourEngine';
 import type {
@@ -15,15 +13,20 @@ import type {
   WorkingMemoryLoad,
 } from '../types/emdrTaxation';
 import { TAXATION_MODE_LABELS } from '../types/emdrTaxation';
-import { estimateWorkingMemoryLoad } from './taxationPresets';
+import {
+  estimateWorkingMemoryLoad,
+  resolveActiveModifiers,
+  shouldUseMotionRuntime,
+} from './taxationPresets';
 
-export { estimateWorkingMemoryLoad } from './taxationPresets';
+export { estimateWorkingMemoryLoad, resolveActiveModifiers, shouldUseMotionRuntime } from './taxationPresets';
 export {
   integrateEffectiveElapsed,
   speedScaleAtElapsed,
   shouldUseColourTaxation,
   shouldUseVariableSpeed,
 } from './colourEngine';
+export { TaxationMotionRuntime } from './taxationMotion';
 
 export function newTaxationSeed(): number {
   return (Math.floor(Math.random() * 0xffffffff) || 1) >>> 0;
@@ -38,25 +41,25 @@ export function resolveTaxationColour(
   baseColour: string,
   passFloor: number,
 ): { colour: string; changed: boolean; previous: string } {
-  if (!shouldUseColourTaxation(config)) {
+  const mods = resolveActiveModifiers(config);
+  if (mods.disableColourTaxation || (!mods.colourShift && !mods.randomColour)) {
     return { colour: baseColour, changed: false, previous: baseColour };
   }
 
-  const palette = config.colourPalette.filter(Boolean);
+  const palette = mods.colourPalette.filter(Boolean);
   if (palette.length === 0) {
     return { colour: baseColour, changed: false, previous: baseColour };
   }
 
-  if (config.mode === 'colour-shift') {
+  if (mods.colourShift && !mods.randomColour) {
     const every = colourChangePassInterval(
-      config.colourShiftInterval,
-      config.seed,
+      mods.colourShiftInterval,
+      mods.seed,
       passFloor,
     );
     const slot = Math.floor(passFloor / Math.max(1, every));
     const prevSlot = Math.floor(Math.max(0, passFloor - 1) / Math.max(1, every));
-    const idx = slot % palette.length;
-    const colour = palette[idx] ?? baseColour;
+    const colour = palette[slot % palette.length] ?? baseColour;
     const previous =
       passFloor <= 0
         ? baseColour
@@ -64,14 +67,12 @@ export function resolveTaxationColour(
     return { colour, changed: passFloor > 0 && colour !== previous, previous };
   }
 
-  // random-colour (and colour-capable chaos/custom Stage 1 path)
-  const every = frequencyToApproxPasses(config.colourChangeFrequency);
+  const every = frequencyToApproxPasses(mods.colourChangeFrequency);
   const slot = Math.floor(passFloor / Math.max(1, every));
   const prevSlot = Math.floor(Math.max(0, passFloor - 1) / Math.max(1, every));
-
-  const colour = colourForSlot(config.seed, slot, palette, baseColour);
+  const colour = colourForSlot(mods.seed, slot, palette, baseColour);
   const previous =
-    passFloor <= 0 ? baseColour : colourForSlot(config.seed, prevSlot, palette, baseColour);
+    passFloor <= 0 ? baseColour : colourForSlot(mods.seed, prevSlot, palette, baseColour);
   return { colour, changed: passFloor > 0 && colour !== previous, previous };
 }
 
@@ -97,21 +98,13 @@ function colourIndexForSlot(seed: number, slot: number, length: number): number 
 }
 
 export function resolveSpeedScale(config: TaxationConfig, wallElapsedMs: number): number {
-  if (!shouldUseVariableSpeed(config) || config.mode === 'standard') return 1;
-  // Stage 1: variable-speed (+ mild chaos uses low preset unless later stages expand)
-  const preset =
-    config.mode === 'chaos' && config.chaosLevel === 1
-      ? 'low'
-      : config.mode === 'chaos'
-        ? config.chaosLevel >= 3
-          ? 'high'
-          : 'medium'
-        : config.variableSpeedPreset;
+  const mods = resolveActiveModifiers(config);
+  if (!mods.variableSpeed) return 1;
   return speedScaleAtElapsed(
     wallElapsedMs,
-    config.seed,
-    preset,
-    config.reduceVisualVariation,
+    mods.seed,
+    mods.variableSpeedPreset,
+    mods.reduceVisualVariation,
   );
 }
 
@@ -121,26 +114,22 @@ export function resolveEffectiveElapsed(
   config: TaxationConfig,
   wallElapsedMs: number,
 ): number {
-  if (!shouldUseVariableSpeed(config) || config.mode === 'standard') {
+  const mods = resolveActiveModifiers(config);
+  if (!mods.variableSpeed) return wallElapsedMs;
+  // Motion runtime applies speed itself — identity for elapsed-based path
+  if (shouldUseMotionRuntime(config) && (mods.directionShift || mods.patternSwitch)) {
     return wallElapsedMs;
   }
-  const preset =
-    config.mode === 'chaos' && config.chaosLevel === 1
-      ? 'low'
-      : config.mode === 'chaos'
-        ? config.chaosLevel >= 3
-          ? 'high'
-          : 'medium'
-        : config.variableSpeedPreset;
+  const preset = mods.variableSpeedPreset;
   const bucket = Math.floor(wallElapsedMs);
-  const key = `${config.seed}:${preset}:${config.reduceVisualVariation}:${bucket}`;
+  const key = `${mods.seed}:${preset}:${mods.reduceVisualVariation}:${bucket}`;
   const hit = effectiveElapsedCache.get(key);
   if (hit != null) return hit;
   const value = integrateEffectiveElapsed(
     wallElapsedMs,
-    config.seed,
+    mods.seed,
     preset,
-    config.reduceVisualVariation,
+    mods.reduceVisualVariation,
     40,
   );
   if (effectiveElapsedCache.size > 4000) effectiveElapsedCache.clear();
@@ -154,27 +143,26 @@ export function taxationRuntimeSnapshot(
   wallElapsedMs: number,
   passFloor: number,
 ): TaxationRuntimeSnapshot {
+  const mods = resolveActiveModifiers(config);
   const colourInfo = resolveTaxationColour(config, baseColour, passFloor);
   const load = estimateWorkingMemoryLoad(config);
+  const traj = mods.trajectories[0] ?? 'horizontal';
   const usesNonBilateral =
-    config.mode === 'pattern-switch' ||
-    config.mode === 'chaos' ||
-    config.mode === 'direction-shift' ||
-    (config.mode === 'custom' &&
-      (config.customToggles.variableTrajectory ||
-        config.customToggles.vertical ||
-        config.customToggles.diagonal ||
-        config.customToggles.figureEight));
+    mods.patternSwitch ||
+    mods.directionShift ||
+    traj !== 'horizontal' ||
+    config.mode === 'chaos';
 
   return {
     mode: config.mode,
     load,
     speedScale: resolveSpeedScale(config, wallElapsedMs),
-    colour: shouldUseColourTaxation(config) ? colourInfo.colour : null,
+    colour: mods.colourShift || mods.randomColour ? colourInfo.colour : null,
     colourChanged: colourInfo.changed,
     stimulusLabel: usesNonBilateral
       ? 'visual-working-memory-taxation'
       : 'bilateral-visual',
+    trajectory: traj,
   };
 }
 

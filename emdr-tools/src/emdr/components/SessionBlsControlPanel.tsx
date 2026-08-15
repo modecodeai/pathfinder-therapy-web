@@ -39,7 +39,7 @@ interface Props {
   onRecordResponse?: (id: 'change' | 'no-change' | 'positive' | 'distress' | 'pause' | 'return-to-target') => void;
   onDismissFeedback?: () => void;
   onEndSession: () => void;
-  onReturnToStandardTaxation: () => void;
+  onReturnToStandardTaxation: (opts?: { keepTask?: boolean }) => void;
   onSecondaryTaskPrompt: (prompt: string | null) => void;
   clientDisplay: TherapistClientDisplay;
   onMuteTherapistChange: (muted: boolean) => void;

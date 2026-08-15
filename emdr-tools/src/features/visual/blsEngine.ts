@@ -4,6 +4,11 @@ import {
   getTrajectoryPosition,
   passesFromCycleProgress,
 } from '../../emdr/engine/trajectoryEngine';
+import {
+  TaxationMotionRuntime,
+  shouldUseMotionRuntime,
+} from '../../emdr/engine/taxationEngine';
+import type { TaxationConfig } from '../../emdr/types/emdrTaxation';
 import type { Side } from '../../types/room';
 
 export interface BlsFrame {
@@ -27,6 +32,8 @@ export interface BlsEngineOptions {
   getMidline?: () => MidlineDirection;
   getElapsedMs: () => number;
   isAnimating: () => boolean;
+  /** Taxation config — when mode ≠ standard, advanced motion may apply */
+  getTaxationConfig?: () => TaxationConfig;
   /**
    * Optional: remap wall-clock elapsed → effective elapsed for variable-speed taxation.
    * When omitted or returning the same value, Standard behaviour is unchanged.
@@ -45,6 +52,7 @@ export interface BlsEngineOptions {
 /**
  * Canvas BLS via requestAnimationFrame.
  * One pass = one complete back-and-forth (LEFT→RIGHT→LEFT).
+ * Taxation modes share TaxationMotionRuntime modifiers (no parallel light-bar).
  */
 export class BlsEngine {
   private raf = 0;
@@ -54,6 +62,8 @@ export class BlsEngine {
   private lastColourKey: string | null = null;
   private readonly opts: BlsEngineOptions;
   private readonly ctx: CanvasRenderingContext2D;
+  private readonly motion = new TaxationMotionRuntime();
+  private lastUsedMotion = false;
 
   constructor(opts: BlsEngineOptions) {
     this.opts = opts;
@@ -84,6 +94,8 @@ export class BlsEngine {
     this.lastPassFloor = 0;
     this.lastSide = null;
     this.lastColourKey = null;
+    this.motion.reset();
+    this.lastUsedMotion = false;
   }
 
   resize(): void {
@@ -105,6 +117,28 @@ export class BlsEngine {
       return;
     }
 
+    const tax = this.opts.getTaxationConfig?.();
+    const useMotion = !!tax && shouldUseMotionRuntime(tax);
+
+    if (useMotion && tax) {
+      if (!this.lastUsedMotion) {
+        // Entering taxation mid-set — soft start without teleport (progress continues)
+        this.lastUsedMotion = true;
+      }
+      this.tickMotion(tax);
+      return;
+    }
+
+    if (this.lastUsedMotion) {
+      // Leaving taxation → Standard: keep timer; reset motion bookkeeping only
+      this.motion.reset();
+      this.lastUsedMotion = false;
+    }
+    this.tickStandard();
+  }
+
+  /** Existing Standard bilateral path — unchanged mapping */
+  private tickStandard(): void {
     const cycleDur = this.opts.getCycleDurationMs();
     const wallElapsed = this.opts.getElapsedMs();
     const elapsed = this.opts.mapElapsedMs
@@ -119,7 +153,6 @@ export class BlsEngine {
       this.opts.onPass?.(passFloor);
     }
 
-    // Audio side cue: first half → R, second half → L (approx)
     const side: Side = frac < 0.5 ? 'R' : 'L';
     if (this.lastSide !== side) {
       this.lastSide = side;
@@ -127,11 +160,7 @@ export class BlsEngine {
     }
 
     const colour = this.opts.getEffectiveColour?.() ?? this.opts.getColour();
-    if (this.lastColourKey !== colour) {
-      const prev = this.lastColourKey;
-      this.lastColourKey = colour;
-      if (prev != null) this.opts.onColourChange?.(colour, passFloor);
-    }
+    this.emitColour(colour, passFloor);
 
     const traj = this.opts.getTrajectory();
     const pt = getTrajectoryPosition(frac, traj, {
@@ -140,13 +169,65 @@ export class BlsEngine {
       midline: this.opts.getMidline?.() ?? 'up',
     });
 
-    const frame: BlsFrame = {
-      x: pt.x * this.opts.canvas.width,
-      y: pt.y * this.opts.canvas.height,
-      side,
-      visible: this.opts.getVisualEnabled(),
-    };
-    this.paint(frame, colour);
+    this.paint(
+      {
+        x: pt.x * this.opts.canvas.width,
+        y: pt.y * this.opts.canvas.height,
+        side,
+        visible: this.opts.getVisualEnabled(),
+      },
+      colour,
+    );
+  }
+
+  private tickMotion(tax: TaxationConfig): void {
+    const wallElapsed = this.opts.getElapsedMs();
+    const frame = this.motion.tick({
+      wallElapsedMs: wallElapsed,
+      cycleDurationMs: this.opts.getCycleDurationMs(),
+      config: tax,
+      baseColour: this.opts.getColour(),
+      travelWidth: this.opts.getTravelWidth(),
+      verticalPosition: this.opts.getVerticalPosition(),
+      midline: this.opts.getMidline?.() ?? 'up',
+      preferredTrajectory:
+        tax.mode === 'direction-shift' || tax.mode === 'variable-speed'
+          ? 'horizontal'
+          : tax.mode === 'colour-shift' || tax.mode === 'random-colour'
+            ? 'horizontal'
+            : undefined,
+    });
+
+    if (frame.passFloor > this.lastPassFloor) {
+      this.lastPassFloor = frame.passFloor;
+      this.opts.onPass?.(frame.passFloor);
+    }
+
+    const side: Side = frame.x < this.opts.canvas.width / 2 ? 'L' : 'R';
+    if (this.lastSide !== side) {
+      this.lastSide = side;
+      this.opts.onSide?.(side);
+    }
+
+    this.emitColour(frame.colour, frame.passFloor);
+
+    this.paint(
+      {
+        x: frame.x * this.opts.canvas.width,
+        y: frame.y * this.opts.canvas.height,
+        side,
+        visible: this.opts.getVisualEnabled(),
+      },
+      frame.colour,
+    );
+  }
+
+  private emitColour(colour: string, passFloor: number): void {
+    if (this.lastColourKey !== colour) {
+      const prev = this.lastColourKey;
+      this.lastColourKey = colour;
+      if (prev != null) this.opts.onColourChange?.(colour, passFloor);
+    }
   }
 
   private paint(frame: BlsFrame, colour: string): void {
@@ -169,8 +250,6 @@ export class BlsEngine {
     this.ctx.fillRect(0, 0, canvas.width, canvas.height);
     if (!this.opts.getVisualEnabled()) return;
 
-    // After a set (or while stopped), always rest the stimulus at centre —
-    // not at the trajectory start (typically the left edge).
     const x = 0.5;
     const y = this.opts.getVerticalPosition();
     const dpr = Math.min(window.devicePixelRatio || 1, 2);
