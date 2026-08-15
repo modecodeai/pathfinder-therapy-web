@@ -25,6 +25,7 @@
     "src/clinical-intelligence/clinicalReasoning.ts",
     "src/clinical-intelligence/lib/lensGovernance.ts",
     "src/clinical-intelligence/lib/lensGovernancePrefs.ts",
-    "src/clinical-intelligence/lib/coreFormulation.ts"
+    "src/clinical-intelligence/lib/coreFormulation.ts",
+    "src/clinical-intelligence/lib/speakerNormalisation.ts"
   ]
 }

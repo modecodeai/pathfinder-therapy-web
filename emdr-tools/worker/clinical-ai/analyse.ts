@@ -35,6 +35,7 @@ import {
 } from './prompts';
 import { LENS_CONSIDERATIONS_EXTRACTION } from './prompts/core';
 import { ClinicalAIError, callOpenAIResponses, type OpenAIEnv } from './openai';
+import { normaliseTranscriptSpeakers } from '../../src/clinical-intelligence/lib/speakerNormalisation';
 import {
   TRANSCRIPT_ANALYSIS_JSON_SCHEMA,
   parseTranscriptAnalysisJson,
@@ -364,6 +365,9 @@ async function runTaAnalysis(
       ? 'CORE-ONLY MODE: Do not produce TA constructs. Set noSufficientTaEvidence=true and leave TA arrays empty.'
       : TA_LENS_SYSTEM_APPEND
   }\n\n${TA_FORMULATION_EXTRACTION}${considerations}`;
+  const speakerNorm = normaliseTranscriptSpeakers(args.transcript, {
+    therapistNames: ['Brent'],
+  });
   const input = buildAnalyseUserInput({
     transcript: args.transcript,
     clientContext: args.clientContext,
@@ -377,9 +381,22 @@ async function runTaAnalysis(
     includeLensConsiderations: args.includeLensConsiderations,
     suppressTaConstructs: args.suppressTaConstructs,
   });
+  const speakerAppendix = [
+    '',
+    'SPEAKER NORMALISATION (analysis aid only — original transcript above is authoritative and unchanged):',
+    JSON.stringify(
+      {
+        speakerMap: speakerNorm.speakerMap,
+        normalisedView: speakerNorm.normalisedView,
+      },
+      null,
+      2,
+    ),
+    'Do not invent additional client participants. Mark uncertain attribution as unknown when needed.',
+  ].join('\n');
   return runStructured(env, {
     instructions,
-    input,
+    input: `${input}${speakerAppendix}`,
     schemaName: 'ta_formulation_analysis',
     schema: TA_FORMULATION_JSON_SCHEMA as unknown as Record<string, unknown>,
     schemaVersion: TA_SCHEMA_VERSION,

@@ -324,6 +324,16 @@ export interface TaFindingBase {
   reviewStatus: ReviewStatus;
   clinicalLens: 'transactional-analysis';
   findingDelta?: 'new' | 'updated' | 'possible-conflict' | 'already-known';
+  /** Client's lived wording — preferred over TA jargon in presentation */
+  clientLanguagePattern?: string;
+  /** Protective function before pathology language */
+  protectiveFunction?: string;
+  /** Non-TA or alternative clinical explanation */
+  alternativeExplanation?: string;
+  /** Moderating / contradictory evidence */
+  contradictoryEvidence?: TranscriptEvidence[];
+  /** Hypothesis evidence strength for TA constructs */
+  evidenceStrength?: 'strong' | 'moderate' | 'limited' | 'possible';
 }
 
 export interface TaEgoStateObservation extends TaFindingBase {
@@ -489,6 +499,8 @@ export interface TaTranscriptAnalysis {
   /** Core-only / primary mode flags for governance */
   reasoningMode?: ReasoningMode;
   primaryApproach?: PrimaryTreatmentApproach;
+  /** Working script hypothesis in cautious language — never stored as fact without approval */
+  scriptWorkingHypothesis?: string;
 }
 
 export const TA_SCHEMA_VERSION = 'ci-ta-formulation-v1';

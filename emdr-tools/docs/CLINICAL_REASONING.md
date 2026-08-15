@@ -79,3 +79,34 @@ Transcript → structured findings → evidence → confidence → Approve/Edit/
 
 AI never diagnoses, never decides treatment, never replaces the therapist.
 Lens considerations are labelled **Possible complementary clinical lens** — never “recommended treatment”.
+
+---
+
+## Transactional Analysis reasoning principle
+
+Pathfinder should use Transactional Analysis to illuminate the client's experience, not replace the client's experience with Transactional Analysis terminology.
+
+The client's words remain primary.
+
+TA concepts are working maps.
+
+The therapist decides whether those maps are clinically useful.
+
+### Output priority
+
+1. Client's lived pattern  
+2. Protective function  
+3. Evidence  
+4. TA interpretation  
+5. Alternative explanation  
+6. Therapeutic movement / emerging permission  
+7. Outstanding questions  
+
+### Golden regression
+
+A de-identified TA-first golden fixture lives under `tests/fixtures/ta-lisa-golden/` (test-only; not shipped to client assets). It asserts:
+
+- core stays modality-neutral and grief-central;
+- Be Perfect / Don't Feel remain hypotheses with evidence;
+- contradictory evidence is retained;
+- EMDR constructs do not appear automatically under TA primary.

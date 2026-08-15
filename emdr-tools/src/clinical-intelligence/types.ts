@@ -23,6 +23,10 @@ export const CLINICAL_THEME_LABELS: Record<ClinicalThemeId, string> = {
 export interface TranscriptEvidence {
   excerpt: string;
   speaker?: 'client' | 'therapist' | 'unknown';
+  /** Raw transcript speaker label before normalisation */
+  rawSpeakerLabel?: string;
+  /** Timestamp string from transcript if present (e.g. 00:29:44) */
+  timestamp?: string;
   startOffset?: number;
   endOffset?: number;
 }

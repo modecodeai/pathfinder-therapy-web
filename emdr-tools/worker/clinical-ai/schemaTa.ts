@@ -11,6 +11,12 @@ const suggestionBase = {
     'reasoning',
     'reviewStatus',
     'clinicalLens',
+    'findingDelta',
+    'clientLanguagePattern',
+    'protectiveFunction',
+    'alternativeExplanation',
+    'contradictoryEvidence',
+    'evidenceStrength',
   ],
   properties: {
     id: { type: 'string' },
@@ -21,10 +27,12 @@ const suggestionBase = {
       items: {
         type: 'object',
         additionalProperties: false,
-        required: ['excerpt'],
+        required: ['excerpt', 'speaker', 'rawSpeakerLabel', 'timestamp', 'startOffset', 'endOffset'],
         properties: {
           excerpt: { type: 'string' },
           speaker: { type: 'string', enum: ['client', 'therapist', 'unknown'] },
+          rawSpeakerLabel: { type: ['string', 'null'] },
+          timestamp: { type: ['string', 'null'] },
           startOffset: { type: ['number', 'null'] },
           endOffset: { type: ['number', 'null'] },
         },
@@ -36,6 +44,29 @@ const suggestionBase = {
     findingDelta: {
       type: ['string', 'null'],
       enum: ['new', 'updated', 'possible-conflict', 'already-known', null],
+    },
+    clientLanguagePattern: { type: ['string', 'null'] },
+    protectiveFunction: { type: ['string', 'null'] },
+    alternativeExplanation: { type: ['string', 'null'] },
+    contradictoryEvidence: {
+      type: 'array',
+      items: {
+        type: 'object',
+        additionalProperties: false,
+        required: ['excerpt', 'speaker', 'rawSpeakerLabel', 'timestamp', 'startOffset', 'endOffset'],
+        properties: {
+          excerpt: { type: 'string' },
+          speaker: { type: 'string', enum: ['client', 'therapist', 'unknown'] },
+          rawSpeakerLabel: { type: ['string', 'null'] },
+          timestamp: { type: ['string', 'null'] },
+          startOffset: { type: ['number', 'null'] },
+          endOffset: { type: ['number', 'null'] },
+        },
+      },
+    },
+    evidenceStrength: {
+      type: ['string', 'null'],
+      enum: ['strong', 'moderate', 'limited', 'possible', null],
     },
   },
 } as const;
@@ -66,6 +97,7 @@ export const TA_FORMULATION_JSON_SCHEMA = {
       'lensConsiderations',
       'reasoningMode',
       'primaryApproach',
+      'scriptWorkingHypothesis',
     ],
     properties: {
       analysisKind: { type: 'string', enum: ['ta-formulation'] },
@@ -303,6 +335,7 @@ export const TA_FORMULATION_JSON_SCHEMA = {
           null,
         ],
       },
+      scriptWorkingHypothesis: { type: ['string', 'null'] },
     },
   },
 } as const;
@@ -338,6 +371,7 @@ export function validateTaAnalysis(data: unknown): TaTranscriptAnalysis {
     ...c,
     label: 'Possible complementary clinical lens' as const,
   }));
+  if (d.scriptWorkingHypothesis == null) d.scriptWorkingHypothesis = undefined;
   for (const inj of d.injunctionHypotheses) {
     inj.hypothesisLabel = 'Possible injunction hypothesis';
   }
