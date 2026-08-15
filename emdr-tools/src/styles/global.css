@@ -29,15 +29,18 @@
   box-sizing: border-box;
 }
 
+/* Default: normal document scroll (Practice, Library, marketing).
+   Viewport lock is applied only when a live clinical shell is present. */
 html,
 body,
 #root {
-  height: 100%;
   min-height: 100%;
+  height: auto;
   margin: 0;
 }
 
 body {
+  overflow-y: auto;
   background: var(--pf-bg);
 }
 
@@ -1539,23 +1542,19 @@ body {
   min-width: 180px;
 }
 
-/* ——— Viewport shell: no page scroll (v3 layout fix) ——— */
-html,
-body,
-#root {
-  height: 100%;
-  margin: 0;
-}
-
-/* Clinical shells own the viewport — page must not scroll */
+/* ——— Live clinical shells only: lock viewport (treatment console) ——— */
 body:has(.app-shell),
 body:has(.client-shell),
 body:has(.join-page.live) {
   overflow: hidden;
+  height: 100%;
   max-height: 100dvh;
   max-height: 100vh;
 }
 
+html:has(.app-shell),
+html:has(.client-shell),
+html:has(.join-page.live),
 #root:has(.app-shell),
 #root:has(.client-shell),
 #root:has(.join-page.live) {
@@ -3472,14 +3471,57 @@ body:has(.join-page.live) {
   min-height: 100vh;
   height: auto;
   overflow: visible;
+  display: flex;
+  flex-direction: column;
   background: #f5f8f7;
   color: #172121;
 }
 
 .practice-main {
+  flex: 1;
+  min-height: 0;
+  width: 100%;
   max-width: 1280px;
   margin: 0 auto;
   padding: 1.25rem 1.5rem 3rem;
+  height: auto;
+  overflow: visible;
+}
+
+.library-page {
+  width: 100%;
+  min-height: 100%;
+  height: auto;
+  overflow: visible;
+}
+
+.pf-detail-block h2 {
+  margin: 1.25rem 0 0.5rem;
+  font-size: 0.85rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--pf-text-muted);
+}
+
+.pf-detail-block h2:first-child {
+  margin-top: 0;
+}
+
+.pf-script-block {
+  white-space: pre-wrap;
+  font-family: var(--pf-serif);
+  font-size: 1.05rem;
+  line-height: 1.55;
+  margin: 0 0 0.75rem;
+}
+
+.pf-related-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  list-style: none;
+  padding: 0;
+  margin: 0.5rem 0 0;
 }
 
 .pf-page-header {

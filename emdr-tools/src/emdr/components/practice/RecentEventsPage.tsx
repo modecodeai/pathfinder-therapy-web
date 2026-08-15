@@ -6,7 +6,7 @@ import { Link } from 'react-router-dom';
  */
 export function RecentEventsPage() {
   return (
-    <div className="practice-home app-shell">
+    <div className="practice-shell">
       <header className="companion-top">
         <Link to="/practice" className="brand">
           <span className="brand-mark" aria-hidden />
@@ -15,7 +15,7 @@ export function RecentEventsPage() {
           </span>
         </Link>
       </header>
-      <main className="practice-home-main">
+      <main className="practice-main">
         <h1>Recent Traumatic Events Protocol</h1>
         <div className="panel">
           <p>

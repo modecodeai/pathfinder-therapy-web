@@ -1,6 +1,9 @@
 import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom';
 import { PainProtocolPage } from '../emdr/components/emdr-pain/PainProtocolPage';
-import { ClinicalLibraryPage } from '../emdr/components/practice/ClinicalLibraryPage';
+import {
+  ClinicalLibraryDetailPage,
+  ClinicalLibraryPage,
+} from '../emdr/components/practice/ClinicalLibraryPage';
 import { EmdPage } from '../emdr/components/practice/EmdPage';
 import { FloatbackPage } from '../emdr/components/practice/FloatbackPage';
 import { FutureTemplatePage } from '../emdr/components/practice/FutureTemplatePage';
@@ -31,6 +34,7 @@ export default function App() {
         <Route path="/practice/future-template" element={<FutureTemplatePage />} />
         <Route path="/practice/recent-events" element={<RecentEventsPage />} />
         <Route path="/practice/library" element={<ClinicalLibraryPage />} />
+        <Route path="/practice/library/:resourceId" element={<ClinicalLibraryDetailPage />} />
         <Route path="/tools" element={<ToolsPage />} />
         <Route path="/session" element={<SessionCompanionPage />} />
         <Route path="/pain" element={<PainProtocolPage />} />
