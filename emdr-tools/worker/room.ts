@@ -125,6 +125,27 @@ export class EmdrRoom extends DurableObject {
       return;
     }
 
+    if (msg.type === 'CLIENT_STOP') {
+      const meta = ws.deserializeAttachment() as Attachment | null;
+      if (meta?.role !== 'client') {
+        this.send(ws, { type: 'ERROR', message: 'Only clients may send CLIENT_STOP' });
+        return;
+      }
+      // Stop stimulation in room state; therapist must restart manually
+      let state = this.readState(row);
+      state = {
+        ...state,
+        running: false,
+        paused: false,
+        sequence: state.sequence + 1,
+      };
+      this.persistState(state);
+      this.touch();
+      this.broadcast({ type: 'CLIENT_STOP' });
+      this.broadcast({ type: 'ROOM_STATE', payload: state });
+      return;
+    }
+
     if (msg.type === 'HELLO') {
       await this.handleHello(ws, msg.role, msg.secret, row);
       return;

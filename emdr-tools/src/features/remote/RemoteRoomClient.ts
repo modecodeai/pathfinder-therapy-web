@@ -25,6 +25,7 @@ interface RemoteRoomClientOptions {
   onRoomState: (state: RoomState, startAt?: number) => void;
   onPeerConnected?: () => void;
   onPeerDisconnected?: () => void;
+  onClientStop?: () => void;
   onSessionEnded?: () => void;
   onError?: (message: string) => void;
   onConnectionChange?: (status: ClientConnectionStatus) => void;
@@ -48,7 +49,7 @@ export class RemoteRoomClient {
   }
 
   getJoinUrl(origin = location.origin): string | null {
-    return this.roomId ? `${origin}/join/${this.roomId}` : null;
+    return this.roomId ? `${origin}/client/session/${this.roomId}` : null;
   }
 
   getRoomId(): string | null {
@@ -75,7 +76,7 @@ export class RemoteRoomClient {
         return null;
       }
       this.connect(roomId, secret);
-      return { roomId, joinUrl: `${location.origin}/join/${roomId}` };
+      return { roomId, joinUrl: `${location.origin}/client/session/${roomId}` };
     } catch {
       this.opts.onError?.('Remote service unavailable');
       return null;
@@ -106,6 +107,13 @@ export class RemoteRoomClient {
       this.wasRunning = false;
     }
     this.send(cmd);
+  }
+
+  /** Client-only: request immediate therapist-side emergency stop */
+  sendClientStop(): void {
+    if (this.opts.role !== 'client') return;
+    this.wasRunning = false;
+    this.send({ type: 'CLIENT_STOP' });
   }
 
   markLocalRunning(running: boolean): void {
@@ -191,6 +199,10 @@ export class RemoteRoomClient {
         break;
       case 'CLIENT_DISCONNECTED':
         this.opts.onPeerDisconnected?.();
+        break;
+      case 'CLIENT_STOP':
+        this.wasRunning = false;
+        this.opts.onClientStop?.();
         break;
       case 'SESSION_ENDED':
         this.intentionalClose = true;

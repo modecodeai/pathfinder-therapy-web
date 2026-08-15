@@ -72,7 +72,7 @@ async function handleRoomRoutes(request: Request, env: Env, url: URL): Promise<R
     );
     const data = (await res.json()) as object;
     return Response.json(
-      { ...data, roomId: body.roomId, joinPath: `/join/${body.roomId}` },
+      { ...data, roomId: body.roomId, joinPath: `/client/session/${body.roomId}` },
       { status: res.status },
     );
   }

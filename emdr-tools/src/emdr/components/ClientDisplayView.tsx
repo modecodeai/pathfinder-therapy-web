@@ -31,6 +31,8 @@ export function ClientDisplayView({ roomId, displayMode = false }: ClientDisplay
   const [status, setStatus] = useState('Ready to join');
   const [error, setError] = useState<string | null>(null);
   const [fullscreen, setFullscreen] = useState(!!document.fullscreenElement);
+  const [audioOk, setAudioOk] = useState(false);
+  const [volume, setVolume] = useState(0.45);
   const remoteRef = useRef<RemoteRoomClient | null>(null);
   const session = useBlsSession({ isClient: true });
   const running = session.state.running && !session.state.paused;
@@ -45,6 +47,10 @@ export function ClientDisplayView({ roomId, displayMode = false }: ClientDisplay
   }, []);
 
   useEffect(() => {
+    document.title = 'Pathfinder EMDR';
+  }, []);
+
+  useEffect(() => {
     const onFs = () => {
       const on = !!document.fullscreenElement;
       setFullscreen(on);
@@ -54,12 +60,36 @@ export function ClientDisplayView({ roomId, displayMode = false }: ClientDisplay
     return () => document.removeEventListener('fullscreenchange', onFs);
   }, []);
 
+  useEffect(() => {
+    if (phase === 'live') {
+      session.patchState({ audioVolume: volume });
+    }
+  }, [volume, phase, session]);
+
   const enterFullscreen = async () => {
     try {
       await document.documentElement.requestFullscreen?.();
     } catch {
       /* browser may block */
     }
+  };
+
+  const playTestTone = async (side: 'L' | 'R') => {
+    await session.ensureAudio();
+    // Brief non-clinical tone via temporary audio-only pulse (does not start set)
+    const ctx = new AudioContext();
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    const pan = ctx.createStereoPanner();
+    osc.frequency.value = 520;
+    gain.gain.value = Math.min(0.35, volume);
+    pan.pan.value = side === 'L' ? -1 : 1;
+    osc.connect(gain);
+    gain.connect(pan);
+    pan.connect(ctx.destination);
+    osc.start();
+    osc.stop(ctx.currentTime + 0.18);
+    window.setTimeout(() => void ctx.close(), 400);
   };
 
   const join = async () => {
@@ -83,7 +113,7 @@ export function ClientDisplayView({ roomId, displayMode = false }: ClientDisplay
     const client = new RemoteRoomClient({
       role: 'client',
       onRoomState: (state) => {
-        session.replaceState(state);
+        session.replaceState({ ...state, audioVolume: volume });
         remoteRef.current?.markLocalRunning(state.running && !state.paused);
       },
       onSessionEnded: () => {
@@ -110,6 +140,12 @@ export function ClientDisplayView({ roomId, displayMode = false }: ClientDisplay
     });
     remoteRef.current = client;
     client.connect(roomId);
+  };
+
+  const clientStop = () => {
+    session.emergencyStop();
+    remoteRef.current?.sendClientStop();
+    setStatus('You pressed STOP — waiting for your therapist.');
   };
 
   const enableAudioAndFullscreen = async () => {
@@ -147,25 +183,57 @@ export function ClientDisplayView({ roomId, displayMode = false }: ClientDisplay
         <div className="brand large">
           <span className="brand-mark" aria-hidden />
           <span>
-            <strong>Pathfinder</strong> EMDR Tools
+            <strong>Pathfinder</strong> EMDR
           </span>
         </div>
-        <h1>{displayMode ? 'Client Display' : 'Join your EMDR session'}</h1>
+        <h1>Connected</h1>
         <p className="lede">
-          {displayMode
-            ? 'This window shows only the visual stimulus. No clinical information is displayed.'
-            : 'Enter the room code from your therapist, or open the invitation link.'}
+          Your therapist will control the stimulation from their screen. Please keep this window
+          open.
         </p>
-        <p className="hint">No account required. Stimulation only.</p>
+        <p className="hint">No account required. Stimulation only — no clinical information is shown.</p>
+
+        <section className="client-audio-setup panel" aria-label="Audio setup">
+          <h2>Audio setup</h2>
+          <p className="hint">Use headphones if appropriate.</p>
+          <div className="stack-btns horizontal wrap">
+            <button type="button" className="btn" onClick={() => void playTestTone('L')}>
+              Test Left
+            </button>
+            <button type="button" className="btn" onClick={() => void playTestTone('R')}>
+              Test Right
+            </button>
+          </div>
+          <label className="field">
+            <span>Volume · {Math.round(volume * 100)}%</span>
+            <input
+              type="range"
+              min={0.05}
+              max={0.85}
+              step={0.01}
+              value={volume}
+              onChange={(e) => setVolume(Number(e.target.value))}
+            />
+          </label>
+          <label className="check-row">
+            <input
+              type="checkbox"
+              checked={audioOk}
+              onChange={(e) => setAudioOk(e.target.checked)}
+            />
+            <span>Audio working</span>
+          </label>
+        </section>
+
         <button type="button" className="btn primary large" onClick={() => void enableAudioAndFullscreen()}>
-          Enable audio &amp; Enter Full Screen
+          Enter Full Screen
         </button>
         {!displayMode && (
           <button type="button" className="btn ghost" onClick={() => void join()}>
             Join without full screen
           </button>
         )}
-        <p className="mono room-ref">Room {roomId}</p>
+        <p className="hint">Connection working once you join.</p>
       </div>
     );
   }
@@ -180,9 +248,14 @@ export function ClientDisplayView({ roomId, displayMode = false }: ClientDisplay
           <span>{status}</span>
           {error && <p className="error-banner">{error}</p>}
         </div>
-        <button type="button" className="btn" onClick={() => void enterFullscreen()}>
-          {fullscreen ? 'Exit Full Screen' : 'Enter Full Screen'}
-        </button>
+        <div className="stack-btns horizontal">
+          <button type="button" className="btn danger large" onClick={clientStop}>
+            STOP
+          </button>
+          <button type="button" className="btn" onClick={() => void enterFullscreen()}>
+            {fullscreen ? 'Exit Full Screen' : 'Enter Full Screen'}
+          </button>
+        </div>
       </header>
 
       <div className="client-stage-wrap">

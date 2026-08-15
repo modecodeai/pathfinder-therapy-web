@@ -12,12 +12,15 @@ export type TherapistCommand =
 
 export type ClientMessage =
   | { type: 'HELLO'; role: ClientRole; secret?: string }
-  | { type: 'PING' };
+  | { type: 'PING' }
+  /** Client pressed STOP — therapist must halt all stimulation */
+  | { type: 'CLIENT_STOP' };
 
 export type RoomEvent =
   | { type: 'ROOM_STATE'; payload: RoomState; startAt?: number }
   | { type: 'CLIENT_CONNECTED' }
   | { type: 'CLIENT_DISCONNECTED' }
+  | { type: 'CLIENT_STOP' }
   | { type: 'SESSION_ENDED' }
   | { type: 'ERROR'; message: string }
   | { type: 'WELCOME'; role: ClientRole; roomId: string; payload: RoomState }
@@ -285,7 +288,7 @@ export function generateTherapistSecret(): string {
   return Array.from(bytes, (b) => b.toString(16).padStart(2, '0')).join('');
 }
 
-/** ~2 hours max lifespan */
-export const ROOM_TTL_MS = 1000 * 60 * 60 * 2;
+/** ~4 hours max lifespan (whichever comes first with clinician end-session) */
+export const ROOM_TTL_MS = 1000 * 60 * 60 * 4;
 /** Inactivity expiry */
 export const ROOM_IDLE_MS = 1000 * 60 * 45;

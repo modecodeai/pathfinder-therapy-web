@@ -1,7 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
 import { BlsStage } from '../../../components/BlsStage';
-import { useBlsSession, type BlsSession } from '../../../hooks/useBlsSession';
+import type { BlsSession } from '../../../hooks/useBlsSession';
 import {
   GRANT_PAIN_FULL,
   GRANT_PAIN_INTEGRATIVE,
@@ -28,10 +27,14 @@ import {
 import { GuidedPracticeConsole } from '../../guided/components/GuidedPracticeConsole';
 import { LiveBlsPanel } from '../../guided/components/LiveBlsPanel';
 import { QuickResponsePanel } from '../../guided/components/QuickResponsePanel';
-import { SessionHeaderBar } from '../../guided/components/SessionHeaderBar';
+import { AppHeader } from '../../guided/components/AppHeader';
+import { SessionStatusStrip } from '../../guided/components/SessionStatusStrip';
+import { RemoteClientPanel } from '../../guided/components/RemoteClientPanel';
 import { TherapistScriptPanel } from '../../guided/components/TherapistScriptPanel';
 import { useGuidedKeyboard } from '../../guided/hooks/useGuidedKeyboard';
+import { useGuidedRemoteBls } from '../../guided/hooks/useGuidedRemoteBls';
 import { parsePlainScriptToSteps } from '../../guided/lib/parseScriptSteps';
+import { ClientDisplayPreviewModal } from '../ClientDisplayPanel';
 import { PainProtocolNavigator } from './PainProtocolNavigator';
 
 const PROTOCOL_TITLE = 'Mark Grant EMDR Pain Protocol';
@@ -115,7 +118,6 @@ function StagePanel({ title, children, badge = 'protocol' }: StagePanelProps) {
 }
 
 export function PainProtocolPage() {
-  const navigate = useNavigate();
   const [ws, setWs] = useState<PainWorkspaceState>(() => loadPainWorkspace());
   const [sourcesOpen, setSourcesOpen] = useState(false);
   const [aipExpanded, setAipExpanded] = useState(false);
@@ -128,17 +130,31 @@ export function PainProtocolPage() {
   const [timelineNotes, setTimelineNotes] = useState<string[]>([]);
   const mountedRef = useRef(false);
 
-  const bls = useBlsSession();
+  const {
+    bls,
+    clientDisplay,
+    remotePanelOpen,
+    setRemotePanelOpen,
+    outputMode,
+    setOutputMode,
+    therapistPreview,
+    setTherapistPreview,
+    emergencyStop,
+    startBls,
+    stopBls,
+    showLocalVisual,
+  } = useGuidedRemoteBls();
 
   const blsForControls: BlsSession = useMemo(
     () => ({
       ...bls,
       start: async () => {
         bls.patchState(grantPainDefaultPatch(bls.stateRef.current));
-        return bls.start();
+        return startBls();
       },
+      stop: () => stopBls(),
     }),
-    [bls],
+    [bls, startBls, stopBls],
   );
 
   const patchWs = useCallback(
@@ -202,13 +218,6 @@ export function PainProtocolPage() {
     }));
   }, [patchWs]);
 
-  const leaveForStandard = useCallback(() => {
-    const ok = window.confirm(
-      'Leave the EMDR Pain workspace and open Standard EMDR? Session data remains in this browser.',
-    );
-    if (ok) navigate('/practice/standard');
-  }, [navigate]);
-
   const returnPainDefault = useCallback(() => {
     applyPainDefault();
     setWmtDismissed(false);
@@ -226,17 +235,13 @@ export function PainProtocolPage() {
   const showWmtWarning = bls.state.taxationMode !== 'standard' && !wmtDismissed;
 
   const inProcessing = PROCESSING_STAGES.includes(ws.stage);
-  const showVisual = bls.state.visualEnabled && !bls.state.audioOnly;
+  const showVisual = bls.state.visualEnabled && !bls.state.audioOnly && showLocalVisual;
   const blsRunning = bls.state.running && !bls.state.paused;
   const showLiveBls =
     ws.stage !== 'dashboard' &&
     ws.stage !== 'help' &&
     ws.stage !== 'script-full' &&
     ws.stage !== 'script-short';
-
-  const emergencyStop = useCallback(() => {
-    bls.stop();
-  }, [bls]);
 
   const currentScript = useMemo(() => {
     if (ws.pinnedScriptId) {
@@ -271,7 +276,7 @@ export function PainProtocolPage() {
     enabled: followMode && ws.stage !== 'dashboard',
     blsRunning,
     onToggleBls: () => {
-      if (blsRunning) bls.stop();
+      if (blsRunning) stopBls();
       else void blsForControls.start();
     },
     onNext: () => setStepIndex((i) => Math.min(i + 1, Math.max(0, scriptSteps.length - 1))),
@@ -1506,45 +1511,16 @@ export function PainProtocolPage() {
     <div className="companion companion-v3 app-shell pain-protocol-page guided-practice-page">
       {ws.stage === 'dashboard' ? (
         <>
-          <header className="companion-top">
-            <div className="companion-brand">
-              <Link to="/practice" className="brand">
-                <span className="brand-mark" aria-hidden />
-                <span>
-                  <strong>Pathfinder</strong> EMDR Pain
-                </span>
-              </Link>
-              <button
-                type="button"
-                className="chip protocol-source-badge"
-                onClick={() => setSourcesOpen((v) => !v)}
-                aria-expanded={sourcesOpen}
-              >
-                {PROTOCOL_TITLE}
-              </button>
-            </div>
-            <nav className="companion-meta pain-top-nav" aria-label="Primary">
-              <Link className="btn ghost" to="/practice">
-                Practice
-              </Link>
-              <Link className="btn ghost" to="/pain" aria-current="page">
-                Protocols
-              </Link>
-              <Link className="btn ghost" to="/resources">
-                Scripts
-              </Link>
-              <Link className="btn ghost" to="/practice/library">
-                Resources
-              </Link>
-              <Link className="btn ghost" to="/account">
-                Settings
-              </Link>
-            </nav>
-          </header>
+          <AppHeader
+            protocolLabel="EMDR Pain"
+            activeNav="protocols"
+            clientDisplay={clientDisplay}
+            onOpenClientPanel={() => setRemotePanelOpen(true)}
+          />
           <div className="companion-chrome">
-            <div className="banner notice medical-safety-note" role="note">
+            <div className="banner notice medical-safety-note pf-safety-compact" role="note">
               <strong>Medical safety:</strong> EMDR pain work does not replace appropriate medical
-              assessment, diagnosis or treatment. Stop BLS if pain becomes intolerable.
+              assessment. Stop BLS if pain becomes intolerable.
             </div>
             {sourcesOpen && (
               <div className="banner soft pain-sources-list" role="region" aria-label="Protocol sources">
@@ -1553,6 +1529,9 @@ export function PainProtocolPage() {
                     <li key={s}>{s}</li>
                   ))}
                 </ul>
+                <button type="button" className="btn ghost" onClick={() => setSourcesOpen(false)}>
+                  Close
+                </button>
               </div>
             )}
           </div>
@@ -1565,32 +1544,19 @@ export function PainProtocolPage() {
           onToggleNav={() => setNavCollapsed((v) => !v)}
           header={
             <>
-              <div className="guided-top-nav">
-                <Link to="/practice" className="brand">
-                  <span className="brand-mark" aria-hidden />
-                  <span>
-                    <strong>Pathfinder</strong> EMDR Pain
-                  </span>
-                </Link>
-                <nav className="stack-btns horizontal wrap" aria-label="Primary">
-                  <Link className="btn ghost" to="/practice">
-                    Practice
-                  </Link>
-                  <button type="button" className="btn ghost" onClick={leaveForStandard}>
-                    Standard EMDR
-                  </button>
-                  <button type="button" className="btn ghost" onClick={() => goStage('dashboard')}>
+              <AppHeader
+                protocolLabel="EMDR Pain"
+                live
+                activeNav="protocols"
+                clientDisplay={clientDisplay}
+                onOpenClientPanel={() => setRemotePanelOpen(true)}
+                rightSlot={
+                  <button type="button" className="btn ghost pf-header-btn" onClick={() => goStage('dashboard')}>
                     Dashboard
                   </button>
-                  <Link className="btn ghost" to="/practice/library">
-                    Resources
-                  </Link>
-                  <Link className="btn ghost" to="/account">
-                    Settings
-                  </Link>
-                </nav>
-              </div>
-              <SessionHeaderBar
+                }
+              />
+              <SessionStatusStrip
                 model={{
                   protocol: 'EMDR Pain',
                   phase: PAIN_STAGE_LABELS[ws.stage] ?? ws.stage,
@@ -1598,21 +1564,28 @@ export function PainProtocolPage() {
                   sud: ws.assessment.currentSud ?? ws.assessment.baselineSud,
                   blsSummary: `${
                     bls.state.audioOnly ? 'Auditory' : bls.state.visualEnabled ? 'Visual' : 'Off'
-                  }${bls.state.continuous || bls.state.setMode === 'continuous' ? ' · Continuous' : ''}`,
+                  }${bls.state.continuous || bls.state.setMode === 'continuous' ? ' Continuous' : ''}`,
                   elapsedLabel: bls.formatTime(bls.metrics.timeMs),
                   extra: [
                     {
                       label: 'Body',
-                      value: ws.assessment.bodyLocations?.join(', ') || '—',
+                      value: ws.assessment.bodyLocations?.join('/') || '—',
                     },
                   ],
                 }}
                 blsActive={blsRunning}
                 onEmergencyStop={emergencyStop}
+                alert={
+                  clientDisplay.clientPressedStop
+                    ? 'CLIENT PRESSED STOP'
+                    : clientDisplay.banner?.includes('disconnected')
+                      ? 'REMOTE CLIENT DISCONNECTED'
+                      : null
+                }
               />
-              <div className="banner notice medical-safety-note" role="note">
-                <strong>Medical safety:</strong> Stop BLS if pain becomes intolerable. This app does
-                not diagnose pain origin.
+              <div className="banner notice medical-safety-note pf-safety-compact" role="note">
+                Medical safety: Stop BLS if pain becomes intolerable. This app does not diagnose pain
+                origin.
               </div>
             </>
           }
@@ -1715,6 +1688,23 @@ export function PainProtocolPage() {
                   onEmergencyStop={emergencyStop}
                   title="Pain BLS"
                 >
+                  <div className="pf-bls-remote-summary">
+                    <p>
+                      <strong>Remote client</strong> ·{' '}
+                      {clientDisplay.peerStatus === 'connected'
+                        ? '● Connected'
+                        : clientDisplay.peerStatus === 'waiting'
+                          ? '● Waiting'
+                          : '○ Not connected'}
+                    </p>
+                    <button
+                      type="button"
+                      className="btn ghost"
+                      onClick={() => setRemotePanelOpen(true)}
+                    >
+                      Client Display
+                    </button>
+                  </div>
                   {showWmtWarning && (
                     <div className="taxation-advisory" role="status">
                       <p>
@@ -1784,6 +1774,18 @@ export function PainProtocolPage() {
           }
         />
       )}
+      <RemoteClientPanel
+        open={remotePanelOpen}
+        onClose={() => setRemotePanelOpen(false)}
+        display={clientDisplay}
+        state={bls.state}
+        onMuteTherapistChange={(muted) => bls.patchState({ muteTherapistAudio: muted })}
+        outputMode={outputMode}
+        onOutputMode={setOutputMode}
+        therapistPreview={therapistPreview}
+        onTherapistPreview={setTherapistPreview}
+      />
+      <ClientDisplayPreviewModal display={clientDisplay} />
     </div>
   );
 }

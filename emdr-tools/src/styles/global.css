@@ -3121,6 +3121,26 @@ body:has(.join-page.live) {
   background: #fff;
   color: #12141a;
   border: 1px solid #c8ccd6;
+  display: flex;
+  flex-direction: column;
+  max-height: calc(100vh - 140px);
+  overflow: hidden;
+}
+
+.live-bls-head,
+.live-bls-transport {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  background: #fff;
+}
+
+.live-bls-panel > *:not(.live-bls-head):not(.live-bls-transport) {
+  /* scrollable advanced settings sit below sticky transport */
+}
+
+.live-bls-panel {
+  overflow-y: auto;
 }
 
 .live-bls-head {
@@ -3445,4 +3465,651 @@ body:has(.join-page.live) {
 .pain-protocol-page .therapist-script-plain,
 .pain-protocol-page .script-step-text {
   color: #0a0c10;
+}
+
+/* —— Practice shell (scrollable; NOT locked viewport) —— */
+.practice-shell {
+  min-height: 100vh;
+  height: auto;
+  overflow: visible;
+  background: #f5f8f7;
+  color: #172121;
+}
+
+.practice-main {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 1.25rem 1.5rem 3rem;
+}
+
+.pf-page-header {
+  margin: 0 0 1.5rem;
+}
+
+.pf-page-header h1 {
+  margin: 0.25rem 0 0.5rem;
+  font-size: 1.9rem;
+  font-weight: 600;
+  font-family: var(--pf-font);
+  color: #172121;
+}
+
+.pf-breadcrumb {
+  margin: 0;
+  font-size: 0.85rem;
+  color: #617070;
+}
+
+.pf-breadcrumb a {
+  color: var(--pf-primary);
+  text-decoration: none;
+}
+
+.pf-eyebrow {
+  margin: 0;
+  font-size: 0.8rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: #617070;
+}
+
+.pf-section {
+  margin: 2rem 0 0;
+}
+
+.pf-section-title {
+  margin: 0 0 0.85rem;
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #172121;
+}
+
+/* Compact application header 48–56px */
+.pf-app-header {
+  height: 52px;
+  min-height: 52px;
+  max-height: 56px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0 0.85rem;
+  background: #fff;
+  border-bottom: 1px solid #dce4e4;
+  box-sizing: border-box;
+}
+
+.pf-app-header-left,
+.pf-app-header-right {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  min-width: 0;
+}
+
+.pf-app-brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  text-decoration: none;
+  color: #172121;
+  font-size: 0.92rem;
+  white-space: nowrap;
+}
+
+.pf-app-protocol {
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: #0f6d63;
+  padding: 0.15rem 0.45rem;
+  border-radius: 999px;
+  background: #e9f5f2;
+  white-space: nowrap;
+}
+
+.pf-remote-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  border: 1px solid #dce4e4;
+  background: #fff;
+  border-radius: 999px;
+  padding: 0.15rem 0.55rem;
+  font-size: 0.75rem;
+  cursor: pointer;
+  color: #172121;
+}
+
+.pf-remote-chip.tone-ok { border-color: #0f766e; color: #0f6d63; }
+.pf-remote-chip.tone-wait { border-color: #9a6b25; color: #9a6b25; }
+.pf-remote-chip.tone-warn { border-color: #a64b4b; color: #a64b4b; }
+
+.pf-app-nav {
+  display: flex;
+  gap: 0.15rem;
+}
+
+.pf-nav-link {
+  text-decoration: none;
+  color: #617070;
+  font-size: 0.82rem;
+  padding: 0.3rem 0.5rem;
+  border-radius: 8px;
+}
+
+.pf-nav-link.is-active,
+.pf-nav-link[aria-current='page'] {
+  color: #0f6d63;
+  background: #e9f5f2;
+  font-weight: 600;
+}
+
+.pf-header-btn {
+  font-size: 0.8rem !important;
+  padding: 0.25rem 0.55rem !important;
+  min-height: 32px;
+}
+
+.pf-app-menu { position: relative; }
+.pf-menu-popover {
+  position: absolute;
+  right: 0;
+  top: calc(100% + 4px);
+  background: #fff;
+  border: 1px solid #dce4e4;
+  border-radius: 10px;
+  box-shadow: 0 4px 16px rgba(23, 33, 33, 0.12);
+  min-width: 180px;
+  z-index: 40;
+  display: flex;
+  flex-direction: column;
+  padding: 0.35rem;
+}
+.pf-menu-popover a {
+  padding: 0.45rem 0.6rem;
+  text-decoration: none;
+  color: #172121;
+  border-radius: 6px;
+  font-size: 0.88rem;
+}
+.pf-menu-popover a:hover { background: #e9f5f2; }
+
+/* Session status strip ~44–52px */
+.pf-session-strip {
+  min-height: 44px;
+  max-height: 52px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.35rem 0.85rem;
+  background: #fafbfc;
+  border-bottom: 1px solid #e6e8ee;
+  box-sizing: border-box;
+  overflow: hidden;
+}
+
+.pf-session-strip-main {
+  display: flex;
+  flex-wrap: nowrap;
+  align-items: center;
+  gap: 0.15rem;
+  min-width: 0;
+  overflow: hidden;
+  font-size: 0.82rem;
+  color: #172121;
+  font-weight: 600;
+}
+
+.pf-session-chip {
+  white-space: nowrap;
+}
+
+.pf-session-sep {
+  margin: 0 0.35rem;
+  color: #899595;
+  font-weight: 400;
+}
+
+.pf-session-target {
+  max-width: 12rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.pf-session-bls {
+  margin-left: 0.5rem;
+  color: #617070;
+}
+.pf-session-bls.is-active { color: #0f6d63; }
+
+.pf-session-strip-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-shrink: 0;
+}
+
+.pf-session-alert {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: #a64b4b;
+  white-space: nowrap;
+}
+
+.pf-stop-btn {
+  font-size: 0.75rem !important;
+  padding: 0.2rem 0.5rem !important;
+  min-height: 30px;
+}
+
+.pf-safety-compact {
+  padding: 0.35rem 0.85rem !important;
+  font-size: 0.78rem !important;
+  min-height: 28px;
+  max-height: 36px;
+  overflow: hidden;
+}
+
+/* Guided console: reclaim vertical space for script */
+.guided-practice-page .guided-console-header {
+  flex-shrink: 0;
+}
+
+.guided-practice-page .guided-top-nav {
+  display: none; /* replaced by AppHeader */
+}
+
+.guided-console-body {
+  flex: 1;
+  min-height: 0;
+}
+
+.guided-console-controls {
+  overflow-y: auto;
+  max-height: calc(100vh - 140px);
+}
+
+/* Practice cards */
+.pf-card-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 1rem;
+}
+
+.pf-card-grid-primary {
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+}
+
+.pf-practice-card {
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+  padding: 1.15rem 1.2rem;
+  background: #fff;
+  border: 1px solid #dce4e4;
+  border-radius: 14px;
+  text-decoration: none;
+  color: #172121;
+  box-shadow: 0 1px 2px rgba(23, 33, 33, 0.04), 0 4px 12px rgba(23, 33, 33, 0.04);
+  transition: transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease;
+}
+
+.pf-practice-card:hover,
+.pf-practice-card:focus-visible {
+  transform: translateY(-2px);
+  border-color: #128477;
+  box-shadow: 0 2px 4px rgba(23, 33, 33, 0.06), 0 8px 20px rgba(18, 132, 119, 0.12);
+  outline: none;
+}
+
+.pf-practice-card.is-primary {
+  min-height: 180px;
+}
+
+.pf-practice-card h3 {
+  margin: 0;
+  font-size: 1.1rem;
+  font-weight: 600;
+}
+
+.pf-practice-card p {
+  margin: 0;
+  flex: 1;
+  font-size: 0.95rem;
+  line-height: 1.55;
+  color: #617070;
+}
+
+.pf-card-icon {
+  width: 28px;
+  height: 28px;
+  color: #128477;
+}
+
+.pf-card-cta {
+  margin-top: 0.35rem;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #0f6d63;
+}
+
+.pf-resume-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 0.85rem;
+}
+
+.pf-resume-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 1rem 1.15rem;
+  background: #fff;
+  border: 1px solid #dce4e4;
+  border-radius: 14px;
+}
+
+.pf-resume-card h3 {
+  margin: 0 0 0.2rem;
+  font-size: 1rem;
+}
+
+.pf-resume-card p {
+  margin: 0;
+  font-size: 0.9rem;
+  color: #617070;
+}
+
+/* Phase cards */
+.pf-phase-rail {
+  margin: 0 0 1rem;
+  font-size: 0.85rem;
+  color: #899595;
+  letter-spacing: 0.04em;
+}
+
+.pf-phase-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 0.85rem;
+}
+
+.pf-phase-card {
+  text-align: left;
+  padding: 1rem 1.1rem;
+  background: #fff;
+  border: 1px solid #dce4e4;
+  border-radius: 14px;
+  cursor: pointer;
+  box-shadow: 0 1px 2px rgba(23, 33, 33, 0.04);
+  transition: transform 0.15s ease, border-color 0.15s ease;
+}
+
+.pf-phase-card:hover,
+.pf-phase-card:focus-visible {
+  transform: translateY(-2px);
+  border-color: #128477;
+  outline: 2px solid #128477;
+  outline-offset: 2px;
+}
+
+.pf-phase-num {
+  display: block;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: #128477;
+  letter-spacing: 0.06em;
+}
+
+.pf-phase-card h2 {
+  margin: 0.35rem 0;
+  font-size: 1.05rem;
+  font-weight: 600;
+}
+
+.pf-phase-card p {
+  margin: 0;
+  font-size: 0.88rem;
+  color: #617070;
+  line-height: 1.5;
+}
+
+/* Library */
+.pf-library-toolbar {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  background: #f5f8f7;
+  padding: 0.65rem 0 0.85rem;
+  margin-bottom: 0.5rem;
+  border-bottom: 1px solid #e6e8ee;
+}
+
+.pf-search-field input {
+  width: 100%;
+  padding: 0.65rem 0.85rem;
+  border: 1px solid #dce4e4;
+  border-radius: 10px;
+  font-size: 0.95rem;
+  background: #fff;
+  color: #172121;
+}
+
+.pf-filter-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  margin-top: 0.65rem;
+}
+
+.pf-filter-chip {
+  border: 1px solid #dce4e4;
+  background: #fff;
+  border-radius: 999px;
+  padding: 0.3rem 0.7rem;
+  font-size: 0.8rem;
+  cursor: pointer;
+  color: #617070;
+}
+
+.pf-filter-chip.is-active {
+  background: #128477;
+  border-color: #128477;
+  color: #fff;
+  font-weight: 600;
+}
+
+.pf-library-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 1rem;
+}
+
+.pf-library-card {
+  background: #fff;
+  border: 1px solid #dce4e4;
+  border-radius: 14px;
+  padding: 0;
+  box-shadow: 0 1px 2px rgba(23, 33, 33, 0.04);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.pf-library-card:hover {
+  border-color: #128477;
+  box-shadow: 0 4px 14px rgba(18, 132, 119, 0.1);
+}
+
+.pf-library-card-main {
+  text-align: left;
+  border: 0;
+  background: transparent;
+  padding: 1rem 1.1rem 0.5rem;
+  cursor: pointer;
+  color: inherit;
+}
+
+.pf-library-card-main:focus-visible {
+  outline: 2px solid #128477;
+  outline-offset: -2px;
+}
+
+.pf-library-cat {
+  display: inline-block;
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: #128477;
+  margin-bottom: 0.35rem;
+}
+
+.pf-library-card h3 {
+  margin: 0 0 0.35rem;
+  font-size: 1.05rem;
+  font-weight: 600;
+}
+
+.pf-library-card-main p {
+  margin: 0;
+  font-size: 0.9rem;
+  color: #617070;
+  line-height: 1.5;
+}
+
+.pf-library-card-foot {
+  padding: 0.5rem 1.1rem 1rem;
+  margin-top: auto;
+}
+
+.pf-source-badge {
+  display: inline-block;
+  border: 0;
+  background: #e9f5f2;
+  color: #0f6d63;
+  font-size: 0.72rem;
+  font-weight: 600;
+  padding: 0.15rem 0.45rem;
+  border-radius: 6px;
+  cursor: pointer;
+  margin-bottom: 0.45rem;
+}
+
+.pf-source-expand {
+  white-space: pre-line;
+  font-size: 0.8rem;
+  color: #617070;
+  margin: 0 0 0.5rem;
+}
+
+.pf-detail-block h2 {
+  font-size: 1.05rem;
+  margin: 1rem 0 0.35rem;
+}
+
+.pf-remote-panel-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(23, 33, 33, 0.35);
+  z-index: 80;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.pf-remote-panel {
+  width: min(420px, 100%);
+  height: 100%;
+  background: #fff;
+  color: #172121;
+  padding: 1rem;
+  overflow-y: auto;
+  box-shadow: -4px 0 24px rgba(0, 0, 0, 0.12);
+}
+
+.pf-remote-panel-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.pf-remote-panel-head h2 {
+  margin: 0;
+  font-size: 1.15rem;
+}
+
+.pf-remote-status {
+  font-weight: 700;
+  margin: 0.75rem 0;
+}
+
+.pf-remote-meta {
+  display: grid;
+  gap: 0.45rem;
+  margin: 0.75rem 0;
+}
+
+.pf-remote-meta dt {
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  color: #617070;
+  font-weight: 700;
+}
+
+.pf-remote-meta dd {
+  margin: 0.1rem 0 0;
+  font-size: 0.88rem;
+  word-break: break-all;
+}
+
+.pf-bls-remote-summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  margin-top: 0.65rem;
+  padding-top: 0.55rem;
+  border-top: 1px solid #e6e8ee;
+  font-size: 0.85rem;
+}
+
+.pf-bls-remote-summary p { margin: 0; }
+
+.client-audio-setup {
+  text-align: left;
+  max-width: 360px;
+  margin: 1rem auto;
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  border: 0;
+}
+
+@media (max-width: 900px) {
+  .pf-app-nav { display: none; }
+  .pf-remote-chip-label { display: none; }
+  .practice-main { padding: 1rem; }
+}
+
+@media (min-width: 1100px) {
+  .pf-library-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+@media (min-width: 1400px) {
+  .pf-library-grid {
+    grid-template-columns: repeat(4, 1fr);
+  }
 }

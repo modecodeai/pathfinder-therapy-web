@@ -1,15 +1,18 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { BlsStage } from '../../../components/BlsStage';
-import { useBlsSession } from '../../../hooks/useBlsSession';
 import { GuidedPracticeConsole } from '../../guided/components/GuidedPracticeConsole';
 import { LiveBlsPanel } from '../../guided/components/LiveBlsPanel';
 import { ProcessingTimeline } from '../../guided/components/ProcessingTimeline';
 import { QuickResponsePanel } from '../../guided/components/QuickResponsePanel';
-import { SessionHeaderBar } from '../../guided/components/SessionHeaderBar';
+import { AppHeader } from '../../guided/components/AppHeader';
+import { SessionStatusStrip } from '../../guided/components/SessionStatusStrip';
+import { RemoteClientPanel } from '../../guided/components/RemoteClientPanel';
 import { TargetSummaryCard } from '../../guided/components/TargetSummaryCard';
 import { TherapistScriptPanel } from '../../guided/components/TherapistScriptPanel';
 import { useGuidedKeyboard } from '../../guided/hooks/useGuidedKeyboard';
+import { useGuidedRemoteBls } from '../../guided/hooks/useGuidedRemoteBls';
+import { ClientDisplayPreviewModal } from '../ClientDisplayPanel';
 import { applyBlsPreset } from '../../guided/lib/blsPresets';
 import {
   FLOATBACK_STEPS,
@@ -74,10 +77,23 @@ function stepsForPhase(state: StandardSessionState): GuidedScriptStep[] {
 }
 
 export function StandardEmdrConsolePage() {
-  const bls = useBlsSession();
+  const {
+    bls,
+    clientDisplay,
+    remotePanelOpen,
+    setRemotePanelOpen,
+    outputMode,
+    setOutputMode,
+    therapistPreview,
+    setTherapistPreview,
+    emergencyStop,
+    startBls,
+    stopBls,
+    showLocalVisual,
+  } = useGuidedRemoteBls();
   const [ws, setWs] = useState<StandardSessionState>(() => loadStandardSession());
   const [navCollapsed, setNavCollapsed] = useState(false);
-  const [viewMode, setViewMode] = useState<ConsoleViewMode>('processing');
+  const [viewMode] = useState<ConsoleViewMode>('processing');
   const [followMode, setFollowMode] = useState(true);
   const [autoScroll, setAutoScroll] = useState(true);
   const [stepIndex, setStepIndex] = useState(0);
@@ -93,10 +109,6 @@ export function StandardEmdrConsolePage() {
     setWs((prev) => ({ ...prev, ...partial }));
   }, []);
 
-  const emergencyStop = useCallback(() => {
-    bls.stop();
-  }, [bls]);
-
   const blsRunning = bls.state.running && !bls.state.paused;
   const steps = useMemo(() => stepsForPhase(ws), [ws]);
 
@@ -108,8 +120,8 @@ export function StandardEmdrConsolePage() {
     enabled: followMode,
     blsRunning,
     onToggleBls: () => {
-      if (blsRunning) bls.stop();
-      else void bls.start();
+      if (blsRunning) stopBls();
+      else void startBls();
     },
     onNext: () => setStepIndex((i) => Math.min(i + 1, Math.max(0, steps.length - 1))),
     onPrev: () => setStepIndex((i) => Math.max(0, i - 1)),
@@ -161,23 +173,51 @@ export function StandardEmdrConsolePage() {
   };
 
   if (showPhasePicker) {
+    const PHASE_BLURBS: Record<StandardPhaseId, string> = {
+      history: 'AIP-informed history, treatment planning and target identification.',
+      preparation: 'Consent, dual awareness, stop signal, Safe/Calm and resources.',
+      assessment: 'Image, NC/PC, VOC, emotion, SUD and body location.',
+      desensitisation: 'Reprocessing with live BLS, response capture and timeline.',
+      installation: 'Strengthen the positive cognition with BLS.',
+      'body-scan': 'Scan for residual disturbance linked to the target.',
+      closure: 'Complete or incomplete session closure scripts.',
+      reevaluation: 'Review previous target and choose next clinical step.',
+    };
     return (
-      <div className="practice-home app-shell">
-        <header className="companion-top">
-          <Link to="/practice" className="brand">
-            <span className="brand-mark" aria-hidden />
-            <span>
-              <strong>Pathfinder</strong> Guided Standard EMDR
-            </span>
-          </Link>
-        </header>
-        <main className="practice-home-main">
-          <h1>Start Guided Standard EMDR</h1>
-          <p className="hint">Enter any phase — completion order is not forced.</p>
-          <div className="practice-home-grid">
-            {PHASES.map((p) => (
-              <button key={p} type="button" className="panel practice-card" onClick={() => enterPhase(p)}>
-                <h2>Phase {STANDARD_PHASE_LABELS[p]}</h2>
+      <div className="practice-shell">
+        <AppHeader activeNav="practice" protocolLabel="Standard EMDR" />
+        <main className="practice-main">
+          <header className="pf-page-header">
+            <p className="pf-breadcrumb">
+              <Link to="/practice">Practice</Link>
+              <span aria-hidden> › </span>
+              Standard EMDR
+            </p>
+            <h1>Start Guided Standard EMDR</h1>
+            <p className="lede">
+              Choose where you want to enter the protocol. Completion order is not forced.
+            </p>
+          </header>
+          <div className="pf-phase-rail" aria-hidden>
+            {PHASES.map((p, i) => (
+              <span key={p}>
+                {i + 1}
+                {i < PHASES.length - 1 ? ' — ' : ''}
+              </span>
+            ))}
+          </div>
+          <div className="pf-phase-grid">
+            {PHASES.map((p, i) => (
+              <button
+                key={p}
+                type="button"
+                className="pf-phase-card"
+                onClick={() => enterPhase(p)}
+              >
+                <span className="pf-phase-num">{String(i + 1).padStart(2, '0')}</span>
+                <h2>{STANDARD_PHASE_LABELS[p].replace(/^\d+\s*—\s*/, '')}</h2>
+                <p>{PHASE_BLURBS[p]}</p>
+                <span className="pf-card-cta">Start →</span>
               </button>
             ))}
           </div>
@@ -197,43 +237,29 @@ export function StandardEmdrConsolePage() {
         onToggleNav={() => setNavCollapsed((v) => !v)}
         header={
           <>
-            <div className="guided-top-nav">
-              <Link to="/practice" className="brand">
-                <span className="brand-mark" aria-hidden />
-                <span>
-                  <strong>Pathfinder</strong> Standard EMDR
-                </span>
-              </Link>
-              <nav className="stack-btns horizontal wrap">
-                <Link className="btn ghost" to="/practice">
-                  Practice
-                </Link>
-                <button type="button" className="btn ghost" onClick={() => setShowPhasePicker(true)}>
+            <AppHeader
+              protocolLabel="Standard EMDR"
+              live
+              activeNav="practice"
+              clientDisplay={clientDisplay}
+              onOpenClientPanel={() => setRemotePanelOpen(true)}
+              rightSlot={
+                <button type="button" className="btn ghost pf-header-btn" onClick={() => setShowPhasePicker(true)}>
                   Change phase
                 </button>
-                <button
-                  type="button"
-                  className={`btn ghost${viewMode === 'reading' ? ' is-active' : ''}`}
-                  onClick={() => setViewMode((m) => (m === 'reading' ? 'processing' : 'reading'))}
-                >
-                  Reading Mode
-                </button>
-                <button
-                  type="button"
-                  className={`btn ghost${viewMode === 'processing' ? ' is-active' : ''}`}
-                  onClick={() => setViewMode('processing')}
-                >
-                  Processing Mode
-                </button>
-                <Link className="btn ghost" to="/practice/library">
-                  Resources
-                </Link>
-              </nav>
-            </div>
-            <SessionHeaderBar
+              }
+            />
+            <SessionStatusStrip
               model={headerModel}
               blsActive={blsRunning}
               onEmergencyStop={emergencyStop}
+              alert={
+                clientDisplay.clientPressedStop
+                  ? 'CLIENT PRESSED STOP'
+                  : clientDisplay.banner?.includes('disconnected')
+                    ? 'REMOTE CLIENT DISCONNECTED'
+                    : null
+              }
             />
             <TargetSummaryCard target={ws.target} compact />
           </>
@@ -283,8 +309,8 @@ export function StandardEmdrConsolePage() {
             onPrev={() => setStepIndex((i) => Math.max(0, i - 1))}
             onNext={() => setStepIndex((i) => Math.min(i + 1, steps.length - 1))}
             onRepeat={() => setStepIndex((i) => i)}
-            onStartBls={() => void bls.start()}
-            onStopBls={() => bls.stop()}
+            onStartBls={() => void startBls()}
+            onStopBls={() => stopBls()}
             blsRunning={blsRunning}
           >
             {ws.phase === 'assessment' && (
@@ -377,7 +403,7 @@ export function StandardEmdrConsolePage() {
         }
         clinicalControls={
           <>
-            {bls.state.visualEnabled && !bls.state.audioOnly && (
+            {showLocalVisual && bls.state.visualEnabled && !bls.state.audioOnly && (
               <BlsStage
                 attachCanvas={bls.attachCanvas}
                 label="BLS"
@@ -386,7 +412,11 @@ export function StandardEmdrConsolePage() {
               />
             )}
             <LiveBlsPanel
-              session={bls}
+              session={{
+                ...bls,
+                start: startBls,
+                stop: stopBls,
+              }}
               recommendedPreset={
                 ws.phase === 'installation'
                   ? 'installation'
@@ -396,7 +426,21 @@ export function StandardEmdrConsolePage() {
               }
               showAdvancedTaxation={ws.phase === 'desensitisation'}
               onEmergencyStop={emergencyStop}
-            />
+            >
+              <div className="pf-bls-remote-summary">
+                <p>
+                  <strong>Remote client</strong> ·{' '}
+                  {clientDisplay.peerStatus === 'connected'
+                    ? '● Connected'
+                    : clientDisplay.peerStatus === 'waiting'
+                      ? '● Waiting'
+                      : '○ Not connected'}
+                </p>
+                <button type="button" className="btn ghost" onClick={() => setRemotePanelOpen(true)}>
+                  Client Display
+                </button>
+              </div>
+            </LiveBlsPanel>
             <QuickResponsePanel
               onStopSignal={emergencyStop}
               onSave={({ tags, words, sud }) => {
@@ -411,6 +455,18 @@ export function StandardEmdrConsolePage() {
         }
         footer={<ProcessingTimeline entries={ws.timeline} />}
       />
+      <RemoteClientPanel
+        open={remotePanelOpen}
+        onClose={() => setRemotePanelOpen(false)}
+        display={clientDisplay}
+        state={bls.state}
+        onMuteTherapistChange={(muted) => bls.patchState({ muteTherapistAudio: muted })}
+        outputMode={outputMode}
+        onOutputMode={setOutputMode}
+        therapistPreview={therapistPreview}
+        onTherapistPreview={setTherapistPreview}
+      />
+      <ClientDisplayPreviewModal display={clientDisplay} />
     </div>
   );
 }

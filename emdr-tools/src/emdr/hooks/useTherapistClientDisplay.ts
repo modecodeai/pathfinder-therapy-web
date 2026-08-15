@@ -40,6 +40,7 @@ export function useTherapistClientDisplay(session: BlsSessionApi) {
   const [copied, setCopied] = useState(false);
   const [previewOpen, setPreviewOpen] = useState(false);
   const [clientFullscreen, setClientFullscreen] = useState<boolean | null>(null);
+  const [clientPressedStop, setClientPressedStop] = useState(false);
 
   useEffect(() => {
     activeRef.current = !!roomId;
@@ -81,6 +82,10 @@ export function useTherapistClientDisplay(session: BlsSessionApi) {
     setPeerStatus('interrupted');
   }, [session]);
 
+  const clearClientStopBanner = useCallback(() => {
+    setClientPressedStop(false);
+  }, []);
+
   const attachTherapistClient = useCallback(() => {
     const client = new RemoteRoomClient({
       role: 'therapist',
@@ -101,6 +106,14 @@ export function useTherapistClientDisplay(session: BlsSessionApi) {
           setPeerStatus('disconnected');
           setBanner('Client display disconnected.');
         }
+      },
+      onClientStop: () => {
+        if (session.stateRef.current.running) {
+          session.stop();
+          remoteRef.current?.markLocalRunning(false);
+        }
+        setClientPressedStop(true);
+        setBanner('CLIENT PRESSED STOP — BLS stopped. Restart manually when ready.');
       },
       onSessionEnded: () => {
         remoteRef.current = null;
@@ -251,6 +264,7 @@ export function useTherapistClientDisplay(session: BlsSessionApi) {
   }, []);
 
   const start = useCallback(async () => {
+    setClientPressedStop(false);
     const seq = await session.start();
     // publishState already saw running=true; START must carry startAt
     remoteRef.current?.sendCommand({ type: 'START', sequence: seq, startAt: Date.now() });
@@ -327,6 +341,8 @@ export function useTherapistClientDisplay(session: BlsSessionApi) {
     copied,
     previewOpen,
     clientFullscreen,
+    clientPressedStop,
+    clearClientStopBanner,
     active: !!roomId,
     ensureRoom,
     prepareRoom,

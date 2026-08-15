@@ -37,6 +37,7 @@ export default function App() {
         <Route path="/resources" element={<ResourcesPage />} />
         <Route path="/account" element={<AccountPage />} />
         <Route path="/join/:roomId" element={<JoinPage />} />
+        <Route path="/client/session/:roomId" element={<JoinPage />} />
         <Route path="/about" element={<AboutPage />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
