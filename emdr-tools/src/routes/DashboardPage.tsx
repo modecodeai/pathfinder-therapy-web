@@ -4,6 +4,11 @@ import { AppShell } from '../components/shell';
 import { IconPlus } from '../components/icons';
 import { useAuth } from '../hooks/useAuth';
 import { createClient, listClients, patchClient } from '../clinical-intelligence/lib/api';
+import { listOsAppointments } from '../os/api';
+import { getService } from '../os/serviceCatalog';
+import { INTAKE_STATUS_LABELS } from '../os/providers';
+import type { Appointment } from '../os/types';
+import { PRIMARY_APPROACH_LABELS } from '../clinical-intelligence/clinicalReasoning';
 
 type ClientRow = {
   id: string;
@@ -12,6 +17,7 @@ type ClientRow = {
   updatedAt: string;
   status?: string;
   currentPhase?: string;
+  intakeStatus?: string;
   ciPending?: number;
 };
 
@@ -21,14 +27,24 @@ function greetingForHour(h: number): string {
   return 'Good evening';
 }
 
+function isSameLocalDay(iso: string, ref = new Date()): boolean {
+  const d = new Date(iso);
+  return (
+    d.getFullYear() === ref.getFullYear() &&
+    d.getMonth() === ref.getMonth() &&
+    d.getDate() === ref.getDate()
+  );
+}
+
 /**
- * Client-first clinical dashboard — primary action is New Client.
- * Treatment-specific EMDR CTAs do not belong here.
+ * Clinician dashboard — TODAY-centred Pathfinder OS workspace.
+ * Primary: + New Client · Secondary: + New Appointment
  */
 export function DashboardPage() {
   const auth = useAuth();
   const navigate = useNavigate();
   const [clients, setClients] = useState<ClientRow[]>([]);
+  const [appointments, setAppointments] = useState<Appointment[]>([]);
   const [loading, setLoading] = useState(true);
   const [showNew, setShowNew] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -37,7 +53,12 @@ export function DashboardPage() {
     setLoading(true);
     setError(null);
     try {
-      setClients(await listClients());
+      const [c, a] = await Promise.all([
+        listClients(),
+        listOsAppointments().catch(() => [] as Appointment[]),
+      ]);
+      setClients(c);
+      setAppointments(a);
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Failed to load');
     } finally {
@@ -55,9 +76,25 @@ export function DashboardPage() {
     [clients],
   );
   const recent = active.slice(0, 8);
+  const todayAppts = useMemo(
+    () =>
+      appointments
+        .filter((a) => a.status !== 'cancelled' && isSameLocalDay(a.startsAt))
+        .sort((a, b) => a.startsAt.localeCompare(b.startsAt)),
+    [appointments],
+  );
+
   const attention = useMemo(() => {
     const items: Array<{ id: string; name: string; reason: string; href: string }> = [];
     for (const c of active) {
+      if (c.intakeStatus === 'submitted') {
+        items.push({
+          id: `${c.id}-intake`,
+          name: c.displayName,
+          reason: 'Intake awaiting review',
+          href: `/clients/${c.id}?tab=intake`,
+        });
+      }
       if (c.ciPending && c.ciPending > 0) {
         items.push({
           id: `${c.id}-ci`,
@@ -83,11 +120,15 @@ export function DashboardPage() {
         });
       }
     }
-    return items.slice(0, 8);
+    return items.slice(0, 10);
   }, [active]);
 
   const firstName = auth.therapist?.firstName || 'there';
   const greeting = greetingForHour(new Date().getHours());
+  const clientName = (id: string) =>
+    active.find((c) => c.id === id)?.displayName ??
+    appointments.find((a) => a.clientId === id)?.contactName ??
+    'Client';
 
   return (
     <AppShell activeNav="dashboard" contentWidth="wide">
@@ -104,7 +145,10 @@ export function DashboardPage() {
             <button type="button" className="btn primary" onClick={() => setShowNew(true)}>
               <IconPlus /> New Client
             </button>
-            <Link className="btn secondary" to="/clients">
+            <Link className="btn secondary" to="/book">
+              <IconPlus /> New Appointment
+            </Link>
+            <Link className="btn tertiary" to="/clients">
               Open Clients
             </Link>
           </div>
@@ -113,24 +157,51 @@ export function DashboardPage() {
         {error && <p className="ci-error-banner">{error}</p>}
 
         <div className="pf-dashboard-grid">
-          <section className="pf-surface-card">
+          <section className="pf-surface-card pf-today-card">
             <h2 className="pf-card-title">Today</h2>
             {loading ? (
               <p className="pf-meta">Loading…</p>
-            ) : recent.length === 0 ? (
+            ) : todayAppts.length === 0 ? (
               <p className="pf-meta">No clients scheduled</p>
             ) : (
-              <ul className="pf-recent-list">
-                {recent.slice(0, 3).map((c) => (
-                  <li key={c.id}>
-                    <Link to={`/clients/${c.id}`}>
-                      <span className="pf-recent-name">{c.displayName}</span>
-                      <span className="pf-meta">
-                        {c.updatedAt ? new Date(c.updatedAt).toLocaleDateString() : ''}
-                      </span>
-                    </Link>
-                  </li>
-                ))}
+              <ul className="pf-today-list">
+                {todayAppts.map((a) => {
+                  const svc = getService(a.serviceId);
+                  const name = clientName(a.clientId);
+                  const intakeLabel =
+                    INTAKE_STATUS_LABELS[a.intakeStatus] ?? a.intakeStatus;
+                  return (
+                    <li key={a.id}>
+                      <div>
+                        <strong>
+                          {new Date(a.startsAt).toLocaleTimeString([], {
+                            hour: '2-digit',
+                            minute: '2-digit',
+                          })}{' '}
+                          {name}
+                        </strong>
+                        <span className="pf-meta">
+                          {svc?.name ?? a.serviceId}
+                          {a.locationType === 'online' ? ' · Online' : ''}
+                        </span>
+                        <span className="pf-meta">Intake: {intakeLabel}</span>
+                      </div>
+                      <div className="stack-btns horizontal wrap">
+                        {a.intakeStatus === 'submitted' ? (
+                          <Link className="btn primary" to={`/clients/${a.clientId}?tab=intake`}>
+                            Review Intake
+                          </Link>
+                        ) : (
+                          <Link className="btn primary" to={`/clients/${a.clientId}?tab=preparation`}>
+                            {a.intakeStatus === 'reviewed' || a.intakeStatus === 'not-requested'
+                              ? 'Prepare'
+                              : 'Open'}
+                          </Link>
+                        )}
+                      </div>
+                    </li>
+                  );
+                })}
               </ul>
             )}
           </section>
@@ -139,8 +210,7 @@ export function DashboardPage() {
             <h2 className="pf-card-title">Clients requiring attention</h2>
             {attention.length === 0 ? (
               <p className="pf-meta">
-                Intake awaiting review · Clinical Reasoning awaiting review · Debrief incomplete ·
-                Preparation ready — none right now.
+                Intake awaiting review · Clinical Reasoning · Debrief · Preparation — none right now.
               </p>
             ) : (
               <ul className="pf-attention-list">
@@ -162,7 +232,7 @@ export function DashboardPage() {
               <p className="pf-meta">Loading…</p>
             ) : recent.length === 0 ? (
               <div className="pf-empty">
-                <p>No clients yet. Create a clinical record to begin.</p>
+                <p>No clients yet. Create a clinical record or take a booking.</p>
                 <button type="button" className="btn primary" onClick={() => setShowNew(true)}>
                   <IconPlus /> New Client
                 </button>
@@ -173,7 +243,11 @@ export function DashboardPage() {
                   <li key={c.id}>
                     <Link to={`/clients/${c.id}`}>
                       <span className="pf-recent-name">{c.displayName}</span>
-                      <span className="pf-meta">{c.presentingProblem || '—'}</span>
+                      <span className="pf-meta">
+                        {c.intakeStatus === 'submitted'
+                          ? 'Intake awaiting review'
+                          : c.presentingProblem || '—'}
+                      </span>
                     </Link>
                   </li>
                 ))}
@@ -193,10 +267,17 @@ export function DashboardPage() {
               <Link className="btn secondary" to="/knowledge">
                 Knowledge
               </Link>
+              <Link className="btn tertiary" to="/book">
+                Book
+              </Link>
               <Link className="btn tertiary" to="/session">
                 Remote Session
               </Link>
             </div>
+            <p className="hint" style={{ marginTop: '0.75rem' }}>
+              Approaches stay modality-neutral until selected — e.g.{' '}
+              {PRIMARY_APPROACH_LABELS.unspecified}.
+            </p>
           </section>
         </div>
       </main>

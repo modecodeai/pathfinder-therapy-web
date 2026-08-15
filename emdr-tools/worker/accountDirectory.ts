@@ -14,6 +14,10 @@ import {
   toApprovedClientContext,
 } from './clinical-ai/applyFindings';
 import { computeSessionChange } from '../src/clinical-intelligence/lib/formulation';
+import type { Appointment, IntakeLifecycleStatus } from '../src/os/types';
+import { listActiveServices, getService } from '../src/os/serviceCatalog';
+import { matchExistingClient } from '../src/os/matching';
+import { createOsEvent } from '../src/os/providers';
 
 interface TherapistRow {
   id: string;
@@ -116,6 +120,20 @@ export class AccountDirectory extends DurableObject {
           payload_json TEXT NOT NULL,
           created_at INTEGER NOT NULL
         );
+        CREATE TABLE IF NOT EXISTS appointments (
+          id TEXT PRIMARY KEY,
+          therapist_id TEXT NOT NULL,
+          client_id TEXT NOT NULL,
+          access_token TEXT NOT NULL UNIQUE,
+          record_json TEXT NOT NULL,
+          starts_at INTEGER NOT NULL,
+          created_at INTEGER NOT NULL,
+          updated_at INTEGER NOT NULL
+        );
+        CREATE INDEX IF NOT EXISTS idx_appointments_therapist_starts
+          ON appointments (therapist_id, starts_at);
+        CREATE INDEX IF NOT EXISTS idx_appointments_token
+          ON appointments (access_token);
       `);
       // v0.2: keep AI output immutable; therapist review stored separately
       try {
@@ -208,6 +226,28 @@ export class AccountDirectory extends DurableObject {
         const user = await this.userFromAuth(request);
         if (!user) return Response.json({ error: 'Unauthorized' }, { status: 401 });
         return Response.json({ ok: true, therapistId: user.id });
+      }
+      // Pathfinder OS booking / appointments
+      if (path.endsWith('/os/services') && request.method === 'GET') {
+        return this.listOsServices();
+      }
+      if (path.endsWith('/os/therapists') && request.method === 'GET') {
+        return this.listOsTherapistsPublic();
+      }
+      if (path.endsWith('/os/booking') && request.method === 'POST') {
+        return this.createOsBooking(request);
+      }
+      if (path.endsWith('/os/appointments') && request.method === 'GET') {
+        return this.listOsAppointments(request);
+      }
+      if (path.match(/\/os\/appointments\/by-token\/[^/]+$/) && request.method === 'GET') {
+        return this.getOsAppointmentByToken(request, path);
+      }
+      if (path.match(/\/os\/appointments\/by-token\/[^/]+\/intake$/) && request.method === 'POST') {
+        return this.submitOsPortalIntake(request, path);
+      }
+      if (path.match(/\/os\/appointments\/[^/]+\/intake-status$/) && request.method === 'PATCH') {
+        return this.patchOsIntakeStatus(request, path);
       }
       return Response.json({ error: 'Not found' }, { status: 404 });
     } catch (e) {
@@ -407,6 +447,7 @@ export class AccountDirectory extends DurableObject {
         presentingProblem: record.presentingProblem,
         status: record.status ?? 'active',
         currentPhase: record.currentPhase,
+        intakeStatus: record.intakeStatus,
         ciPending: Number(pendingAnalyses[0]?.c ?? 0),
         updatedAt: new Date(r.updated_at).toISOString(),
       };
@@ -942,6 +983,369 @@ export class AccountDirectory extends DurableObject {
       .exec(`SELECT * FROM therapists WHERE id = ?`, id)
       .toArray() as unknown as TherapistRow[];
     return rows[0] ?? null;
+  }
+
+  private listOsServices(): Response {
+    return Response.json({ services: listActiveServices() });
+  }
+
+  private listOsTherapistsPublic(): Response {
+    const rows = this.ctx.storage.sql
+      .exec(`SELECT id, first_name, last_name, profession FROM therapists ORDER BY created_at ASC LIMIT 50`)
+      .toArray() as Array<{
+      id: string;
+      first_name: string;
+      last_name: string;
+      profession: string | null;
+    }>;
+    return Response.json({
+      therapists: rows.map((t) => ({
+        id: t.id,
+        displayName: `${t.first_name} ${t.last_name}`.trim(),
+        profession: t.profession,
+      })),
+    });
+  }
+
+  private async createOsBooking(request: Request): Promise<Response> {
+    const body = (await request.json()) as {
+      serviceId?: string;
+      therapistId?: string;
+      startsAt?: string;
+      locationType?: Appointment['locationType'];
+      location?: string;
+      timezone?: string;
+      name?: string;
+      email?: string;
+      phone?: string;
+      bookingSource?: Appointment['bookingSource'];
+      consentVersion?: string;
+      policyVersion?: string;
+    };
+
+    const serviceId = String(body.serviceId ?? '');
+    const service = getService(serviceId);
+    if (!service) return Response.json({ error: 'Unknown service' }, { status: 400 });
+
+    const name = String(body.name ?? '').trim();
+    const email = String(body.email ?? '').trim().toLowerCase();
+    const phone = String(body.phone ?? '').trim() || undefined;
+    if (!name || !email.includes('@')) {
+      return Response.json({ error: 'Name and valid email required' }, { status: 400 });
+    }
+
+    let therapistId = String(body.therapistId ?? '').trim();
+    if (!therapistId) {
+      const first = this.ctx.storage.sql
+        .exec(`SELECT id FROM therapists ORDER BY created_at ASC LIMIT 1`)
+        .toArray() as Array<{ id: string }>;
+      therapistId = first[0]?.id ?? '';
+    }
+    if (!therapistId) {
+      return Response.json(
+        { error: 'No therapist available for booking yet. Create a therapist account first.' },
+        { status: 503 },
+      );
+    }
+
+    const startsAt = body.startsAt ? new Date(body.startsAt) : new Date(Date.now() + 86400000);
+    if (Number.isNaN(startsAt.getTime())) {
+      return Response.json({ error: 'Invalid startsAt' }, { status: 400 });
+    }
+    const endsAt = new Date(startsAt.getTime() + service.durationMinutes * 60_000);
+    const timezone = body.timezone || 'Europe/Lisbon';
+    const locationType = body.locationType ?? service.locationOptions[0] ?? 'online';
+    const now = Date.now();
+    const nowIso = new Date(now).toISOString();
+
+    const matchables = (
+      this.ctx.storage.sql
+        .exec(`SELECT id, record_json FROM clients WHERE therapist_id = ?`, therapistId)
+        .toArray() as Array<{ id: string; record_json: string }>
+    ).map((r) => {
+      const rec = JSON.parse(r.record_json) as ClientRecord;
+      return { id: r.id, email: rec.email, phone: rec.phone, displayName: rec.displayName };
+    });
+
+    const match = matchExistingClient(matchables, { email, phone });
+    let clientId: string;
+    let matchReviewRequired = false;
+    let record: ClientRecord;
+
+    if (match.kind === 'exact') {
+      clientId = match.clientId;
+      const existing = this.loadClient(therapistId, clientId);
+      if (!existing) return Response.json({ error: 'Matched client missing' }, { status: 500 });
+      record = {
+        ...existing,
+        email: existing.email || email,
+        phone: existing.phone || phone,
+        intakeStatus: service.intakeRequired ? 'requested' : existing.intakeStatus,
+        updatedAt: nowIso,
+      };
+      this.saveClient(record, now);
+    } else {
+      if (match.kind === 'uncertain') matchReviewRequired = true;
+      clientId = `c_${randomHex(10)}`;
+      record = emptyClientRecord(clientId, therapistId, name, nowIso);
+      record.recordKind = 'prospect';
+      record.email = email;
+      record.phone = phone;
+      record.intakeStatus = service.intakeRequired ? 'requested' : 'not-requested';
+      this.ctx.storage.sql.exec(
+        `INSERT INTO clients (id, therapist_id, display_name, record_json, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?)`,
+        clientId,
+        therapistId,
+        name,
+        JSON.stringify(record),
+        now,
+        now,
+      );
+      this.insertAudit(therapistId, clientId, 'system', {
+        event: 'client_created',
+        displayName: name,
+        source: 'os_booking',
+        matchReviewRequired,
+      });
+    }
+
+    const appointmentId = `ap_${randomHex(10)}`;
+    const accessToken = randomHex(24);
+    const appointment: Appointment = {
+      id: appointmentId,
+      clientId,
+      therapistId,
+      serviceId,
+      startsAt: startsAt.toISOString(),
+      endsAt: endsAt.toISOString(),
+      timezone,
+      locationType,
+      location: body.location,
+      status: service.paymentRequired ? 'payment-pending' : 'booked',
+      paymentStatus: service.paymentRequired ? 'pending' : 'not-required',
+      intakeStatus: service.intakeRequired ? 'requested' : 'not-requested',
+      bookingSource: body.bookingSource ?? 'pathfinder-native',
+      accessToken,
+      contactName: name,
+      contactEmail: email,
+      contactPhone: phone,
+      matchReviewRequired: matchReviewRequired || undefined,
+      createdAt: nowIso,
+      updatedAt: nowIso,
+    };
+
+    this.ctx.storage.sql.exec(
+      `INSERT INTO appointments (id, therapist_id, client_id, access_token, record_json, starts_at, created_at, updated_at)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+      appointmentId,
+      therapistId,
+      clientId,
+      accessToken,
+      JSON.stringify(appointment),
+      startsAt.getTime(),
+      now,
+      now,
+    );
+
+    this.insertAudit(therapistId, clientId, 'system', {
+      event: 'booking.confirmed',
+      appointmentId,
+      serviceId,
+      osEvent: createOsEvent('booking.confirmed', { appointmentId, clientId }),
+    });
+    if (service.intakeRequired) {
+      this.insertAudit(therapistId, clientId, 'system', {
+        event: 'intake.requested',
+        appointmentId,
+        osEvent: createOsEvent('intake.requested', { appointmentId, clientId }),
+      });
+    }
+
+    return Response.json({
+      ok: true,
+      appointment: {
+        id: appointmentId,
+        serviceId,
+        serviceName: service.name,
+        startsAt: appointment.startsAt,
+        endsAt: appointment.endsAt,
+        timezone: appointment.timezone,
+        locationType: appointment.locationType,
+        location: appointment.location,
+        status: appointment.status,
+        paymentStatus: appointment.paymentStatus,
+        intakeStatus: appointment.intakeStatus,
+        contactName: name,
+      },
+      accessToken,
+      intakeRequired: service.intakeRequired,
+      matchReviewRequired,
+      consent: body.consentVersion
+        ? {
+            version: body.consentVersion,
+            policyVersion: body.policyVersion ?? body.consentVersion,
+            timestamp: nowIso,
+          }
+        : undefined,
+    });
+  }
+
+  private async listOsAppointments(request: Request): Promise<Response> {
+    const user = await this.userFromAuth(request);
+    if (!user) return Response.json({ error: 'Unauthorized' }, { status: 401 });
+    const rows = this.ctx.storage.sql
+      .exec(
+        `SELECT record_json FROM appointments WHERE therapist_id = ? ORDER BY starts_at ASC LIMIT 200`,
+        user.id,
+      )
+      .toArray() as Array<{ record_json: string }>;
+    const appointments = rows.map((r) => JSON.parse(r.record_json) as Appointment);
+    return this.jsonNoStore({ appointments });
+  }
+
+  private getOsAppointmentByToken(_request: Request, path: string): Response {
+    const token = path.split('/').pop()!;
+    const rows = this.ctx.storage.sql
+      .exec(`SELECT record_json FROM appointments WHERE access_token = ? LIMIT 1`, token)
+      .toArray() as Array<{ record_json: string }>;
+    if (!rows.length) return Response.json({ error: 'Not found' }, { status: 404 });
+    const appointment = JSON.parse(rows[0]!.record_json) as Appointment;
+    const service = getService(appointment.serviceId);
+    if (appointment.intakeStatus === 'requested') {
+      appointment.intakeStatus = 'opened';
+      appointment.updatedAt = new Date().toISOString();
+      this.ctx.storage.sql.exec(
+        `UPDATE appointments SET record_json = ?, updated_at = ? WHERE id = ?`,
+        JSON.stringify(appointment),
+        Date.now(),
+        appointment.id,
+      );
+      const client = this.loadClient(appointment.therapistId, appointment.clientId);
+      if (client) {
+        client.intakeStatus = 'opened';
+        this.saveClient(client, Date.now());
+      }
+    }
+    return Response.json({
+      appointment: {
+        id: appointment.id,
+        serviceName: service?.name,
+        startsAt: appointment.startsAt,
+        endsAt: appointment.endsAt,
+        timezone: appointment.timezone,
+        locationType: appointment.locationType,
+        intakeStatus: appointment.intakeStatus,
+        contactName: appointment.contactName,
+      },
+    });
+  }
+
+  private async submitOsPortalIntake(request: Request, path: string): Promise<Response> {
+    const parts = path.split('/');
+    const token = parts[parts.length - 2];
+    const rows = this.ctx.storage.sql
+      .exec(`SELECT record_json FROM appointments WHERE access_token = ? LIMIT 1`, token)
+      .toArray() as Array<{ record_json: string }>;
+    if (!rows.length) return Response.json({ error: 'Not found' }, { status: 404 });
+    const appointment = JSON.parse(rows[0]!.record_json) as Appointment;
+    const body = (await request.json()) as {
+      rawText?: string;
+      fields?: Record<string, string>;
+      version?: string;
+      consentVersion?: string;
+      policyVersion?: string;
+    };
+    const rawText = String(body.rawText ?? '').trim();
+    if (!rawText) return Response.json({ error: 'Intake content required' }, { status: 400 });
+
+    const now = Date.now();
+    const nowIso = new Date(now).toISOString();
+    const intakeId = `in_${randomHex(10)}`;
+    const client = this.loadClient(appointment.therapistId, appointment.clientId);
+    if (!client) return Response.json({ error: 'Client not found' }, { status: 404 });
+
+    client.intake = {
+      fields: body.fields ?? {},
+      rawPaste: rawText,
+      updatedAt: nowIso,
+      extractedFindings: [],
+    };
+    client.clinicalMaterials = [
+      ...(client.clinicalMaterials ?? []),
+      {
+        id: `src_intake_${intakeId}`,
+        sourceType: 'intake',
+        label: 'Client portal intake',
+        text: rawText,
+        createdAt: nowIso,
+      },
+    ];
+    client.intakeStatus = 'submitted';
+    client.updatedAt = nowIso;
+    // Do NOT run AI into the clinical record on intake submit — therapist reviews first.
+    this.saveClient(client, now);
+
+    appointment.intakeStatus = 'submitted';
+    appointment.updatedAt = nowIso;
+    this.ctx.storage.sql.exec(
+      `UPDATE appointments SET record_json = ?, updated_at = ? WHERE id = ?`,
+      JSON.stringify(appointment),
+      now,
+      appointment.id,
+    );
+
+    this.insertAudit(appointment.therapistId, appointment.clientId, 'system', {
+      event: 'intake.submitted',
+      intakeId,
+      appointmentId: appointment.id,
+      version: body.version ?? 'pathfinder-intake-v1',
+      consentVersion: body.consentVersion,
+      policyVersion: body.policyVersion,
+      osEvent: createOsEvent('intake.submitted', {
+        intakeId,
+        appointmentId: appointment.id,
+        clientId: appointment.clientId,
+      }),
+    });
+
+    return Response.json({
+      ok: true,
+      intakeId,
+      intakeStatus: 'submitted' satisfies IntakeLifecycleStatus,
+      message: 'Thank you. Your intake has been received and will be reviewed by your therapist.',
+    });
+  }
+
+  private async patchOsIntakeStatus(request: Request, path: string): Promise<Response> {
+    const user = await this.userFromAuth(request);
+    if (!user) return Response.json({ error: 'Unauthorized' }, { status: 401 });
+    const segments = path.split('/');
+    const id = segments[segments.length - 2];
+    const body = (await request.json()) as { intakeStatus?: IntakeLifecycleStatus };
+    const rows = this.ctx.storage.sql
+      .exec(
+        `SELECT record_json FROM appointments WHERE id = ? AND therapist_id = ? LIMIT 1`,
+        id,
+        user.id,
+      )
+      .toArray() as Array<{ record_json: string }>;
+    if (!rows.length) return Response.json({ error: 'Not found' }, { status: 404 });
+    const appointment = JSON.parse(rows[0]!.record_json) as Appointment;
+    if (!body.intakeStatus) return Response.json({ error: 'intakeStatus required' }, { status: 400 });
+    appointment.intakeStatus = body.intakeStatus;
+    appointment.updatedAt = new Date().toISOString();
+    this.ctx.storage.sql.exec(
+      `UPDATE appointments SET record_json = ?, updated_at = ? WHERE id = ?`,
+      JSON.stringify(appointment),
+      Date.now(),
+      appointment.id,
+    );
+    const client = this.loadClient(user.id, appointment.clientId);
+    if (client) {
+      client.intakeStatus = body.intakeStatus;
+      this.saveClient(client, Date.now());
+    }
+    return Response.json({ ok: true, appointment });
   }
 }
 

@@ -30,6 +30,16 @@ import { SafeCalmPage } from '../emdr/components/practice/SafeCalmPage';
 import { StandardEmdrConsolePage } from '../emdr/components/practice/StandardEmdrConsolePage';
 import { SessionCompanionPage } from '../emdr/components/SessionCompanion';
 import { ResourcesPage } from '../emdr/help/ResourcesPage';
+import { BookAppointmentPage, BookConfirmedPage } from '../os/pages/BookAppointmentPage';
+import {
+  ClientPortalHomePage,
+  PortalAppointmentsPage,
+  PortalIntakePage,
+  PortalPaymentsPage,
+  PublicHomePage,
+  PublicServicesPage,
+  PublicTherapistsPage,
+} from '../os/pages/PublicPages';
 import { AboutPage } from '../routes/AboutPage';
 import { AccountPage } from '../routes/AccountPage';
 import { JoinPage } from '../routes/JoinPage';
@@ -77,6 +87,15 @@ export default function App() {
     <BrowserRouter>
       <Routes>
         <Route path="/" element={<LandingPage />} />
+        <Route path="/public" element={<PublicHomePage />} />
+        <Route path="/services" element={<PublicServicesPage />} />
+        <Route path="/therapists" element={<PublicTherapistsPage />} />
+        <Route path="/book" element={<BookAppointmentPage />} />
+        <Route path="/book/confirmed" element={<BookConfirmedPage />} />
+        <Route path="/portal" element={<ClientPortalHomePage />} />
+        <Route path="/portal/appointments" element={<PortalAppointmentsPage />} />
+        <Route path="/portal/intake" element={<PortalIntakePage />} />
+        <Route path="/portal/payments" element={<PortalPaymentsPage />} />
         <Route path="/practice" element={<PracticeHomePage />} />
         <Route path="/knowledge" element={<KnowledgePage />} />
         <Route path="/protocols" element={<Navigate to="/knowledge" replace />} />

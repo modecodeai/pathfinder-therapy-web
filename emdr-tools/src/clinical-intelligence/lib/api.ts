@@ -59,6 +59,7 @@ export async function listClients(): Promise<
     updatedAt: string;
     status?: string;
     currentPhase?: string;
+    intakeStatus?: string;
     ciPending?: number;
   }>
 > {
@@ -72,6 +73,7 @@ export async function listClients(): Promise<
       updatedAt: string;
       status?: string;
       currentPhase?: string;
+      intakeStatus?: string;
       ciPending?: number;
     }>;
   }>(res);

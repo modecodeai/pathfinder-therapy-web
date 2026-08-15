@@ -6177,3 +6177,159 @@ button.pain-resource-card strong {
 .clinical-cycle-page {
   max-width: 800px;
 }
+
+/* —— Pathfinder OS public / portal —— */
+.pf-public-shell {
+  min-height: 100%;
+  background:
+    radial-gradient(1200px 600px at 10% -10%, #f3ebe3 0%, transparent 55%),
+    linear-gradient(180deg, #fbf7f2 0%, #f4efe8 100%);
+  color: #2a2420;
+}
+.pf-public-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 1rem clamp(1rem, 4vw, 2rem);
+  border-bottom: 1px solid rgba(80, 60, 40, 0.08);
+  flex-wrap: wrap;
+}
+.pf-public-brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  text-decoration: none;
+  color: inherit;
+  font-size: 1.05rem;
+}
+.pf-public-nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.85rem 1.25rem;
+}
+.pf-public-nav a {
+  text-decoration: none;
+  color: #5c534c;
+  font-weight: 500;
+  min-height: 40px;
+  display: inline-flex;
+  align-items: center;
+}
+.pf-public-nav a:hover { color: #8a5a2b; }
+.pf-public-main {
+  max-width: 840px;
+  margin: 0 auto;
+  padding: 1.5rem clamp(1rem, 4vw, 2rem) 3rem;
+}
+.pf-public-title {
+  margin: 0 0 0.5rem;
+  font-size: clamp(1.75rem, 4vw, 2.35rem);
+  font-weight: 650;
+  letter-spacing: -0.02em;
+}
+.pf-public-lede {
+  margin: 0 0 1.25rem;
+  color: #5c534c;
+  font-size: 1.05rem;
+  line-height: 1.55;
+}
+.pf-public-footer {
+  text-align: center;
+  padding: 1.5rem;
+  color: #7a7168;
+  font-size: 0.85rem;
+}
+.pf-public-card {
+  background: rgba(255, 255, 255, 0.82);
+  border: 1px solid rgba(80, 60, 40, 0.1);
+  border-radius: 12px;
+  padding: 1.5rem;
+  box-shadow: 0 1px 2px rgba(40, 30, 20, 0.04);
+  display: block;
+  text-decoration: none;
+  color: inherit;
+}
+a.pf-public-card:hover {
+  border-color: rgba(138, 90, 43, 0.35);
+}
+.pf-book-steps {
+  list-style: none;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  padding: 0;
+  margin: 0 0 1.25rem;
+}
+.pf-book-steps li {
+  font-size: 0.82rem;
+  color: #7a7168;
+  padding: 0.35rem 0.65rem;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.55);
+}
+.pf-book-steps li.is-active {
+  background: #8a5a2b;
+  color: #fff;
+  font-weight: 600;
+}
+.pf-book-steps li.is-done { color: #8a5a2b; }
+.pf-service-pick {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 1rem;
+  display: grid;
+  gap: 0.65rem;
+}
+.pf-service-pick button {
+  width: 100%;
+  text-align: left;
+  border: 1px solid rgba(80, 60, 40, 0.12);
+  background: #fff;
+  border-radius: 12px;
+  padding: 0.85rem 1rem;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+.pf-service-pick button.is-selected {
+  border-color: #8a5a2b;
+  box-shadow: 0 0 0 2px rgba(138, 90, 43, 0.15);
+}
+.pf-consent-check {
+  display: flex;
+  gap: 0.65rem;
+  align-items: flex-start;
+  font-size: 0.92rem;
+  line-height: 1.45;
+}
+.pf-portal-grid {
+  display: grid;
+  gap: 0.85rem;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+}
+.pf-public-list {
+  margin: 1rem 0 0;
+  padding-left: 1.1rem;
+}
+.pf-today-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: grid;
+  gap: 0.85rem;
+}
+.pf-today-list li {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+  padding: 0.75rem 0;
+  border-bottom: 1px solid var(--pf-border);
+}
+.pf-today-list li > div:first-child {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+}

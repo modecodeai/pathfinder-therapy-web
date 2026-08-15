@@ -18,6 +18,10 @@ export default {
       return handleClientRoutes(request, env, url);
     }
 
+    if (path.startsWith('/api/os')) {
+      return handleOsRoutes(request, env, url);
+    }
+
     if (path.startsWith('/api/auth') || path.startsWith('/api/sessions')) {
       return handleAuthRoutes(request, env, url);
     }
@@ -104,6 +108,45 @@ async function handleRoomRoutes(request: Request, env: Env, url: URL): Promise<R
   }
 
   return new Response('Not found', { status: 404 });
+}
+
+async function handleOsRoutes(request: Request, env: Env, url: URL): Promise<Response> {
+  const stub = accountsStub(env);
+  const path = url.pathname;
+  let target = '';
+
+  if (path === '/api/os/services' && request.method === 'GET') {
+    target = '/os/services';
+  } else if (path === '/api/os/therapists' && request.method === 'GET') {
+    target = '/os/therapists';
+  } else if (path === '/api/os/booking' && request.method === 'POST') {
+    target = '/os/booking';
+  } else if (path === '/api/os/appointments' && request.method === 'GET') {
+    target = '/os/appointments';
+  } else {
+    const byToken = path.match(/^\/api\/os\/appointments\/by-token\/([^/]+)(?:\/(intake))?$/);
+    if (byToken) {
+      const token = decodeURIComponent(byToken[1]);
+      target = byToken[2]
+        ? `/os/appointments/by-token/${token}/intake`
+        : `/os/appointments/by-token/${token}`;
+    } else {
+      const intakeStatus = path.match(/^\/api\/os\/appointments\/([^/]+)\/intake-status$/);
+      if (intakeStatus) {
+        target = `/os/appointments/${decodeURIComponent(intakeStatus[1])}/intake-status`;
+      }
+    }
+  }
+
+  if (!target) return Response.json({ error: 'Not found' }, { status: 404 });
+
+  return stub.fetch(
+    new Request(`https://accounts${target}`, {
+      method: request.method,
+      headers: request.headers,
+      body: request.method === 'GET' || request.method === 'HEAD' ? undefined : await request.text(),
+    }),
+  );
 }
 
 function withSecurityHeaders(res: Response): Response {

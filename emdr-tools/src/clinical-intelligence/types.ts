@@ -585,6 +585,12 @@ export interface ClientRecord {
   preferredName?: string;
   reference?: string;
   status?: 'active' | 'archived';
+  /** Prospect until clinical engagement; same store as client */
+  recordKind?: import('../os/types').RecordKind;
+  email?: string;
+  phone?: string;
+  /** Latest intake lifecycle across appointments / portal */
+  intakeStatus?: import('../os/types').IntakeLifecycleStatus;
   dateOfBirth?: string;
   pronouns?: string;
   /** Structured intake — first-class clinical evidence (not a diagnosis) */
