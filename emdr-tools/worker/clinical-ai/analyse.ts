@@ -12,12 +12,17 @@ import {
   PROMPT_VERSION,
   SCHEMA_VERSION,
 } from '../../src/clinical-intelligence/types';
+import type { ClinicalLens } from '../../src/clinical-intelligence/clinicalReasoning';
+import { PCR_PROMPT_VERSION, TA_SCHEMA_VERSION } from '../../src/clinical-intelligence/clinicalReasoning';
 import {
   BASE_SYSTEM_PROMPT,
   PHASE1_HISTORY_EXTRACTION,
   PHASE3_ASSESSMENT_EXTRACTION,
   PHASE4_DESENSITISATION_EXTRACTION,
   STRUCTURED_REPAIR_PROMPT,
+  TA_FORMULATION_EXTRACTION,
+  CORE_SYSTEM_PROMPT,
+  TA_LENS_SYSTEM_APPEND,
   buildAnalyseUserInput,
 } from './prompts';
 import { ClinicalAIError, callOpenAIResponses, type OpenAIEnv } from './openai';
@@ -32,15 +37,23 @@ import {
   validatePhase3Analysis,
   validatePhase4Analysis,
 } from './schemaPhase34';
+import { TA_FORMULATION_JSON_SCHEMA, validateTaAnalysis } from './schemaTa';
 import { applySegmentDeltas, summariseApprovedForContext } from './segmentDiff';
 
 const MAX_TRANSCRIPT_CHARS = 120_000;
 
+export type AnalyseProtocol =
+  | 'standard-emdr'
+  | 'general-psychotherapy'
+  | 'transactional-analysis'
+  | 'integrated';
+
 export function assertAnalyseRequest(body: unknown): {
   clientId: string;
   sessionId?: string;
-  protocol: 'standard-emdr';
-  phase: SupportedAnalysisPhase;
+  protocol: AnalyseProtocol;
+  phase: SupportedAnalysisPhase | 'formulation';
+  clinicalLens: ClinicalLens;
   transcript: string;
   sessionDate?: string;
   parentAnalysisId?: string;
@@ -51,30 +64,70 @@ export function assertAnalyseRequest(body: unknown): {
   const b = body as Record<string, unknown>;
   const clientId = String(b.clientId ?? '').trim();
   const transcript = String(b.transcript ?? '');
-  const protocol = String(b.protocol ?? '');
-  const phase = String(b.phase ?? '') as SupportedAnalysisPhase;
+  const protocol = String(b.protocol ?? 'standard-emdr') as AnalyseProtocol;
+  const phase = String(b.phase ?? '') as SupportedAnalysisPhase | 'formulation';
+  const lensRaw = String(b.clinicalLens ?? '');
 
   if (!clientId) throw new ClinicalAIError('clientId is required.', 'request_failed', 400);
   if (!transcript.trim()) throw new ClinicalAIError('Transcript must not be empty.', 'request_failed', 400);
   if (transcript.length > MAX_TRANSCRIPT_CHARS) {
     throw new ClinicalAIError('Transcript exceeds the maximum allowed size.', 'request_failed', 400);
   }
-  if (protocol !== 'standard-emdr') {
-    throw new ClinicalAIError('Only Standard EMDR is supported.', 'request_failed', 400);
-  }
-  if (phase !== 'history' && phase !== 'assessment' && phase !== 'desensitisation') {
+
+  const allowedProtocols: AnalyseProtocol[] = [
+    'standard-emdr',
+    'general-psychotherapy',
+    'transactional-analysis',
+    'integrated',
+  ];
+  if (!allowedProtocols.includes(protocol)) {
     throw new ClinicalAIError(
-      'Supported phases: Phase 1 History, Phase 3 Assessment, Phase 4 Desensitisation.',
+      'Supported clinical contexts: General Psychotherapy, Standard EMDR, Transactional Analysis, Integrated.',
       'request_failed',
       400,
     );
   }
 
+  let clinicalLens: ClinicalLens =
+    lensRaw === 'emdr' || lensRaw === 'transactional-analysis' || lensRaw === 'integrated'
+      ? lensRaw
+      : protocol === 'standard-emdr'
+        ? 'emdr'
+        : protocol === 'transactional-analysis'
+          ? 'transactional-analysis'
+          : 'integrated';
+
+  // TA / general / integrated formulation uses phase "formulation" or history
+  const emdrPhases = phase === 'history' || phase === 'assessment' || phase === 'desensitisation';
+  const taPhase = phase === 'formulation' || phase === 'history';
+
+  if (clinicalLens === 'emdr' && !emdrPhases) {
+    throw new ClinicalAIError(
+      'EMDR lens supports Phase 1 History, Phase 3 Assessment, Phase 4 Desensitisation.',
+      'request_failed',
+      400,
+    );
+  }
+  if (clinicalLens === 'transactional-analysis' && !taPhase) {
+    throw new ClinicalAIError(
+      'Transactional Analysis lens currently supports formulation / history analysis.',
+      'request_failed',
+      400,
+    );
+  }
+  if (clinicalLens === 'integrated' && !(emdrPhases || phase === 'formulation')) {
+    throw new ClinicalAIError('Unsupported phase for Integrated lens.', 'request_failed', 400);
+  }
+
   return {
     clientId,
     sessionId: b.sessionId ? String(b.sessionId) : undefined,
-    protocol: 'standard-emdr',
-    phase,
+    protocol,
+    phase:
+      clinicalLens === 'transactional-analysis' && phase === 'history'
+        ? 'formulation'
+        : phase,
+    clinicalLens,
     transcript,
     sessionDate: b.sessionDate ? String(b.sessionDate) : undefined,
     parentAnalysisId: b.parentAnalysisId ? String(b.parentAnalysisId) : undefined,
@@ -92,7 +145,9 @@ type AnalyseResult = {
 export async function analyseTranscript(
   env: OpenAIEnv,
   args: {
-    phase: SupportedAnalysisPhase;
+    phase: SupportedAnalysisPhase | 'formulation';
+    clinicalLens?: ClinicalLens;
+    protocol?: AnalyseProtocol;
     transcript: string;
     clientContext: ApprovedClientContext;
     sessionDate?: string;
@@ -100,11 +155,17 @@ export async function analyseTranscript(
     isSegment?: boolean;
   },
 ): Promise<AnalyseResult> {
+  const lens = args.clinicalLens ?? 'emdr';
   const priorSummary =
     args.isSegment && args.parentReviewed
       ? summariseApprovedForContext(args.parentReviewed)
       : undefined;
 
+  if (lens === 'transactional-analysis' || args.phase === 'formulation') {
+    return runTa(env, args, priorSummary);
+  }
+
+  // Integrated with history: run EMDR phase 1 (core+EMDR); TA available as separate analysis
   let result: AnalyseResult;
   if (args.phase === 'assessment') {
     result = await runPhase3(env, args, priorSummary);
@@ -179,6 +240,45 @@ async function runPhase1(
     validate: (text) => {
       try {
         return validateTranscriptAnalysis(parseTranscriptAnalysisJson(text));
+      } catch {
+        return { ok: false as const, error: 'parse_error' };
+      }
+    },
+  });
+}
+
+async function runTa(
+  env: OpenAIEnv,
+  args: {
+    transcript: string;
+    clientContext: ApprovedClientContext;
+    sessionDate?: string;
+    protocol?: AnalyseProtocol;
+    isSegment?: boolean;
+  },
+  priorApprovedSummary?: unknown,
+): Promise<AnalyseResult> {
+  const instructions = `${CORE_SYSTEM_PROMPT}\n\n${TA_LENS_SYSTEM_APPEND}\n\n${TA_FORMULATION_EXTRACTION}`;
+  const input = buildAnalyseUserInput({
+    transcript: args.transcript,
+    clientContext: args.clientContext,
+    protocol: args.protocol ?? 'transactional-analysis',
+    phase: 'formulation',
+    sessionDate: args.sessionDate,
+    priorApprovedSummary,
+    isSegment: args.isSegment,
+  });
+  return runStructured(env, {
+    instructions,
+    input,
+    schemaName: 'ta_formulation_analysis',
+    schema: TA_FORMULATION_JSON_SCHEMA as unknown as Record<string, unknown>,
+    schemaVersion: TA_SCHEMA_VERSION,
+    promptVersion: PCR_PROMPT_VERSION,
+    validate: (text) => {
+      try {
+        const parsed = parseTranscriptAnalysisJson(text);
+        return { ok: true as const, value: validateTaAnalysis(parsed) };
       } catch {
         return { ok: false as const, error: 'parse_error' };
       }
@@ -266,6 +366,7 @@ async function runStructured(
     schemaName: string;
     schema: Record<string, unknown>;
     schemaVersion: string;
+    promptVersion?: string;
     validate: (
       text: string,
     ) =>
@@ -289,7 +390,7 @@ async function runStructured(
     validated = opts.validate(repair.text);
     if (!validated.ok) {
       throw new ClinicalAIError(
-        'Clinical Intelligence returned invalid structured data. Your transcript has been preserved.',
+        'Clinical Reasoning returned invalid structured data. Your transcript has been preserved.',
         'invalid_output',
       );
     }
@@ -297,7 +398,7 @@ async function runStructured(
       analysis: validated.value,
       model: repair.model,
       latencyMs: first.latencyMs + repair.latencyMs,
-      promptVersion: PROMPT_VERSION,
+      promptVersion: opts.promptVersion ?? PROMPT_VERSION,
       schemaVersion: opts.schemaVersion,
     };
   }
@@ -306,7 +407,7 @@ async function runStructured(
     analysis: validated.value,
     model: first.model,
     latencyMs: first.latencyMs,
-    promptVersion: PROMPT_VERSION,
+    promptVersion: opts.promptVersion ?? PROMPT_VERSION,
     schemaVersion: opts.schemaVersion,
   };
 }

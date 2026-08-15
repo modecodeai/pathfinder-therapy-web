@@ -83,7 +83,7 @@ function LocalClientView() {
       <div className="client-chrome">
         <div className="client-brand">
           <span className="brand-mark" aria-hidden />
-          <span>Pathfinder EMDR</span>
+          <span>Pathfinder Clinical</span>
           {connected && !interrupted && <span className="client-conn">Connected to your therapist</span>}
           {interrupted && <span className="client-conn warn">Connection interrupted</span>}
         </div>

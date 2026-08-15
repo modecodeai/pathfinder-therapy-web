@@ -7,7 +7,7 @@ export function AboutPage() {
         <Link to="/" className="brand">
           <span className="brand-mark" aria-hidden />
           <span>
-            <strong>Pathfinder</strong> EMDR Tools
+            <strong>Pathfinder</strong> Clinical
           </span>
         </Link>
         <nav>
@@ -18,8 +18,8 @@ export function AboutPage() {
       <main className="about">
         <h1>About & privacy</h1>
         <p className="lede">
-          Pathfinder EMDR Tools provides visual and auditory bilateral stimulation controls designed
-          for use by appropriately trained practitioners.
+          Pathfinder Clinical provides clinical reasoning and guided psychotherapy tools, including
+          bilateral stimulation controls, for use by appropriately trained practitioners.
         </p>
         <p>
           The application does not replace clinical judgement, professional training or appropriate
@@ -35,7 +35,7 @@ export function AboutPage() {
             <li>This beta does not store clinical notes, diagnoses, SUD/VOC, or target memories.</li>
             <li>
               Use your usual video platform (for example Zoom or Google Meet) for conversation;
-              Pathfinder EMDR Tools handles BLS only.
+              Bilateral stimulation features handle stimulation only — they do not replace clinical judgement.
             </li>
           </ul>
         </section>

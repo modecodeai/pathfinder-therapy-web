@@ -39,7 +39,7 @@ export function AccountPage() {
           <Link to="/" className="brand">
             <span className="brand-mark" aria-hidden />
             <span>
-              <strong>Pathfinder</strong> EMDR Tools
+              <strong>Pathfinder</strong> Clinical
             </span>
           </Link>
           <nav className="site-nav">
@@ -50,7 +50,7 @@ export function AccountPage() {
           <h1>Welcome, {displayName}</h1>
           <p className="lede">Free Therapist Account</p>
           <p className="hint">
-            Pathfinder EMDR supports clinical delivery and does not replace professional training,
+            Pathfinder Clinical supports clinical delivery and does not replace professional training,
             supervision, consultation or clinical judgement.
           </p>
           <div className="cta-row">
@@ -66,7 +66,7 @@ export function AccountPage() {
               Settings
             </Link>
             <Link className="btn ghost" to="/settings/clinical-intelligence">
-              Clinical Intelligence (provider)
+              Clinical Reasoning (provider)
             </Link>
             <Link className="btn ghost" to="/resources">
               Script Library
@@ -120,7 +120,7 @@ export function AccountPage() {
         <Link to="/" className="brand">
           <span className="brand-mark" aria-hidden />
           <span>
-            <strong>Pathfinder</strong> EMDR Tools
+            <strong>Pathfinder</strong> Clinical
           </span>
         </Link>
       </header>

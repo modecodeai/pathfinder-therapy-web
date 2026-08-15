@@ -1,6 +1,7 @@
 import { BrowserRouter, Navigate, Route, Routes, useParams } from 'react-router-dom';
 import { AnalyseTranscriptPage } from '../clinical-intelligence/AnalyseTranscriptPage';
 import { AipFormulationPage } from '../clinical-intelligence/AipFormulationPage';
+import { ClinicalReasoningPage } from '../clinical-intelligence/ClinicalReasoningPage';
 import {
   AppearanceSettingsPage,
   ClinicalIntelligenceSettingsPage,
@@ -57,6 +58,12 @@ function SessionDebriefRoute() {
   return <SessionDebriefPage clientId={clientId} />;
 }
 
+function ClinicalReasoningRoute() {
+  const { clientId } = useParams<{ clientId: string }>();
+  if (!clientId) return <Navigate to="/clients" replace />;
+  return <ClinicalReasoningPage clientId={clientId} />;
+}
+
 export default function App() {
   return (
     <BrowserRouter>
@@ -86,6 +93,7 @@ export default function App() {
         <Route path="/clients" element={<ClientsListPage />} />
         <Route path="/clients/:clientId" element={<ClientDetailRoute />} />
         <Route path="/clients/:clientId/clinical-intelligence" element={<AnalyseRoute />} />
+        <Route path="/clients/:clientId/clinical-reasoning" element={<ClinicalReasoningRoute />} />
         <Route path="/clients/:clientId/aip-formulation" element={<AipFormulationRoute />} />
         <Route path="/clients/:clientId/debrief" element={<SessionDebriefRoute />} />
         <Route path="/account" element={<AccountPage />} />

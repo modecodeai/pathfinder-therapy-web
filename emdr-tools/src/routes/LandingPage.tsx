@@ -32,7 +32,7 @@ export function LandingPage() {
           <div className="brand">
             <span className="brand-mark" aria-hidden />
             <span>
-              <strong>Pathfinder</strong> EMDR
+              <strong>Pathfinder</strong> Clinical
             </span>
           </div>
           <nav className="site-nav site-nav-product">
@@ -91,7 +91,7 @@ export function LandingPage() {
             </form>
           )}
         </main>
-        <footer className="site-footer">Pathfinder Therapy · Pathfinder EMDR</footer>
+        <footer className="site-footer">Pathfinder Therapy · Pathfinder Clinical</footer>
       </div>
     );
   }
@@ -102,7 +102,7 @@ export function LandingPage() {
         <div className="brand">
           <span className="brand-mark" aria-hidden />
           <span>
-            <strong>Pathfinder</strong> EMDR
+            <strong>Pathfinder</strong> Clinical
           </span>
         </div>
         <nav className="site-nav site-nav-product">
@@ -114,10 +114,10 @@ export function LandingPage() {
 
       <main className="landing">
         <p className="eyebrow">Pathfinder Therapy</p>
-        <h1>Pathfinder EMDR</h1>
-        <p className="subtitle">Clinical EMDR tools for trained therapists</p>
+        <h1>Pathfinder Clinical</h1>
+        <p className="subtitle">Clinical reasoning and guided psychotherapy tools for Pathfinder Therapy</p>
         <p className="lede">
-          Guided practice, bilateral stimulation and Clinical Intelligence for EMDR delivery — with
+          Guided practice, Clinical Reasoning and bilateral stimulation for trained therapists — with
           client records held in authenticated server-side storage.
         </p>
         <div className="cta-row cta-hierarchy">
@@ -153,7 +153,7 @@ export function LandingPage() {
           </form>
         )}
         <p className="hint clinical-boundary">
-          Pathfinder EMDR supports clinical delivery and does not replace professional training,
+          Pathfinder Clinical supports clinical delivery and does not replace professional training,
           supervision, consultation or clinical judgement.
         </p>
       </main>

@@ -219,6 +219,8 @@ export async function handleClinicalIntelligenceRoutes(
       // Privacy: do not log transcript or OpenAI payloads.
       const analysed = await analyseTranscript(env, {
         phase: req.phase,
+        clinicalLens: req.clinicalLens,
+        protocol: req.protocol,
         transcript: req.transcript,
         clientContext: ctxOrErr.context,
         sessionDate: req.sessionDate,

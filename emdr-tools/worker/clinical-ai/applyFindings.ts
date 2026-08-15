@@ -12,7 +12,10 @@ import type {
   TargetAssessmentDraft,
   TranscriptAnalysis,
 } from '../../src/clinical-intelligence/types';
+import type { TaTranscriptAnalysis } from '../../src/clinical-intelligence/clinicalReasoning';
+import { TA_DRIVER_LABELS, TA_INJUNCTION_LABELS } from '../../src/clinical-intelligence/clinicalReasoning';
 import { computeSessionChange } from '../../src/clinical-intelligence/lib/formulation';
+import { deriveCoreFormulation, mergeTaLens } from '../../src/clinical-intelligence/lib/coreFormulation';
 
 export function emptyClientRecord(
   id: string,
@@ -358,18 +361,28 @@ export function applyApprovedFindings(
     result = { client: r.client, audit: r.audit, conflictsRemaining: [] };
   } else if (analysis.analysisKind === 'phase4-desensitisation') {
     result = applyPhase4Findings(client, analysis, analysisId, opts.nowIso);
+  } else if (analysis.analysisKind === 'ta-formulation') {
+    result = applyTaFindings(client, analysis, analysisId, opts.nowIso);
   } else {
     result = applyPhase1Findings(client, analysis, analysisId, opts);
   }
 
   if (result.conflictsRemaining.length) return result;
 
+  // Keep modality-agnostic core in sync from approved record fields
+  result.client = {
+    ...result.client,
+    coreFormulation: deriveCoreFormulation(result.client),
+  };
+
   const phase =
     analysis.analysisKind === 'phase3-assessment'
       ? 'assessment'
       : analysis.analysisKind === 'phase4-desensitisation'
         ? 'desensitisation'
-        : 'history';
+        : analysis.analysisKind === 'ta-formulation'
+          ? 'ta-formulation'
+          : 'history';
   const change = computeSessionChange(priorSnapshot, result.client, {
     analysisId,
     phase,
@@ -382,10 +395,128 @@ export function applyApprovedFindings(
         ? 'Phase 3 — Assessment'
         : analysis.analysisKind === 'phase4-desensitisation'
           ? 'Phase 4 — Desensitisation'
-          : 'Phase 1 — History',
+          : analysis.analysisKind === 'ta-formulation'
+            ? 'TA Formulation'
+            : 'Phase 1 — History',
     sessionChanges: [...(result.client.sessionChanges ?? []), change],
   };
   return result;
+}
+
+function applyTaFindings(
+  client: ClientRecord,
+  analysis: TaTranscriptAnalysis,
+  analysisId: string,
+  nowIso: string,
+): { client: ClientRecord; audit: AuditProvenance[]; conflictsRemaining: string[] } {
+  const audit: AuditProvenance[] = [];
+  const toEvidence = (ev: { excerpt: string; speaker?: string }[]) =>
+    ev.map((e, i) => ({
+      id: `ev_${analysisId}_${i}`,
+      excerpt: e.excerpt,
+      speaker: (e.speaker as 'client' | 'therapist' | 'unknown') ?? 'unknown',
+      analysisId,
+    }));
+
+  const approved = <T extends { reviewStatus: string; findingDelta?: string }>(items: T[]) =>
+    items.filter((i) => isApprovedStatus(i.reviewStatus) && i.findingDelta !== 'already-known');
+
+  const drivers = approved(analysis.drivers).map((d) => ({
+    id: d.id,
+    driver: d.driver,
+    evidence: toEvidence(d.evidence),
+    relatedBehaviours: d.relatedBehaviours,
+    approvedAt: nowIso,
+  }));
+  const egoStates = approved(analysis.egoStates).map((e) => ({
+    id: e.id,
+    egoState: e.egoState,
+    context: e.context ?? undefined,
+    evidence: toEvidence(e.evidence),
+    approvedAt: nowIso,
+  }));
+  const injunctionHypotheses = approved(analysis.injunctionHypotheses).map((i) => ({
+    id: i.id,
+    injunction: i.injunction,
+    evidence: toEvidence(i.evidence),
+    approvedAt: nowIso,
+  }));
+  const scriptMessages = approved(analysis.scriptMessages).map((s) => ({
+    id: s.id,
+    kind: s.kind,
+    clientLanguage: s.clientLanguage,
+    approvedAt: nowIso,
+  }));
+  const lifePositions = approved(analysis.lifePositions).map((l) => ({
+    id: l.id,
+    position: l.position,
+    context: l.context,
+    approvedAt: nowIso,
+  }));
+  const redecisionAreas = approved(analysis.redecisionAreas).map((r) => ({
+    id: r.id,
+    oldDecision: r.oldDecision,
+    possibleNewDecision: r.possibleNewDecision,
+    approvedAt: nowIso,
+  }));
+
+  for (const d of drivers) {
+    audit.push({
+      id: `aud_${d.id}`,
+      clientId: client.id,
+      analysisId,
+      fieldPath: `taLens.drivers.${d.driver}`,
+      aiSuggestion: { driver: TA_DRIVER_LABELS[d.driver] },
+      evidence: d.evidence.map((e) => ({ excerpt: e.excerpt })),
+      decision: 'approved',
+      approvedAt: nowIso,
+    });
+  }
+  for (const i of injunctionHypotheses) {
+    audit.push({
+      id: `aud_${i.id}`,
+      clientId: client.id,
+      analysisId,
+      fieldPath: `taLens.injunctionHypotheses.${i.injunction}`,
+      aiSuggestion: {
+        injunction: TA_INJUNCTION_LABELS[i.injunction],
+        label: 'Possible injunction hypothesis',
+      },
+      evidence: i.evidence.map((e) => ({ excerpt: e.excerpt })),
+      decision: 'approved',
+      approvedAt: nowIso,
+    });
+  }
+
+  const taLens = mergeTaLens(client.taLens, {
+    drivers,
+    egoStateObservations: egoStates,
+    injunctionHypotheses,
+    scriptMessages,
+    lifePositions,
+    redecisionAreas,
+    noSufficientEvidence: analysis.noSufficientTaEvidence && !drivers.length && !egoStates.length,
+    scriptSummary: isApprovedStatus(analysis.summary.reviewStatus)
+      ? analysis.summary.value
+      : client.taLens?.scriptSummary,
+  });
+
+  const approaches = new Set(client.activeApproaches ?? []);
+  approaches.add('transactional-analysis');
+
+  return {
+    client: {
+      ...client,
+      taLens,
+      activeApproaches: [...approaches],
+      lastSessionSummary: isApprovedStatus(analysis.summary.reviewStatus)
+        ? analysis.summary.value
+        : client.lastSessionSummary,
+      updatedAt: nowIso,
+    },
+    audit,
+    conflictsRemaining: [],
+  };
 }
 
 function applyPhase1Findings(

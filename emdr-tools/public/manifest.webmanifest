@@ -1,7 +1,7 @@
 {
-  "name": "Pathfinder EMDR Tools",
-  "short_name": "EMDR Tools",
-  "description": "Bilateral stimulation tools for EMDR therapy",
+  "name": "Pathfinder Clinical",
+  "short_name": "Pathfinder Clinical",
+  "description": "Clinical reasoning and guided psychotherapy tools for Pathfinder Therapy",
   "start_url": "/tools",
   "display": "standalone",
   "background_color": "#F5F7F8",

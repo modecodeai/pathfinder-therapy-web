@@ -1,6 +1,6 @@
-# Pathfinder EMDR — Storage Architecture (developer)
+# Pathfinder Clinical — Storage Architecture (developer)
 
-**Product:** Pathfinder EMDR  
+**Product:** Pathfinder Clinical  
 **Organisation:** Pathfinder Therapy  
 **Audited against:** `emdr-tools` Worker + Durable Objects (no D1/KV bindings)
 

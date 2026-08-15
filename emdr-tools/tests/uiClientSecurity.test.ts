@@ -15,7 +15,7 @@ describe('UI information architecture', () => {
     expect(header).toContain('NavLink to="/clients"');
     expect(header).toContain('Practice');
     expect(header).toContain('Clients');
-    expect(header).toContain('Protocols');
+    expect(header).toContain('Treatments');
     expect(header).toContain('Knowledge');
     // Settings must not be a primary clinical nav destination
     expect(header).not.toMatch(/NavLink to="\/settings"/);
@@ -38,7 +38,7 @@ describe('UI information architecture', () => {
     const homeEnd = settings.indexOf('export function SecurityPrivacySettingsPage');
     const home = settings.slice(homeStart, homeEnd);
     expect(home).toContain('Account');
-    expect(home).toContain('Clinical Intelligence');
+    expect(home).toContain('Clinical Reasoning');
     expect(home).toContain('Security & Privacy');
     expect(home).toContain('Data & Retention');
     expect(home).toContain('Remote Sessions');

@@ -47,7 +47,7 @@ export function ClientDisplayView({ roomId, displayMode = false }: ClientDisplay
   }, []);
 
   useEffect(() => {
-    document.title = 'Pathfinder EMDR';
+    document.title = 'Pathfinder Clinical';
   }, []);
 
   useEffect(() => {
@@ -168,7 +168,7 @@ export function ClientDisplayView({ roomId, displayMode = false }: ClientDisplay
         <div className="brand large">
           <span className="brand-mark" aria-hidden />
           <span>
-            <strong>Pathfinder</strong> EMDR
+            <strong>Pathfinder</strong> Clinical
           </span>
         </div>
         <h1>Session ended</h1>
@@ -183,7 +183,7 @@ export function ClientDisplayView({ roomId, displayMode = false }: ClientDisplay
         <div className="brand large">
           <span className="brand-mark" aria-hidden />
           <span>
-            <strong>Pathfinder</strong> EMDR
+            <strong>Pathfinder</strong> Clinical
           </span>
         </div>
         <h1>Connected</h1>
@@ -262,7 +262,7 @@ export function ClientDisplayView({ roomId, displayMode = false }: ClientDisplay
         <BlsStage attachCanvas={session.attachCanvas} fullscreen trajectory={session.state.visualMode} />
         {waitingNeutral && (
           <div className="client-neutral-overlay" role="status">
-            <p className="client-neutral-brand">Pathfinder EMDR</p>
+            <p className="client-neutral-brand">Pathfinder Clinical</p>
             <p>Connected to your therapist.</p>
             <p className="hint">The visual stimulus will appear when your therapist begins.</p>
             {!fullscreen && (
@@ -275,7 +275,7 @@ export function ClientDisplayView({ roomId, displayMode = false }: ClientDisplay
       </div>
 
       {!fullscreen && (
-        <p className="join-footnote">Pathfinder EMDR — stimulation only.</p>
+        <p className="join-footnote">Pathfinder Clinical — stimulation only.</p>
       )}
     </div>
   );

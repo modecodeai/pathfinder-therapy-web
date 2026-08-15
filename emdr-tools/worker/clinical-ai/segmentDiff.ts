@@ -243,9 +243,24 @@ export function summariseApprovedForContext(analysis: AnyStructuredAnalysis): un
       body: pick(analysis.bodyLocation),
     };
   }
-  return {
-    sequence: approvedText(analysis.sequence),
-    associations: approvedText(analysis.associations),
-    resolutionStatus: analysis.resolutionStatus,
-  };
+  if (analysis.analysisKind === 'phase4-desensitisation') {
+    return {
+      sequence: approvedText(analysis.sequence),
+      associations: approvedText(analysis.associations),
+      resolutionStatus: analysis.resolutionStatus,
+    };
+  }
+  if (analysis.analysisKind === 'ta-formulation') {
+    return {
+      analysisKind: 'ta-formulation',
+      drivers: (analysis.drivers ?? [])
+        .filter((d) => d.reviewStatus === 'approved' || d.reviewStatus === 'edited')
+        .map((d) => d.driver),
+      injunctions: (analysis.injunctionHypotheses ?? [])
+        .filter((d) => d.reviewStatus === 'approved' || d.reviewStatus === 'edited')
+        .map((d) => d.injunction),
+      noSufficientTaEvidence: analysis.noSufficientTaEvidence,
+    };
+  }
+  return {};
 }

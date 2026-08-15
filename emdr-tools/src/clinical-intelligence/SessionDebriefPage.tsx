@@ -13,6 +13,12 @@ import {
 } from './lib/clinicalCycle';
 import { ClinicalContextBar } from './components/ClinicalContextBar';
 import { ClinicalCycleRail } from './components/ClinicalCycleRail';
+import { ensureClinicalReasoningStores } from './lib/coreFormulation';
+import {
+  CLINICAL_LENS_LABELS,
+  TA_DRIVER_LABELS,
+  type ClinicalLens,
+} from './clinicalReasoning';
 import type {
   ClientRecord,
   FormulationSnapshot,
@@ -85,7 +91,7 @@ function sourceLabel(source: string): string {
 }
 
 /**
- * Session Debrief — review after Guided Practice (+ optional Clinical Intelligence).
+ * Session Debrief — review after Guided Practice (+ optional Clinical Reasoning).
  * Supports finish-without-transcript (manual). Nothing writes without therapist approval.
  */
 export function SessionDebriefPage({ clientId }: { clientId: string }) {
@@ -104,23 +110,25 @@ export function SessionDebriefPage({ clientId }: { clientId: string }) {
   const [saved, setSaved] = useState(false);
   const [draftStatus, setDraftStatus] = useState<'saved' | 'saving' | 'unsaved' | null>(null);
   const [retentionPrompt, setRetentionPrompt] = useState(false);
+  const [debriefLens, setDebriefLens] = useState<ClinicalLens>('integrated');
 
   useEffect(() => {
     if (!auth.isAuthenticated) return;
     void getClient(clientId)
       .then((c) => {
-        setClient(c);
-        const lastApproved = (c.sessionDebriefs ?? []).filter((d) => d.status === 'approved').slice(
-          -1,
-        )[0];
-        const d = buildDebriefDraft(c, {
+        const enriched = ensureClinicalReasoningStores(c);
+        setClient(enriched);
+        const lastApproved = (enriched.sessionDebriefs ?? [])
+          .filter((d) => d.status === 'approved')
+          .slice(-1)[0];
+        const d = buildDebriefDraft(enriched, {
           analysisId,
-          sessionId: sessionIdParam ?? c.activeCycle?.sessionId,
-          manual: manual || c.activeCycle?.finishMode === 'without-transcript',
+          sessionId: sessionIdParam ?? enriched.activeCycle?.sessionId,
+          manual: manual || enriched.activeCycle?.finishMode === 'without-transcript',
           prior: lastApproved?.updatedFormulation,
         });
-        if (c.activeCycle?.drafts?.debriefSummary) {
-          d.sessionSummary = c.activeCycle.drafts.debriefSummary;
+        if (enriched.activeCycle?.drafts?.debriefSummary) {
+          d.sessionSummary = enriched.activeCycle.drafts.debriefSummary;
         }
         setDraft(d);
         setSummaryEdit(d.sessionSummary);
@@ -247,6 +255,22 @@ export function SessionDebriefPage({ clientId }: { clientId: string }) {
             Review what changed — then approve. Nothing enters the clinical record without your
             approval.
           </p>
+          {client && (
+            <label className="field clinical-lens-select">
+              <span>Clinical lens</span>
+              <select
+                value={debriefLens}
+                onChange={(e) => setDebriefLens(e.target.value as ClinicalLens)}
+                aria-label="Debrief clinical lens"
+              >
+                {(Object.keys(CLINICAL_LENS_LABELS) as ClinicalLens[]).map((id) => (
+                  <option key={id} value={id}>
+                    {CLINICAL_LENS_LABELS[id]}
+                  </option>
+                ))}
+              </select>
+            </label>
+          )}
         </header>
 
         {client && (
@@ -275,7 +299,7 @@ export function SessionDebriefPage({ clientId }: { clientId: string }) {
 
         {client && !canDebrief && (
           <section className="pf-surface-card">
-            <h2>Complete Clinical Intelligence first — or finish without transcript</h2>
+            <h2>Complete Clinical Reasoning first — or finish without transcript</h2>
             <p>
               Paste a session transcript and apply approved updates, or continue with a manual
               debrief if you are not using AI this session.
@@ -313,7 +337,7 @@ export function SessionDebriefPage({ clientId }: { clientId: string }) {
         {client && draft && canDebrief && !saved && (
           <>
             {draft.manual && (
-              <p className="ci-ai-label">Manual debrief — no Clinical Intelligence dependency</p>
+              <p className="ci-ai-label">Manual debrief — no Clinical Reasoning dependency</p>
             )}
             <section className="pf-surface-card">
               <h2>Session summary</h2>
@@ -327,13 +351,77 @@ export function SessionDebriefPage({ clientId }: { clientId: string }) {
             </section>
 
             <section className="pf-surface-card">
-              <h2>What changed today</h2>
+              <h2>Core clinical changes</h2>
               <ul className="session-prep-list">
                 {draft.whatChanged.map((w) => (
                   <li key={w}>{w}</li>
                 ))}
               </ul>
+              <SnapshotCompare prior={draft.priorFormulation} next={draft.updatedFormulation} />
             </section>
+
+            {(debriefLens === 'emdr' || debriefLens === 'integrated') && (
+              <section className="pf-surface-card">
+                <h2>EMDR updates</h2>
+                <p className="ci-ai-label">Lens — therapist review required</p>
+                <dl className="ci-kv">
+                  <dt>Primary theme</dt>
+                  <dd>
+                    {draft.priorFormulation.primaryTheme || '—'} →{' '}
+                    {draft.updatedFormulation.primaryTheme || '—'}
+                  </dd>
+                  <dt>Target</dt>
+                  <dd>
+                    {draft.priorFormulation.currentTarget || '—'} →{' '}
+                    {draft.updatedFormulation.currentTarget || '—'}
+                  </dd>
+                  <dt>NC / PC</dt>
+                  <dd>
+                    {draft.priorFormulation.nc || '—'} / {draft.priorFormulation.pc || '—'} →{' '}
+                    {draft.updatedFormulation.nc || '—'} / {draft.updatedFormulation.pc || '—'}
+                  </dd>
+                  <dt>SUD / VoC</dt>
+                  <dd>
+                    {draft.priorFormulation.sud ?? '—'} / {draft.priorFormulation.voc ?? '—'} →{' '}
+                    {draft.updatedFormulation.sud ?? '—'} / {draft.updatedFormulation.voc ?? '—'}
+                  </dd>
+                </dl>
+              </section>
+            )}
+
+            {(debriefLens === 'transactional-analysis' || debriefLens === 'integrated') &&
+              client.taLens && (
+                <section className="pf-surface-card">
+                  <h2>TA updates</h2>
+                  <p className="ci-ai-label">Lens — therapist review required</p>
+                  {client.taLens.noSufficientEvidence && !client.taLens.drivers.length ? (
+                    <p className="pf-meta">
+                      No sufficiently supported TA-specific updates on this record.
+                    </p>
+                  ) : (
+                    <dl className="ci-kv">
+                      <dt>Drivers</dt>
+                      <dd>
+                        {client.taLens.drivers.length
+                          ? client.taLens.drivers
+                              .map((d) => TA_DRIVER_LABELS[d.driver])
+                              .join('; ')
+                          : '—'}
+                      </dd>
+                      <dt>Script summary</dt>
+                      <dd>{client.taLens.scriptSummary || '—'}</dd>
+                      <dt>Redecision areas</dt>
+                      <dd>
+                        {client.taLens.redecisionAreas?.length
+                          ? client.taLens.redecisionAreas
+                              .map((r) => `${r.oldDecision} → ${r.possibleNewDecision}`)
+                              .join('; ')
+                          : '—'}
+                      </dd>
+                    </dl>
+                  )}
+                </section>
+              )}
 
             {draft.provenance && draft.provenance.length > 0 && (
               <section className="pf-surface-card">
@@ -350,11 +438,6 @@ export function SessionDebriefPage({ clientId }: { clientId: string }) {
                 </ul>
               </section>
             )}
-
-            <section className="pf-surface-card">
-              <h2>Clinical updates</h2>
-              <SnapshotCompare prior={draft.priorFormulation} next={draft.updatedFormulation} />
-            </section>
 
             <section className="pf-surface-card">
               <h2>Target status</h2>

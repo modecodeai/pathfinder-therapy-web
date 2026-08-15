@@ -310,7 +310,7 @@ export function markAnalysisStarted(client: ClientRecord, analysisId: string): C
     sessionTimeline: appendTimeline(client.sessionTimeline ?? [], [
       {
         kind: 'clinical-intelligence',
-        label: 'Clinical Intelligence analysis started',
+        label: 'Clinical Reasoning analysis started',
         at: next.updatedAt,
         sessionId: next.sessionId,
         analysisId,

@@ -46,11 +46,11 @@ export function ClinicalIntelligenceSettingsPage() {
         await loadStatus();
       } else {
         setConn(result.error?.toLowerCase().includes('not configured') ? 'not_configured' : 'failed');
-        setError(result.error ?? 'Clinical Intelligence connection failed.');
+        setError(result.error ?? 'Clinical Reasoning connection failed.');
       }
     } catch {
       setConn('failed');
-      setError('Clinical Intelligence connection failed.');
+      setError('Clinical Reasoning connection failed.');
     }
   };
 
@@ -75,9 +75,9 @@ export function ClinicalIntelligenceSettingsPage() {
           <p className="pf-breadcrumb">
             <Link to="/settings">Settings</Link>
             <span aria-hidden> › </span>
-            Clinical Intelligence
+            Clinical Reasoning
           </p>
-          <h1>Clinical Intelligence</h1>
+          <h1>Clinical Reasoning</h1>
           <p className="lede">
             Provider configuration — OpenAI model, connection status and analysis preferences. For
             transcript analysis, open a client workspace.
@@ -86,7 +86,7 @@ export function ClinicalIntelligenceSettingsPage() {
 
         {!auth.isAuthenticated && (
           <section className="panel">
-            <p>Sign in to manage Clinical Intelligence.</p>
+            <p>Sign in to manage Clinical Reasoning.</p>
             <Link className="btn primary" to="/account">
               Sign in
             </Link>
@@ -136,13 +136,13 @@ export function ClinicalIntelligenceSettingsPage() {
 
             {conn === 'connected' && testResult?.response && (
               <div className="ci-success-banner" role="status">
-                <strong>Clinical Intelligence connected</strong>
+                <strong>Clinical Reasoning connected</strong>
                 <p>{testResult.response}</p>
               </div>
             )}
             {error && (
               <div className="ci-error-banner" role="alert">
-                <strong>Clinical Intelligence connection failed.</strong>
+                <strong>Clinical Reasoning connection failed.</strong>
                 <p>{error}</p>
               </div>
             )}
@@ -193,7 +193,7 @@ export function SettingsHomePage() {
           />
           <SettingsCard
             to="/settings/clinical-intelligence"
-            title="Clinical Intelligence"
+            title="Clinical Reasoning"
             description="OpenAI model, connection status and analysis preferences."
           />
           <SettingsCard

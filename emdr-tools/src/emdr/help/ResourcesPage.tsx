@@ -31,7 +31,7 @@ export function ResourcesPage() {
         <Link to="/" className="brand">
           <span className="brand-mark" aria-hidden />
           <span>
-            <strong>Pathfinder</strong> EMDR Tools
+            <strong>Pathfinder</strong> Clinical
           </span>
         </Link>
         <nav className="site-nav">

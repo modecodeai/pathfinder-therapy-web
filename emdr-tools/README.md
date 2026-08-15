@@ -1,4 +1,4 @@
-# Pathfinder EMDR Tools (Clinical v2)
+# Pathfinder Clinical (Clinical v2)
 
 Clinical EMDR tools for trained therapists.  
 Production: **https://emdr.pathfindertherapy.com**

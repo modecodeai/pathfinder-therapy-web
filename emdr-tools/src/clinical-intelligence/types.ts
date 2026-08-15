@@ -181,7 +181,8 @@ export interface Phase4DesensitisationAnalysis {
 export type AnyStructuredAnalysis =
   | TranscriptAnalysis
   | Phase3AssessmentAnalysis
-  | Phase4DesensitisationAnalysis;
+  | Phase4DesensitisationAnalysis
+  | import('./clinicalReasoning').TaTranscriptAnalysis;
 
 export type SupportedAnalysisPhase = 'history' | 'assessment' | 'desensitisation';
 
@@ -228,8 +229,11 @@ export interface TargetAssessmentDraft {
 export interface AnalyseTranscriptRequest {
   clientId: string;
   sessionId?: string;
-  protocol: 'standard-emdr';
-  phase: SupportedAnalysisPhase;
+  /** Clinical context / primary approach for this analysis */
+  protocol: 'standard-emdr' | 'general-psychotherapy' | 'transactional-analysis' | 'integrated';
+  phase: SupportedAnalysisPhase | 'formulation';
+  /** Clinical Reasoning lens — default integrated */
+  clinicalLens?: import('./clinicalReasoning').ClinicalLens;
   transcript: string;
   sessionDate?: string;
   /** When set, treat as incremental segment relative to this analysis */
@@ -521,6 +525,9 @@ export interface ClinicalCycleState {
   sessionId: string;
   clientId: string;
   protocol: string;
+  /** Session-level treatment approach (prefer over permanently classifying the client). */
+  primaryApproach?: 'emdr' | 'transactional-analysis' | 'pain' | 'integrated' | 'general-psychotherapy';
+  secondaryApproaches?: Array<'emdr' | 'transactional-analysis' | 'pain' | 'gestalt' | 'other'>;
   phase?: string;
   targetHeadline?: string;
   sud?: number | null;
@@ -561,6 +568,8 @@ export interface AuditProvenance {
   decision: ReviewStatus;
   therapistEdit?: unknown;
   approvedAt: string;
+  /** Which clinical lens produced the suggestion */
+  clinicalLens?: import('./clinicalReasoning').ClinicalLens;
 }
 
 export interface ClientRecord {
@@ -618,6 +627,15 @@ export interface ClientRecord {
   clinicalCycles?: ClinicalCycleState[];
   /** Structured strategy items with accept/edit/reject/defer */
   strategyItems?: TreatmentStrategyItem[];
+  /**
+   * Modality-agnostic core formulation (Pathfinder Clinical Reasoning Engine).
+   * EMDR-specific fields remain on this record for the EMDR lens — no duplication of client identity.
+   */
+  coreFormulation?: import('./clinicalReasoning').CoreClinicalFormulation;
+  /** Transactional Analysis lens store — never replaces core or EMDR fields */
+  taLens?: import('./clinicalReasoning').TaLensFormulation;
+  /** Active treatment approaches for this client (not a client type) */
+  activeApproaches?: Array<'emdr' | 'transactional-analysis' | 'pain' | 'integrated'>;
   createdAt: string;
   updatedAt: string;
 }

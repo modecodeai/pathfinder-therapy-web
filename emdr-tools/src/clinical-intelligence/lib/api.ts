@@ -130,8 +130,9 @@ export type AnalyseResponse = {
 
 export async function analyseTranscript(payload: {
   clientId: string;
-  protocol: 'standard-emdr';
-  phase: SupportedAnalysisPhase;
+  protocol: 'standard-emdr' | 'general-psychotherapy' | 'transactional-analysis' | 'integrated';
+  phase: SupportedAnalysisPhase | 'formulation';
+  clinicalLens?: 'integrated' | 'emdr' | 'transactional-analysis';
   transcript: string;
   sessionDate?: string;
   sessionId?: string;

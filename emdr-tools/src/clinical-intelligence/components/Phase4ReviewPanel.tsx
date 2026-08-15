@@ -54,7 +54,7 @@ export function Phase4ReviewPanel({ result, onChange, onHighlight }: Props) {
     <div className="ci-phase4-review">
       <p className="hint">
         Resolution status from AI: <strong>{result.resolutionStatus}</strong> (therapist-judged only —
-        Clinical Intelligence will not declare a target resolved).
+        Clinical Reasoning will not declare a target resolved).
       </p>
       <CompactFindingCard
         finding={result.summary.value}

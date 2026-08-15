@@ -12,7 +12,6 @@ import {
   type CognitionSuggestion,
   type MemorySuggestion,
   type ReviewStatus,
-  type SupportedAnalysisPhase,
   type TranscriptAnalysis,
 } from './types';
 import {
@@ -52,9 +51,15 @@ type ReviewFilter =
   | 'targets'
   | 'resources';
 
-const PROTOCOLS = [{ id: 'standard-emdr', label: 'Standard EMDR' }] as const;
+const PROTOCOLS = [
+  { id: 'integrated', label: 'Integrated' },
+  { id: 'general-psychotherapy', label: 'General Psychotherapy' },
+  { id: 'standard-emdr', label: 'Standard EMDR' },
+  { id: 'transactional-analysis', label: 'Transactional Analysis' },
+] as const;
 const PHASES = [
   { id: 'history', label: 'Phase 1 — History / Treatment Planning', supported: true },
+  { id: 'formulation', label: 'Formulation (Core / TA)', supported: true },
   { id: 'preparation', label: 'Phase 2 — Preparation', supported: false },
   { id: 'assessment', label: 'Phase 3 — Assessment', supported: true },
   { id: 'desensitisation', label: 'Phase 4 — Desensitisation', supported: true },
@@ -104,7 +109,27 @@ export function AnalyseTranscriptPage({ clientId }: { clientId: string }) {
   const sessionIdParam = searchParams.get('sessionId');
   const [client, setClient] = useState<ClientRecord | null>(null);
   const [ciReady, setCiReady] = useState<boolean | null>(null);
-  const [protocol, setProtocol] = useState<'standard-emdr'>('standard-emdr');
+  const [protocol, setProtocol] = useState<
+    'standard-emdr' | 'general-psychotherapy' | 'transactional-analysis' | 'integrated'
+  >(() => {
+    const p = searchParams.get('protocol');
+    if (
+      p === 'transactional-analysis' ||
+      p === 'integrated' ||
+      p === 'general-psychotherapy' ||
+      p === 'standard-emdr'
+    ) {
+      return p;
+    }
+    return 'integrated';
+  });
+  const [clinicalLens, setClinicalLens] = useState<'integrated' | 'emdr' | 'transactional-analysis'>(
+    () => {
+      const l = searchParams.get('lens');
+      if (l === 'emdr' || l === 'transactional-analysis' || l === 'integrated') return l;
+      return 'integrated';
+    },
+  );
   const [phase, setPhase] = useState<(typeof PHASES)[number]['id']>('history');
   const [sessionDate, setSessionDate] = useState(() => new Date().toISOString().slice(0, 10));
   const [transcript, setTranscript] = useState('');
@@ -127,10 +152,20 @@ export function AnalyseTranscriptPage({ clientId }: { clientId: string }) {
   const transcriptPaneRef = useRef<HTMLPreElement>(null);
 
   const phaseMeta = PHASES.find((p) => p.id === phase) ?? PHASES[0];
-  const analysisSupported = protocol === 'standard-emdr' && phaseMeta.supported;
+  const analysisSupported =
+    phaseMeta.supported &&
+    !(
+      (clinicalLens === 'emdr' || protocol === 'standard-emdr') &&
+      phase === 'formulation'
+    ) &&
+    !(
+      clinicalLens === 'transactional-analysis' &&
+      (phase === 'assessment' || phase === 'desensitisation')
+    );
   const phase1 = result?.analysisKind === 'phase1-history' ? result : null;
   const phase3 = result?.analysisKind === 'phase3-assessment' ? result : null;
   const phase4 = result?.analysisKind === 'phase4-desensitisation' ? result : null;
+  const taResult = result?.analysisKind === 'ta-formulation' ? result : null;
 
   useEffect(() => {
     if (!auth.isAuthenticated) return;
@@ -186,7 +221,11 @@ export function AnalyseTranscriptPage({ clientId }: { clientId: string }) {
       const res = await analyseTranscript({
         clientId,
         protocol,
-        phase: phase as SupportedAnalysisPhase,
+        phase:
+          clinicalLens === 'transactional-analysis' || protocol === 'transactional-analysis'
+            ? 'formulation'
+            : (phase as 'history' | 'assessment' | 'desensitisation'),
+        clinicalLens,
         transcript,
         sessionDate,
         sessionId: activeSessionId,
@@ -194,7 +233,7 @@ export function AnalyseTranscriptPage({ clientId }: { clientId: string }) {
       if (!res.success || !res.structuredResult) {
         setError(
           res.error ??
-            'Clinical Intelligence could not analyse this transcript. The transcript has been preserved.',
+            'Clinical Reasoning could not analyse this transcript. The transcript has been preserved.',
         );
         return;
       }
@@ -217,7 +256,7 @@ export function AnalyseTranscriptPage({ clientId }: { clientId: string }) {
       }
     } catch {
       setError(
-        'Clinical Intelligence could not analyse this transcript. The transcript has been preserved.',
+        'Clinical Reasoning could not analyse this transcript. The transcript has been preserved.',
       );
     } finally {
       setBusy(false);
@@ -484,9 +523,9 @@ export function AnalyseTranscriptPage({ clientId }: { clientId: string }) {
           <p className="pf-breadcrumb">
             <Link to={`/clients/${clientId}`}>{client?.displayName || 'Client'}</Link>
             <span aria-hidden> › </span>
-            Clinical Intelligence
+            Clinical Reasoning
           </p>
-          <h1>Clinical Intelligence</h1>
+          <h1>Clinical Reasoning</h1>
           <p className="lede">Client: {client?.displayName || '…'}</p>
         </header>
 
@@ -533,16 +572,37 @@ export function AnalyseTranscriptPage({ clientId }: { clientId: string }) {
           <section className="panel ci-analyse-form">
             <div className="ci-form-row">
               <label className="field">
-                <span>Protocol</span>
+                <span>Clinical context</span>
                 <select
                   value={protocol}
-                  onChange={(e) => setProtocol(e.target.value as 'standard-emdr')}
+                  onChange={(e) => {
+                    const next = e.target.value as typeof protocol;
+                    setProtocol(next);
+                    if (next === 'standard-emdr') setClinicalLens('emdr');
+                    else if (next === 'transactional-analysis') {
+                      setClinicalLens('transactional-analysis');
+                      setPhase('formulation');
+                    } else setClinicalLens('integrated');
+                  }}
                 >
                   {PROTOCOLS.map((p) => (
                     <option key={p.id} value={p.id}>
                       {p.label}
                     </option>
                   ))}
+                </select>
+              </label>
+              <label className="field">
+                <span>Clinical lens</span>
+                <select
+                  value={clinicalLens}
+                  onChange={(e) =>
+                    setClinicalLens(e.target.value as typeof clinicalLens)
+                  }
+                >
+                  <option value="integrated">Integrated</option>
+                  <option value="emdr">EMDR</option>
+                  <option value="transactional-analysis">Transactional Analysis</option>
                 </select>
               </label>
               <label className="field">
@@ -571,11 +631,11 @@ export function AnalyseTranscriptPage({ clientId }: { clientId: string }) {
 
             {ciReady === false && (
               <div className="ci-error-banner" role="status">
-                Clinical Intelligence is not connected. Analyse Transcript is disabled until the
+                Clinical Reasoning is not connected. Analyse Transcript is disabled until the
                 connection test succeeds.
                 <div className="stack-btns horizontal wrap" style={{ marginTop: '0.75rem' }}>
                   <Link className="btn" to="/settings/clinical-intelligence">
-                    Open Clinical Intelligence Settings
+                    Open Clinical Reasoning Settings
                   </Link>
                 </div>
               </div>
@@ -643,11 +703,45 @@ export function AnalyseTranscriptPage({ clientId }: { clientId: string }) {
               >
                 Approve selected
               </button>
+              {taResult && (
+                <button
+                  type="button"
+                  className="btn"
+                  onClick={() => {
+                    const approveAll = <T extends { reviewStatus: string }>(items: T[]): T[] =>
+                      items.map((i) =>
+                        i.reviewStatus === 'pending' ? { ...i, reviewStatus: 'approved' } : i,
+                      );
+                    updateResult({
+                      ...taResult,
+                      summary: {
+                        ...taResult.summary,
+                        reviewStatus:
+                          taResult.summary.reviewStatus === 'pending'
+                            ? 'approved'
+                            : taResult.summary.reviewStatus,
+                      },
+                      egoStates: approveAll(taResult.egoStates),
+                      drivers: approveAll(taResult.drivers),
+                      injunctionHypotheses: approveAll(taResult.injunctionHypotheses),
+                      scriptMessages: approveAll(taResult.scriptMessages),
+                      lifePositions: approveAll(taResult.lifePositions),
+                      transactions: approveAll(taResult.transactions),
+                      gamePatterns: approveAll(taResult.gamePatterns),
+                      racketSystems: approveAll(taResult.racketSystems),
+                      discounting: approveAll(taResult.discounting),
+                      redecisionAreas: approveAll(taResult.redecisionAreas),
+                    });
+                  }}
+                >
+                  Approve all TA suggestions
+                </button>
+              )}
               <button
                 type="button"
                 className="btn primary"
                 onClick={() => {
-                  if (phase3 || phase4) {
+                  if (phase3 || phase4 || taResult) {
                     void onApply();
                     return;
                   }
@@ -659,10 +753,12 @@ export function AnalyseTranscriptPage({ clientId }: { clientId: string }) {
                   ? 'Apply to Target Assessment'
                   : phase4
                     ? 'Apply Approved Processing Notes'
-                    : 'Apply Approved Findings'}
+                    : taResult
+                      ? 'Apply Approved TA Findings'
+                      : 'Apply Approved Findings'}
               </button>
-              <Link className="btn ghost" to={`/clients/${clientId}/aip-formulation`}>
-                Open AIP Formulation
+              <Link className="btn ghost" to={`/clients/${clientId}/clinical-reasoning`}>
+                Open Clinical Reasoning
               </Link>
             </div>
 
@@ -704,8 +800,8 @@ export function AnalyseTranscriptPage({ clientId }: { clientId: string }) {
                 <p className="hint">View Evidence highlights the source excerpt here.</p>
               </section>
 
-              <section className="panel ci-findings-pane" aria-label="Clinical Intelligence">
-                <h2>Clinical Intelligence</h2>
+              <section className="panel ci-findings-pane" aria-label="Clinical Reasoning">
+                <h2>Clinical Reasoning</h2>
 
                 {phase3 && (
                   <Phase3ReviewPanel
@@ -721,6 +817,70 @@ export function AnalyseTranscriptPage({ clientId }: { clientId: string }) {
                     onChange={(n) => updateResult(n)}
                     onHighlight={setHighlight}
                   />
+                )}
+
+                {taResult && (
+                  <div className="ci-ta-review">
+                    <p className="ci-ai-label">Transactional Analysis lens — hypotheses, not facts</p>
+                    {taResult.noSufficientTaEvidence && (
+                      <p className="pf-meta">
+                        No sufficiently supported TA-specific formulation identified.
+                      </p>
+                    )}
+                    <FindingSection title="Summary">
+                      <p>{taResult.summary.value}</p>
+                    </FindingSection>
+                    <FindingSection title="Drivers">
+                      <ul>
+                        {taResult.drivers.map((d) => (
+                          <li key={d.id}>
+                            <strong>{d.driver}</strong> ({d.confidence}) — {d.reasoning}
+                            <button
+                              type="button"
+                              className="btn tertiary"
+                              onClick={() => setHighlight(d.evidence[0]?.excerpt ?? null)}
+                            >
+                              View evidence
+                            </button>
+                          </li>
+                        ))}
+                        {!taResult.drivers.length && (
+                          <li className="pf-meta">None suggested</li>
+                        )}
+                      </ul>
+                    </FindingSection>
+                    <FindingSection title="Possible injunction hypotheses">
+                      <ul>
+                        {taResult.injunctionHypotheses.map((i) => (
+                          <li key={i.id}>
+                            {i.hypothesisLabel}: {i.injunction} — {i.reasoning}
+                          </li>
+                        ))}
+                        {!taResult.injunctionHypotheses.length && (
+                          <li className="pf-meta">None suggested</li>
+                        )}
+                      </ul>
+                    </FindingSection>
+                    <FindingSection title="Ego-state observations">
+                      <ul>
+                        {taResult.egoStates.map((e) => (
+                          <li key={e.id}>
+                            {e.egoState}
+                            {e.context ? ` — ${e.context}` : ''}
+                          </li>
+                        ))}
+                      </ul>
+                    </FindingSection>
+                    <FindingSection title="Redecision areas">
+                      <ul>
+                        {taResult.redecisionAreas.map((r) => (
+                          <li key={r.id}>
+                            Old: “{r.oldDecision}” → Possible: “{r.possibleNewDecision}”
+                          </li>
+                        ))}
+                      </ul>
+                    </FindingSection>
+                  </div>
                 )}
 
                 {phase1 && (

@@ -411,7 +411,7 @@ export function SessionCompanionPage() {
             <Link to="/" className="brand">
               <span className="brand-mark" aria-hidden />
               <span>
-                <strong>Pathfinder</strong> EMDR
+                <strong>Pathfinder</strong> Clinical
               </span>
             </Link>
             <input

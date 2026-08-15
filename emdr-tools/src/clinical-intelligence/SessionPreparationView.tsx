@@ -2,6 +2,13 @@ import { Fragment, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import type { ClientRecord, OutstandingQuestionStatus, TreatmentStrategyItem } from './types';
 import { CLINICAL_THEME_LABELS } from './types';
+import {
+  CLINICAL_LENS_LABELS,
+  TA_DRIVER_LABELS,
+  TA_INJUNCTION_LABELS,
+  type ClinicalLens,
+} from './clinicalReasoning';
+import { ensureClinicalReasoningStores } from './lib/coreFormulation';
 import { buildPreparationBriefing } from './lib/sessionBriefing';
 import {
   acceptedStrategyTexts,
@@ -19,7 +26,7 @@ import { ClinicalContextBar } from './components/ClinicalContextBar';
  * Session Preparation — briefing from approved clinical data only.
  */
 export function SessionPreparationView({
-  client,
+  client: clientProp,
   therapistName,
   onClientUpdate,
 }: {
@@ -28,11 +35,14 @@ export function SessionPreparationView({
   onClientUpdate?: (c: ClientRecord) => void;
 }) {
   const navigate = useNavigate();
+  const client = ensureClinicalReasoningStores(clientProp);
   const brief = buildPreparationBriefing(client, { therapistName });
   const strategyTexts = acceptedStrategyTexts(client);
   const resume = resumeCycleHref(client);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [prepLens, setPrepLens] = useState<ClinicalLens>('integrated');
+  const ta = client.taLens;
 
   const startPractice = async () => {
     setBusy(true);
@@ -128,6 +138,20 @@ export function SessionPreparationView({
             A concise briefing from therapist-approved clinical data — readable in under a minute.
           </p>
         </div>
+        <label className="field clinical-lens-select">
+          <span>Clinical lens</span>
+          <select
+            value={prepLens}
+            onChange={(e) => setPrepLens(e.target.value as ClinicalLens)}
+            aria-label="Preparation clinical lens"
+          >
+            {(Object.keys(CLINICAL_LENS_LABELS) as ClinicalLens[]).map((id) => (
+              <option key={id} value={id}>
+                {CLINICAL_LENS_LABELS[id]}
+              </option>
+            ))}
+          </select>
+        </label>
       </header>
 
       {resume && client.activeCycle && client.activeCycle.workflowStatus !== 'not-started' && (
@@ -190,37 +214,96 @@ export function SessionPreparationView({
       </section>
 
       <section className="pf-surface-card">
-        <h2 className="pf-card-title">Current formulation</h2>
-        <dl className="ci-kv">
-          <dt>Presenting problems</dt>
-          <dd>
-            {brief.formulation.presentingProblems.length
-              ? brief.formulation.presentingProblems.join('; ')
-              : '—'}
-          </dd>
-          <dt>Primary theme</dt>
-          <dd>{brief.formulation.primaryTheme || '—'}</dd>
-          <dt>Secondary themes</dt>
-          <dd>
-            {brief.formulation.secondaryThemes.length
-              ? brief.formulation.secondaryThemes.join('; ')
-              : '—'}
-          </dd>
-          <dt>Current trigger</dt>
-          <dd>{brief.formulation.currentTrigger || '—'}</dd>
-          <dt>Current target</dt>
-          <dd>{brief.formulation.currentTarget || '—'}</dd>
-          <dt>NC</dt>
-          <dd>{brief.formulation.nc || '—'}</dd>
-          <dt>PC</dt>
-          <dd>{brief.formulation.pc || '—'}</dd>
-          <dt>Resources</dt>
-          <dd>
-            {brief.formulation.resources.length
-              ? brief.formulation.resources.join('; ')
-              : '—'}
-          </dd>
-        </dl>
+        <h2 className="pf-card-title">
+          {prepLens === 'integrated'
+            ? 'Integrated synthesis'
+            : prepLens === 'emdr'
+              ? 'EMDR preparation'
+              : 'TA preparation'}
+        </h2>
+        {(prepLens === 'integrated' || prepLens === 'emdr') && (
+          <dl className="ci-kv">
+            <dt>Presenting problems</dt>
+            <dd>
+              {brief.formulation.presentingProblems.length
+                ? brief.formulation.presentingProblems.join('; ')
+                : '—'}
+            </dd>
+            {prepLens === 'emdr' || prepLens === 'integrated' ? (
+              <>
+                <dt>Primary theme</dt>
+                <dd>{brief.formulation.primaryTheme || '—'}</dd>
+                <dt>Secondary themes</dt>
+                <dd>
+                  {brief.formulation.secondaryThemes.length
+                    ? brief.formulation.secondaryThemes.join('; ')
+                    : '—'}
+                </dd>
+                <dt>Current trigger</dt>
+                <dd>{brief.formulation.currentTrigger || '—'}</dd>
+                <dt>Current target</dt>
+                <dd>{brief.formulation.currentTarget || '—'}</dd>
+                <dt>NC</dt>
+                <dd>{brief.formulation.nc || '—'}</dd>
+                <dt>PC</dt>
+                <dd>{brief.formulation.pc || '—'}</dd>
+              </>
+            ) : null}
+            <dt>Resources</dt>
+            <dd>
+              {brief.formulation.resources.length
+                ? brief.formulation.resources.join('; ')
+                : '—'}
+            </dd>
+          </dl>
+        )}
+        {prepLens === 'transactional-analysis' && (
+          <dl className="ci-kv">
+            <dt>Presenting problems</dt>
+            <dd>
+              {brief.formulation.presentingProblems.length
+                ? brief.formulation.presentingProblems.join('; ')
+                : '—'}
+            </dd>
+            <dt>Driver patterns</dt>
+            <dd>
+              {ta?.drivers?.length
+                ? ta.drivers.map((d) => TA_DRIVER_LABELS[d.driver]).join('; ')
+                : '—'}
+            </dd>
+            <dt>Possible injunction hypotheses</dt>
+            <dd>
+              {ta?.injunctionHypotheses?.length
+                ? ta.injunctionHypotheses
+                    .map((i) => TA_INJUNCTION_LABELS[i.injunction])
+                    .join('; ')
+                : '—'}
+            </dd>
+            <dt>Script summary</dt>
+            <dd>{ta?.scriptSummary || '—'}</dd>
+            <dt>Ego-state observations</dt>
+            <dd>
+              {ta?.egoStateObservations?.length
+                ? ta.egoStateObservations.map((e) => e.egoState).join('; ')
+                : '—'}
+            </dd>
+            <dt>Outstanding TA questions</dt>
+            <dd>
+              {(client.outstandingQuestions ?? [])
+                .filter((q) => q.status === 'open' || q.status === 'deferred')
+                .map((q) => q.text)
+                .join('; ') || '—'}
+            </dd>
+          </dl>
+        )}
+        {prepLens === 'integrated' && (ta?.drivers?.length || ta?.scriptSummary) ? (
+          <p className="pf-meta" style={{ marginTop: '0.75rem' }}>
+            TA notes (lens):{' '}
+            {ta?.drivers?.length
+              ? ta.drivers.map((d) => TA_DRIVER_LABELS[d.driver]).join('; ')
+              : ta?.scriptSummary || '—'}
+          </p>
+        ) : null}
       </section>
 
       <section className="pf-surface-card">

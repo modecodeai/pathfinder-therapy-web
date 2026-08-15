@@ -20,6 +20,8 @@
     "worker-configuration.d.ts",
     "src/features/remote/protocol.ts",
     "src/types/room.ts",
-    "src/emdr/types/emdr.ts"
+    "src/emdr/types/emdr.ts",
+    "src/clinical-intelligence/types.ts",
+    "src/clinical-intelligence/clinicalReasoning.ts"
   ]
 }

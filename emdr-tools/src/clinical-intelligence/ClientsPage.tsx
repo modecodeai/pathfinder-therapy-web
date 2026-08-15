@@ -158,7 +158,7 @@ export function ClientsListPage() {
                       <th>Current Focus</th>
                       <th>Current Phase</th>
                       <th>Last Session</th>
-                      <th>Clinical Intelligence</th>
+                      <th>Clinical Reasoning</th>
                       <th>Actions</th>
                     </tr>
                   </thead>
@@ -483,7 +483,7 @@ export function ClientDetailPage({ clientId }: { clientId: string }) {
                         return;
                       }
                     if (id === 'clinical-reasoning') {
-                      navigate(`/clients/${client.id}/clinical-intelligence`);
+                      navigate(`/clients/${client.id}/clinical-reasoning`);
                       return;
                     }
                     if (id === 'practice') {
@@ -690,7 +690,7 @@ export function ClientDetailPage({ clientId }: { clientId: string }) {
                   </ol>
                 ) : (
                   <p className="pf-meta">
-                    No timeline events yet. Approve a Session Debrief after Clinical Intelligence to
+                    No timeline events yet. Approve a Session Debrief after Clinical Reasoning to
                     start the longitudinal record.
                   </p>
                 )}

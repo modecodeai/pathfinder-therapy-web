@@ -81,7 +81,7 @@ export function FinishSessionModal({
           </button>
         </div>
         <p className="pf-meta" style={{ marginTop: 12 }}>
-          Transcript and Clinical Intelligence are optional. Pathfinder remains fully usable without
+          Transcript and Clinical Reasoning are optional. Pathfinder remains fully usable without
           AI.
         </p>
       </div>

@@ -67,7 +67,7 @@ export function AppHeader({
         <Link to={auth.isAuthenticated ? '/practice' : '/'} className="pf-app-brand">
           <span className="brand-mark" aria-hidden />
           <span>
-            <strong>Pathfinder</strong> EMDR
+            <strong>Pathfinder</strong> Clinical
           </span>
         </Link>
         {protocolLabel && (
@@ -96,7 +96,7 @@ export function AppHeader({
           Clients
         </NavLink>
         <NavLink to="/protocols" className={navClass('protocols')}>
-          Protocols
+          Treatments
         </NavLink>
         <NavLink
           to="/practice/library"

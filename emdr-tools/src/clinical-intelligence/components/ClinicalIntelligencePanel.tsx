@@ -205,7 +205,7 @@ export function ClinicalIntelligencePanel({
     <section className={`ci-practice-panel${collapsed ? ' is-collapsed' : ''}`}>
       <header className="ci-practice-panel-head">
         <button type="button" className="btn ghost ci-panel-toggle" onClick={() => setCollapsed((v) => !v)}>
-          {collapsed ? 'Show' : 'Hide'} Clinical Intelligence
+          {collapsed ? 'Show' : 'Hide'} Clinical Reasoning
         </button>
         {!collapsed && <span className="hint">Four-layer review · never auto-writes clinical record</span>}
       </header>
@@ -214,7 +214,7 @@ export function ClinicalIntelligencePanel({
         <div className="ci-practice-panel-body">
           {!auth.isAuthenticated && (
             <p>
-              <Link to="/account">Sign in</Link> to use Clinical Intelligence.
+              <Link to="/account">Sign in</Link> to use Clinical Reasoning.
             </p>
           )}
 
