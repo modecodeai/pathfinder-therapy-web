@@ -110,3 +110,31 @@ A de-identified TA-first golden fixture lives under `tests/fixtures/ta-lisa-gold
 - Be Perfect / Don't Feel remain hypotheses with evidence;
 - contradictory evidence is retained;
 - EMDR constructs do not appear automatically under TA primary.
+
+A second de-identified fixture under `tests/fixtures/ta-kat-golden/` covers therapist-reasoning sequencing (observation → protective function → lens), session vs non-session segmentation, risk-language review flags, and contradiction preservation.
+
+---
+
+## Pathfinder Reasoning Principle
+
+Clinical reasoning begins with understanding before intervention.
+
+Pathfinder should first establish what the client is experiencing, what patterns repeat, what protective functions may be operating, and what remains uncertain.
+
+Therapeutic models are applied only after this understanding has been established.
+
+Theory should illuminate experience, not replace it.
+
+Generic sequence: Observe → Regulate/Orient → Explore → Identify Pattern → Ask Protective Function → Formulate Meaning → Apply Clinical Lens → Identify Choice/Movement → Consider Intervention.
+
+---
+
+## Pathfinder Therapist Style Principle
+
+Pathfinder may learn therapist preferences for sequencing, language and formulation only when explicitly configured.
+
+Therapist style is a preference layer, not a source of clinical truth.
+
+Client evidence always has priority.
+
+No silent behavioural learning. Profiles must be viewable, editable, resettable, exportable and deletable when enabled.

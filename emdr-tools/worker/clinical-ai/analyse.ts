@@ -36,6 +36,7 @@ import {
 import { LENS_CONSIDERATIONS_EXTRACTION } from './prompts/core';
 import { ClinicalAIError, callOpenAIResponses, type OpenAIEnv } from './openai';
 import { normaliseTranscriptSpeakers } from '../../src/clinical-intelligence/lib/speakerNormalisation';
+import { segmentTranscriptSession } from '../../src/clinical-intelligence/lib/sessionSegmentation';
 import {
   TRANSCRIPT_ANALYSIS_JSON_SCHEMA,
   parseTranscriptAnalysisJson,
@@ -368,8 +369,10 @@ async function runTaAnalysis(
   const speakerNorm = normaliseTranscriptSpeakers(args.transcript, {
     therapistNames: ['Brent'],
   });
+  const segmented = segmentTranscriptSession(args.transcript);
+  const clinicalTranscript = segmented.sessionOnlyText || args.transcript;
   const input = buildAnalyseUserInput({
-    transcript: args.transcript,
+    transcript: clinicalTranscript,
     clientContext: args.clientContext,
     protocol: args.protocol ?? 'transactional-analysis',
     phase: 'formulation',
@@ -383,7 +386,7 @@ async function runTaAnalysis(
   });
   const speakerAppendix = [
     '',
-    'SPEAKER NORMALISATION (analysis aid only — original transcript above is authoritative and unchanged):',
+    'SPEAKER NORMALISATION (analysis aid only — original transcript remains authoritative and unchanged):',
     JSON.stringify(
       {
         speakerMap: speakerNorm.speakerMap,
@@ -393,6 +396,24 @@ async function runTaAnalysis(
       2,
     ),
     'Do not invent additional client participants. Mark uncertain attribution as unknown when needed.',
+    '',
+    'SESSION SEGMENTATION (analysis aid — do not formulate from non-session / post-session segments):',
+    JSON.stringify(
+      {
+        suggestedClinicalEndTimestamp: segmented.suggestedClinicalEndTimestamp,
+        segments: segmented.segments.map((s) => ({
+          kind: s.kind,
+          reason: s.reason,
+          excludeFromClinicalAnalysisSuggested: s.excludeFromClinicalAnalysisSuggested,
+          preview: s.preview,
+          startTimestamp: s.startTimestamp,
+          endTimestamp: s.endTimestamp,
+        })),
+      },
+      null,
+      2,
+    ),
+    'The transcript provided above is session-only text when segmentation succeeded. Non-session audio and post-session material must not enter clinical formulation.',
   ].join('\n');
   return runStructured(env, {
     instructions,

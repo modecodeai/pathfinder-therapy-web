@@ -638,6 +638,13 @@ export interface ClientRecord {
    * EMDR-specific fields remain on this record for the EMDR lens — no duplication of client identity.
    */
   coreFormulation?: import('./clinicalReasoning').CoreClinicalFormulation;
+  /** Process / protective-function layer (observation before theory) */
+  processFormulation?: import('./therapistReasoning').CoreProcessFormulation;
+  /**
+   * Explicit therapist reasoning preferences — never silently learned.
+   * Enabled only when therapist configures it.
+   */
+  therapistReasoningProfileRef?: string;
   /** @deprecated Prefer taFormulation — retained for migration compatibility */
   taLens?: import('./clinicalReasoning').TaLensFormulation;
   /** Transactional Analysis lens store — never replaces core or EMDR fields */

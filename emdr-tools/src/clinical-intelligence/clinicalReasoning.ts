@@ -244,6 +244,8 @@ export interface CoreClinicalFormulation {
   outstandingQuestions: OutstandingQuestion[];
   recentChanges?: ClinicalPattern[];
   treatmentStrategyNotes?: string[];
+  /** Process layer: observation → protective function → meaning (above modality) */
+  processFormulation?: import('./therapistReasoning').CoreProcessFormulation;
   updatedAt?: string;
 }
 
@@ -504,7 +506,7 @@ export interface TaTranscriptAnalysis {
 }
 
 export const TA_SCHEMA_VERSION = 'ci-ta-formulation-v1';
-export const PCR_PROMPT_VERSION = 'pcr-v1.1-lens-governance';
+export const PCR_PROMPT_VERSION = 'pcr-v1.2-therapist-reasoning';
 
 export function emptyCoreFormulation(): CoreClinicalFormulation {
   return {
