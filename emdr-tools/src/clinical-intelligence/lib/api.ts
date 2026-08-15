@@ -132,6 +132,29 @@ export type AnalyseResponse = {
   isSegment?: boolean;
 };
 
+export async function extractIntakeFromPaste(payload: {
+  rawText: string;
+  clientId?: string;
+}): Promise<{
+  success: boolean;
+  error?: string;
+  provider?: string;
+  model?: string;
+  latencyMs?: number;
+  extractorVersion?: string;
+  extracted?: import('./intakeExtraction').ExtractedIntake;
+  structuredIntake?: import('./pathfinderIntakeForm').StructuredIntake;
+  answerMap?: import('./pathfinderIntakeForm').IntakeAnswerMap;
+  warnings?: import('./intakeExtraction').IntakeExtractionWarning[];
+}> {
+  const res = await fetch('/api/clinical-intelligence/extract-intake', {
+    method: 'POST',
+    headers: authHeaders(),
+    body: JSON.stringify(payload),
+  });
+  return parseJson(res);
+}
+
 export async function analyseTranscript(payload: {
   clientId: string;
   protocol: 'standard-emdr' | 'general-psychotherapy' | 'transactional-analysis' | 'integrated';

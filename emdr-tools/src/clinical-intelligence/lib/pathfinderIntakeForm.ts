@@ -162,6 +162,13 @@ export type IntakeClinicalStatus =
   | 'requested'
   | 'in-progress'
   | 'submitted'
+  /** Raw intake stored; extraction not yet run */
+  | 'raw-received'
+  | 'extraction-pending'
+  | 'extraction-ready'
+  | 'extraction-confirmed'
+  | 'clinical-reasoning-ready'
+  /** @deprecated Prefer clinical-reasoning-ready — kept for existing records */
   | 'ai-review-ready'
   | 'therapist-reviewed';
 
@@ -169,10 +176,28 @@ export const INTAKE_CLINICAL_STATUS_LABELS: Record<IntakeClinicalStatus, string>
   'not-requested': 'Not requested',
   requested: 'Requested',
   'in-progress': 'In progress',
-  submitted: 'Submitted',
-  'ai-review-ready': 'AI review ready',
+  submitted: 'Submitted (raw received)',
+  'raw-received': 'Raw received',
+  'extraction-pending': 'Extraction pending',
+  'extraction-ready': 'Extraction ready for review',
+  'extraction-confirmed': 'Extraction confirmed',
+  'clinical-reasoning-ready': 'Clinical reasoning ready',
+  'ai-review-ready': 'Clinical reasoning ready',
   'therapist-reviewed': 'Therapist reviewed',
 };
+
+export function isExtractionConfirmedStatus(status: IntakeClinicalStatus | undefined): boolean {
+  return (
+    status === 'extraction-confirmed' ||
+    status === 'clinical-reasoning-ready' ||
+    status === 'ai-review-ready' ||
+    status === 'therapist-reviewed'
+  );
+}
+
+export function canApproveIntoFormulation(status: IntakeClinicalStatus | undefined): boolean {
+  return status === 'clinical-reasoning-ready' || status === 'ai-review-ready' || status === 'therapist-reviewed';
+}
 
 /** Immutable raw submission — never rewrite with AI summaries. */
 export interface RawIntakeSubmission {
@@ -394,8 +419,10 @@ export function answersToStructuredIntake(
 }
 
 /**
- * Parse pasted legacy intake text into answer map.
- * Only extracts answers for known questions — does not invent missing answers.
+ * @deprecated Do not use as the primary pasted-intake extractor.
+ * Label/positional regex parsing treats form chrome as answers.
+ * Use the OpenAI Intake Reader (`intake-reader-v2`) instead.
+ * Kept only for legacy unit tests / emergency fallback diagnostics.
  */
 export function parsePastedIntakeToAnswers(text: string): IntakeAnswerMap {
   const answers: IntakeAnswerMap = {};

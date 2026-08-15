@@ -6,6 +6,11 @@ import {
 } from './openai';
 import { CONNECTION_TEST_PROMPT } from './prompts';
 import { analyseTranscript, assertAnalyseRequest } from './analyse';
+import { extractIntakeFromRawText } from './intakeReader';
+import {
+  extractedToStructuredIntake,
+  INTAKE_READER_VERSION,
+} from '../../src/clinical-intelligence/lib/intakeExtraction';
 import type { AnyStructuredAnalysis, ApprovedClientContext } from '../../src/clinical-intelligence/types';
 
 function accountsStub(env: Env) {
@@ -278,6 +283,75 @@ export async function handleClinicalIntelligenceRoutes(
           error:
             err?.message ??
             'Clinical Intelligence could not analyse this transcript. The transcript has been preserved.',
+        },
+        {
+          status:
+            err?.code === 'invalid_output'
+              ? 502
+              : err?.status && err.status >= 400
+                ? err.status
+                : 502,
+        },
+      );
+    }
+  }
+
+  if (path === '/api/clinical-intelligence/extract-intake' && request.method === 'POST') {
+    const denied = await requireAuth(request, env);
+    if (denied) return denied;
+    if (!isOpenAIConfigured(env)) {
+      return Response.json(
+        {
+          success: false,
+          error: 'Clinical Intelligence is not configured.',
+        },
+        { status: 503 },
+      );
+    }
+
+    let body: { rawText?: string; clientId?: string };
+    try {
+      body = (await request.json()) as { rawText?: string; clientId?: string };
+    } catch {
+      return Response.json({ error: 'Invalid JSON body' }, { status: 400 });
+    }
+
+    const rawText = String(body.rawText ?? '').trim();
+    if (!rawText) {
+      return Response.json(
+        { success: false, error: 'rawText is required.' },
+        { status: 400 },
+      );
+    }
+
+    if (body.clientId) {
+      const ctxOrErr = await loadClientContext(request, env, body.clientId);
+      if (ctxOrErr instanceof Response) return ctxOrErr;
+    }
+
+    try {
+      const result = await extractIntakeFromRawText(env, rawText);
+      const { structured, answerMap } = extractedToStructuredIntake(result.extracted);
+      return Response.json({
+        success: true,
+        provider: 'openai',
+        model: result.model,
+        latencyMs: result.latencyMs,
+        extractorVersion: result.extractorVersion ?? INTAKE_READER_VERSION,
+        extracted: result.extracted,
+        structuredIntake: structured,
+        answerMap,
+        warnings: result.extracted.extractionWarnings ?? [],
+      });
+    } catch (e) {
+      const err = e instanceof ClinicalAIError ? e : null;
+      return Response.json(
+        {
+          success: false,
+          error:
+            err?.message ??
+            "We couldn't reliably structure this intake submission. The raw intake was preserved.",
+          extractorVersion: INTAKE_READER_VERSION,
         },
         {
           status:

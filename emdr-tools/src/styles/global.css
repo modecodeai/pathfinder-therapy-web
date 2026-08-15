@@ -5399,6 +5399,41 @@ button.pain-resource-card strong {
   margin-bottom: 0.35rem;
 }
 
+.pf-extraction-dl {
+  margin: 0.5rem 0 0;
+  display: grid;
+  gap: 0.5rem;
+}
+.pf-extraction-row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+.pf-extraction-field {
+  display: grid;
+  gap: 0.15rem;
+  flex: 1;
+}
+.pf-extraction-field dt {
+  font-size: 0.8rem;
+  color: var(--pf-muted, #5b6570);
+  font-weight: 600;
+}
+.pf-extraction-field dd {
+  margin: 0;
+  white-space: pre-wrap;
+}
+.pf-extraction-unknown {
+  color: var(--pf-muted, #5b6570);
+  font-style: italic;
+}
+.pf-extraction-warnings {
+  margin: 0.75rem 0;
+  padding-left: 1.1rem;
+  color: #7f1d1d;
+}
+
 .pf-knowledge-list {
   list-style: none;
   padding: 0;

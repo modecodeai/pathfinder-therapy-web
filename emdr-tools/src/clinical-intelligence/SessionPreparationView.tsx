@@ -37,7 +37,6 @@ export function SessionPreparationView({
   const navigate = useNavigate();
   const client = ensureClinicalReasoningStores(clientProp);
   const brief = buildPreparationBriefing(client, { therapistName });
-  const firstPrep = client.firstSessionPreparation;
   const strategyTexts = acceptedStrategyTexts(client);
   const resume = resumeCycleHref(client);
   const [busy, setBusy] = useState(false);

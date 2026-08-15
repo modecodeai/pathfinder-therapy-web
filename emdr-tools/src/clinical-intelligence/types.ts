@@ -599,6 +599,10 @@ export interface ClientRecord {
   rawIntakeSubmissions?: import('./lib/pathfinderIntakeForm').RawIntakeSubmission[];
   /** Structured reflection of Pathfinder Client Intake Form */
   structuredIntake?: import('./lib/pathfinderIntakeForm').StructuredIntake;
+  /** Latest AI document extraction (Intake Reader) — not clinical reasoning */
+  intakeExtraction?: import('./lib/intakeExtraction').IntakeExtractionRecord;
+  /** Prior extractions kept for audit when re-extracting */
+  intakeExtractionHistory?: import('./lib/intakeExtraction').IntakeExtractionRecord[];
   /** Core-only intake findings pending / reviewed */
   intakeCoreFindings?: import('./lib/intakeReasoning').IntakeCoreFinding[];
   /** Clinical intake workflow status */

@@ -18,11 +18,7 @@ import type { Appointment, IntakeLifecycleStatus } from '../src/os/types';
 import { listActiveServices, getService } from '../src/os/serviceCatalog';
 import { matchExistingClient } from '../src/os/matching';
 import { createOsEvent } from '../src/os/providers';
-import {
-  PATHFINDER_INTAKE_FORM_VERSION,
-  answersToStructuredIntake,
-  parsePastedIntakeToAnswers,
-} from '../src/clinical-intelligence/lib/pathfinderIntakeForm';
+import { PATHFINDER_INTAKE_FORM_VERSION, answersToStructuredIntake } from '../src/clinical-intelligence/lib/pathfinderIntakeForm';
 
 interface TherapistRow {
   id: string;
@@ -1270,33 +1266,39 @@ export class AccountDirectory extends DurableObject {
     const client = this.loadClient(appointment.therapistId, appointment.clientId);
     if (!client) return Response.json({ error: 'Client not found' }, { status: 404 });
 
-    const answerMap =
-      body.fields && Object.keys(body.fields).length
-        ? body.fields
-        : parsePastedIntakeToAnswers(rawText);
-    const structured = answersToStructuredIntake(answerMap, body.version ?? PATHFINDER_INTAKE_FORM_VERSION);
-
+    // Portal stores immutable raw only. Do NOT regex-parse into structured intake —
+    // therapist runs Intake Reader (intake-reader-v2) before clinical reasoning.
+    const hasFieldMap = Boolean(body.fields && Object.keys(body.fields).length);
     const rawSubmission = {
       id: `raw_${intakeId}`,
       clientId: appointment.clientId,
       formVersion: body.version ?? PATHFINDER_INTAKE_FORM_VERSION,
       submittedAt: nowIso,
       source: 'portal' as const,
-      rawPayload: body.fields && Object.keys(body.fields).length ? body.fields : { text: rawText },
+      rawPayload: hasFieldMap ? body.fields! : { text: rawText },
       privacyPolicyVersion: body.policyVersion,
       consentVersion: body.consentVersion,
     };
 
     client.rawIntakeSubmissions = [...(client.rawIntakeSubmissions ?? []), rawSubmission];
-    client.structuredIntake = structured;
-    client.intakeClinicalStatus = 'submitted';
+    if (hasFieldMap) {
+      // Explicit field map from a structured portal form — store as unconfirmed extraction seed
+      client.structuredIntake = answersToStructuredIntake(
+        body.fields!,
+        body.version ?? PATHFINDER_INTAKE_FORM_VERSION,
+      );
+    }
+    // Leave broken/absent AI extraction alone; mark for Intake Reader review
+    client.intakeClinicalStatus = 'raw-received';
     client.intake = {
-      fields: {
-        presentingProblem: structured.presentingProblem.mainProblems,
-        goalsForTherapy: structured.goals.clientStatedGoals,
-        traumaHistory: structured.traumaHistory.trauma,
-        strengthsResources: structured.strengths.strengths,
-      },
+      fields: hasFieldMap
+        ? {
+            presentingProblem: body.fields!.mainProblems,
+            goalsForTherapy: body.fields!.therapyGoals,
+            traumaHistory: body.fields!.trauma,
+            strengthsResources: body.fields!.strengths,
+          }
+        : {},
       rawPaste: rawText,
       updatedAt: nowIso,
       extractedFindings: [],

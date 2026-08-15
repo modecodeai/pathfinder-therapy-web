@@ -57,6 +57,8 @@ The therapist remains the author of the formulation.
 
 ```
 RAW INTAKE (immutable)
+  → OpenAI Intake Reader (intake-reader-v2) — document extraction only
+  → EXTRACTION REVIEW (therapist confirm / edit)
   → STRUCTURED INTAKE (pathfinder-intake-v1)
   → CORE CLINICAL REASONING (observe → … → working hypothesis)
   → THERAPIST REVIEW (Approve / Edit / Reject)
@@ -64,7 +66,9 @@ RAW INTAKE (immutable)
   → FIRST SESSION PREPARATION
 ```
 
-Nothing AI-derived enters the approved formulation until therapist review.
+Document extraction (“what the client wrote”) and clinical reasoning (“what this might mean”) are separate operations. Regex / positional form parsing is not the primary extractor. Labels, asterisks, and ambiguous Yes/No or rating lists must not become client values.
+
+Nothing AI-derived enters the approved formulation until therapist review. “Therapist reviewed” requires an explicit clinician action after extraction is confirmed.
 
 Intake records remain distinct from clinical session notes (linked by client ID only).
 

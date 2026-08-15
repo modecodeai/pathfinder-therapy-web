@@ -21,6 +21,11 @@ import {
   SYNTHETIC_INTAKE_WITH_RISK,
   SYNTHETIC_INTAKE_WITH_TRAUMA,
 } from './fixtures/intake-synthetic/answers';
+import { expectedSyntheticNoisyExtraction } from './fixtures/intake-synthetic/noisyPaste';
+import {
+  extractedToStructuredIntake,
+  validateAndSanitizeExtractedIntake,
+} from '../src/clinical-intelligence/lib/intakeExtraction';
 
 const root = resolve(import.meta.dirname, '..');
 
@@ -123,7 +128,7 @@ describe('Pathfinder intake clinical information', () => {
     expect(partners.some((p) => p.provenanceStatus === 'corroborated')).toBe(true);
   });
 
-  it('paste legacy intake structures known labels only', () => {
+  it('paste legacy intake structures known labels only (deprecated parser — not primary)', () => {
     const answers = parsePastedIntakeToAnswers(SYNTHETIC_INTAKE_PASTE_TEXT);
     expect(answers.fullName).toBe('Synthetic Client');
     expect(answers.mainProblems).toMatch(/Anxiety/);
@@ -144,12 +149,29 @@ describe('Pathfinder intake clinical information', () => {
     expect(prep.modalityNote).toMatch(/modality-neutral|No treatment approach/i);
   });
 
+  it('Stage B — confirmed structured extraction yields useful core clinical findings', () => {
+    const extracted = validateAndSanitizeExtractedIntake(expectedSyntheticNoisyExtraction());
+    const { structured, answerMap } = extractedToStructuredIntake(extracted);
+    const result = analyseIntakeCoreOnly({ answers: answerMap, structured, rawSubmissionId: 'raw_syn' });
+    expect(result.findings.some((f) => f.category === 'presenting-problem')).toBe(true);
+    expect(result.findings.some((f) => f.category === 'therapeutic-goal')).toBe(true);
+    expect(result.findings.some((f) => /hopeless|clinical review/i.test(f.text))).toBe(true);
+    expect(assertNoEmdrConstructs(result.findings)).toEqual([]);
+    const approved = result.findings.map((f) => ({ ...f, reviewStatus: 'approved' as const }));
+    const client = emptyClientRecord('c_syn2', 't_1', 'Alex Morgan', new Date().toISOString());
+    client.intakeCoreFindings = approved;
+    client.coreFormulation = approvedFindingsToCore(approved);
+    const prep = buildFirstSessionPreparation(client, approved);
+    expect(prep.whySeekingTherapy).not.toBe('Not established from approved intake.');
+    expect(prep.clientStatedGoals).not.toBe('Not established from approved intake.');
+  });
+
   it('keeps intake and clinical notes conceptually separate in UI copy', () => {
     const view = readFileSync(
       resolve(root, 'src/clinical-intelligence/IntakeClinicalView.tsx'),
       'utf8',
     );
     expect(view).toContain('separate from clinical session notes');
-    expect(view).toContain('Original intake (immutable raw)');
+    expect(view).toContain('View Original Submission');
   });
 });
