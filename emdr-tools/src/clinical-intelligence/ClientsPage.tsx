@@ -16,9 +16,10 @@ import { ClinicalCycleRail } from './components/ClinicalCycleRail';
 import { ClinicalContextBar } from './components/ClinicalContextBar';
 import {
   acceptedStrategyTexts,
-  resumeCycleHref,
-  TRANSCRIPT_STATUS_LABELS,
 } from './lib/clinicalCycle';
+import { PRIMARY_APPROACH_LABELS, type PrimaryTreatmentApproach } from './clinicalReasoning';
+import { hasCoreFormulationContent } from './lib/intake';
+import { inferPrimaryApproach } from './lib/lensGovernance';
 
 type ListFilter = 'all' | 'active' | 'archived';
 
@@ -234,7 +235,7 @@ export function ClientsListPage() {
           onClose={() => setShowNew(false)}
           onCreated={(id) => {
             setShowNew(false);
-            navigate(`/clients/${id}`);
+            navigate(`/clients/${id}/setup`);
           }}
         />
       )}
@@ -311,7 +312,7 @@ function NewClientModal({
           {error && <p className="ci-error-banner">{error}</p>}
           <div className="stack-btns horizontal wrap">
             <button type="submit" className="btn primary" disabled={busy || !displayName.trim()}>
-              {busy ? 'Creating…' : 'Create Client'}
+              {busy ? 'Creating…' : 'Create Client & Continue'}
             </button>
             <button type="button" className="btn ghost" onClick={onClose}>
               Cancel
@@ -325,16 +326,19 @@ function NewClientModal({
 
 type DashTab =
   | 'overview'
+  | 'intake'
   | 'preparation'
-  | 'targets'
+  | 'treatment-work'
   | 'sessions'
   | 'documents'
   | 'audit';
 
 const TAB_FROM_QUERY: Record<string, DashTab> = {
   overview: 'overview',
+  intake: 'intake',
   preparation: 'preparation',
-  targets: 'targets',
+  targets: 'treatment-work',
+  'treatment-work': 'treatment-work',
   sessions: 'sessions',
   documents: 'documents',
   audit: 'audit',
@@ -423,16 +427,13 @@ export function ClientDetailPage({ clientId }: { clientId: string }) {
                   className="btn primary"
                   onClick={() => selectTab('preparation')}
                 >
-                  Session Preparation
+                  Prepare Session
                 </button>
-                <Link
-                  className="btn secondary"
-                  to={`/practice/standard?clientId=${encodeURIComponent(client.id)}`}
-                >
-                  Guided Practice
+                <Link className="btn secondary" to={`/clients/${client.id}/setup`}>
+                  Client Setup
                 </Link>
-                <Link className="btn tertiary" to={`/clients/${client.id}/clinical-intelligence`}>
-                  Analyse Transcript
+                <Link className="btn tertiary" to={`/clients/${client.id}?tab=intake`}>
+                  Intake
                 </Link>
               </div>
             )}
@@ -454,19 +455,21 @@ export function ClientDetailPage({ clientId }: { clientId: string }) {
               {(
                 [
                   ['overview', 'Overview'],
+                  ['intake', 'Intake'],
                   ['preparation', 'Preparation'],
                   ['practice', 'Practice'],
                   ['clinical-reasoning', 'Clinical Reasoning'],
                   ['formulation', 'Formulation'],
-                  ['targets', 'Targets'],
+                  ['treatment-work', 'Treatment Work'],
                   ['sessions', 'Sessions'],
                   ['documents', 'Documents'],
                 ] as const
               ).map(([id, label]) => {
                 const isInline =
                   id === 'overview' ||
+                  id === 'intake' ||
                   id === 'preparation' ||
-                  id === 'targets' ||
+                  id === 'treatment-work' ||
                   id === 'sessions' ||
                   id === 'documents';
                 const active = isInline && tab === id;
@@ -482,30 +485,26 @@ export function ClientDetailPage({ clientId }: { clientId: string }) {
                         navigate(`/clients/${client.id}/aip-formulation`);
                         return;
                       }
-                    if (id === 'clinical-reasoning') {
-                      navigate(`/clients/${client.id}/clinical-reasoning`);
-                      return;
-                    }
-                    if (id === 'practice') {
-                      navigate(
-                        `/practice/standard?clientId=${encodeURIComponent(client.id)}${
-                          client.activeCycle?.sessionId
-                            ? `&sessionId=${encodeURIComponent(client.activeCycle.sessionId)}`
-                            : ''
-                        }`,
-                      );
-                      return;
-                    }
-                    if (isInline) selectTab(id);
-                  }}
-                >
-                  {label}
-                  {id === 'clinical-reasoning' && pendingCi > 0 ? (
-                    <span className="client-tab-badge" aria-label={`${pendingCi} awaiting review`}>
-                      {pendingCi}
-                    </span>
-                  ) : null}
-                </button>
+                      if (id === 'clinical-reasoning') {
+                        navigate(`/clients/${client.id}/clinical-reasoning`);
+                        return;
+                      }
+                      if (id === 'practice') {
+                        navigate(
+                          `/practice?clientId=${encodeURIComponent(client.id)}`,
+                        );
+                        return;
+                      }
+                      if (isInline) selectTab(id);
+                    }}
+                  >
+                    {label}
+                    {id === 'clinical-reasoning' && pendingCi > 0 ? (
+                      <span className="client-tab-badge" aria-label={`${pendingCi} awaiting review`}>
+                        {pendingCi}
+                      </span>
+                    ) : null}
+                  </button>
                 );
               })}
             </div>
@@ -518,106 +517,52 @@ export function ClientDetailPage({ clientId }: { clientId: string }) {
             <ClinicalCycleRail cycle={client.activeCycle} />
 
             {tab === 'overview' && (
-              <div className="client-overview-stack">
-                {(() => {
-                  const resume = resumeCycleHref(client);
-                  const strategy = acceptedStrategyTexts(client);
-                  const openQs = (client.outstandingQuestions ?? []).filter(
-                    (q) => q.status === 'open' || q.status === 'deferred',
-                  );
-                  return (
-                    <>
-                      <section className="pf-surface-card">
-                        <h2>Where are we now?</h2>
-                        <dl className="ci-kv">
-                          <dt>Current protocol</dt>
-                          <dd>{client.currentProtocol || client.activeCycle?.protocol || '—'}</dd>
-                          <dt>Current phase</dt>
-                          <dd>{client.activeCycle?.phase || client.currentPhase || '—'}</dd>
-                          <dt>Current target</dt>
-                          <dd>{client.activeTarget?.headline || '—'}</dd>
-                          <dt>Current formulation</dt>
-                          <dd>
-                            {primaryTheme
-                              ? CLINICAL_THEME_LABELS[primaryTheme.theme]
-                              : 'No approved formulation yet'}
-                          </dd>
-                          <dt>Current treatment strategy</dt>
-                          <dd>{strategy.length ? strategy.join('; ') : 'None accepted yet'}</dd>
-                          <dt>Outstanding questions</dt>
-                          <dd>
-                            {openQs.length
-                              ? `${openQs.length} open`
-                              : 'No open clinical questions from approved analyses.'}
-                          </dd>
-                          <dt>Last session outcome</dt>
-                          <dd>{client.lastSessionSummary || '—'}</dd>
-                          <dt>Transcript status</dt>
-                          <dd>
-                            {client.activeCycle
-                              ? TRANSCRIPT_STATUS_LABELS[client.activeCycle.transcriptStatus]
-                              : 'No active cycle'}
-                          </dd>
-                          <dt>Next preparation</dt>
-                          <dd>
-                            {client.activeCycle?.workflowStatus === 'complete' || !client.activeCycle
-                              ? 'Ready to prepare next session'
-                              : 'Cycle in progress — resume before starting a new preparation'}
-                          </dd>
-                        </dl>
-                        {resume && (
-                          <Link className="btn primary" to={resume.href}>
-                            {resume.label}
-                          </Link>
-                        )}
-                      </section>
+              <ClientOverviewPanel
+                client={client}
+                pendingCi={pendingCi}
+                primaryTheme={primaryTheme}
+                onPrepare={() => selectTab('preparation')}
+              />
+            )}
 
-                      <section className="pf-surface-card">
-                        <h2>Current Formulation</h2>
-                        {primaryTheme ? (
-                          <dl className="ci-kv">
-                            <dt>Primary theme</dt>
-                            <dd>{CLINICAL_THEME_LABELS[primaryTheme.theme]}</dd>
-                          </dl>
-                        ) : (
-                          <div className="pf-empty">
-                            <p>
-                              No approved formulation yet. Analyse the first transcript to begin
-                              building this client&apos;s AIP formulation.
-                            </p>
-                            <Link
-                              className="btn primary"
-                              to={`/clients/${client.id}/clinical-intelligence`}
-                            >
-                              Analyse Transcript
-                            </Link>
-                          </div>
-                        )}
-                        {primaryTheme && (
-                          <Link className="btn tertiary" to={`/clients/${client.id}/aip-formulation`}>
-                            Open AIP Formulation
-                          </Link>
-                        )}
-                      </section>
-
-                      <section className="pf-surface-card">
-                        <h2>Clinical Reasoning</h2>
-                        <p className="pf-meta" style={{ marginBottom: 16 }}>
-                          {pendingCi
-                            ? `${pendingCi} findings awaiting review`
-                            : 'No pending reviews'}
-                        </p>
-                        <Link
-                          className="btn primary"
-                          to={`/clients/${client.id}/clinical-intelligence`}
-                        >
-                          {pendingCi ? 'Review Findings' : 'Analyse Transcript'}
-                        </Link>
-                      </section>
-                    </>
-                  );
-                })()}
-              </div>
+            {tab === 'intake' && (
+              <section className="pf-surface-card">
+                <h2>Intake</h2>
+                {client.intake?.riskReviewRequired && (
+                  <div className="pf-clinical-review-alert" role="alert">
+                    <strong>CLINICAL REVIEW REQUIRED</strong>
+                    <p>Risk-related content is present in intake material.</p>
+                  </div>
+                )}
+                {client.intake ? (
+                  <>
+                    <p className="pf-meta">
+                      Last updated{' '}
+                      {client.intake.updatedAt
+                        ? new Date(client.intake.updatedAt).toLocaleString()
+                        : '—'}
+                    </p>
+                    <Link className="btn primary" to={`/clients/${client.id}/setup`}>
+                      Continue intake / setup
+                    </Link>
+                  </>
+                ) : (
+                  <div className="pf-empty">
+                    <p>
+                      Initial formulation not yet established. Add intake information or clinical
+                      material to begin.
+                    </p>
+                    <div className="stack-btns horizontal wrap">
+                      <Link className="btn primary" to={`/clients/${client.id}/setup`}>
+                        Add Intake
+                      </Link>
+                      <Link className="btn secondary" to={`/clients/${client.id}/setup`}>
+                        Add Transcript
+                      </Link>
+                    </div>
+                  </div>
+                )}
+              </section>
             )}
 
             {tab === 'preparation' && (
@@ -632,31 +577,8 @@ export function ClientDetailPage({ clientId }: { clientId: string }) {
               />
             )}
 
-            {tab === 'targets' && (
-              <section className="panel">
-                <h2>Active target</h2>
-                {client.activeTarget ? (
-                  <dl className="ci-kv">
-                    <dt>Headline</dt>
-                    <dd>{client.activeTarget.headline}</dd>
-                    <dt>NC / PC</dt>
-                    <dd>
-                      {client.activeTarget.nc || '—'} / {client.activeTarget.pc || '—'}
-                    </dd>
-                    <dt>Image</dt>
-                    <dd>{client.activeTarget.image || '—'}</dd>
-                  </dl>
-                ) : (
-                  <p className="hint">No approved Phase 3 target yet</p>
-                )}
-                <h3>Candidates</h3>
-                <ul>
-                  {client.targetCandidates.map((t) => (
-                    <li key={t.id}>{t.headline}</li>
-                  ))}
-                  {!client.targetCandidates.length && <li className="hint">None</li>}
-                </ul>
-              </section>
+            {tab === 'treatment-work' && (
+              <TreatmentWorkPanel client={client} />
             )}
 
             {tab === 'sessions' && (
@@ -782,5 +704,228 @@ export function ClientDetailPage({ clientId }: { clientId: string }) {
         )}
       </main>
     </div>
+  );
+}
+
+function ClientOverviewPanel({
+  client,
+  pendingCi,
+  primaryTheme,
+  onPrepare,
+}: {
+  client: ClientRecord;
+  pendingCi: number;
+  primaryTheme: ClientRecord['themes'][number] | undefined;
+  onPrepare: () => void;
+}) {
+  const approach = inferPrimaryApproach(client);
+  const strategy = acceptedStrategyTexts(client);
+  const openQs = (client.outstandingQuestions ?? []).filter(
+    (q) => q.status === 'open' || q.status === 'deferred',
+  );
+  const core = client.coreFormulation;
+  const hasCore = hasCoreFormulationContent(core);
+
+  if (!hasCore && !client.intake && !(client.clinicalMaterials ?? []).length) {
+    return (
+      <div className="client-overview-stack">
+        <section className="pf-surface-card">
+          <h2>{client.displayName}</h2>
+          <p className="pf-meta">
+            Current approach:{' '}
+            {PRIMARY_APPROACH_LABELS[approach as PrimaryTreatmentApproach] ?? 'Not yet decided'}
+          </p>
+          <div className="pf-empty">
+            <p>
+              Initial formulation not yet established. Add intake information or clinical material to
+              begin.
+            </p>
+            <div className="stack-btns horizontal wrap">
+              <Link className="btn primary" to={`/clients/${client.id}/setup`}>
+                Add Intake
+              </Link>
+              <Link className="btn secondary" to={`/clients/${client.id}/setup`}>
+                Add Transcript
+              </Link>
+            </div>
+          </div>
+        </section>
+      </div>
+    );
+  }
+
+  return (
+    <div className="client-overview-stack">
+      <section className="pf-surface-card">
+        <h2>{client.displayName}</h2>
+        <p className="pf-meta">
+          Current approach:{' '}
+          <strong>
+            {PRIMARY_APPROACH_LABELS[approach as PrimaryTreatmentApproach] ?? 'Not yet decided'}
+          </strong>
+        </p>
+      </section>
+
+      <section className="pf-surface-card">
+        <h2>Current understanding</h2>
+        <dl className="ci-kv">
+          <dt>Presenting problems</dt>
+          <dd>
+            {(core?.presentingProblems?.map((p) => p.text).join('; ') ||
+              client.presentingProblems.join('; ') ||
+              client.presentingProblem) ??
+              '—'}
+          </dd>
+          <dt>Working formulation</dt>
+          <dd>
+            {hasCore
+              ? 'Core clinical understanding established'
+              : primaryTheme
+                ? CLINICAL_THEME_LABELS[primaryTheme.theme]
+                : 'Not yet established'}
+          </dd>
+          <dt>Key patterns</dt>
+          <dd>{(core?.repeatingPatterns ?? []).map((p) => p.text).join('; ') || '—'}</dd>
+          <dt>Resources</dt>
+          <dd>
+            {(core?.resources ?? []).map((r) => r.text).join('; ') ||
+              client.resources.map((r) => r.text).join('; ') ||
+              '—'}
+          </dd>
+        </dl>
+      </section>
+
+      <section className="pf-surface-card">
+        <h2>Current work</h2>
+        <dl className="ci-kv">
+          <dt>Current contract / strategy</dt>
+          <dd>{strategy.length ? strategy.join('; ') : 'None accepted yet'}</dd>
+          <dt>Outstanding questions</dt>
+          <dd>{openQs.length ? `${openQs.length} open` : 'None open'}</dd>
+        </dl>
+      </section>
+
+      <section className="pf-surface-card">
+        <h2>Next session</h2>
+        <p className="pf-meta">
+          {client.activeCycle?.workflowStatus === 'complete' || !client.activeCycle
+            ? 'Preparation ready'
+            : 'Cycle in progress'}
+        </p>
+        <button type="button" className="btn primary" onClick={onPrepare}>
+          Prepare Session
+        </button>
+      </section>
+
+      <section className="pf-surface-card">
+        <h2>Recent clinical material</h2>
+        <ul className="client-activity-list">
+          {(client.clinicalMaterials ?? [])
+            .slice()
+            .reverse()
+            .slice(0, 5)
+            .map((m) => (
+              <li key={m.id}>
+                {m.label} · {m.sourceType} · {new Date(m.createdAt).toLocaleDateString()}
+              </li>
+            ))}
+          {!(client.clinicalMaterials ?? []).length && (
+            <li className="hint">No intake or transcripts added yet</li>
+          )}
+        </ul>
+        {client.lastSessionSummary && (
+          <p className="pf-meta">Latest debrief: {client.lastSessionSummary}</p>
+        )}
+      </section>
+
+      <section className="pf-surface-card">
+        <h2>Clinical Reasoning</h2>
+        <p className="pf-meta" style={{ marginBottom: 16 }}>
+          {pendingCi ? `${pendingCi} findings awaiting review` : 'No pending reviews'}
+        </p>
+        <Link className="btn primary" to={`/clients/${client.id}/clinical-reasoning`}>
+          Review
+        </Link>
+      </section>
+    </div>
+  );
+}
+
+function TreatmentWorkPanel({ client }: { client: ClientRecord }) {
+  const approach = inferPrimaryApproach(client);
+  const isEmdr = approach === 'emdr' || approach === 'pain' || approach === 'integrated-ta-emdr';
+  const isTa = approach === 'transactional-analysis' || approach === 'integrated-ta-emdr';
+
+  return (
+    <section className="pf-surface-card">
+      <h2>Treatment Work</h2>
+      <p className="pf-meta">
+        Modality-specific content appears here after you select a current approach. Default remains
+        Not yet decided.
+      </p>
+
+      {isTa && (
+        <div style={{ marginTop: '1rem' }}>
+          <h3>Transactional Analysis</h3>
+          <dl className="ci-kv">
+            <dt>Contract</dt>
+            <dd>{acceptedStrategyTexts(client).join('; ') || '—'}</dd>
+            <dt>Redecision areas</dt>
+            <dd>
+              {(client.taFormulation?.redecisionAreas ?? [])
+                .map((r) => `${r.oldDecision} → ${r.possibleNewDecision}`)
+                .filter(Boolean)
+                .join('; ') || '—'}
+            </dd>
+            <dt>Script work</dt>
+            <dd>
+              {(client.taFormulation?.scriptMessages ?? [])
+                .map((s) => s.clientLanguage)
+                .filter(Boolean)
+                .join('; ') || '—'}
+            </dd>
+          </dl>
+        </div>
+      )}
+
+      {isEmdr && (
+        <div style={{ marginTop: '1rem' }}>
+          <h3>EMDR</h3>
+          <dl className="ci-kv">
+            <dt>Targets</dt>
+            <dd>{client.activeTarget?.headline || '—'}</dd>
+            <dt>NC / PC</dt>
+            <dd>
+              {client.activeTarget?.nc || '—'} / {client.activeTarget?.pc || '—'}
+            </dd>
+            <dt>AIP theme</dt>
+            <dd>
+              {client.themes.find((t) => t.primary)
+                ? CLINICAL_THEME_LABELS[client.themes.find((t) => t.primary)!.theme]
+                : '—'}
+            </dd>
+          </dl>
+          <h4>Candidates</h4>
+          <ul>
+            {client.targetCandidates.map((t) => (
+              <li key={t.id}>{t.headline}</li>
+            ))}
+            {!client.targetCandidates.length && <li className="hint">None</li>}
+          </ul>
+        </div>
+      )}
+
+      {!isTa && !isEmdr && (
+        <div className="pf-empty">
+          <p>
+            Select a current treatment approach in Client Setup to see modality-specific treatment
+            work (e.g. TA contract / EMDR targets).
+          </p>
+          <Link className="btn secondary" to={`/clients/${client.id}/setup`}>
+            Choose approach
+          </Link>
+        </div>
+      )}
+    </section>
   );
 }

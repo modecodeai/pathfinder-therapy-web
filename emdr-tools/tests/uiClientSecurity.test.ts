@@ -2,6 +2,12 @@ import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { describe, expect, it } from 'vitest';
 import { emptyClientRecord } from '../worker/clinical-ai/applyFindings';
+import {
+  extractIntakeFindingsHeuristic,
+  mergeFindingsWithoutDuplicates,
+  detectRiskReviewRequired,
+  type IntakeExtractedFinding,
+} from '../src/clinical-intelligence/lib/intake';
 
 const root = resolve(import.meta.dirname, '..');
 
@@ -10,25 +16,61 @@ function readSrc(rel: string): string {
 }
 
 describe('UI information architecture', () => {
-  it('exposes Clients as a top-level header nav item', () => {
-    const header = readSrc('src/emdr/guided/components/AppHeader.tsx');
-    expect(header).toContain('NavLink to="/clients"');
-    expect(header).toContain('Practice');
-    expect(header).toContain('Clients');
-    expect(header).toContain('Treatments');
-    expect(header).toContain('Knowledge');
-    // Settings must not be a primary clinical nav destination
-    expect(header).not.toMatch(/NavLink to="\/settings"/);
-    expect(header).toContain('to="/settings"'); // account menu only
-    expect(header).toContain('NavLink to="/protocols"');
+  it('uses canonical MainNavigation with Dashboard Clients Practice Knowledge', () => {
+    const nav = readSrc('src/components/shell/MainNavigation.tsx');
+    expect(nav).toContain('Dashboard');
+    expect(nav).toContain('Clients');
+    expect(nav).toContain('Practice');
+    expect(nav).toContain('Knowledge');
+    expect(nav).toContain("to: '/'");
+    expect(nav).toContain("to: '/clients'");
+    expect(nav).toContain("to: '/practice'");
+    expect(nav).toContain("to: '/knowledge'");
+    expect(nav).toContain('pf-nav-link');
+    expect(nav).not.toContain('Treatments');
+    expect(nav).not.toContain('Account');
   });
 
-  it('registers client workspace routes at /clients', () => {
+  it('AppHeader delegates to MainNavigation and AccountMenu', () => {
+    const header = readSrc('src/emdr/guided/components/AppHeader.tsx');
+    expect(header).toContain('MainNavigation');
+    expect(header).toContain('AccountMenu');
+    expect(header).not.toMatch(/NavLink to="\/settings"/);
+    const account = readSrc('src/components/shell/AccountMenu.tsx');
+    expect(account).toContain('to="/settings"');
+    expect(account).toContain('Profile');
+    expect(account).toContain('Sign out');
+  });
+
+  it('AppShell is the canonical authenticated shell', () => {
+    const shell = readSrc('src/components/shell/AppShell.tsx');
+    expect(shell).toContain('data-testid="app-shell"');
+    expect(shell).toContain('MainNavigation');
+    expect(shell).toContain('AccountMenu');
+  });
+
+  it('authenticated dashboard is client-first without EMDR CTAs', () => {
+    const dash = readSrc('src/routes/DashboardPage.tsx');
+    expect(dash).toContain('New Client');
+    expect(dash).toContain('Open Clients');
+    expect(dash).toContain('AppShell');
+    expect(dash).not.toContain('Start Standard EMDR');
+    expect(dash).not.toContain('Start EMDR Pain');
+    expect(dash).not.toContain('Continue Session');
+    const landing = readSrc('src/routes/LandingPage.tsx');
+    expect(landing).toContain('DashboardPage');
+    expect(landing).not.toMatch(/PracticeClientsProtocols/);
+  });
+
+  it('registers client workspace routes including setup and knowledge', () => {
     const app = readSrc('src/app/App.tsx');
     expect(app).toContain('path="/clients"');
     expect(app).toContain('path="/clients/:clientId"');
+    expect(app).toContain('path="/clients/:clientId/setup"');
     expect(app).toContain('path="/clients/:clientId/clinical-intelligence"');
     expect(app).toContain('path="/clients/:clientId/aip-formulation"');
+    expect(app).toContain('path="/knowledge"');
+    expect(app).toContain('path="/protocols"');
     expect(app).not.toContain('path="/settings/clients"');
   });
 
@@ -46,13 +88,29 @@ describe('UI information architecture', () => {
     expect(home).not.toMatch(/\bCI\b|\bCL\b|\bAC\b/);
   });
 
-  it('Clients workspace uses production list + new-client flow', () => {
+  it('Clients workspace uses production list + new-client flow into setup', () => {
     const clients = readSrc('src/clinical-intelligence/ClientsPage.tsx');
     expect(clients).toContain('New Client');
     expect(clients).toContain('Search clients');
     expect(clients).toContain('Current Focus');
-    expect(clients).toContain('Create Client');
+    expect(clients).toContain('Create Client & Continue');
     expect(clients).toContain('client-dash-tabs');
+    expect(clients).toContain('Treatment Work');
+    expect(clients).toContain('/clients/${id}/setup');
+  });
+
+  it('nav links are styled and not concatenated raw anchors', () => {
+    const css = readSrc('src/styles/global.css');
+    expect(css).toMatch(/\.pf-nav-link\s*\{[^}]*text-decoration:\s*none/s);
+    expect(css).toMatch(/\.pf-app-nav\s*\{[^}]*gap:\s*1\.25rem/s);
+    expect(css).toMatch(/\.site-nav\s*\{[^}]*gap:\s*1\.25rem/s);
+    const nav = readSrc('src/components/shell/MainNavigation.tsx');
+    const labels = ['Dashboard', 'Clients', 'Practice', 'Knowledge'];
+    for (const label of labels) {
+      expect(nav).toContain(`label: '${label}'`);
+    }
+    // Ensure labels are separate NavLink children, not one concatenated string
+    expect(nav).not.toContain('DashboardClientsPracticeKnowledge');
   });
 });
 
@@ -102,5 +160,45 @@ describe('Browser storage policy', () => {
     expect(api).toContain('localStorage.getItem(TOKEN_KEY)');
     expect(api).not.toMatch(/localStorage\.setItem\([^)]*client/i);
     expect(api).not.toMatch(/sessionStorage/);
+  });
+});
+
+describe('Intake merge provenance', () => {
+  it('corroborates matching intake + transcript findings without duplicates', () => {
+    const intake: IntakeExtractedFinding[] = extractIntakeFindingsHeuristic(
+      'Anxiety, difficult childhood, supportive friend',
+      'src_intake',
+    );
+    const fromTranscript: IntakeExtractedFinding[] = extractIntakeFindingsHeuristic(
+      'anxiety childhood criticism supportive friend',
+      'src_tx',
+    ).map((f) => ({
+      ...f,
+      provenance: {
+        sourceIds: ['src_tx'],
+        sourceTypes: ['transcript' as const],
+        status: 'single' as const,
+      },
+    }));
+    const merged = mergeFindingsWithoutDuplicates(intake, fromTranscript);
+    const anxiety = merged.filter((f) => /anxiety/i.test(f.text));
+    expect(anxiety.length).toBe(1);
+    expect(anxiety[0]?.provenance.status).toBe('corroborated');
+    expect(anxiety[0]?.provenance.sourceTypes).toEqual(
+      expect.arrayContaining(['intake', 'transcript']),
+    );
+  });
+
+  it('flags risk language for clinical review without inferring severity', () => {
+    expect(detectRiskReviewRequired('history of suicidal ideation')).toBe(true);
+    expect(detectRiskReviewRequired('feels anxious at work')).toBe(false);
+  });
+});
+
+describe('Client-first principle documentation', () => {
+  it('documents PATHFINDER CLIENT-FIRST PRINCIPLE', () => {
+    const doc = readSrc('docs/CLINICAL_REASONING.md');
+    expect(doc).toContain('PATHFINDER CLIENT-FIRST PRINCIPLE');
+    expect(doc).toMatch(/Clinical work begins with the person/i);
   });
 });

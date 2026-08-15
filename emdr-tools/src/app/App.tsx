@@ -11,6 +11,7 @@ import {
   SettingsHomePage,
 } from '../clinical-intelligence/ClinicalIntelligenceSettingsPage';
 import { ClientDetailPage, ClientsListPage } from '../clinical-intelligence/ClientsPage';
+import { ClientSetupPage } from '../clinical-intelligence/ClientSetupPage';
 import { SessionDebriefPage } from '../clinical-intelligence/SessionDebriefPage';
 import { PainProtocolPage } from '../emdr/components/emdr-pain/PainProtocolPage';
 import {
@@ -20,6 +21,7 @@ import {
 import { EmdPage } from '../emdr/components/practice/EmdPage';
 import { FloatbackPage } from '../emdr/components/practice/FloatbackPage';
 import { FutureTemplatePage } from '../emdr/components/practice/FutureTemplatePage';
+import { KnowledgePage } from '../emdr/components/practice/KnowledgePage';
 import { PracticeHomePage } from '../emdr/components/practice/PracticeHomePage';
 import { ProtocolsPage } from '../emdr/components/practice/ProtocolsPage';
 import { RecentEventsPage } from '../emdr/components/practice/RecentEventsPage';
@@ -38,6 +40,12 @@ function ClientDetailRoute() {
   const { clientId } = useParams<{ clientId: string }>();
   if (!clientId) return <Navigate to="/clients" replace />;
   return <ClientDetailPage clientId={clientId} />;
+}
+
+function ClientSetupRoute() {
+  const { clientId } = useParams<{ clientId: string }>();
+  if (!clientId) return <Navigate to="/clients" replace />;
+  return <ClientSetupPage clientId={clientId} />;
 }
 
 function AnalyseRoute() {
@@ -70,7 +78,9 @@ export default function App() {
       <Routes>
         <Route path="/" element={<LandingPage />} />
         <Route path="/practice" element={<PracticeHomePage />} />
-        <Route path="/protocols" element={<ProtocolsPage />} />
+        <Route path="/knowledge" element={<KnowledgePage />} />
+        <Route path="/protocols" element={<Navigate to="/knowledge" replace />} />
+        <Route path="/protocols/catalogue" element={<ProtocolsPage />} />
         <Route path="/practice/standard" element={<StandardEmdrConsolePage />} />
         <Route path="/practice/safe-calm" element={<SafeCalmPage />} />
         <Route path="/practice/rdi" element={<RdiPage />} />
@@ -92,6 +102,7 @@ export default function App() {
         <Route path="/settings/remote-sessions" element={<RemoteSessionsSettingsPage />} />
         <Route path="/clients" element={<ClientsListPage />} />
         <Route path="/clients/:clientId" element={<ClientDetailRoute />} />
+        <Route path="/clients/:clientId/setup" element={<ClientSetupRoute />} />
         <Route path="/clients/:clientId/clinical-intelligence" element={<AnalyseRoute />} />
         <Route path="/clients/:clientId/clinical-reasoning" element={<ClinicalReasoningRoute />} />
         <Route path="/clients/:clientId/aip-formulation" element={<AipFormulationRoute />} />

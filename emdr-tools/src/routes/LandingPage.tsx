@@ -1,9 +1,9 @@
 import { useState, type FormEvent } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, Navigate } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
+import { DashboardPage } from './DashboardPage';
 
 export function LandingPage() {
-  const navigate = useNavigate();
   const auth = useAuth();
   const [code, setCode] = useState('');
   const [showJoin, setShowJoin] = useState(false);
@@ -12,7 +12,7 @@ export function LandingPage() {
     e.preventDefault();
     const cleaned = code.trim().toUpperCase().replace(/\s+/g, '');
     if (!cleaned) return;
-    navigate(`/join/${cleaned}`);
+    window.location.assign(`/join/${cleaned}`);
   };
 
   if (auth.loading) {
@@ -26,74 +26,7 @@ export function LandingPage() {
   }
 
   if (auth.isAuthenticated) {
-    return (
-      <div className="marketing">
-        <header className="site-header">
-          <div className="brand">
-            <span className="brand-mark" aria-hidden />
-            <span>
-              <strong>Pathfinder</strong> Clinical
-            </span>
-          </div>
-          <nav className="site-nav site-nav-product">
-            <Link to="/practice">Practice</Link>
-            <Link to="/clients">Clients</Link>
-            <Link to="/pain">Protocols</Link>
-            <Link to="/practice/library">Resources</Link>
-            <Link to="/account">Account</Link>
-          </nav>
-        </header>
-        <main className="landing">
-          <p className="eyebrow">Pathfinder Therapy</p>
-          <h1>Dashboard</h1>
-          <p className="subtitle">Welcome back{auth.therapist?.firstName ? `, ${auth.therapist.firstName}` : ''}</p>
-          <div className="cta-row cta-hierarchy">
-            <Link className="btn primary large" to="/practice/standard">
-              Continue Session
-            </Link>
-            <Link className="btn large" to="/practice/standard">
-              Start Standard EMDR
-            </Link>
-            <Link className="btn large" to="/pain">
-              Start EMDR Pain
-            </Link>
-          </div>
-          <div className="cta-row cta-utility">
-            <Link className="btn ghost" to="/clients">
-              Clients
-            </Link>
-            <Link className="btn ghost" to="/practice/library">
-              Clinical Library
-            </Link>
-            <Link className="btn ghost" to="/tools">
-              BLS Studio
-            </Link>
-            <button type="button" className="btn ghost" onClick={() => setShowJoin((v) => !v)}>
-              Join / Create Remote Session
-            </button>
-          </div>
-          {showJoin && (
-            <form className="join-form" onSubmit={onJoin}>
-              <label htmlFor="room-code">Room code</label>
-              <div className="join-form-row">
-                <input
-                  id="room-code"
-                  value={code}
-                  onChange={(e) => setCode(e.target.value)}
-                  placeholder="K7P4-M9Q2"
-                  autoComplete="off"
-                  spellCheck={false}
-                />
-                <button type="submit" className="btn primary">
-                  Continue
-                </button>
-              </div>
-            </form>
-          )}
-        </main>
-        <footer className="site-footer">Pathfinder Therapy · Pathfinder Clinical</footer>
-      </div>
-    );
+    return <DashboardPage />;
   }
 
   return (
@@ -105,7 +38,7 @@ export function LandingPage() {
             <strong>Pathfinder</strong> Clinical
           </span>
         </div>
-        <nav className="site-nav site-nav-product">
+        <nav className="site-nav site-nav-product" aria-label="Marketing">
           <Link to="/practice">Practice</Link>
           <Link to="/account">Sign in</Link>
           <Link to="/about">About</Link>
@@ -121,11 +54,11 @@ export function LandingPage() {
           client records held in authenticated server-side storage.
         </p>
         <div className="cta-row cta-hierarchy">
-          <Link className="btn primary large" to="/practice">
-            Guided Practice
+          <Link className="btn primary large" to="/account">
+            Sign in
           </Link>
-          <Link className="btn large" to="/account">
-            Create therapist account
+          <Link className="btn large" to="/practice">
+            Guided Practice
           </Link>
         </div>
         <div className="cta-row cta-utility">
@@ -161,4 +94,9 @@ export function LandingPage() {
       <footer className="site-footer">Pathfinder Therapy</footer>
     </div>
   );
+}
+
+/** Legacy redirect helper if needed by tests */
+export function AuthenticatedHomeRedirect() {
+  return <Navigate to="/" replace />;
 }

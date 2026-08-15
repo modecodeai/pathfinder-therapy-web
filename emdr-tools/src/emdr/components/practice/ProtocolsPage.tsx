@@ -40,21 +40,23 @@ const PROTOCOLS = [
 ] as const;
 
 /**
- * Treatment selection catalogue — templates, not active sessions.
- * UX Rule #2: context before data (no session metrics here).
+ * Treatment selection catalogue — kept for deep links under Knowledge.
+ * Prefer /knowledge as the top-level entry.
  */
 export function ProtocolsPage() {
   return (
     <div className="practice-shell">
-      <AppHeader activeNav="protocols" />
+      <AppHeader activeNav="knowledge" />
       <main className="practice-main">
         <header className="pf-page-hero">
           <div>
-            <p className="pf-eyebrow">Treatment selection</p>
-            <h1 className="pf-title">Choose a treatment</h1>
+            <p className="pf-eyebrow">
+              <Link to="/knowledge">Knowledge</Link> › Protocols
+            </p>
+            <h1 className="pf-title">Protocols</h1>
             <p className="pf-subtitle">
-              How do you want to work? Select a treatment workflow — client and session measures come
-              next.
+              Treatment workflows live under Knowledge. Select a client first whenever possible —
+              modalities are tools in service of the person.
             </p>
           </div>
         </header>

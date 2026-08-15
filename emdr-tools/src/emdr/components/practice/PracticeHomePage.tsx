@@ -1,18 +1,21 @@
-import { Link } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 import { AppHeader } from '../../guided/components/AppHeader';
 import { loadStandardSession, STANDARD_PHASE_LABELS } from '../../guided/lib/standardSession';
 import { loadPainWorkspace } from '../../lib/emdr-pain/painHelpers';
 import { PAIN_STAGE_LABELS } from '../../types/painProtocol';
-import { IconArrowRight, IconPlus, IconUser } from '../../../components/icons';
+import { IconArrowRight, IconUser } from '../../../components/icons';
 import { useAuth } from '../../../hooks/useAuth';
 import { useEffect, useState } from 'react';
 import { listClients } from '../../../clinical-intelligence/lib/api';
 
 /**
- * Practice home — continue, start new, recent clients. Nothing else.
+ * Practice home — begin from client context.
+ * Treatment selection happens after client selection, not as global EMDR CTAs.
  */
 export function PracticeHomePage() {
   const auth = useAuth();
+  const [params] = useSearchParams();
+  const preselectedClientId = params.get('clientId');
   const standard = loadStandardSession();
   const pain = loadPainWorkspace();
   const hasStandard =
@@ -23,12 +26,16 @@ export function PracticeHomePage() {
     ? '/practice/standard'
     : hasPain
       ? '/pain'
-      : '/practice/standard';
+      : preselectedClientId
+        ? `/clients/${preselectedClientId}?tab=preparation`
+        : '/clients';
   const continueLabel = hasStandard
     ? `Continue · ${STANDARD_PHASE_LABELS[standard.phase]}`
     : hasPain
       ? `Continue · ${PAIN_STAGE_LABELS[pain.stage] ?? 'Pain protocol'}`
-      : 'Continue Session';
+      : preselectedClientId
+        ? 'Continue with selected client'
+        : 'Open a client to start';
 
   const [recent, setRecent] = useState<Array<{ id: string; displayName: string; updatedAt: string }>>(
     [],
@@ -56,22 +63,23 @@ export function PracticeHomePage() {
           <div>
             <h1 className="pf-title">Practice</h1>
             <p className="pf-subtitle">
-              Continue clinical work or start a new guided session.
+              Continue a recent client session, or start from a client record. Treatment selection
+              follows the client.
             </p>
           </div>
-          <Link className="btn primary" to="/practice/standard">
-            <IconPlus /> Start New Session
+          <Link className="btn primary" to="/clients">
+            <IconUser size={18} /> Start session with client
           </Link>
         </header>
 
         <section className="pf-stack">
           <Link className="pf-surface-card pf-continue-card" to={continueTo}>
             <div>
-              <h2 className="pf-card-title">Continue Session</h2>
+              <h2 className="pf-card-title">Continue recent client session</h2>
               <p className="pf-meta">
                 {hasStandard || hasPain
                   ? continueLabel
-                  : 'No in-progress session in this browser — start a new session when ready.'}
+                  : 'No in-progress session in this browser — open a client when ready.'}
               </p>
             </div>
             <span className="pf-text-link">
@@ -80,7 +88,7 @@ export function PracticeHomePage() {
           </Link>
 
           <div className="pf-surface-card">
-            <h2 className="pf-card-title">Recent Clients</h2>
+            <h2 className="pf-card-title">Recent clients</h2>
             {!auth.isAuthenticated ? (
               <div className="pf-empty">
                 <p>Sign in to see recent clients across devices.</p>
@@ -91,8 +99,8 @@ export function PracticeHomePage() {
             ) : recent.length === 0 ? (
               <div className="pf-empty">
                 <p>No clients yet. Create a clinical record to keep sessions organised.</p>
-                <Link className="btn secondary" to="/clients">
-                  <IconUser size={18} /> Open Clients
+                <Link className="btn secondary" to="/">
+                  <IconUser size={18} /> Open Dashboard
                 </Link>
               </div>
             ) : (
@@ -104,6 +112,13 @@ export function PracticeHomePage() {
                       <span className="pf-meta">
                         {c.updatedAt ? new Date(c.updatedAt).toLocaleDateString() : ''}
                       </span>
+                    </Link>
+                    <Link
+                      className="btn tertiary"
+                      to={`/clients/${c.id}?tab=preparation`}
+                      style={{ marginLeft: '0.5rem' }}
+                    >
+                      Prepare
                     </Link>
                   </li>
                 ))}

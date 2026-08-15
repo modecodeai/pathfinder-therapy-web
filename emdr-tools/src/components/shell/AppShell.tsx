@@ -1,55 +1,56 @@
 import { type ReactNode } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import type { TherapistClientDisplay } from '../../hooks/useTherapistClientDisplay';
-import { clientDisplayStatus } from '../../components/ClientDisplayPanel';
-import { useAuth } from '../../../hooks/useAuth';
-import { IconSearch } from '../../../components/icons';
-import {
-  AccountMenu,
-  MainNavigation,
-  useMobileNavOpen,
-  type MainNavKey,
-} from '../../../components/shell';
+import type { TherapistClientDisplay } from '../../emdr/hooks/useTherapistClientDisplay';
+import { clientDisplayStatus } from '../../emdr/components/ClientDisplayPanel';
+import { useAuth } from '../../hooks/useAuth';
+import { IconSearch } from '../icons';
+import { AccountMenu } from './AccountMenu';
+import { MainNavigation, useMobileNavOpen, type MainNavKey } from './MainNavigation';
 
-/** @deprecated Prefer MainNavKey — kept for call-site compatibility */
-export type AppHeaderNav = MainNavKey | 'protocols' | 'resources' | 'settings' | 'session';
+export type { MainNavKey };
 
 interface Props {
+  children: ReactNode;
   protocolLabel?: string;
   clientDisplay?: TherapistClientDisplay | null;
   onOpenClientPanel?: () => void;
   rightSlot?: ReactNode;
-  activeNav?: AppHeaderNav;
+  activeNav?: MainNavKey;
   live?: boolean;
-}
-
-function mapActiveNav(nav?: AppHeaderNav): MainNavKey | undefined {
-  if (!nav) return undefined;
-  if (nav === 'protocols' || nav === 'resources') return 'knowledge';
-  if (nav === 'settings' || nav === 'session') return undefined;
-  return nav;
+  /** Constrained content width for clinical workspaces */
+  contentWidth?: 'default' | 'wide' | 'full';
+  className?: string;
 }
 
 /**
- * Application header — delegates to canonical MainNavigation + AccountMenu.
- * Prefer wrapping pages with AppShell; this remains for incremental migration.
+ * Canonical authenticated application shell.
+ * All product routes must use this — do not duplicate navigation markup.
  */
-export function AppHeader({
+export function AppShell({
+  children,
   protocolLabel,
   clientDisplay,
   onOpenClientPanel,
   rightSlot,
   activeNav,
   live = false,
+  contentWidth = 'default',
+  className = '',
 }: Props) {
   const auth = useAuth();
   const navigate = useNavigate();
   const mobile = useMobileNavOpen();
   const status = clientDisplay ? clientDisplayStatus(clientDisplay) : null;
-  const mapped = mapActiveNav(activeNav);
+
+  const widthClass =
+    contentWidth === 'wide'
+      ? 'pf-shell-content is-wide'
+      : contentWidth === 'full'
+        ? 'pf-shell-content is-full'
+        : 'pf-shell-content';
 
   return (
-    <>
+    <div className={`practice-shell pf-app-shell ${className}`.trim()} data-testid="app-shell">
       <header className={`pf-app-header${live ? ' is-live' : ''}`} aria-label="Application">
         <div className="pf-app-header-left">
           <button
@@ -87,7 +88,7 @@ export function AppHeader({
           )}
         </div>
 
-        <MainNavigation activeNav={mapped} />
+        <MainNavigation activeNav={activeNav} />
 
         <div className="pf-app-header-right">
           {clientDisplay && (
@@ -117,10 +118,12 @@ export function AppHeader({
             aria-label="Navigation"
             onClick={(e) => e.stopPropagation()}
           >
-            <MainNavigation activeNav={mapped} variant="drawer" onNavigate={mobile.close} />
+            <MainNavigation activeNav={activeNav} variant="drawer" onNavigate={mobile.close} />
           </div>
         </div>
       )}
-    </>
+
+      <div className={widthClass}>{children}</div>
+    </div>
   );
 }

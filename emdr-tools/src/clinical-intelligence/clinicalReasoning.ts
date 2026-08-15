@@ -63,7 +63,7 @@ export const PRIMARY_APPROACH_LABELS: Record<PrimaryTreatmentApproach, string> =
   'integrated-ta-emdr': 'Integrated TA + EMDR',
   pain: 'Pain / Somatic',
   other: 'Other',
-  unspecified: 'Not yet specified',
+  unspecified: 'Not yet decided',
 };
 
 export type ReasoningMode =

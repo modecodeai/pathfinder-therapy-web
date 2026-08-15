@@ -585,6 +585,14 @@ export interface ClientRecord {
   preferredName?: string;
   reference?: string;
   status?: 'active' | 'archived';
+  dateOfBirth?: string;
+  pronouns?: string;
+  /** Structured intake — first-class clinical evidence (not a diagnosis) */
+  intake?: import('./lib/intake').ClientIntakeRecord;
+  /** Labelled clinical material (intake paste, transcript, referral, notes) */
+  clinicalMaterials?: import('./lib/intake').ClinicalMaterialSource[];
+  /** New-client setup progress — steps are optional / skippable */
+  setupProgress?: import('./lib/intake').ClientSetupProgress;
   currentPhase?: string;
   presentingProblem?: string;
   presentingProblems: string[];

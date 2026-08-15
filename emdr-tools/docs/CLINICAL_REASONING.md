@@ -12,6 +12,33 @@ The therapist remains responsible for formulation, integration and treatment dec
 
 ---
 
+## PATHFINDER CLIENT-FIRST PRINCIPLE
+
+Clinical work begins with the person, not the protocol.
+
+A client may enter Pathfinder through an intake form, referral, transcript, therapist notes or direct clinical work.
+
+Pathfinder first organises available information into a modality-neutral clinical understanding.
+
+Only then does the therapist decide which therapeutic approach or clinical lens is most useful.
+
+The client remains the centre of the platform.
+
+Treatment modalities are tools used in service of that client.
+
+**Product workflow**
+
+1. Create or open a client  
+2. Add available intake information  
+3. Add existing transcript / notes / referral material  
+4. Build an initial modality-neutral formulation  
+5. Select the current treatment approach (default: Not yet decided — never EMDR)  
+6. Prepare and conduct the session  
+
+Dashboard primary action is **+ New Client**. Global EMDR start actions do not dominate the home workspace.
+
+---
+
 ## Pathfinder Integrative Reasoning Principle
 
 The client comes before the model.
