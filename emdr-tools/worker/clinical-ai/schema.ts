@@ -87,6 +87,7 @@ export const TRANSCRIPT_ANALYSIS_JSON_SCHEMA: Record<string, unknown> = {
         ],
       },
     },
+    associativeLinks: { type: 'array', items: suggestionBase },
     themes: {
       type: 'array',
       items: {
@@ -171,6 +172,7 @@ export const TRANSCRIPT_ANALYSIS_JSON_SCHEMA: Record<string, unknown> = {
     'recentExamples',
     'triggers',
     'memories',
+    'associativeLinks',
     'themes',
     'negativeCognitions',
     'positiveCognitions',
@@ -215,6 +217,10 @@ export function validateTranscriptAnalysis(data: unknown): { ok: true; value: im
   for (const key of arrays) {
     if (!Array.isArray(d[key])) return { ok: false, error: `missing_${key}` };
   }
+  // associativeLinks added in v2 — default empty for forward compatibility with older payloads
+  if (d.associativeLinks != null && !Array.isArray(d.associativeLinks)) {
+    return { ok: false, error: 'missing_associativeLinks' };
+  }
   // Normalise nullables from strict schema
   const memories = (d.memories as Array<Record<string, unknown>>).map((m) => ({
     ...m,
@@ -247,6 +253,7 @@ export function validateTranscriptAnalysis(data: unknown): { ok: true; value: im
       recentExamples: ensurePending(d.recentExamples as never[]),
       triggers: ensurePending(triggers as never[]),
       memories: ensurePending(memories as never[]),
+      associativeLinks: ensurePending((Array.isArray(d.associativeLinks) ? d.associativeLinks : []) as never[]),
       themes: ensurePending(d.themes as never[]),
       negativeCognitions: ensurePending(d.negativeCognitions as never[]),
       positiveCognitions: ensurePending(d.positiveCognitions as never[]),

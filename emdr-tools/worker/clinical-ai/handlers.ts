@@ -199,6 +199,20 @@ export async function handleClinicalIntelligenceRoutes(
     }
   }
 
+  const analysisMatch = path.match(/^\/api\/clinical-intelligence\/analyses\/([^/]+)$/);
+  if (analysisMatch && (request.method === 'GET' || request.method === 'PATCH')) {
+    const denied = await requireAuth(request, env);
+    if (denied) return denied;
+    const stub = accountsStub(env);
+    return stub.fetch(
+      new Request(`https://accounts/clinical-ai/analyses/${encodeURIComponent(analysisMatch[1])}`, {
+        method: request.method,
+        headers: request.headers,
+        body: request.method === 'PATCH' ? await request.text() : undefined,
+      }),
+    );
+  }
+
   return Response.json({ error: 'Not found' }, { status: 404 });
 }
 
@@ -214,11 +228,12 @@ export async function handleClientRoutes(
   if (path === '/api/clients') {
     target = '/clients';
   } else {
-    const m = path.match(/^\/api\/clients\/([^/]+)(?:\/(context|apply-findings))?$/);
+    const m = path.match(/^\/api\/clients\/([^/]+)(?:\/(context|apply-findings|analyses))?$/);
     if (!m) return Response.json({ error: 'Not found' }, { status: 404 });
     const clientId = decodeURIComponent(m[1]);
     if (m[2] === 'context') target = `/clients/${clientId}/context`;
     else if (m[2] === 'apply-findings') target = `/clients/${clientId}/apply-findings`;
+    else if (m[2] === 'analyses') target = `/clients/${clientId}/analyses`;
     else target = `/clients/${clientId}`;
   }
 

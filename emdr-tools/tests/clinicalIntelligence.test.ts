@@ -32,6 +32,14 @@ function sampleAnalysis(): TranscriptAnalysis {
         reviewStatus: 'approved',
       },
     ],
+    associativeLinks: [
+      {
+        id: 'al1',
+        value: 'Manager criticism in the present links to maternal school-report criticism around age 10',
+        ...base,
+        evidence: ev,
+      },
+    ],
     themes: [
       {
         id: 'th1',

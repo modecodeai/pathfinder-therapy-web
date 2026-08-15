@@ -89,6 +89,7 @@ export interface TranscriptAnalysis {
   recentExamples: ClinicalSuggestion<string>[];
   triggers: TriggerSuggestion[];
   memories: MemorySuggestion[];
+  associativeLinks: ClinicalSuggestion<string>[];
   themes: ClinicalThemeAnalysis[];
   negativeCognitions: CognitionSuggestion[];
   positiveCognitions: CognitionSuggestion[];
@@ -100,8 +101,8 @@ export interface TranscriptAnalysis {
   clarificationSuggestions: string[];
 }
 
-export const PROMPT_VERSION = 'ci-v0.1-phase1-history';
-export const SCHEMA_VERSION = 'ci-transcript-analysis-v1';
+export const PROMPT_VERSION = 'ci-v0.2-phase1-history';
+export const SCHEMA_VERSION = 'ci-transcript-analysis-v2';
 
 export interface ClinicalAIAnalysisRecord {
   id: string;
@@ -115,7 +116,10 @@ export interface ClinicalAIAnalysisRecord {
   schemaVersion: string;
   createdAt: string;
   rawTranscriptId: string;
+  /** Immutable OpenAI structured output */
   structuredResult: TranscriptAnalysis;
+  /** Therapist Approve/Edit/Reject state; null until review begins */
+  reviewedResult?: TranscriptAnalysis | null;
   reviewStatus: 'pending' | 'partially-reviewed' | 'reviewed';
 }
 

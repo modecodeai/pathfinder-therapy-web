@@ -4303,3 +4303,10 @@ html:has(.join-page.live),
   flex-direction: column;
   gap: 0.35rem;
 }
+
+.ci-evidence-mark {
+  background: #fde68a;
+  color: inherit;
+  padding: 0.05em 0.15em;
+  border-radius: 3px;
+}

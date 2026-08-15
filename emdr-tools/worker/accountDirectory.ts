@@ -96,6 +96,7 @@ export class AccountDirectory extends DurableObject {
           schema_version TEXT NOT NULL,
           raw_transcript_id TEXT NOT NULL,
           structured_result_json TEXT NOT NULL,
+          reviewed_result_json TEXT,
           review_status TEXT NOT NULL,
           created_at INTEGER NOT NULL
         );
@@ -108,6 +109,14 @@ export class AccountDirectory extends DurableObject {
           created_at INTEGER NOT NULL
         );
       `);
+      // v0.2: keep AI output immutable; therapist review stored separately
+      try {
+        this.ctx.storage.sql.exec(
+          `ALTER TABLE clinical_ai_analyses ADD COLUMN reviewed_result_json TEXT`,
+        );
+      } catch {
+        // column already exists
+      }
     });
   }
 
@@ -157,6 +166,9 @@ export class AccountDirectory extends DurableObject {
       }
       if (path.match(/\/clients\/[^/]+\/apply-findings$/) && request.method === 'POST') {
         return this.applyFindings(request, path);
+      }
+      if (path.match(/\/clients\/[^/]+\/analyses$/) && request.method === 'GET') {
+        return this.listAnalyses(request, path);
       }
       if (path.endsWith('/clinical-ai/store-analysis') && request.method === 'POST') {
         return this.storeAnalysis(request);
@@ -463,7 +475,7 @@ export class AccountDirectory extends DurableObject {
       );
     }
     this.ctx.storage.sql.exec(
-      `UPDATE clinical_ai_analyses SET review_status = ?, structured_result_json = ? WHERE id = ? AND therapist_id = ?`,
+      `UPDATE clinical_ai_analyses SET review_status = ?, reviewed_result_json = ? WHERE id = ? AND therapist_id = ?`,
       'reviewed',
       JSON.stringify(body.structuredResult),
       body.analysisId,
@@ -518,12 +530,13 @@ export class AccountDirectory extends DurableObject {
       createdAt: new Date(now).toISOString(),
       rawTranscriptId: transcriptId,
       structuredResult: body.structuredResult,
+      reviewedResult: null,
       reviewStatus: 'pending',
     };
     this.ctx.storage.sql.exec(
       `INSERT INTO clinical_ai_analyses
-        (id, therapist_id, client_id, session_id, protocol, phase, provider, model, prompt_version, schema_version, raw_transcript_id, structured_result_json, review_status, created_at)
-       VALUES (?, ?, ?, ?, ?, ?, 'openai', ?, ?, ?, ?, ?, 'pending', ?)`,
+        (id, therapist_id, client_id, session_id, protocol, phase, provider, model, prompt_version, schema_version, raw_transcript_id, structured_result_json, reviewed_result_json, review_status, created_at)
+       VALUES (?, ?, ?, ?, ?, ?, 'openai', ?, ?, ?, ?, ?, NULL, 'pending', ?)`,
       analysisId,
       user.id,
       body.clientId,
@@ -544,6 +557,36 @@ export class AccountDirectory extends DurableObject {
     });
   }
 
+  private async listAnalyses(request: Request, path: string): Promise<Response> {
+    const user = await this.userFromAuth(request);
+    if (!user) return Response.json({ error: 'Unauthorized' }, { status: 401 });
+    const parts = path.split('/');
+    const clientId = parts[parts.length - 2];
+    const client = this.loadClient(user.id, clientId);
+    if (!client) return Response.json({ error: 'Not found' }, { status: 404 });
+    const rows = this.ctx.storage.sql
+      .exec(
+        `SELECT id, protocol, phase, model, prompt_version, review_status, created_at, raw_transcript_id
+         FROM clinical_ai_analyses WHERE therapist_id = ? AND client_id = ?
+         ORDER BY created_at DESC LIMIT 50`,
+        user.id,
+        clientId,
+      )
+      .toArray() as Array<Record<string, unknown>>;
+    return Response.json({
+      analyses: rows.map((r) => ({
+        id: r.id,
+        protocol: r.protocol,
+        phase: r.phase,
+        model: r.model,
+        promptVersion: r.prompt_version,
+        reviewStatus: r.review_status,
+        createdAt: new Date(Number(r.created_at)).toISOString(),
+        rawTranscriptId: r.raw_transcript_id,
+      })),
+    });
+  }
+
   private async getAnalysis(request: Request, path: string): Promise<Response> {
     const user = await this.userFromAuth(request);
     if (!user) return Response.json({ error: 'Unauthorized' }, { status: 401 });
@@ -560,6 +603,7 @@ export class AccountDirectory extends DurableObject {
     const trRows = this.ctx.storage.sql
       .exec(`SELECT raw_transcript FROM raw_transcripts WHERE id = ? AND therapist_id = ?`, row.raw_transcript_id, user.id)
       .toArray() as Array<{ raw_transcript: string }>;
+    const reviewedRaw = row.reviewed_result_json;
     return Response.json({
       analysis: {
         id: row.id,
@@ -574,6 +618,7 @@ export class AccountDirectory extends DurableObject {
         createdAt: new Date(Number(row.created_at)).toISOString(),
         rawTranscriptId: row.raw_transcript_id,
         structuredResult: JSON.parse(String(row.structured_result_json)),
+        reviewedResult: reviewedRaw ? JSON.parse(String(reviewedRaw)) : null,
         reviewStatus: row.review_status,
       },
       rawTranscript: trRows[0]?.raw_transcript ?? '',
@@ -585,6 +630,8 @@ export class AccountDirectory extends DurableObject {
     if (!user) return Response.json({ error: 'Unauthorized' }, { status: 401 });
     const id = path.split('/').pop()!;
     const body = (await request.json()) as {
+      reviewedResult?: TranscriptAnalysis;
+      /** @deprecated use reviewedResult — must not overwrite AI structured_result_json */
       structuredResult?: TranscriptAnalysis;
       reviewStatus?: string;
     };
@@ -592,10 +639,11 @@ export class AccountDirectory extends DurableObject {
       .exec(`SELECT id FROM clinical_ai_analyses WHERE id = ? AND therapist_id = ?`, id, user.id)
       .toArray();
     if (!rows.length) return Response.json({ error: 'Not found' }, { status: 404 });
-    if (body.structuredResult) {
+    const reviewed = body.reviewedResult ?? body.structuredResult;
+    if (reviewed) {
       this.ctx.storage.sql.exec(
-        `UPDATE clinical_ai_analyses SET structured_result_json = ?, review_status = ? WHERE id = ?`,
-        JSON.stringify(body.structuredResult),
+        `UPDATE clinical_ai_analyses SET reviewed_result_json = ?, review_status = ? WHERE id = ?`,
+        JSON.stringify(reviewed),
         body.reviewStatus ?? 'partially-reviewed',
         id,
       );

@@ -117,6 +117,47 @@ export async function applyFindings(
   return parseJson(res);
 }
 
+export async function saveReviewedAnalysis(
+  analysisId: string,
+  reviewedResult: TranscriptAnalysis,
+  reviewStatus: 'partially-reviewed' | 'reviewed' = 'partially-reviewed',
+): Promise<void> {
+  const res = await fetch(`/api/clinical-intelligence/analyses/${encodeURIComponent(analysisId)}`, {
+    method: 'PATCH',
+    headers: authHeaders(),
+    body: JSON.stringify({ reviewedResult, reviewStatus }),
+  });
+  if (!res.ok) {
+    const data = await parseJson<{ error?: string }>(res);
+    throw new Error(data.error ?? 'Could not save reviewed analysis');
+  }
+}
+
+export async function listClientAnalyses(clientId: string): Promise<
+  Array<{
+    id: string;
+    protocol: string;
+    phase: string;
+    model: string;
+    reviewStatus: string;
+    createdAt: string;
+  }>
+> {
+  const res = await fetch(`/api/clients/${encodeURIComponent(clientId)}/analyses`, {
+    headers: authHeaders(),
+  });
+  if (!res.ok) throw new Error('Could not load analyses');
+  const data = await parseJson<{ analyses: Array<{
+    id: string;
+    protocol: string;
+    phase: string;
+    model: string;
+    reviewStatus: string;
+    createdAt: string;
+  }> }>(res);
+  return data.analyses;
+}
+
 export const SYNTHETIC_TEST_TRANSCRIPT = `THERAPIST:
 What would you like us to work on?
 CLIENT:

@@ -3,7 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { AppHeader } from '../emdr/guided/components/AppHeader';
 import { useAuth } from '../hooks/useAuth';
 import { CLINICAL_THEME_LABELS, type ClientRecord } from './types';
-import { createClient, getClient, listClients } from './lib/api';
+import { createClient, getClient, listClientAnalyses, listClients } from './lib/api';
 
 export function ClientsListPage() {
   const auth = useAuth();
@@ -150,6 +150,8 @@ export function ClientDetailPage({ clientId }: { clientId: string }) {
               </Link>
             </section>
 
+            <ClientAnalysesList clientId={client.id} />
+
             <section className="panel">
               <h2>Presenting problem</h2>
               <p>{client.presentingProblem || 'Not established'}</p>
@@ -248,5 +250,33 @@ export function ClientDetailPage({ clientId }: { clientId: string }) {
         )}
       </main>
     </div>
+  );
+}
+
+function ClientAnalysesList({ clientId }: { clientId: string }) {
+  const [rows, setRows] = useState<
+    Array<{ id: string; protocol: string; phase: string; reviewStatus: string; createdAt: string }>
+  >([]);
+  useEffect(() => {
+    void listClientAnalyses(clientId)
+      .then(setRows)
+      .catch(() => setRows([]));
+  }, [clientId]);
+  return (
+    <section className="panel">
+      <h2>Analysis history</h2>
+      <p className="hint">Raw transcripts and AI analyses are stored separately from the approved record.</p>
+      {rows.length ? (
+        <ul>
+          {rows.map((r) => (
+            <li key={r.id}>
+              {new Date(r.createdAt).toLocaleString()} · {r.protocol} / {r.phase} · {r.reviewStatus}
+            </li>
+          ))}
+        </ul>
+      ) : (
+        <p className="hint">No analyses yet</p>
+      )}
+    </section>
   );
 }
