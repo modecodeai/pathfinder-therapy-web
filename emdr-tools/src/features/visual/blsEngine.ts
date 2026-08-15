@@ -27,10 +27,19 @@ export interface BlsEngineOptions {
   getMidline?: () => MidlineDirection;
   getElapsedMs: () => number;
   isAnimating: () => boolean;
+  /**
+   * Optional: remap wall-clock elapsed → effective elapsed for variable-speed taxation.
+   * When omitted or returning the same value, Standard behaviour is unchanged.
+   */
+  mapElapsedMs?: (wallElapsedMs: number) => number;
+  /** Optional colour override (colour taxation). Falls back to getColour(). */
+  getEffectiveColour?: () => string;
   /** Fires once per completed full pass (back-and-forth) */
   onPass?: (completedPasses: number) => void;
   /** Side cue for audio — approx half-pass */
   onSide?: (side: Side) => void;
+  /** Fires when taxation colour changes (clinician prompt — not drawn on canvas) */
+  onColourChange?: (colour: string, passFloor: number) => void;
 }
 
 /**
@@ -42,6 +51,7 @@ export class BlsEngine {
   private started = false;
   private lastPassFloor = 0;
   private lastSide: Side | null = null;
+  private lastColourKey: string | null = null;
   private readonly opts: BlsEngineOptions;
   private readonly ctx: CanvasRenderingContext2D;
 
@@ -73,6 +83,7 @@ export class BlsEngine {
   resetSideTracking(): void {
     this.lastPassFloor = 0;
     this.lastSide = null;
+    this.lastColourKey = null;
   }
 
   resize(): void {
@@ -95,7 +106,10 @@ export class BlsEngine {
     }
 
     const cycleDur = this.opts.getCycleDurationMs();
-    const elapsed = this.opts.getElapsedMs();
+    const wallElapsed = this.opts.getElapsedMs();
+    const elapsed = this.opts.mapElapsedMs
+      ? this.opts.mapElapsedMs(wallElapsed)
+      : wallElapsed;
     const cycleProgress = cycleProgressFromElapsed(elapsed, cycleDur);
     const passFloor = passesFromCycleProgress(cycleProgress);
     const frac = cycleProgress - passFloor;
@@ -112,6 +126,13 @@ export class BlsEngine {
       this.opts.onSide?.(side);
     }
 
+    const colour = this.opts.getEffectiveColour?.() ?? this.opts.getColour();
+    if (this.lastColourKey !== colour) {
+      const prev = this.lastColourKey;
+      this.lastColourKey = colour;
+      if (prev != null) this.opts.onColourChange?.(colour, passFloor);
+    }
+
     const traj = this.opts.getTrajectory();
     const pt = getTrajectoryPosition(frac, traj, {
       travelWidth: this.opts.getTravelWidth(),
@@ -125,10 +146,10 @@ export class BlsEngine {
       side,
       visible: this.opts.getVisualEnabled(),
     };
-    this.paint(frame);
+    this.paint(frame, colour);
   }
 
-  private paint(frame: BlsFrame): void {
+  private paint(frame: BlsFrame, colour: string): void {
     const { canvas, ctx } = { canvas: this.opts.canvas, ctx: this.ctx };
     ctx.fillStyle = this.opts.getBackground();
     ctx.fillRect(0, 0, canvas.width, canvas.height);
@@ -137,7 +158,7 @@ export class BlsEngine {
     const dpr = Math.min(window.devicePixelRatio || 1, 2);
     const r = this.opts.getSizePx() * dpr;
     ctx.beginPath();
-    ctx.fillStyle = this.opts.getColour();
+    ctx.fillStyle = colour;
     ctx.arc(frame.x, frame.y, r, 0, Math.PI * 2);
     ctx.fill();
   }
@@ -155,7 +176,7 @@ export class BlsEngine {
     const dpr = Math.min(window.devicePixelRatio || 1, 2);
     const r = this.opts.getSizePx() * dpr;
     this.ctx.beginPath();
-    this.ctx.fillStyle = this.opts.getColour();
+    this.ctx.fillStyle = this.opts.getEffectiveColour?.() ?? this.opts.getColour();
     this.ctx.arc(x * canvas.width, y * canvas.height, r, 0, Math.PI * 2);
     this.ctx.fill();
   }

@@ -24,6 +24,8 @@ interface HelpDrawerProps {
   focusField?: 'sud' | 'voc' | 'nc' | null;
   lastResponse?: SetResponse | null;
   processingActive?: boolean;
+  /** Prefer selecting this script when opening Help */
+  focusScriptId?: string | null;
   guidanceContext?: BlsGuidanceContext;
   onLoadBlsPreset?: (presetId: ClinicalBlsPresetId) => void;
   onOpenBlsSettings?: () => void;
@@ -39,6 +41,7 @@ export function HelpDrawer({
   focusField,
   lastResponse,
   processingActive,
+  focusScriptId,
   guidanceContext,
   onLoadBlsPreset,
   onOpenBlsSettings,
@@ -77,8 +80,12 @@ export function HelpDrawer({
   );
 
   useEffect(() => {
+    if (focusScriptId && getScriptById(focusScriptId)) {
+      setSelectedId(focusScriptId);
+      return;
+    }
     setSelectedId(ids[0] ?? null);
-  }, [ids]);
+  }, [ids, focusScriptId]);
 
   if (!open) return null;
 

@@ -73,6 +73,17 @@ export interface BLSSetRecord {
   completedDurationSeconds: number;
   continuous: boolean;
   modality?: 'visual' | 'auditory' | 'tactile';
+  /** Treatment-session configuration metadata — not an outcome measure. */
+  taxationMode?: string;
+  taxationLevel?: string;
+  speedVariation?: string | null;
+  trajectoryVariation?: boolean;
+  colourMode?: string;
+  colourChangeFrequency?: string | number | null;
+  directionReversals?: boolean;
+  secondaryTaskType?: string | null;
+  secondaryTaskPrompt?: string | null;
+  stimulusKind?: 'bilateral-visual' | 'visual-working-memory-taxation';
   response?: SetResponse;
   sud?: number;
   voc?: number;

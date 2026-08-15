@@ -8,6 +8,7 @@ import {
   INFINITY_SCRIPTS,
   PHASE8_SCRIPTS,
 } from './content/phase8andMore';
+import { WORKING_MEMORY_TAXATION_SCRIPTS } from './content/workingMemoryTaxation';
 import type { EMDRScript } from './types';
 import { HELP_LIBRARY_META } from './types';
 import type { EMDRPhase, SetResponse } from '../types/emdr';
@@ -42,6 +43,7 @@ export const ALL_SCRIPTS: EMDRScript[] = enrich([
   ...FUTURE_TEMPLATE_SCRIPTS,
   ...INFINITY_SCRIPTS,
   ...CROSS_PHASE_SCRIPTS,
+  ...WORKING_MEMORY_TAXATION_SCRIPTS,
 ]);
 
 export function getScriptById(id: string): EMDRScript | undefined {
@@ -96,7 +98,12 @@ export function contextualScriptIds(opts: {
     history: ['phase1-presenting-issue', 'phase1-aip-mapping', 'phase1-floatback'],
     preparation: ['phase2-emdr-orientation', 'phase2-stop-signal', 'phase2-safe-calm-place'],
     assessment: ['phase3-assessment-sequence'],
-    desensitisation: ['phase4-processing-checkin', 'phase4-return-to-target'],
+    desensitisation: [
+      'phase4-processing-checkin',
+      'phase4-return-to-target',
+      'wmt-overview',
+      'wmt-phase-guide',
+    ],
     installation: ['phase5-installation'],
     'body-scan': ['phase6-body-scan'],
     closure: ['phase7-incomplete-closure', 'phase7-completed-closure', 'infinity-figure-eight'],
@@ -161,6 +168,6 @@ export const LIBRARY_GROUPS: { title: string; ids: string[] }[] = [
   },
   {
     title: 'Advanced Tools',
-    ids: ['phase2-rdi-placeholder'],
+    ids: ['phase2-rdi-placeholder', 'wmt-overview', 'wmt-phase-guide'],
   },
 ];

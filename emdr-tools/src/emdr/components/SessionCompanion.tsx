@@ -88,6 +88,7 @@ export function SessionCompanionPage() {
   const [sessionElapsed, setSessionElapsed] = useState(0);
   const [timingDirty, setTimingDirty] = useState(false);
   const [helpOpen, setHelpOpen] = useState(false);
+  const [helpFocusId, setHelpFocusId] = useState<string | null>(null);
   const [blsSettingsOpen, setBlsSettingsOpen] = useState(false);
   const [stopSignalEstablished, setStopSignalEstablished] = useState(false);
   const [focusField, setFocusField] = useState<'sud' | 'voc' | 'nc' | null>(null);
@@ -98,24 +99,36 @@ export function SessionCompanionPage() {
   const [clinicalCollapsed, setClinicalCollapsed] = useState(false);
   const [compactMode, setCompactMode] = useState(false);
   const [historyOpen, setHistoryOpen] = useState(false);
+  const [secondaryTaskPrompt, setSecondaryTaskPrompt] = useState<string | null>(null);
+  const [colourPrompt, setColourPrompt] = useState<string | null>(null);
+  const [installationTaxPrompt, setInstallationTaxPrompt] = useState(false);
   const publishRemoteRef = useRef<(state: RoomState) => void>(() => undefined);
+  const colourNamingRef = useRef(false);
 
   const session = useBlsSession({
     onSetComplete: (m) => {
       setLastCompleted({ passes: m.passes, durationMs: m.timeMs });
       setAwaitingFeedback(true);
       setFocusMode(false);
+      setColourPrompt(null);
       setCompanion((c) => ({
         ...c,
         totalProcessingMs: c.totalProcessingMs + m.timeMs,
       }));
     },
     onStateChange: (state) => {
+      colourNamingRef.current = !!state.taxationColourNamingMode;
       setCompanion((c) => ({
         ...c,
         blsSnapshot: snapshotBls(state),
       }));
       publishRemoteRef.current(state);
+    },
+    onTaxationColourChange: (colour) => {
+      if (!colourNamingRef.current) return;
+      setColourPrompt(
+        `Ask the client to say the new colour aloud. Current stimulus colour: ${colour}`,
+      );
     },
   });
 
@@ -217,6 +230,12 @@ export function SessionCompanionPage() {
 
   const applyPhasePreset = useCallback(
     (phase: EMDRPhase, force: boolean) => {
+      const taxationActive = session.stateRef.current.taxationMode !== 'standard';
+      if (phase === 'installation' && taxationActive) {
+        setInstallationTaxPrompt(true);
+      } else {
+        setInstallationTaxPrompt(false);
+      }
       const p = EMDR_PHASE_PRESETS[phase];
       if (!force && timingDirty) {
         setApplyPresetPrompt(phase);
@@ -235,7 +254,22 @@ export function SessionCompanionPage() {
     [timingDirty, session],
   );
 
+  const returnToStandardTaxation = useCallback(() => {
+    session.patchState({ taxationMode: 'standard' });
+    setColourPrompt(null);
+    setInstallationTaxPrompt(false);
+  }, [session]);
+
   const recordResponse = (response: SetResponse, note?: string) => {
+    const tax = session.state;
+    const colourMode =
+      tax.taxationDisableColour || tax.taxationMode === 'standard'
+        ? 'fixed'
+        : tax.taxationMode === 'random-colour'
+          ? 'random'
+          : tax.taxationMode === 'colour-shift' || tax.taxationMode === 'chaos'
+            ? 'shift'
+            : 'fixed';
     const record: BLSSetRecord = {
       id: `set_${Date.now().toString(36)}`,
       phase: companion.phase,
@@ -251,6 +285,35 @@ export function SessionCompanionPage() {
       completedDurationSeconds: Math.round((lastCompleted?.durationMs ?? 0) / 1000),
       continuous: session.state.continuous,
       modality: session.state.audioOnly ? 'auditory' : 'visual',
+      taxationMode: tax.taxationMode,
+      taxationLevel:
+        tax.taxationMode === 'standard'
+          ? 'standard'
+          : tax.taxationMode === 'chaos'
+            ? `chaos-${tax.taxationChaosLevel}`
+            : tax.taxationMode,
+      speedVariation:
+        tax.taxationMode === 'variable-speed' || tax.taxationMode === 'chaos'
+          ? tax.taxationVariableSpeedPreset
+          : null,
+      trajectoryVariation:
+        tax.taxationMode === 'pattern-switch' || tax.taxationMode === 'chaos',
+      colourMode,
+      colourChangeFrequency:
+        tax.taxationMode === 'colour-shift'
+          ? tax.taxationColourShiftInterval
+          : tax.taxationMode === 'random-colour'
+            ? tax.taxationColourChangeFrequency
+            : null,
+      directionReversals: tax.taxationMode === 'direction-shift' || tax.taxationMode === 'chaos',
+      secondaryTaskType: secondaryTaskPrompt ? 'clinician-prompt' : null,
+      secondaryTaskPrompt,
+      stimulusKind:
+        tax.taxationMode === 'pattern-switch' ||
+        tax.taxationMode === 'direction-shift' ||
+        tax.taxationMode === 'chaos'
+          ? 'visual-working-memory-taxation'
+          : 'bilateral-visual',
       response,
       sud: companion.target.currentSUD,
       voc: companion.target.currentVOC,
@@ -535,6 +598,9 @@ export function SessionCompanionPage() {
               settingsOpen={blsSettingsOpen}
               bodyScanFinding={bodyScanFindingFromTarget(companion.target.bodyLocation)}
               awaitingFeedback={awaitingFeedback}
+              setSeconds={Math.floor(session.metrics.timeMs / 1000)}
+              secondaryTaskPrompt={secondaryTaskPrompt}
+              colourPrompt={colourPrompt}
               onChange={onBlsChange}
               onStart={() => {
                 setAwaitingFeedback(false);
@@ -546,7 +612,14 @@ export function SessionCompanionPage() {
               onOpenManual={() => setBlsManualOpen(true)}
               onBeginDesensitisation={() => applyPhasePreset('desensitisation', true)}
               onToggleSettings={() => setBlsSettingsOpen((v) => !v)}
-              onOpenHelp={() => setHelpOpen(true)}
+              onOpenHelp={() => {
+                setHelpFocusId(null);
+                setHelpOpen(true);
+              }}
+              onOpenWmtHelp={() => {
+                setHelpFocusId('wmt-overview');
+                setHelpOpen(true);
+              }}
               onSelectInfinity={() => {
                 session.patchState({
                   ...phaseTimingPatch(EMDR_PHASE_PRESETS.closure, session.stateRef.current, {
@@ -576,14 +649,43 @@ export function SessionCompanionPage() {
                 }
                 clientDisplay.endSessionWithClient();
               }}
+              onReturnToStandardTaxation={returnToStandardTaxation}
+              onSecondaryTaskPrompt={setSecondaryTaskPrompt}
               clientDisplay={clientDisplay}
               onMuteTherapistChange={(muted) => session.patchState({ muteTherapistAudio: muted })}
             />
           )}
 
+          {installationTaxPrompt && companion.phase === 'installation' && (
+            <div className="taxation-advisory floating-advisory" role="dialog" aria-modal="true">
+              <p>
+                <strong>Desensitisation taxation is active</strong>
+              </p>
+              <p>
+                You are moving into Installation. Would you like to return to Standard stimulation?
+                Default recommendation: Standard predictable stimulation.
+              </p>
+              <div className="stack-btns horizontal">
+                <button type="button" className="btn primary" onClick={returnToStandardTaxation}>
+                  Return to Standard
+                </button>
+                <button
+                  type="button"
+                  className="btn"
+                  onClick={() => setInstallationTaxPrompt(false)}
+                >
+                  Keep Current Setting
+                </button>
+              </div>
+            </div>
+          )}
+
           <HelpDrawer
             open={helpOpen && !focusMode}
-            onClose={() => setHelpOpen(false)}
+            onClose={() => {
+              setHelpOpen(false);
+              setHelpFocusId(null);
+            }}
             phase={companion.phase}
             awaitingFeedback={awaitingFeedback}
             consecutiveNoChange={companion.consecutiveNoChangeSets}
@@ -591,6 +693,7 @@ export function SessionCompanionPage() {
             focusField={focusField}
             lastResponse={lastResponse}
             processingActive={isActive}
+            focusScriptId={helpFocusId}
             guidanceContext={{
               resourceResponse,
               bodyScanFinding: bodyScanFindingFromTarget(companion.target.bodyLocation),

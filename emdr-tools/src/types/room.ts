@@ -2,6 +2,14 @@
 
 import type { BLSTrajectory, MidlineDirection } from '../emdr/types/emdr';
 import { SPEED_PRESETS } from '../emdr/types/emdr';
+import {
+  createDefaultTaxationConfig,
+  type ColourChangeFrequency,
+  type ColourShiftInterval,
+  type ChaosLevel,
+  type TaxationMode,
+  type VariableSpeedPreset,
+} from '../emdr/types/emdrTaxation';
 
 export type VisualMode = BLSTrajectory;
 export type SetMode = 'manual' | 'passes' | 'timed' | 'continuous';
@@ -40,6 +48,18 @@ export interface RoomState {
   syncAudioWithVisual: boolean;
   muteTherapistAudio: boolean;
   sequence: number;
+  /** Working Memory Taxation — visual config only (no clinical notes). */
+  taxationMode: TaxationMode;
+  taxationVariableSpeedPreset: VariableSpeedPreset;
+  taxationColourShiftInterval: ColourShiftInterval;
+  taxationColourPalette: string[];
+  taxationColourChangeFrequency: ColourChangeFrequency;
+  taxationColourNamingMode: boolean;
+  taxationChaosLevel: ChaosLevel;
+  taxationReduceVisualVariation: boolean;
+  taxationDisableColour: boolean;
+  /** Deterministic seed for taxation randomisation within a set */
+  taxationSeed: number;
 }
 
 export interface LocalMetrics {
@@ -110,6 +130,7 @@ export function presetCycleMs(id: string): number {
 
 export function createDefaultRoomState(): RoomState {
   const cycleDurationMs = presetCycleMs('moderate');
+  const tax = createDefaultTaxationConfig();
   return {
     visualEnabled: true,
     audioEnabled: false,
@@ -135,6 +156,37 @@ export function createDefaultRoomState(): RoomState {
     syncAudioWithVisual: true,
     muteTherapistAudio: true,
     sequence: 0,
+    taxationMode: tax.mode,
+    taxationVariableSpeedPreset: tax.variableSpeedPreset,
+    taxationColourShiftInterval: tax.colourShiftInterval,
+    taxationColourPalette: [...tax.colourPalette],
+    taxationColourChangeFrequency: tax.colourChangeFrequency,
+    taxationColourNamingMode: tax.colourNamingMode,
+    taxationChaosLevel: tax.chaosLevel,
+    taxationReduceVisualVariation: tax.reduceVisualVariation,
+    taxationDisableColour: tax.disableColourTaxation,
+    taxationSeed: tax.seed,
+  };
+}
+
+/** Map RoomState taxation fields → TaxationConfig */
+export function roomStateToTaxationConfig(state: RoomState) {
+  const base = createDefaultTaxationConfig();
+  return {
+    ...base,
+    mode: state.taxationMode ?? 'standard',
+    variableSpeedPreset: state.taxationVariableSpeedPreset ?? base.variableSpeedPreset,
+    colourShiftInterval: state.taxationColourShiftInterval ?? base.colourShiftInterval,
+    colourPalette: state.taxationColourPalette?.length
+      ? [...state.taxationColourPalette]
+      : [...base.colourPalette],
+    colourChangeFrequency:
+      state.taxationColourChangeFrequency ?? base.colourChangeFrequency,
+    colourNamingMode: !!state.taxationColourNamingMode,
+    chaosLevel: state.taxationChaosLevel ?? 1,
+    reduceVisualVariation: !!state.taxationReduceVisualVariation,
+    disableColourTaxation: !!state.taxationDisableColour,
+    seed: state.taxationSeed || 1,
   };
 }
 

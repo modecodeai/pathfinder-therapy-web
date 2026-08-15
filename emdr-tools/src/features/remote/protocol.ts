@@ -87,6 +87,19 @@ const VISUAL_MODES = new Set([
 ]);
 const SET_MODES = new Set(['manual', 'passes', 'timed', 'continuous']);
 const SOUNDS = new Set(['soft-click', 'soft-tone', 'pulse']);
+const TAXATION_MODES = new Set([
+  'standard',
+  'variable-speed',
+  'direction-shift',
+  'colour-shift',
+  'random-colour',
+  'pattern-switch',
+  'chaos',
+  'custom',
+]);
+const VAR_SPEED = new Set(['low', 'medium', 'high']);
+const COLOUR_FREQ = new Set(['low', 'medium', 'high']);
+const COLOUR_INTERVAL = new Set([2, 4, 6, 'random']);
 
 export function sanitizePartialRoomState(input: Record<string, unknown>): Partial<RoomState> {
   const out: Partial<RoomState> = {};
@@ -146,6 +159,58 @@ export function sanitizePartialRoomState(input: Record<string, unknown>): Partia
   }
   if (typeof input.muteTherapistAudio === 'boolean') {
     out.muteTherapistAudio = input.muteTherapistAudio;
+  }
+  if (typeof input.taxationMode === 'string' && TAXATION_MODES.has(input.taxationMode)) {
+    out.taxationMode = input.taxationMode as RoomState['taxationMode'];
+  }
+  if (
+    typeof input.taxationVariableSpeedPreset === 'string' &&
+    VAR_SPEED.has(input.taxationVariableSpeedPreset)
+  ) {
+    out.taxationVariableSpeedPreset =
+      input.taxationVariableSpeedPreset as RoomState['taxationVariableSpeedPreset'];
+  }
+  if (
+    input.taxationColourShiftInterval === 'random' ||
+    input.taxationColourShiftInterval === 2 ||
+    input.taxationColourShiftInterval === 4 ||
+    input.taxationColourShiftInterval === 6 ||
+    (typeof input.taxationColourShiftInterval === 'number' &&
+      COLOUR_INTERVAL.has(input.taxationColourShiftInterval))
+  ) {
+    out.taxationColourShiftInterval =
+      input.taxationColourShiftInterval as RoomState['taxationColourShiftInterval'];
+  }
+  if (Array.isArray(input.taxationColourPalette)) {
+    out.taxationColourPalette = input.taxationColourPalette.filter(
+      (c): c is string => typeof c === 'string' && /^#[0-9A-Fa-f]{6}$/.test(c),
+    );
+  }
+  if (
+    typeof input.taxationColourChangeFrequency === 'string' &&
+    COLOUR_FREQ.has(input.taxationColourChangeFrequency)
+  ) {
+    out.taxationColourChangeFrequency =
+      input.taxationColourChangeFrequency as RoomState['taxationColourChangeFrequency'];
+  }
+  if (typeof input.taxationColourNamingMode === 'boolean') {
+    out.taxationColourNamingMode = input.taxationColourNamingMode;
+  }
+  if (
+    input.taxationChaosLevel === 1 ||
+    input.taxationChaosLevel === 2 ||
+    input.taxationChaosLevel === 3
+  ) {
+    out.taxationChaosLevel = input.taxationChaosLevel;
+  }
+  if (typeof input.taxationReduceVisualVariation === 'boolean') {
+    out.taxationReduceVisualVariation = input.taxationReduceVisualVariation;
+  }
+  if (typeof input.taxationDisableColour === 'boolean') {
+    out.taxationDisableColour = input.taxationDisableColour;
+  }
+  if (typeof input.taxationSeed === 'number' && Number.isFinite(input.taxationSeed)) {
+    out.taxationSeed = input.taxationSeed >>> 0 || 1;
   }
   return out;
 }

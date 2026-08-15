@@ -261,6 +261,39 @@ export const SCRIPT_BLS_GUIDANCE: Record<string, BLSGuidance> = {
     rationale: 'Temporarily set aside unfinished material. Do not describe as erasing or suppressing.',
     sourceSection: 'Container',
   },
+  'wmt-overview': {
+    status: 'optional',
+    title: 'Working Memory Taxation — Phase 4 adjunct (clinician-controlled)',
+    rationale:
+      'EMDR 2.0-informed visual/cognitive taxation tools are optional adjuncts during desensitisation. They are not a replacement for standard EMDR, not EMDR 2.0 training, and not automatically more effective.',
+    suggestedPreset:
+      'Desensitisation · start with Standard bilateral, then tax only if clinically appropriate',
+    presetId: 'desensitisation',
+    instructions: [
+      'Primary use: Phase 4 — Desensitisation after target activation.',
+      'Begin with Standard bilateral visual stimulation; increase taxation responsively.',
+      'Return to Standard when installation, closure, or client capacity indicates lower load.',
+    ],
+    caution:
+      'Do not activate Chaos or high taxation simply because a session has begun. Monitor dual attention and dissociation risk.',
+    action: { label: 'Load Desensitisation BLS', presetId: 'desensitisation' },
+    sourceSection: 'Working Memory Taxation (EMDR 2.0-informed)',
+  },
+  'wmt-phase-guide': {
+    status: 'optional',
+    title: 'Phase fit for Chaos / high taxation',
+    rationale:
+      'High working-memory taxation is principally associated with Phase 4 desensitisation. Other phases generally prefer Standard / predictable stimulation where BLS is used at all.',
+    instructions: [
+      'History / Closure: not indicated.',
+      'Preparation / Installation / Body Scan: generally return to Standard.',
+      'Assessment: complete target setup before advanced taxation.',
+      'Re-evaluation: only if explicitly returning to Phase 4 processing.',
+    ],
+    caution:
+      'Never hard-lock a qualified practitioner out of a setting solely because of selected phase — guidance is advisory.',
+    sourceSection: 'Working Memory Taxation (EMDR 2.0-informed)',
+  },
 };
 
 /** Default phase-level activation guidance (when opening Help without a specific card) */

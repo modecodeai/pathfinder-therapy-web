@@ -7,6 +7,8 @@ import { SPEED_PRESETS } from '../types/emdr';
 import type { RoomState } from '../../types/room';
 import { ClientDisplayPanel } from './ClientDisplayPanel';
 import type { TherapistClientDisplay } from '../hooks/useTherapistClientDisplay';
+import { TaxationControls } from './taxation/TaxationControls';
+import { CognitiveTaskPanel } from './taxation/CognitiveTaskPanel';
 
 interface Props {
   phase: EMDRPhase;
@@ -19,6 +21,9 @@ interface Props {
   settingsOpen: boolean;
   bodyScanFinding: 'clear' | 'positive' | 'disturbing' | 'new' | null;
   awaitingFeedback: boolean;
+  setSeconds: number;
+  secondaryTaskPrompt: string | null;
+  colourPrompt: string | null;
   onChange: (partial: Partial<RoomState>) => void;
   onStart: () => void;
   onPause: () => void;
@@ -28,11 +33,14 @@ interface Props {
   onBeginDesensitisation: () => void;
   onToggleSettings: () => void;
   onOpenHelp: () => void;
+  onOpenWmtHelp?: () => void;
   onSelectInfinity: () => void;
   onEnablePositiveStrengthening: () => void;
   onRecordResponse?: (id: 'change' | 'no-change' | 'positive' | 'distress' | 'pause' | 'return-to-target') => void;
   onDismissFeedback?: () => void;
   onEndSession: () => void;
+  onReturnToStandardTaxation: () => void;
+  onSecondaryTaskPrompt: (prompt: string | null) => void;
   clientDisplay: TherapistClientDisplay;
   onMuteTherapistChange: (muted: boolean) => void;
 }
@@ -87,6 +95,9 @@ export function SessionBlsControlPanel({
   settingsOpen,
   bodyScanFinding,
   awaitingFeedback,
+  setSeconds,
+  secondaryTaskPrompt,
+  colourPrompt,
   onChange,
   onStart,
   onPause,
@@ -96,11 +107,14 @@ export function SessionBlsControlPanel({
   onBeginDesensitisation,
   onToggleSettings,
   onOpenHelp,
+  onOpenWmtHelp,
   onSelectInfinity,
   onEnablePositiveStrengthening,
   onRecordResponse,
   onDismissFeedback,
   onEndSession,
+  onReturnToStandardTaxation,
+  onSecondaryTaskPrompt,
   clientDisplay,
   onMuteTherapistChange,
 }: Props) {
@@ -300,6 +314,24 @@ export function SessionBlsControlPanel({
                 </button>
               </div>
             )}
+
+            <TaxationControls
+              phase={phase}
+              state={state}
+              running={running}
+              setSeconds={setSeconds}
+              secondaryTaskPrompt={secondaryTaskPrompt}
+              colourPrompt={colourPrompt}
+              onChange={onChange}
+              onReturnToStandard={onReturnToStandardTaxation}
+              onClearSecondaryTask={() => onSecondaryTaskPrompt(null)}
+              onOpenHelpArticle={onOpenWmtHelp}
+            />
+
+            <CognitiveTaskPanel
+              activePrompt={secondaryTaskPrompt}
+              onSelectPrompt={onSecondaryTaskPrompt}
+            />
 
             <div className="bls-control-secondary">
               <button type="button" className="btn" onClick={onToggleSettings}>

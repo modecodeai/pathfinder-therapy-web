@@ -2487,3 +2487,192 @@ body:has(.join-page.live) {
 .client-end h1 {
   margin-bottom: 0.35rem;
 }
+
+/* —— Working Memory Taxation —— */
+.taxation-controls,
+.cognitive-task-panel {
+  margin-top: 0.65rem;
+  padding: 0.65rem 0.75rem;
+}
+
+.taxation-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.taxation-head h3 {
+  margin: 0;
+  font-size: 0.95rem;
+}
+
+.taxation-live-strip {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem 0.75rem;
+  align-items: center;
+  margin: 0.5rem 0 0.35rem;
+  font-size: 0.82rem;
+}
+
+.taxation-phase-badge {
+  display: inline-block;
+  padding: 0.15rem 0.45rem;
+  border-radius: 4px;
+  background: color-mix(in srgb, var(--pf-accent, #0d9488) 18%, transparent);
+  border: 1px solid color-mix(in srgb, var(--pf-accent, #0d9488) 40%, transparent);
+  font-size: 0.75rem;
+}
+
+.taxation-phase-ok {
+  color: color-mix(in srgb, var(--pf-accent, #0d9488) 90%, white);
+}
+
+.taxation-advisory {
+  margin: 0.5rem 0;
+  padding: 0.65rem 0.75rem;
+  border: 1px solid color-mix(in srgb, #ca8a04 50%, var(--pf-border, #444));
+  border-radius: 8px;
+  background: color-mix(in srgb, #ca8a04 12%, transparent);
+}
+
+.taxation-advisory.floating-advisory {
+  position: fixed;
+  z-index: 80;
+  left: 50%;
+  top: 20%;
+  transform: translateX(-50%);
+  max-width: min(420px, 92vw);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.35);
+}
+
+.taxation-clinician-prompt {
+  margin: 0.4rem 0;
+  padding: 0.5rem 0.65rem;
+  border-left: 3px solid var(--pf-accent, #0d9488);
+  background: color-mix(in srgb, var(--pf-accent, #0d9488) 10%, transparent);
+  font-size: 0.85rem;
+}
+
+.taxation-fieldset {
+  border: 1px solid var(--pf-border, #444);
+  border-radius: 8px;
+  padding: 0.5rem 0.65rem 0.65rem;
+  margin: 0.5rem 0;
+}
+
+.taxation-fieldset legend {
+  padding: 0 0.25rem;
+  font-size: 0.8rem;
+}
+
+.taxation-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  margin-top: 0.5rem;
+}
+
+.taxation-actions.compact {
+  margin-top: 0.35rem;
+}
+
+.taxation-palette {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  margin-top: 0.45rem;
+}
+
+.taxation-palette .swatch {
+  width: 1.35rem;
+  height: 1.35rem;
+  border-radius: 4px;
+  border: 2px solid transparent;
+  padding: 0;
+  cursor: pointer;
+}
+
+.taxation-palette .swatch.is-active {
+  border-color: #fff;
+  outline: 1px solid #000;
+}
+
+.taxation-indicator {
+  display: inline-flex;
+  flex-direction: column;
+  gap: 0.1rem;
+}
+
+.taxation-indicator.is-compact {
+  flex-direction: row;
+  align-items: baseline;
+  gap: 0.35rem;
+}
+
+.taxation-indicator-label {
+  font-size: 0.72rem;
+  opacity: 0.8;
+}
+
+.taxation-indicator-value {
+  font-size: 0.85rem;
+}
+
+.taxation-indicator.load-high .taxation-indicator-value {
+  color: #f59e0b;
+}
+
+.caution-text {
+  margin: 0.4rem 0 0;
+  font-size: 0.8rem;
+  color: #f59e0b;
+}
+
+.check-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.4rem;
+  margin: 0.35rem 0;
+  font-size: 0.85rem;
+}
+
+.segmented.wrap {
+  flex-wrap: wrap;
+}
+
+.stack-btns.horizontal {
+  flex-direction: row;
+  flex-wrap: wrap;
+}
+
+.suggested-task {
+  margin: 0.45rem 0;
+  padding: 0.45rem 0.55rem;
+  border-radius: 6px;
+  background: color-mix(in srgb, var(--pf-surface, #1a1a1a) 80%, #333);
+}
+
+.cognitive-groups {
+  margin-top: 0.5rem;
+  max-height: 220px;
+  overflow: auto;
+}
+
+.cognitive-group {
+  margin: 0.25rem 0;
+}
+
+.cognitive-group ul {
+  margin: 0.25rem 0 0.5rem;
+  padding-left: 0;
+  list-style: none;
+}
+
+.btn.linkish {
+  text-align: left;
+  white-space: normal;
+  height: auto;
+  padding: 0.25rem 0.35rem;
+}

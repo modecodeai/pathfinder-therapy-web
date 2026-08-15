@@ -3,10 +3,16 @@ import { AudioEngine } from '../features/audio/audioEngine';
 import { BlsEngine, sideFromElapsed } from '../features/visual/blsEngine';
 import { formatTime, SetController } from '../features/sets/setController';
 import {
+  resolveEffectiveElapsed,
+  resolveTaxationColour,
+  newTaxationSeed,
+} from '../emdr/engine/taxationEngine';
+import {
   clampSize,
   clampTravel,
   createDefaultRoomState,
   createEmptyMetrics,
+  roomStateToTaxationConfig,
   withSpeed01,
   type LocalMetrics,
   type RoomState,
@@ -16,6 +22,8 @@ export interface UseBlsSessionOptions {
   isClient?: boolean;
   onStateChange?: (state: RoomState) => void;
   onSetComplete?: (metrics: LocalMetrics) => void;
+  /** Clinician-only colour-change cue (never drawn on client canvas) */
+  onTaxationColourChange?: (colour: string, passFloor: number) => void;
 }
 
 export function useBlsSession(options: UseBlsSessionOptions = {}) {
@@ -24,6 +32,8 @@ export function useBlsSession(options: UseBlsSessionOptions = {}) {
   onChangeRef.current = options.onStateChange;
   const onSetCompleteRef = useRef(options.onSetComplete);
   onSetCompleteRef.current = options.onSetComplete;
+  const onColourChangeRef = useRef(options.onTaxationColourChange);
+  onColourChangeRef.current = options.onTaxationColourChange;
 
   const [state, setState] = useState<RoomState>(() => createDefaultRoomState());
   const [metrics, setMetrics] = useState<LocalMetrics>(() => createEmptyMetrics());
@@ -155,6 +165,23 @@ export function useBlsSession(options: UseBlsSessionOptions = {}) {
           }
           return metricsRef.current.timeMs;
         },
+        mapElapsedMs: (wall) => {
+          const cfg = roomStateToTaxationConfig(stateRef.current);
+          if (cfg.mode === 'standard') return wall;
+          return resolveEffectiveElapsed(cfg, wall);
+        },
+        getEffectiveColour: () => {
+          const s = stateRef.current;
+          const cfg = roomStateToTaxationConfig(s);
+          if (cfg.mode === 'standard') return s.stimulusColour;
+          const wall =
+            s.running && !s.paused && runStartedAtRef.current != null
+              ? accumulatedMsRef.current + (performance.now() - runStartedAtRef.current)
+              : metricsRef.current.timeMs;
+          const effective = resolveEffectiveElapsed(cfg, wall);
+          const passFloor = Math.floor(effective / Math.max(50, s.cycleDurationMs));
+          return resolveTaxationColour(cfg, s.stimulusColour, passFloor).colour;
+        },
         isAnimating: () => stateRef.current.running && !stateRef.current.paused,
         onPass: (completed) => {
           if (!stateRef.current.running || stateRef.current.paused) return;
@@ -173,6 +200,10 @@ export function useBlsSession(options: UseBlsSessionOptions = {}) {
           ) {
             void audioRef.current.onSide(side);
           }
+        },
+        onColourChange: (colour, passFloor) => {
+          if (isClient) return;
+          onColourChangeRef.current?.(colour, passFloor);
         },
       });
       engine.startLoop();
@@ -224,11 +255,16 @@ export function useBlsSession(options: UseBlsSessionOptions = {}) {
       return next;
     });
     const seq = bumpSequence();
+    const nextSeed =
+      stateRef.current.taxationMode !== 'standard'
+        ? newTaxationSeed()
+        : stateRef.current.taxationSeed;
     notifyState({
       ...stateRef.current,
       running: true,
       paused: false,
       sequence: seq,
+      taxationSeed: nextSeed,
     });
     startClock();
     return seq;
