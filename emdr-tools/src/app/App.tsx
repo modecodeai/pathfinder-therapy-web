@@ -1,4 +1,10 @@
-import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom';
+import { BrowserRouter, Navigate, Route, Routes, useParams } from 'react-router-dom';
+import { AnalyseTranscriptPage } from '../clinical-intelligence/AnalyseTranscriptPage';
+import {
+  ClinicalIntelligenceSettingsPage,
+  SettingsHomePage,
+} from '../clinical-intelligence/ClinicalIntelligenceSettingsPage';
+import { ClientDetailPage, ClientsListPage } from '../clinical-intelligence/ClientsPage';
 import { PainProtocolPage } from '../emdr/components/emdr-pain/PainProtocolPage';
 import {
   ClinicalLibraryDetailPage,
@@ -20,6 +26,18 @@ import { JoinPage } from '../routes/JoinPage';
 import { LandingPage } from '../routes/LandingPage';
 import { ToolsPage } from '../routes/ToolsPage';
 
+function ClientDetailRoute() {
+  const { clientId } = useParams<{ clientId: string }>();
+  if (!clientId) return <Navigate to="/clients" replace />;
+  return <ClientDetailPage clientId={clientId} />;
+}
+
+function AnalyseRoute() {
+  const { clientId } = useParams<{ clientId: string }>();
+  if (!clientId) return <Navigate to="/clients" replace />;
+  return <AnalyseTranscriptPage clientId={clientId} />;
+}
+
 export default function App() {
   return (
     <BrowserRouter>
@@ -39,6 +57,11 @@ export default function App() {
         <Route path="/session" element={<SessionCompanionPage />} />
         <Route path="/pain" element={<PainProtocolPage />} />
         <Route path="/resources" element={<ResourcesPage />} />
+        <Route path="/settings" element={<SettingsHomePage />} />
+        <Route path="/settings/clinical-intelligence" element={<ClinicalIntelligenceSettingsPage />} />
+        <Route path="/clients" element={<ClientsListPage />} />
+        <Route path="/clients/:clientId" element={<ClientDetailRoute />} />
+        <Route path="/clients/:clientId/clinical-intelligence" element={<AnalyseRoute />} />
         <Route path="/account" element={<AccountPage />} />
         <Route path="/join/:roomId" element={<JoinPage />} />
         <Route path="/client/session/:roomId" element={<JoinPage />} />

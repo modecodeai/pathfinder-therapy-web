@@ -4155,3 +4155,151 @@ html:has(.join-page.live),
     grid-template-columns: repeat(4, 1fr);
   }
 }
+
+/* —— Clinical Intelligence —— */
+.ci-kv {
+  display: grid;
+  gap: 0.75rem 1.5rem;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  margin: 0 0 1.25rem;
+}
+.ci-kv dt {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--pf-text-muted);
+}
+.ci-kv dd {
+  margin: 0.15rem 0 0;
+  font-weight: 600;
+}
+.ci-status-pill {
+  display: inline-block;
+  padding: 0.2rem 0.55rem;
+  border-radius: 6px;
+  background: #e8efed;
+}
+.ci-status-pill.tone-connected { background: #dcfce7; color: #166534; }
+.ci-status-pill.tone-failed,
+.ci-status-pill.tone-not_configured { background: #fee2e2; color: #991b1b; }
+.ci-status-pill.tone-testing { background: #fef3c7; color: #92400e; }
+.ci-success-banner {
+  margin-top: 1rem;
+  padding: 0.85rem 1rem;
+  background: #ecfdf5;
+  border: 1px solid #a7f3d0;
+  border-radius: 8px;
+}
+.ci-error-banner {
+  margin-top: 1rem;
+  padding: 0.85rem 1rem;
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  border-radius: 8px;
+}
+.ci-client-list {
+  list-style: none;
+  padding: 0;
+  margin: 1rem 0 0;
+  display: grid;
+  gap: 0.75rem;
+}
+.ci-form-row {
+  display: grid;
+  gap: 0.75rem;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  margin-bottom: 1rem;
+}
+.ci-transcript-editor {
+  width: 100%;
+  min-height: 280px;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 0.9rem;
+  line-height: 1.45;
+  padding: 0.75rem;
+  border: 1px solid var(--pf-border);
+  border-radius: 8px;
+  resize: vertical;
+}
+.ci-review-layout {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: 1fr;
+  margin-top: 1rem;
+}
+@media (min-width: 1100px) {
+  .ci-review-layout {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    align-items: start;
+  }
+}
+.ci-transcript-pre {
+  white-space: pre-wrap;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 0.85rem;
+  line-height: 1.5;
+  max-height: 70vh;
+  overflow: auto;
+  margin: 0;
+}
+.ci-finding-section {
+  margin: 1.25rem 0;
+}
+.ci-finding-section h3 {
+  margin: 0 0 0.5rem;
+  font-size: 0.95rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--pf-text-muted);
+}
+.ci-finding-card {
+  border: 1px solid var(--pf-border);
+  border-radius: 8px;
+  padding: 0.75rem;
+  margin-bottom: 0.65rem;
+  background: #fff;
+}
+.ci-finding-card.status-approved { border-color: #86efac; background: #f0fdf4; }
+.ci-finding-card.status-rejected { opacity: 0.65; }
+.ci-finding-card.status-edited { border-color: #93c5fd; background: #eff6ff; }
+.ci-review-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  align-items: center;
+  margin-top: 0.5rem;
+}
+.ci-evidence-list {
+  list-style: none;
+  padding: 0;
+  margin: 0.5rem 0;
+}
+.ci-evidence-list li {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  align-items: baseline;
+  margin-bottom: 0.35rem;
+}
+.ci-needed-list {
+  font-weight: 600;
+}
+.ci-memory-timeline {
+  padding-left: 1.25rem;
+}
+.ci-select {
+  display: inline-flex;
+  gap: 0.35rem;
+  align-items: center;
+  font-size: 0.8rem;
+  color: var(--pf-text-muted);
+}
+.ci-apply-preview .ci-preview-block {
+  margin: 0.75rem 0;
+}
+.ci-settings-panel .field,
+.ci-analyse-form .field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}

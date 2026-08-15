@@ -88,7 +88,7 @@ export function AppHeader({
             Resources
           </NavLink>
           <NavLink
-            to="/account"
+            to="/settings"
             className={({ isActive }) =>
               `pf-nav-link${isActive || activeNav === 'settings' ? ' is-active' : ''}`
             }

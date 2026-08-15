@@ -1,6 +1,7 @@
 import { EmdrRoom } from './room';
 import { AccountDirectory } from './accountDirectory';
 import { createDefaultRoomState, type RoomState } from '../src/types/room';
+import { handleClinicalIntelligenceRoutes, handleClientRoutes } from './clinical-ai/handlers';
 
 export { EmdrRoom, AccountDirectory };
 
@@ -8,6 +9,14 @@ export default {
   async fetch(request: Request, env: Env): Promise<Response> {
     const url = new URL(request.url);
     const path = url.pathname;
+
+    if (path.startsWith('/api/clinical-intelligence')) {
+      return handleClinicalIntelligenceRoutes(request, env, url);
+    }
+
+    if (path.startsWith('/api/clients')) {
+      return handleClientRoutes(request, env, url);
+    }
 
     if (path.startsWith('/api/auth') || path.startsWith('/api/sessions')) {
       return handleAuthRoutes(request, env, url);

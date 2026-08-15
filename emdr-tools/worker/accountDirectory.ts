@@ -1,4 +1,11 @@
 import { DurableObject } from 'cloudflare:workers';
+import type {
+  ApplyFindingsRequest,
+  ClientRecord,
+  ClinicalAIAnalysisRecord,
+  TranscriptAnalysis,
+} from '../src/clinical-intelligence/types';
+import { applyApprovedFindings, emptyClientRecord, toApprovedClientContext } from './clinical-ai/applyFindings';
 
 interface TherapistRow {
   id: string;
@@ -57,6 +64,49 @@ export class AccountDirectory extends DurableObject {
           created_at INTEGER NOT NULL,
           updated_at INTEGER NOT NULL
         );
+        CREATE TABLE IF NOT EXISTS clients (
+          id TEXT PRIMARY KEY,
+          therapist_id TEXT NOT NULL,
+          display_name TEXT NOT NULL,
+          record_json TEXT NOT NULL,
+          created_at INTEGER NOT NULL,
+          updated_at INTEGER NOT NULL
+        );
+        CREATE TABLE IF NOT EXISTS raw_transcripts (
+          id TEXT PRIMARY KEY,
+          therapist_id TEXT NOT NULL,
+          client_id TEXT NOT NULL,
+          session_id TEXT,
+          protocol TEXT NOT NULL,
+          phase TEXT NOT NULL,
+          raw_transcript TEXT NOT NULL,
+          normalised_transcript TEXT,
+          created_at INTEGER NOT NULL
+        );
+        CREATE TABLE IF NOT EXISTS clinical_ai_analyses (
+          id TEXT PRIMARY KEY,
+          therapist_id TEXT NOT NULL,
+          client_id TEXT NOT NULL,
+          session_id TEXT,
+          protocol TEXT NOT NULL,
+          phase TEXT NOT NULL,
+          provider TEXT NOT NULL,
+          model TEXT NOT NULL,
+          prompt_version TEXT NOT NULL,
+          schema_version TEXT NOT NULL,
+          raw_transcript_id TEXT NOT NULL,
+          structured_result_json TEXT NOT NULL,
+          review_status TEXT NOT NULL,
+          created_at INTEGER NOT NULL
+        );
+        CREATE TABLE IF NOT EXISTS clinical_ai_audit (
+          id TEXT PRIMARY KEY,
+          therapist_id TEXT NOT NULL,
+          client_id TEXT NOT NULL,
+          analysis_id TEXT NOT NULL,
+          payload_json TEXT NOT NULL,
+          created_at INTEGER NOT NULL
+        );
       `);
     });
   }
@@ -89,6 +139,38 @@ export class AccountDirectory extends DurableObject {
       }
       if (path.endsWith('/delete-account') && request.method === 'POST') {
         return this.deleteAccount(request);
+      }
+      if (path.endsWith('/clients') && request.method === 'GET') {
+        return this.listClients(request);
+      }
+      if (path.endsWith('/clients') && request.method === 'POST') {
+        return this.createClient(request);
+      }
+      if (path.match(/\/clients\/[^/]+$/) && request.method === 'GET') {
+        return this.getClient(request, path);
+      }
+      if (path.match(/\/clients\/[^/]+$/) && request.method === 'PATCH') {
+        return this.patchClient(request, path);
+      }
+      if (path.match(/\/clients\/[^/]+\/context$/) && request.method === 'GET') {
+        return this.getClientContext(request, path);
+      }
+      if (path.match(/\/clients\/[^/]+\/apply-findings$/) && request.method === 'POST') {
+        return this.applyFindings(request, path);
+      }
+      if (path.endsWith('/clinical-ai/store-analysis') && request.method === 'POST') {
+        return this.storeAnalysis(request);
+      }
+      if (path.match(/\/clinical-ai\/analyses\/[^/]+$/) && request.method === 'GET') {
+        return this.getAnalysis(request, path);
+      }
+      if (path.match(/\/clinical-ai\/analyses\/[^/]+$/) && request.method === 'PATCH') {
+        return this.patchAnalysis(request, path);
+      }
+      if (path.endsWith('/auth-check') && request.method === 'GET') {
+        const user = await this.userFromAuth(request);
+        if (!user) return Response.json({ error: 'Unauthorized' }, { status: 401 });
+        return Response.json({ ok: true, therapistId: user.id });
       }
       return Response.json({ error: 'Not found' }, { status: 404 });
     } catch (e) {
@@ -249,8 +331,305 @@ export class AccountDirectory extends DurableObject {
     if (!user) return Response.json({ error: 'Unauthorized' }, { status: 401 });
     this.ctx.storage.sql.exec(`DELETE FROM auth_sessions WHERE therapist_id = ?`, user.id);
     this.ctx.storage.sql.exec(`DELETE FROM clinical_sessions WHERE therapist_id = ?`, user.id);
+    this.ctx.storage.sql.exec(`DELETE FROM clinical_ai_audit WHERE therapist_id = ?`, user.id);
+    this.ctx.storage.sql.exec(`DELETE FROM clinical_ai_analyses WHERE therapist_id = ?`, user.id);
+    this.ctx.storage.sql.exec(`DELETE FROM raw_transcripts WHERE therapist_id = ?`, user.id);
+    this.ctx.storage.sql.exec(`DELETE FROM clients WHERE therapist_id = ?`, user.id);
     this.ctx.storage.sql.exec(`DELETE FROM therapists WHERE id = ?`, user.id);
     return Response.json({ ok: true });
+  }
+
+  private async listClients(request: Request): Promise<Response> {
+    const user = await this.userFromAuth(request);
+    if (!user) return Response.json({ error: 'Unauthorized' }, { status: 401 });
+    const rows = this.ctx.storage.sql
+      .exec(
+        `SELECT id, display_name, record_json, updated_at FROM clients WHERE therapist_id = ? ORDER BY updated_at DESC LIMIT 100`,
+        user.id,
+      )
+      .toArray() as Array<{ id: string; display_name: string; record_json: string; updated_at: number }>;
+    const clients = rows.map((r) => {
+      const record = JSON.parse(r.record_json) as ClientRecord;
+      return {
+        id: r.id,
+        displayName: r.display_name,
+        presentingProblem: record.presentingProblem,
+        updatedAt: new Date(r.updated_at).toISOString(),
+      };
+    });
+    return Response.json({ clients });
+  }
+
+  private async createClient(request: Request): Promise<Response> {
+    const user = await this.userFromAuth(request);
+    if (!user) return Response.json({ error: 'Unauthorized' }, { status: 401 });
+    const body = (await request.json()) as { displayName?: string };
+    const displayName = String(body.displayName ?? '').trim();
+    if (!displayName) return Response.json({ error: 'displayName required' }, { status: 400 });
+    const id = `c_${randomHex(10)}`;
+    const now = Date.now();
+    const nowIso = new Date(now).toISOString();
+    const record = emptyClientRecord(id, user.id, displayName, nowIso);
+    this.ctx.storage.sql.exec(
+      `INSERT INTO clients (id, therapist_id, display_name, record_json, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?)`,
+      id,
+      user.id,
+      displayName,
+      JSON.stringify(record),
+      now,
+      now,
+    );
+    return Response.json({ ok: true, client: record });
+  }
+
+  private async getClient(request: Request, path: string): Promise<Response> {
+    const user = await this.userFromAuth(request);
+    if (!user) return Response.json({ error: 'Unauthorized' }, { status: 401 });
+    const id = path.split('/').pop()!;
+    const client = this.loadClient(user.id, id);
+    if (!client) return Response.json({ error: 'Not found' }, { status: 404 });
+    return Response.json({ client });
+  }
+
+  private async patchClient(request: Request, path: string): Promise<Response> {
+    const user = await this.userFromAuth(request);
+    if (!user) return Response.json({ error: 'Unauthorized' }, { status: 401 });
+    const id = path.split('/').pop()!;
+    const existing = this.loadClient(user.id, id);
+    if (!existing) return Response.json({ error: 'Not found' }, { status: 404 });
+    const body = (await request.json()) as Partial<ClientRecord>;
+    const now = Date.now();
+    const next: ClientRecord = {
+      ...existing,
+      ...body,
+      id: existing.id,
+      therapistId: existing.therapistId,
+      updatedAt: new Date(now).toISOString(),
+    };
+    if (body.displayName) next.displayName = String(body.displayName).trim() || existing.displayName;
+    this.saveClient(next, now);
+    return Response.json({ ok: true, client: next });
+  }
+
+  private async getClientContext(request: Request, path: string): Promise<Response> {
+    const user = await this.userFromAuth(request);
+    if (!user) return Response.json({ error: 'Unauthorized' }, { status: 401 });
+    const parts = path.split('/');
+    const id = parts[parts.length - 2];
+    const client = this.loadClient(user.id, id);
+    if (!client) return Response.json({ error: 'Not found' }, { status: 404 });
+    return Response.json({ context: toApprovedClientContext(client), client });
+  }
+
+  private async applyFindings(request: Request, path: string): Promise<Response> {
+    const user = await this.userFromAuth(request);
+    if (!user) return Response.json({ error: 'Unauthorized' }, { status: 401 });
+    const parts = path.split('/');
+    const clientId = parts[parts.length - 2];
+    const client = this.loadClient(user.id, clientId);
+    if (!client) return Response.json({ error: 'Not found' }, { status: 404 });
+    const body = (await request.json()) as ApplyFindingsRequest;
+    if (!body.analysisId || !body.structuredResult) {
+      return Response.json({ error: 'analysisId and structuredResult required' }, { status: 400 });
+    }
+    const now = Date.now();
+    const nowIso = new Date(now).toISOString();
+    const result = applyApprovedFindings(client, body.structuredResult, body.analysisId, {
+      themeConflicts: body.themeConflicts,
+      memoryDuplicates: body.memoryDuplicates,
+      nowIso,
+    });
+    if (result.conflictsRemaining.length) {
+      return Response.json(
+        {
+          ok: false,
+          needsResolution: true,
+          conflicts: result.conflictsRemaining,
+          preview: result.client,
+        },
+        { status: 409 },
+      );
+    }
+    this.saveClient(result.client, now);
+    for (const a of result.audit) {
+      this.ctx.storage.sql.exec(
+        `INSERT INTO clinical_ai_audit (id, therapist_id, client_id, analysis_id, payload_json, created_at) VALUES (?, ?, ?, ?, ?, ?)`,
+        a.id,
+        user.id,
+        clientId,
+        body.analysisId,
+        JSON.stringify(a),
+        now,
+      );
+    }
+    this.ctx.storage.sql.exec(
+      `UPDATE clinical_ai_analyses SET review_status = ?, structured_result_json = ? WHERE id = ? AND therapist_id = ?`,
+      'reviewed',
+      JSON.stringify(body.structuredResult),
+      body.analysisId,
+      user.id,
+    );
+    return Response.json({ ok: true, client: result.client, auditCount: result.audit.length });
+  }
+
+  private async storeAnalysis(request: Request): Promise<Response> {
+    const user = await this.userFromAuth(request);
+    if (!user) return Response.json({ error: 'Unauthorized' }, { status: 401 });
+    const body = (await request.json()) as {
+      clientId: string;
+      sessionId?: string;
+      protocol: string;
+      phase: string;
+      rawTranscript: string;
+      model: string;
+      promptVersion: string;
+      schemaVersion: string;
+      structuredResult: TranscriptAnalysis;
+    };
+    const client = this.loadClient(user.id, body.clientId);
+    if (!client) return Response.json({ error: 'Client not found' }, { status: 404 });
+    const now = Date.now();
+    const transcriptId = `rt_${randomHex(10)}`;
+    const analysisId = `ai_${randomHex(10)}`;
+    this.ctx.storage.sql.exec(
+      `INSERT INTO raw_transcripts
+        (id, therapist_id, client_id, session_id, protocol, phase, raw_transcript, normalised_transcript, created_at)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      transcriptId,
+      user.id,
+      body.clientId,
+      body.sessionId ?? null,
+      body.protocol,
+      body.phase,
+      body.rawTranscript,
+      null,
+      now,
+    );
+    const record: ClinicalAIAnalysisRecord = {
+      id: analysisId,
+      clientId: body.clientId,
+      sessionId: body.sessionId,
+      protocol: body.protocol,
+      phase: body.phase,
+      provider: 'openai',
+      model: body.model,
+      promptVersion: body.promptVersion,
+      schemaVersion: body.schemaVersion,
+      createdAt: new Date(now).toISOString(),
+      rawTranscriptId: transcriptId,
+      structuredResult: body.structuredResult,
+      reviewStatus: 'pending',
+    };
+    this.ctx.storage.sql.exec(
+      `INSERT INTO clinical_ai_analyses
+        (id, therapist_id, client_id, session_id, protocol, phase, provider, model, prompt_version, schema_version, raw_transcript_id, structured_result_json, review_status, created_at)
+       VALUES (?, ?, ?, ?, ?, ?, 'openai', ?, ?, ?, ?, ?, 'pending', ?)`,
+      analysisId,
+      user.id,
+      body.clientId,
+      body.sessionId ?? null,
+      body.protocol,
+      body.phase,
+      body.model,
+      body.promptVersion,
+      body.schemaVersion,
+      transcriptId,
+      JSON.stringify(body.structuredResult),
+      now,
+    );
+    return Response.json({
+      ok: true,
+      analysis: record,
+      rawTranscriptId: transcriptId,
+    });
+  }
+
+  private async getAnalysis(request: Request, path: string): Promise<Response> {
+    const user = await this.userFromAuth(request);
+    if (!user) return Response.json({ error: 'Unauthorized' }, { status: 401 });
+    const id = path.split('/').pop()!;
+    const rows = this.ctx.storage.sql
+      .exec(
+        `SELECT * FROM clinical_ai_analyses WHERE id = ? AND therapist_id = ?`,
+        id,
+        user.id,
+      )
+      .toArray() as Array<Record<string, unknown>>;
+    const row = rows[0];
+    if (!row) return Response.json({ error: 'Not found' }, { status: 404 });
+    const trRows = this.ctx.storage.sql
+      .exec(`SELECT raw_transcript FROM raw_transcripts WHERE id = ? AND therapist_id = ?`, row.raw_transcript_id, user.id)
+      .toArray() as Array<{ raw_transcript: string }>;
+    return Response.json({
+      analysis: {
+        id: row.id,
+        clientId: row.client_id,
+        sessionId: row.session_id,
+        protocol: row.protocol,
+        phase: row.phase,
+        provider: row.provider,
+        model: row.model,
+        promptVersion: row.prompt_version,
+        schemaVersion: row.schema_version,
+        createdAt: new Date(Number(row.created_at)).toISOString(),
+        rawTranscriptId: row.raw_transcript_id,
+        structuredResult: JSON.parse(String(row.structured_result_json)),
+        reviewStatus: row.review_status,
+      },
+      rawTranscript: trRows[0]?.raw_transcript ?? '',
+    });
+  }
+
+  private async patchAnalysis(request: Request, path: string): Promise<Response> {
+    const user = await this.userFromAuth(request);
+    if (!user) return Response.json({ error: 'Unauthorized' }, { status: 401 });
+    const id = path.split('/').pop()!;
+    const body = (await request.json()) as {
+      structuredResult?: TranscriptAnalysis;
+      reviewStatus?: string;
+    };
+    const rows = this.ctx.storage.sql
+      .exec(`SELECT id FROM clinical_ai_analyses WHERE id = ? AND therapist_id = ?`, id, user.id)
+      .toArray();
+    if (!rows.length) return Response.json({ error: 'Not found' }, { status: 404 });
+    if (body.structuredResult) {
+      this.ctx.storage.sql.exec(
+        `UPDATE clinical_ai_analyses SET structured_result_json = ?, review_status = ? WHERE id = ?`,
+        JSON.stringify(body.structuredResult),
+        body.reviewStatus ?? 'partially-reviewed',
+        id,
+      );
+    } else if (body.reviewStatus) {
+      this.ctx.storage.sql.exec(
+        `UPDATE clinical_ai_analyses SET review_status = ? WHERE id = ?`,
+        body.reviewStatus,
+        id,
+      );
+    }
+    return Response.json({ ok: true });
+  }
+
+  private loadClient(therapistId: string, clientId: string): ClientRecord | null {
+    const rows = this.ctx.storage.sql
+      .exec(
+        `SELECT record_json FROM clients WHERE id = ? AND therapist_id = ?`,
+        clientId,
+        therapistId,
+      )
+      .toArray() as Array<{ record_json: string }>;
+    if (!rows[0]) return null;
+    return JSON.parse(rows[0].record_json) as ClientRecord;
+  }
+
+  private saveClient(client: ClientRecord, now = Date.now()): void {
+    this.ctx.storage.sql.exec(
+      `UPDATE clients SET display_name = ?, record_json = ?, updated_at = ? WHERE id = ? AND therapist_id = ?`,
+      client.displayName,
+      JSON.stringify(client),
+      now,
+      client.id,
+      client.therapistId,
+    );
   }
 
   private async createSession(therapistId: string): Promise<string> {

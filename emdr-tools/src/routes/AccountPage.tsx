@@ -62,6 +62,12 @@ export function AccountPage() {
             </Link>
           </div>
           <div className="cta-row cta-utility">
+            <Link className="btn ghost" to="/settings/clinical-intelligence">
+              Clinical Intelligence
+            </Link>
+            <Link className="btn ghost" to="/clients">
+              Clients
+            </Link>
             <Link className="btn ghost" to="/resources">
               Script Library
             </Link>
