@@ -3,6 +3,11 @@ import { Link } from 'react-router-dom';
 import { AppHeader } from '../emdr/guided/components/AppHeader';
 import { useAuth } from '../hooks/useAuth';
 import { fetchCIStatus, testCIConnection, type CIStatus, type CITestResult } from './lib/api';
+import {
+  getTherapistDefaultReasoningMode,
+  setTherapistDefaultReasoningMode,
+  type TherapistDefaultReasoning,
+} from './lib/lensGovernance';
 
 type ConnState = 'idle' | 'testing' | 'connected' | 'not_configured' | 'failed';
 
@@ -146,9 +151,41 @@ export function ClinicalIntelligenceSettingsPage() {
                 <p>{error}</p>
               </div>
             )}
+
+            <DefaultReasoningPreference />
           </section>
         )}
       </main>
+    </div>
+  );
+}
+
+function DefaultReasoningPreference() {
+  const [mode, setMode] = useState<TherapistDefaultReasoning>(() =>
+    getTherapistDefaultReasoningMode(),
+  );
+  return (
+    <div className="ci-settings-pref" style={{ marginTop: '1.5rem' }}>
+      <h2>Default reasoning mode</h2>
+      <p className="pf-meta">
+        When opening Analyse Transcript, prefer the client&apos;s primary approach — never a global
+        EMDR default.
+      </p>
+      <label className="field">
+        <span>Default</span>
+        <select
+          value={mode}
+          onChange={(e) => {
+            const next = e.target.value as TherapistDefaultReasoning;
+            setMode(next);
+            setTherapistDefaultReasoningMode(next);
+          }}
+        >
+          <option value="use-client-primary">Use client&apos;s primary approach</option>
+          <option value="integrated">Integrated</option>
+          <option value="core-only">Core only</option>
+        </select>
+      </label>
     </div>
   );
 }

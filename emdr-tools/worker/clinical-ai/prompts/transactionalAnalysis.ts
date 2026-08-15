@@ -31,13 +31,18 @@ Redecision areas: suggest areas for therapist consideration — never manufactur
 
 export const TA_FORMULATION_EXTRACTION = `Clinical Reasoning mode: Transactional Analysis formulation lens (+ core clinical extraction).
 
+Three-layer order (never reverse):
+1) Core modality-neutral formulation (in summary / unansweredQuestions)
+2) Clinical Lens Considerations only when reasoningMode is integrated
+3) TA lens-specific formulation
+
 Set analysisKind to "ta-formulation".
 Set clinicalLens to "transactional-analysis".
 Set reviewStatus to "pending" on every suggestion object.
 Assign unique string ids. Keep evidence excerpts short.
 
 Populate:
-- summary (core clinical + TA-relevant overview)
+- summary (core clinical + TA-relevant overview — keep core observations free of EMDR jargon)
 - egoStates[]
 - drivers[]
 - injunctionHypotheses[] (hypothesisLabel must be "Possible injunction hypothesis")
@@ -51,15 +56,26 @@ Populate:
 - unansweredQuestions[]
 - clarificationSuggestions[]
 - noSufficientTaEvidence (boolean)
+- lensConsiderations[] (integrated mode only — possible complementary lenses, NOT full formulations)
+- reasoningMode and primaryApproach when provided in the user message
+
+NEVER invent EMDR constructs (NC, PC, VoC, SUD, touchstone, AIP themes, target memories, feeder memories).
+EMDR may appear only as a lensConsideration with a brief reason — never as a full EMDR formulation.
 
 If the transcript lacks meaningful TA-specific evidence:
 - noSufficientTaEvidence = true
 - leave TA arrays empty
 - summary may still note core clinical material briefly
-- unansweredQuestions may note that TA-specific formulation was not sufficiently supported
+
+If reasoningMode is core-only:
+- noSufficientTaEvidence = true
+- leave all TA arrays empty
+- summary and unansweredQuestions cover core clinical material only
+- lensConsiderations = []
 
 Driver ids (exact): be-perfect | be-strong | please-others | try-hard | hurry-up
 Ego state ids: parent | adult | child | critical-parent | nurturing-parent | adapted-child | free-child
 Injunction ids: dont-be | dont-be-you | dont-be-a-child | dont-grow-up | dont-succeed | dont-be-important | dont-belong | dont-be-close | dont-feel | dont-think | dont-be-well | dont-do
 Life position ids: ok-ok | ok-not-ok | not-ok-ok | not-ok-not-ok
 `;
+

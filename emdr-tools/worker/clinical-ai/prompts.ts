@@ -101,10 +101,22 @@ export function buildAnalyseUserInput(args: {
   sessionDate?: string;
   priorApprovedSummary?: unknown;
   isSegment?: boolean;
+  reasoningMode?: string;
+  primaryApproach?: string;
+  includeLensConsiderations?: boolean;
+  suppressTaConstructs?: boolean;
 }): string {
   return [
     `Protocol: ${args.protocol}`,
     `Phase: ${args.phase}`,
+    args.primaryApproach ? `Primary treatment approach: ${args.primaryApproach}` : null,
+    args.reasoningMode ? `Reasoning mode: ${args.reasoningMode}` : null,
+    args.includeLensConsiderations
+      ? 'Include Clinical Lens Considerations (possible complementary lenses only — not full alternative formulations).'
+      : 'Do not invent complementary lens formulations.',
+    args.suppressTaConstructs
+      ? 'CORE-ONLY MODE: leave all TA arrays empty; set noSufficientTaEvidence=true; summarise modality-neutral core material only.'
+      : null,
     args.sessionDate ? `Session date: ${args.sessionDate}` : null,
     args.isSegment
       ? 'Mode: INCREMENTAL SEGMENT — extract only what is new or changed in this segment; do not restate already-approved material unless it is updated or in conflict.'

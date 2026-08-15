@@ -11,17 +11,105 @@ import type {
   TranscriptEvidence,
 } from './types';
 
-/** Selectable clinical interpretation lens. Default: integrated. */
+/** Selectable clinical interpretation lens. Default follows client primary approach — never force EMDR. */
 export type ClinicalLens =
   | 'integrated'
   | 'emdr'
   | 'transactional-analysis';
+
+/** Broader lens ids for considerations / explore (future lenses included). */
+export type LensId =
+  | 'emdr'
+  | 'transactional-analysis'
+  | 'gestalt'
+  | 'pain'
+  | 'attachment'
+  | 'act'
+  | 'cbt';
 
 export const CLINICAL_LENS_LABELS: Record<ClinicalLens, string> = {
   integrated: 'Integrated',
   emdr: 'EMDR',
   'transactional-analysis': 'Transactional Analysis',
 };
+
+export const LENS_ID_LABELS: Record<LensId, string> = {
+  emdr: 'EMDR',
+  'transactional-analysis': 'Transactional Analysis',
+  gestalt: 'Gestalt',
+  pain: 'Pain / Somatic',
+  attachment: 'Attachment-informed',
+  act: 'ACT',
+  cbt: 'CBT',
+};
+
+/**
+ * Therapist-selected current treatment frame — not a permanent client type.
+ * Changeable over time; history is preserved.
+ */
+export type PrimaryTreatmentApproach =
+  | 'general-integrative'
+  | 'transactional-analysis'
+  | 'emdr'
+  | 'integrated-ta-emdr'
+  | 'pain'
+  | 'other'
+  | 'unspecified';
+
+export const PRIMARY_APPROACH_LABELS: Record<PrimaryTreatmentApproach, string> = {
+  'general-integrative': 'General / Integrative Psychotherapy',
+  'transactional-analysis': 'Transactional Analysis',
+  emdr: 'EMDR',
+  'integrated-ta-emdr': 'Integrated TA + EMDR',
+  pain: 'Pain / Somatic',
+  other: 'Other',
+  unspecified: 'Not yet specified',
+};
+
+export type ReasoningMode =
+  | 'primary-lens-only'
+  | 'integrated'
+  | 'core-only'
+  | 'choose-lenses';
+
+export type LensRelevance =
+  | 'strongly-relevant'
+  | 'potentially-relevant'
+  | 'limited-current-evidence'
+  | 'not-currently-indicated'
+  | 'not-assessed';
+
+/** Possible complementary clinical lens — never a treatment recommendation. */
+export interface ClinicalLensConsideration {
+  id: string;
+  lens: LensId;
+  relevance: LensRelevance;
+  reason: string;
+  /** Always "Possible complementary clinical lens" */
+  label: 'Possible complementary clinical lens';
+  evidence?: EvidenceReference[];
+}
+
+export interface TreatmentApproachHistoryEntry {
+  id: string;
+  approach: PrimaryTreatmentApproach;
+  startedAt: string;
+  endedAt?: string;
+  note?: string;
+}
+
+/** Lightweight EMDR lens store marker — detailed EMDR fields remain on ClientRecord. */
+export interface EmdrLensFormulation {
+  hasApprovedData: boolean;
+  summary?: string;
+  updatedAt?: string;
+}
+
+export interface PainLensFormulation {
+  hasApprovedData: boolean;
+  summary?: string;
+  updatedAt?: string;
+}
 
 export type ClinicalContextProtocol =
   | 'general-psychotherapy'
@@ -136,7 +224,7 @@ export interface TherapeuticGoal {
 
 /**
  * Modality-agnostic core formulation.
- * Does NOT contain NC/PC/VOC/SUD/EMDR targets — those live on the EMDR lens.
+ * Does NOT contain NC/PC/VOC/SUD/EMDR targets, AIP themes, or TA constructs.
  */
 export interface CoreClinicalFormulation {
   presentingProblems: PresentingProblemCore[];
@@ -145,12 +233,16 @@ export interface CoreClinicalFormulation {
   repeatingPatterns: ClinicalPattern[];
   significantExperiences: SignificantExperience[];
   relationships: RelationshipPattern[];
+  /** Current emotional experience (modality-neutral) */
+  currentEmotionalExperience?: ClinicalPattern[];
+  copingStrategies?: ClinicalPattern[];
   resources: ResourceCore[];
   strengths: StrengthCore[];
   vulnerabilities: ClinicalConsiderationCore[];
   goals: TherapeuticGoal[];
   workingHypotheses: WorkingHypothesis[];
   outstandingQuestions: OutstandingQuestion[];
+  recentChanges?: ClinicalPattern[];
   treatmentStrategyNotes?: string[];
   updatedAt?: string;
 }
@@ -389,10 +481,18 @@ export interface TaTranscriptAnalysis {
   clarificationSuggestions: string[];
   /** True when transcript lacks sufficient TA-specific evidence */
   noSufficientTaEvidence: boolean;
+  /**
+   * Integrated mode only: possible complementary lenses (suggestions, not treatment).
+   * Never a full alternative-modality formulation.
+   */
+  lensConsiderations?: ClinicalLensConsideration[];
+  /** Core-only / primary mode flags for governance */
+  reasoningMode?: ReasoningMode;
+  primaryApproach?: PrimaryTreatmentApproach;
 }
 
 export const TA_SCHEMA_VERSION = 'ci-ta-formulation-v1';
-export const PCR_PROMPT_VERSION = 'pcr-v1.0-core-emdr-ta';
+export const PCR_PROMPT_VERSION = 'pcr-v1.1-lens-governance';
 
 export function emptyCoreFormulation(): CoreClinicalFormulation {
   return {
@@ -402,12 +502,15 @@ export function emptyCoreFormulation(): CoreClinicalFormulation {
     repeatingPatterns: [],
     significantExperiences: [],
     relationships: [],
+    currentEmotionalExperience: [],
+    copingStrategies: [],
     resources: [],
     strengths: [],
     vulnerabilities: [],
     goals: [],
     workingHypotheses: [],
     outstandingQuestions: [],
+    recentChanges: [],
   };
 }
 

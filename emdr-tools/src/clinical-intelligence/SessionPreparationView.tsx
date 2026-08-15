@@ -41,8 +41,20 @@ export function SessionPreparationView({
   const resume = resumeCycleHref(client);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [prepLens, setPrepLens] = useState<ClinicalLens>('integrated');
-  const ta = client.taLens;
+  const primary = client.primaryTreatmentApproach ?? 'unspecified';
+  const defaultLens: ClinicalLens =
+    primary === 'transactional-analysis'
+      ? 'transactional-analysis'
+      : primary === 'emdr' || primary === 'pain'
+        ? 'emdr'
+        : 'integrated';
+  const [prepLens, setPrepLens] = useState<ClinicalLens>(defaultLens);
+  const ta = client.taFormulation ?? client.taLens;
+  const showEmdrFields = prepLens === 'emdr' || (prepLens === 'integrated' && (primary === 'emdr' || primary === 'pain' || primary === 'integrated-ta-emdr'));
+  const showTaFields =
+    prepLens === 'transactional-analysis' ||
+    (prepLens === 'integrated' &&
+      (primary === 'transactional-analysis' || primary === 'integrated-ta-emdr'));
 
   const startPractice = async () => {
     setBusy(true);
@@ -221,7 +233,7 @@ export function SessionPreparationView({
               ? 'EMDR preparation'
               : 'TA preparation'}
         </h2>
-        {(prepLens === 'integrated' || prepLens === 'emdr') && (
+        {(prepLens === 'integrated' || prepLens === 'emdr' || prepLens === 'transactional-analysis') && (
           <dl className="ci-kv">
             <dt>Presenting problems</dt>
             <dd>
@@ -229,7 +241,7 @@ export function SessionPreparationView({
                 ? brief.formulation.presentingProblems.join('; ')
                 : '—'}
             </dd>
-            {prepLens === 'emdr' || prepLens === 'integrated' ? (
+            {showEmdrFields ? (
               <>
                 <dt>Primary theme</dt>
                 <dd>{brief.formulation.primaryTheme || '—'}</dd>
@@ -249,6 +261,32 @@ export function SessionPreparationView({
                 <dd>{brief.formulation.pc || '—'}</dd>
               </>
             ) : null}
+            {showTaFields ? (
+              <>
+                <dt>Driver patterns</dt>
+                <dd>
+                  {ta?.drivers?.length
+                    ? ta.drivers.map((d) => TA_DRIVER_LABELS[d.driver]).join('; ')
+                    : '—'}
+                </dd>
+                <dt>Possible injunction hypotheses</dt>
+                <dd>
+                  {ta?.injunctionHypotheses?.length
+                    ? ta.injunctionHypotheses
+                        .map((i) => TA_INJUNCTION_LABELS[i.injunction])
+                        .join('; ')
+                    : '—'}
+                </dd>
+                <dt>Script summary</dt>
+                <dd>{ta?.scriptSummary || '—'}</dd>
+                <dt>Ego-state observations</dt>
+                <dd>
+                  {ta?.egoStateObservations?.length
+                    ? ta.egoStateObservations.map((e) => e.egoState).join('; ')
+                    : '—'}
+                </dd>
+              </>
+            ) : null}
             <dt>Resources</dt>
             <dd>
               {brief.formulation.resources.length
@@ -258,52 +296,14 @@ export function SessionPreparationView({
           </dl>
         )}
         {prepLens === 'transactional-analysis' && (
-          <dl className="ci-kv">
-            <dt>Presenting problems</dt>
-            <dd>
-              {brief.formulation.presentingProblems.length
-                ? brief.formulation.presentingProblems.join('; ')
-                : '—'}
-            </dd>
-            <dt>Driver patterns</dt>
-            <dd>
-              {ta?.drivers?.length
-                ? ta.drivers.map((d) => TA_DRIVER_LABELS[d.driver]).join('; ')
-                : '—'}
-            </dd>
-            <dt>Possible injunction hypotheses</dt>
-            <dd>
-              {ta?.injunctionHypotheses?.length
-                ? ta.injunctionHypotheses
-                    .map((i) => TA_INJUNCTION_LABELS[i.injunction])
-                    .join('; ')
-                : '—'}
-            </dd>
-            <dt>Script summary</dt>
-            <dd>{ta?.scriptSummary || '—'}</dd>
-            <dt>Ego-state observations</dt>
-            <dd>
-              {ta?.egoStateObservations?.length
-                ? ta.egoStateObservations.map((e) => e.egoState).join('; ')
-                : '—'}
-            </dd>
-            <dt>Outstanding TA questions</dt>
-            <dd>
-              {(client.outstandingQuestions ?? [])
-                .filter((q) => q.status === 'open' || q.status === 'deferred')
-                .map((q) => q.text)
-                .join('; ') || '—'}
-            </dd>
-          </dl>
-        )}
-        {prepLens === 'integrated' && (ta?.drivers?.length || ta?.scriptSummary) ? (
           <p className="pf-meta" style={{ marginTop: '0.75rem' }}>
-            TA notes (lens):{' '}
-            {ta?.drivers?.length
-              ? ta.drivers.map((d) => TA_DRIVER_LABELS[d.driver]).join('; ')
-              : ta?.scriptSummary || '—'}
+            Outstanding questions:{' '}
+            {(client.outstandingQuestions ?? [])
+              .filter((q) => q.status === 'open' || q.status === 'deferred')
+              .map((q) => q.text)
+              .join('; ') || '—'}
           </p>
-        ) : null}
+        )}
       </section>
 
       <section className="pf-surface-card">

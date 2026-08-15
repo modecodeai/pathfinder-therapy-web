@@ -38,6 +38,22 @@ import {
   markFindingsReviewed,
   markTranscriptDraft,
 } from './lib/clinicalCycle';
+import {
+  PRIMARY_APPROACH_LABELS,
+  LENS_ID_LABELS,
+  type PrimaryTreatmentApproach,
+  type ReasoningMode,
+} from './clinicalReasoning';
+import {
+  REASONING_MODE_LABELS,
+  LENS_RELEVANCE_LABELS,
+  approachToProtocol,
+  approachToPrimaryLens,
+  ensureLensGovernance,
+  inferPrimaryApproach,
+  resolveSessionAnalysisPlan,
+} from './lib/lensGovernance';
+
 
 type View = 'form' | 'review' | 'apply-preview';
 type ReviewFilter =
@@ -51,12 +67,6 @@ type ReviewFilter =
   | 'targets'
   | 'resources';
 
-const PROTOCOLS = [
-  { id: 'integrated', label: 'Integrated' },
-  { id: 'general-psychotherapy', label: 'General Psychotherapy' },
-  { id: 'standard-emdr', label: 'Standard EMDR' },
-  { id: 'transactional-analysis', label: 'Transactional Analysis' },
-] as const;
 const PHASES = [
   { id: 'history', label: 'Phase 1 — History / Treatment Planning', supported: true },
   { id: 'formulation', label: 'Formulation (Core / TA)', supported: true },
@@ -121,7 +131,7 @@ export function AnalyseTranscriptPage({ clientId }: { clientId: string }) {
     ) {
       return p;
     }
-    return 'integrated';
+    return 'general-psychotherapy';
   });
   const [clinicalLens, setClinicalLens] = useState<'integrated' | 'emdr' | 'transactional-analysis'>(
     () => {
@@ -130,6 +140,20 @@ export function AnalyseTranscriptPage({ clientId }: { clientId: string }) {
       return 'integrated';
     },
   );
+  const [primaryApproach, setPrimaryApproach] = useState<PrimaryTreatmentApproach>('unspecified');
+  const [reasoningMode, setReasoningMode] = useState<ReasoningMode>(() => {
+    const m = searchParams.get('mode');
+    if (
+      m === 'integrated' ||
+      m === 'core-only' ||
+      m === 'choose-lenses' ||
+      m === 'primary-lens-only'
+    ) {
+      return m;
+    }
+    return 'primary-lens-only';
+  });
+  const [exploreEmdr, setExploreEmdr] = useState(searchParams.get('exploreEmdr') === '1');
   const [phase, setPhase] = useState<(typeof PHASES)[number]['id']>('history');
   const [sessionDate, setSessionDate] = useState(() => new Date().toISOString().slice(0, 10));
   const [transcript, setTranscript] = useState('');
@@ -152,14 +176,22 @@ export function AnalyseTranscriptPage({ clientId }: { clientId: string }) {
   const transcriptPaneRef = useRef<HTMLPreElement>(null);
 
   const phaseMeta = PHASES.find((p) => p.id === phase) ?? PHASES[0];
+  const analysisPlan = client
+    ? resolveSessionAnalysisPlan({
+        client,
+        reasoningMode,
+        clinicalLens: exploreEmdr ? 'emdr' : clinicalLens,
+        exploreEmdr,
+      })
+    : null;
   const analysisSupported =
     phaseMeta.supported &&
     !(
-      (clinicalLens === 'emdr' || protocol === 'standard-emdr') &&
+      (analysisPlan?.runEmdr || clinicalLens === 'emdr' || protocol === 'standard-emdr') &&
       phase === 'formulation'
     ) &&
     !(
-      clinicalLens === 'transactional-analysis' &&
+      (analysisPlan?.runTa && !analysisPlan?.runEmdr) &&
       (phase === 'assessment' || phase === 'desensitisation')
     );
   const phase1 = result?.analysisKind === 'phase1-history' ? result : null;
@@ -170,13 +202,26 @@ export function AnalyseTranscriptPage({ clientId }: { clientId: string }) {
   useEffect(() => {
     if (!auth.isAuthenticated) return;
     void getClient(clientId).then((c) => {
-      setClient(c);
-      const draftText = c.activeCycle?.drafts?.transcript;
+      const governed = ensureLensGovernance(c);
+      setClient(governed);
+      const approach = inferPrimaryApproach(governed);
+      setPrimaryApproach(approach);
+      // Do NOT default to EMDR — follow client primary approach
+      if (!searchParams.get('protocol') && !searchParams.get('lens')) {
+        const proto = approachToProtocol(approach);
+        setProtocol(proto);
+        const lens = approachToPrimaryLens(approach);
+        setClinicalLens(lens);
+        if (lens === 'transactional-analysis' || approach === 'unspecified') {
+          setPhase('formulation');
+        }
+      }
+      const draftText = governed.activeCycle?.drafts?.transcript;
       if (draftText && !transcript) {
         setTranscript(draftText);
         setDraftStatus('saved');
       }
-      if (c.activeCycle?.sessionDate) setSessionDate(c.activeCycle.sessionDate);
+      if (governed.activeCycle?.sessionDate) setSessionDate(governed.activeCycle.sessionDate);
     });
     void fetchCIStatus()
       .then((s) => setCiReady(s.configured))
@@ -218,14 +263,25 @@ export function AnalyseTranscriptPage({ clientId }: { clientId: string }) {
     setBusy(true);
     setError(null);
     try {
+      const plan = client
+        ? resolveSessionAnalysisPlan({
+            client,
+            reasoningMode,
+            clinicalLens: exploreEmdr ? 'emdr' : clinicalLens,
+            exploreEmdr,
+          })
+        : null;
+      const useTaPath = plan ? plan.runTa && !plan.runEmdr : clinicalLens === 'transactional-analysis';
       const res = await analyseTranscript({
         clientId,
-        protocol,
-        phase:
-          clinicalLens === 'transactional-analysis' || protocol === 'transactional-analysis'
-            ? 'formulation'
-            : (phase as 'history' | 'assessment' | 'desensitisation'),
-        clinicalLens,
+        protocol: plan?.protocol ?? protocol,
+        phase: useTaPath
+          ? 'formulation'
+          : (phase as 'history' | 'assessment' | 'desensitisation'),
+        clinicalLens: plan?.clinicalLens ?? clinicalLens,
+        reasoningMode: plan?.reasoningMode ?? reasoningMode,
+        primaryApproach: plan?.primaryApproach ?? primaryApproach,
+        exploreEmdr,
         transcript,
         sessionDate,
         sessionId: activeSessionId,
@@ -245,14 +301,32 @@ export function AnalyseTranscriptPage({ clientId }: { clientId: string }) {
       if (client && res.analysis?.id) {
         let next = markAnalysisStarted(client, res.analysis.id);
         next = markFindingsAwaitingReview(next);
+        const cyclePrimary =
+          primaryApproach === 'transactional-analysis'
+            ? ('transactional-analysis' as const)
+            : primaryApproach === 'emdr' || primaryApproach === 'pain'
+              ? ('emdr' as const)
+              : primaryApproach === 'general-integrative'
+                ? ('general-psychotherapy' as const)
+                : ('integrated' as const);
+        const cycle: typeof next.activeCycle = next.activeCycle
+          ? {
+              ...next.activeCycle,
+              primaryApproach: cyclePrimary,
+              secondaryLenses: exploreEmdr
+                ? (['emdr'] as import('./clinicalReasoning').LensId[])
+                : next.activeCycle.secondaryLenses,
+            }
+          : next.activeCycle;
         void patchClient(clientId, {
-          activeCycle: next.activeCycle,
+          activeCycle: cycle,
           sessionTimeline: next.sessionTimeline,
+          primaryTreatmentApproach: primaryApproach,
         }).then((r) => {
-          if (r.client) setClient(r.client);
+          if (r.client) setClient(ensureLensGovernance(r.client));
         });
       } else {
-        void getClient(clientId).then(setClient);
+        void getClient(clientId).then((c) => setClient(ensureLensGovernance(c)));
       }
     } catch {
       setError(
@@ -572,55 +646,111 @@ export function AnalyseTranscriptPage({ clientId }: { clientId: string }) {
           <section className="panel ci-analyse-form">
             <div className="ci-form-row">
               <label className="field">
-                <span>Clinical context</span>
+                <span>Clinical frame — Primary approach</span>
                 <select
-                  value={protocol}
+                  value={primaryApproach}
                   onChange={(e) => {
-                    const next = e.target.value as typeof protocol;
-                    setProtocol(next);
-                    if (next === 'standard-emdr') setClinicalLens('emdr');
-                    else if (next === 'transactional-analysis') {
-                      setClinicalLens('transactional-analysis');
+                    const next = e.target.value as PrimaryTreatmentApproach;
+                    setPrimaryApproach(next);
+                    const proto = approachToProtocol(next);
+                    setProtocol(proto);
+                    const lens = approachToPrimaryLens(next);
+                    setClinicalLens(lens);
+                    if (lens === 'transactional-analysis' || next === 'unspecified') {
                       setPhase('formulation');
-                    } else setClinicalLens('integrated');
+                    }
+                    setExploreEmdr(false);
                   }}
                 >
-                  {PROTOCOLS.map((p) => (
-                    <option key={p.id} value={p.id}>
-                      {p.label}
-                    </option>
-                  ))}
+                  {(Object.keys(PRIMARY_APPROACH_LABELS) as PrimaryTreatmentApproach[]).map(
+                    (id) => (
+                      <option key={id} value={id}>
+                        {PRIMARY_APPROACH_LABELS[id]}
+                      </option>
+                    ),
+                  )}
                 </select>
               </label>
               <label className="field">
-                <span>Clinical lens</span>
+                <span>Reasoning mode</span>
                 <select
-                  value={clinicalLens}
-                  onChange={(e) =>
-                    setClinicalLens(e.target.value as typeof clinicalLens)
-                  }
+                  value={reasoningMode}
+                  onChange={(e) => {
+                    const next = e.target.value as ReasoningMode;
+                    setReasoningMode(next);
+                    if (next === 'core-only') {
+                      setClinicalLens('integrated');
+                      setPhase('formulation');
+                      setExploreEmdr(false);
+                    } else if (next === 'integrated') {
+                      setClinicalLens('integrated');
+                    } else if (next === 'primary-lens-only') {
+                      setClinicalLens(approachToPrimaryLens(primaryApproach));
+                    }
+                  }}
                 >
-                  <option value="integrated">Integrated</option>
-                  <option value="emdr">EMDR</option>
-                  <option value="transactional-analysis">Transactional Analysis</option>
-                </select>
-              </label>
-              <label className="field">
-                <span>Phase</span>
-                <select value={phase} onChange={(e) => setPhase(e.target.value as typeof phase)}>
-                  {PHASES.map((p) => (
-                    <option key={p.id} value={p.id}>
-                      {p.label}
-                      {!p.supported ? ' (not yet supported)' : ''}
+                  {(Object.keys(REASONING_MODE_LABELS) as ReasoningMode[]).map((id) => (
+                    <option key={id} value={id}>
+                      {REASONING_MODE_LABELS[id]}
                     </option>
                   ))}
                 </select>
               </label>
+              {(primaryApproach === 'emdr' ||
+                primaryApproach === 'pain' ||
+                exploreEmdr ||
+                clinicalLens === 'emdr') && (
+                <label className="field">
+                  <span>EMDR phase</span>
+                  <select value={phase} onChange={(e) => setPhase(e.target.value as typeof phase)}>
+                    {PHASES.map((p) => (
+                      <option key={p.id} value={p.id}>
+                        {p.label}
+                        {!p.supported ? ' (not yet supported)' : ''}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+              )}
               <label className="field">
                 <span>Session Date</span>
                 <input type="date" value={sessionDate} onChange={(e) => setSessionDate(e.target.value)} />
               </label>
             </div>
+            <p className="pf-meta">
+              Current approach: {PRIMARY_APPROACH_LABELS[primaryApproach]}. Pathfinder never
+              auto-applies EMDR — use Explore with EMDR lens when needed.
+            </p>
+            {primaryApproach !== 'emdr' && primaryApproach !== 'pain' && (
+              <div className="stack-btns horizontal wrap" style={{ marginBottom: '0.75rem' }}>
+                <button
+                  type="button"
+                  className={`btn ${exploreEmdr ? 'primary' : 'tertiary'}`}
+                  onClick={() => {
+                    setExploreEmdr(true);
+                    setClinicalLens('emdr');
+                    setPhase('history');
+                    setProtocol('standard-emdr');
+                  }}
+                >
+                  Explore with EMDR lens
+                </button>
+                {exploreEmdr && (
+                  <button
+                    type="button"
+                    className="btn tertiary"
+                    onClick={() => {
+                      setExploreEmdr(false);
+                      setClinicalLens(approachToPrimaryLens(primaryApproach));
+                      setProtocol(approachToProtocol(primaryApproach));
+                      setPhase('formulation');
+                    }}
+                  >
+                    Cancel EMDR explore
+                  </button>
+                )}
+              </div>
+            )}
 
             {!phaseMeta.supported && (
               <div className="ci-error-banner" role="status">
@@ -830,6 +960,37 @@ export function AnalyseTranscriptPage({ clientId }: { clientId: string }) {
                     <FindingSection title="Summary">
                       <p>{taResult.summary.value}</p>
                     </FindingSection>
+                    {taResult.lensConsiderations && taResult.lensConsiderations.length > 0 && (
+                      <FindingSection title="Clinical Lens Considerations">
+                        <p className="ci-ai-label">
+                          Possible complementary clinical lenses — not treatment recommendations
+                        </p>
+                        <ul>
+                          {taResult.lensConsiderations.map((c) => (
+                            <li key={c.id}>
+                              <strong>{LENS_ID_LABELS[c.lens] ?? c.lens}</strong>
+                              {' — '}
+                              {LENS_RELEVANCE_LABELS[c.relevance]}: {c.reason}
+                            </li>
+                          ))}
+                        </ul>
+                        {!exploreEmdr &&
+                          taResult.lensConsiderations.some((c) => c.lens === 'emdr') && (
+                            <button
+                              type="button"
+                              className="btn tertiary"
+                              onClick={() => {
+                                setExploreEmdr(true);
+                                setClinicalLens('emdr');
+                                setPhase('history');
+                                setView('form');
+                              }}
+                            >
+                              Explore with EMDR lens
+                            </button>
+                          )}
+                      </FindingSection>
+                    )}
                     <FindingSection title="Drivers">
                       <ul>
                         {taResult.drivers.map((d) => (

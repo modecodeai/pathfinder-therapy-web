@@ -133,6 +133,9 @@ export async function analyseTranscript(payload: {
   protocol: 'standard-emdr' | 'general-psychotherapy' | 'transactional-analysis' | 'integrated';
   phase: SupportedAnalysisPhase | 'formulation';
   clinicalLens?: 'integrated' | 'emdr' | 'transactional-analysis';
+  reasoningMode?: 'primary-lens-only' | 'integrated' | 'core-only' | 'choose-lenses';
+  primaryApproach?: string;
+  exploreEmdr?: boolean;
   transcript: string;
   sessionDate?: string;
   sessionId?: string;

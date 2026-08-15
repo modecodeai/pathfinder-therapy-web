@@ -528,6 +528,8 @@ export interface ClinicalCycleState {
   /** Session-level treatment approach (prefer over permanently classifying the client). */
   primaryApproach?: 'emdr' | 'transactional-analysis' | 'pain' | 'integrated' | 'general-psychotherapy';
   secondaryApproaches?: Array<'emdr' | 'transactional-analysis' | 'pain' | 'gestalt' | 'other'>;
+  /** Optional secondary clinical lenses for this session only */
+  secondaryLenses?: import('./clinicalReasoning').LensId[];
   phase?: string;
   targetHeadline?: string;
   sud?: number | null;
@@ -632,8 +634,20 @@ export interface ClientRecord {
    * EMDR-specific fields remain on this record for the EMDR lens — no duplication of client identity.
    */
   coreFormulation?: import('./clinicalReasoning').CoreClinicalFormulation;
-  /** Transactional Analysis lens store — never replaces core or EMDR fields */
+  /** @deprecated Prefer taFormulation — retained for migration compatibility */
   taLens?: import('./clinicalReasoning').TaLensFormulation;
+  /** Transactional Analysis lens store — never replaces core or EMDR fields */
+  taFormulation?: import('./clinicalReasoning').TaLensFormulation;
+  /** EMDR lens marker; detailed EMDR data remains on themes/targets/cognitions */
+  emdrFormulation?: import('./clinicalReasoning').EmdrLensFormulation;
+  /** Pain / somatic lens store (future) */
+  painFormulation?: import('./clinicalReasoning').PainLensFormulation;
+  /** Therapist-selected current treatment frame — not a permanent client type */
+  primaryTreatmentApproach?: import('./clinicalReasoning').PrimaryTreatmentApproach;
+  /** Lenses currently in active use (may be fewer than explored once) */
+  activeClinicalLenses?: import('./clinicalReasoning').LensId[];
+  /** Historical treatment-approach periods — never overwrite */
+  treatmentApproachHistory?: import('./clinicalReasoning').TreatmentApproachHistoryEntry[];
   /** Active treatment approaches for this client (not a client type) */
   activeApproaches?: Array<'emdr' | 'transactional-analysis' | 'pain' | 'integrated'>;
   createdAt: string;

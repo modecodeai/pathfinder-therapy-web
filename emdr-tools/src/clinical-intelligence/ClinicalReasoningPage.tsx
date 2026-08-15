@@ -2,27 +2,34 @@ import { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { AppHeader } from '../emdr/guided/components/AppHeader';
 import { useAuth } from '../hooks/useAuth';
-import { getClient } from './lib/api';
+import { getClient, patchClient } from './lib/api';
 import { ensureClinicalReasoningStores } from './lib/coreFormulation';
 import { buildAipFormulation } from './lib/formulation';
 import {
-  CLINICAL_LENS_LABELS,
+  PRIMARY_APPROACH_LABELS,
   TA_DRIVER_LABELS,
   TA_INJUNCTION_LABELS,
   TA_LIFE_POSITION_LABELS,
   type ClinicalLens,
+  type PrimaryTreatmentApproach,
 } from './clinicalReasoning';
+import {
+  inferPrimaryApproach,
+  setPrimaryTreatmentApproach,
+} from './lib/lensGovernance';
 import { CLINICAL_THEME_LABELS, type ClientRecord } from './types';
 
 /**
  * Clinical Reasoning workspace — one client, one record, multiple lenses.
+ * Primary approach determines which lens is prioritised — never auto-EMDR.
  */
 export function ClinicalReasoningPage({ clientId }: { clientId: string }) {
   const auth = useAuth();
   const [client, setClient] = useState<ClientRecord | null>(null);
   const [error, setError] = useState<string | null>(null);
-  type ViewTab = 'overview' | ClinicalLens;
+  type ViewTab = 'overview' | 'core' | ClinicalLens;
   const [view, setView] = useState<ViewTab>('overview');
+  const [exploreOpen, setExploreOpen] = useState(false);
 
   useEffect(() => {
     if (!auth.isAuthenticated) return;
@@ -33,9 +40,23 @@ export function ClinicalReasoningPage({ clientId }: { clientId: string }) {
 
   const core = client?.coreFormulation;
   const aip = useMemo(() => (client ? buildAipFormulation(client) : null), [client]);
-  const ta = client?.taLens;
-  const lensSelectValue: ClinicalLens =
-    view === 'overview' ? 'integrated' : view;
+  const ta = client?.taFormulation ?? client?.taLens;
+  const primary = client ? inferPrimaryApproach(client) : 'unspecified';
+  const isTaPrimary = primary === 'transactional-analysis';
+  const isEmdrPrimary = primary === 'emdr' || primary === 'pain';
+
+  const onChangeApproach = async (approach: PrimaryTreatmentApproach) => {
+    if (!client) return;
+    const next = setPrimaryTreatmentApproach(client, approach);
+    const res = await patchClient(clientId, {
+      primaryTreatmentApproach: next.primaryTreatmentApproach,
+      treatmentApproachHistory: next.treatmentApproachHistory,
+      activeApproaches: next.activeApproaches,
+      activeClinicalLenses: next.activeClinicalLenses,
+    });
+    if (res.client) setClient(ensureClinicalReasoningStores(res.client));
+    else setClient(next);
+  };
 
   return (
     <div className="practice-shell library-page">
@@ -54,17 +75,22 @@ export function ClinicalReasoningPage({ clientId }: { clientId: string }) {
                 One person · one record · multiple clinical lenses. No lens is treated as objective
                 truth.
               </p>
+              {client && (
+                <p className="pf-meta">
+                  Current approach: <strong>{PRIMARY_APPROACH_LABELS[primary]}</strong>
+                </p>
+              )}
             </div>
             <label className="field clinical-lens-select">
-              <span>Lens</span>
+              <span>Primary approach</span>
               <select
-                value={lensSelectValue}
-                onChange={(e) => setView(e.target.value as ClinicalLens)}
-                aria-label="Clinical lens"
+                value={primary}
+                onChange={(e) => void onChangeApproach(e.target.value as PrimaryTreatmentApproach)}
+                aria-label="Primary treatment approach"
               >
-                {(Object.keys(CLINICAL_LENS_LABELS) as ClinicalLens[]).map((id) => (
+                {(Object.keys(PRIMARY_APPROACH_LABELS) as PrimaryTreatmentApproach[]).map((id) => (
                   <option key={id} value={id}>
-                    {CLINICAL_LENS_LABELS[id]}
+                    {PRIMARY_APPROACH_LABELS[id]}
                   </option>
                 ))}
               </select>
@@ -84,29 +110,57 @@ export function ClinicalReasoningPage({ clientId }: { clientId: string }) {
         {client && (
           <>
             <nav className="client-dash-tabs" aria-label="Clinical reasoning views">
-              {(
-                [
-                  ['overview', 'Overview'],
-                  ['integrated', 'Integrated'],
-                  ['emdr', 'EMDR'],
-                  ['transactional-analysis', 'Transactional Analysis'],
-                ] as const
-              ).map(([id, label]) => (
-                <button
-                  key={id}
-                  type="button"
-                  className={view === id ? 'is-active' : ''}
-                  onClick={() => setView(id)}
-                >
-                  {label}
-                </button>
-              ))}
+              <button
+                type="button"
+                className={view === 'overview' ? 'is-active' : ''}
+                onClick={() => setView('overview')}
+              >
+                Integrated
+              </button>
+              <button
+                type="button"
+                className={view === 'core' ? 'is-active' : ''}
+                onClick={() => setView('core')}
+              >
+                Core
+              </button>
+              <button
+                type="button"
+                className={view === 'transactional-analysis' ? 'is-active' : ''}
+                onClick={() => setView('transactional-analysis')}
+              >
+                TA
+              </button>
+              <button
+                type="button"
+                className={view === 'emdr' ? 'is-active' : ''}
+                onClick={() => setView('emdr')}
+              >
+                EMDR
+              </button>
             </nav>
 
-            {view === 'overview' && (
+            <div className="stack-btns horizontal wrap" style={{ marginBottom: '1rem' }}>
+              <button type="button" className="btn tertiary" onClick={() => setExploreOpen((v) => !v)}>
+                Explore Another Lens
+              </button>
+              {exploreOpen && (
+                <>
+                  <Link
+                    className="btn tertiary"
+                    to={`/clients/${clientId}/clinical-intelligence?exploreEmdr=1&lens=emdr&protocol=standard-emdr`}
+                  >
+                    EMDR
+                  </Link>
+                  <span className="pf-meta">Gestalt · Pain · Attachment (coming soon)</span>
+                </>
+              )}
+            </div>
+
+            {(view === 'overview' || view === 'core') && (
               <div className="client-overview-stack">
                 <section className="pf-surface-card">
-                  <h2>Core formulation</h2>
+                  <h2>Core Clinical Formulation</h2>
                   <p className="pf-meta">Modality-agnostic · therapist-approved evidence only</p>
                   {core?.presentingProblems?.length ? (
                     <ul className="session-prep-list">
@@ -115,9 +169,7 @@ export function ClinicalReasoningPage({ clientId }: { clientId: string }) {
                       ))}
                     </ul>
                   ) : (
-                    <p className="pf-meta">
-                      No approved core presenting problems yet. Analyse a transcript to begin.
-                    </p>
+                    <p className="pf-meta">No approved core presenting problems yet.</p>
                   )}
                   {core?.currentTriggers?.length ? (
                     <>
@@ -152,145 +204,17 @@ export function ClinicalReasoningPage({ clientId }: { clientId: string }) {
                       </ul>
                     </>
                   ) : null}
-                  {core?.relationships?.length ? (
-                    <>
-                      <h3>Relational patterns</h3>
-                      <ul className="session-prep-list">
-                        {core.relationships.map((r) => (
-                          <li key={r.id}>{r.text}</li>
-                        ))}
-                      </ul>
-                    </>
-                  ) : null}
-                  {core?.resources?.length ? (
-                    <>
-                      <h3>Resources</h3>
-                      <ul className="session-prep-list">
-                        {core.resources.map((r) => (
-                          <li key={r.id}>{r.text}</li>
-                        ))}
-                      </ul>
-                    </>
-                  ) : null}
-                  {core?.workingHypotheses?.length ? (
-                    <>
-                      <h3>Working hypotheses</h3>
-                      <ul className="session-prep-list">
-                        {core.workingHypotheses.map((h) => (
-                          <li key={h.id}>
-                            {h.statement}{' '}
-                            <span className="pf-meta">
-                              ({h.evidenceStrength}
-                              {h.clinicianApproved ? '' : ' · pending review'})
-                            </span>
-                          </li>
-                        ))}
-                      </ul>
-                    </>
-                  ) : null}
-                </section>
-                <div className="stack-btns horizontal wrap">
-                  <Link
-                    className="btn primary"
-                    to={`/clients/${clientId}/clinical-intelligence`}
-                  >
-                    Analyse Transcript
-                  </Link>
-                  <Link className="btn secondary" to={`/clients/${clientId}?tab=preparation`}>
-                    Session Preparation
-                  </Link>
-                </div>
-              </div>
-            )}
-
-            {view === 'integrated' && (
-              <div className="client-overview-stack">
-                <section className="pf-surface-card">
-                  <h2>Core pattern</h2>
-                  <p className="pf-meta">Modality-agnostic · therapist-approved evidence only</p>
-                  {core?.presentingProblems?.length ? (
-                    <ul className="session-prep-list">
-                      {core.presentingProblems.map((p) => (
-                        <li key={p.id}>{p.text}</li>
-                      ))}
-                    </ul>
-                  ) : (
-                    <p className="pf-meta">
-                      No approved core presenting problems yet. Analyse a transcript to begin.
-                    </p>
-                  )}
-                  {core?.currentTriggers?.length ? (
-                    <>
-                      <h3>Current triggers</h3>
-                      <ul className="session-prep-list">
-                        {core.currentTriggers.map((t) => (
-                          <li key={t.id}>{t.text}</li>
-                        ))}
-                      </ul>
-                    </>
-                  ) : null}
-                  {core?.significantExperiences?.length ? (
-                    <>
-                      <h3>Significant experiences</h3>
-                      <ul className="session-prep-list">
-                        {core.significantExperiences.map((e) => (
-                          <li key={e.id}>
-                            {e.headline}
-                            {e.approximateAge != null ? ` (age ${e.approximateAge})` : ''}
-                          </li>
-                        ))}
-                      </ul>
-                    </>
-                  ) : null}
                 </section>
 
-                <section className="pf-surface-card">
-                  <h2>EMDR perspective</h2>
-                  <p className="ci-ai-label">Lens — not fact</p>
-                  {aip?.hasApprovedFormulation ? (
-                    <dl className="ci-kv">
-                      <dt>Primary theme</dt>
-                      <dd>
-                        {aip.themes.find((t) => t.primary)?.label ||
-                          aip.themes.find((t) => t.strength !== 'not-established')?.label ||
-                          '—'}
-                      </dd>
-                      <dt>Active target</dt>
-                      <dd>{client.activeTarget?.headline || '—'}</dd>
-                      <dt>NC / PC</dt>
-                      <dd>
-                        {client.activeTarget?.nc || client.approvedNc || '—'} /{' '}
-                        {client.activeTarget?.pc || client.approvedPc || '—'}
-                      </dd>
-                    </dl>
-                  ) : (
-                    <p className="pf-meta">No approved EMDR formulation on this record yet.</p>
-                  )}
-                  <Link className="btn tertiary" to={`/clients/${clientId}/aip-formulation`}>
-                    Open EMDR / AIP formulation
-                  </Link>
-                </section>
-
-                <section className="pf-surface-card">
-                  <h2>TA perspective</h2>
-                  <p className="ci-ai-label">Lens — not fact</p>
-                  {ta?.noSufficientEvidence && !ta.drivers.length ? (
-                    <p className="pf-meta">
-                      No sufficiently supported TA-specific formulation identified from approved
-                      analyses.
-                    </p>
-                  ) : (
+                {view === 'overview' && isTaPrimary && (
+                  <section className="pf-surface-card">
+                    <h2>Primary lens — Transactional Analysis</h2>
+                    <p className="ci-ai-label">Lens — not fact</p>
                     <dl className="ci-kv">
                       <dt>Drivers</dt>
                       <dd>
                         {ta?.drivers?.length
                           ? ta.drivers.map((d) => TA_DRIVER_LABELS[d.driver]).join('; ')
-                          : '—'}
-                      </dd>
-                      <dt>Ego-state observations</dt>
-                      <dd>
-                        {ta?.egoStateObservations?.length
-                          ? ta.egoStateObservations.map((e) => e.egoState).join('; ')
                           : '—'}
                       </dd>
                       <dt>Possible injunction hypotheses</dt>
@@ -301,49 +225,72 @@ export function ClinicalReasoningPage({ clientId }: { clientId: string }) {
                               .join('; ')
                           : '—'}
                       </dd>
+                      <dt>Script summary</dt>
+                      <dd>{ta?.scriptSummary || '—'}</dd>
                     </dl>
-                  )}
-                </section>
+                  </section>
+                )}
 
-                <section className="pf-surface-card">
-                  <h2>Different clinical perspectives</h2>
-                  <p className="pf-meta">
-                    When EMDR and TA interpretations differ, Pathfinder shows both. You may accept
-                    both, accept one lens only, edit an integrated formulation, or reject
-                    suggestions — no lens overwrites another automatically.
-                  </p>
-                </section>
+                {view === 'overview' && isEmdrPrimary && (
+                  <section className="pf-surface-card">
+                    <h2>Primary lens — EMDR</h2>
+                    <p className="ci-ai-label">Lens — not fact</p>
+                    {aip?.hasApprovedFormulation ? (
+                      <dl className="ci-kv">
+                        <dt>Primary theme</dt>
+                        <dd>
+                          {aip.themes.find((t) => t.primary)?.label ||
+                            aip.themes.find((t) => t.strength !== 'not-established')?.label ||
+                            '—'}
+                        </dd>
+                        <dt>Active target</dt>
+                        <dd>{client.activeTarget?.headline || '—'}</dd>
+                        <dt>NC / PC</dt>
+                        <dd>
+                          {client.activeTarget?.nc || client.approvedNc || '—'} /{' '}
+                          {client.activeTarget?.pc || client.approvedPc || '—'}
+                        </dd>
+                      </dl>
+                    ) : (
+                      <p className="pf-meta">No approved EMDR formulation yet.</p>
+                    )}
+                  </section>
+                )}
 
-                <section className="pf-surface-card">
-                  <h2>Integrated working hypothesis</h2>
-                  <p className="pf-meta">
-                    Perspectives may be complementary, alternative, or contradictory. Pathfinder does
-                    not force theoretical agreement.
-                  </p>
-                  {core?.workingHypotheses?.filter((h) => h.clinicianApproved).length ? (
-                    <ul className="session-prep-list">
-                      {core.workingHypotheses
-                        .filter((h) => h.clinicianApproved)
-                        .map((h) => (
-                          <li key={h.id}>
-                            {h.statement}{' '}
-                            <span className="pf-meta">({h.evidenceStrength})</span>
-                          </li>
-                        ))}
-                    </ul>
-                  ) : (
+                {view === 'overview' && (
+                  <section className="pf-surface-card">
+                    <h2>Integrated working hypothesis</h2>
                     <p className="pf-meta">
-                      No clinician-approved integrated working hypothesis yet. Approve findings from
-                      Integrated or lens-specific analyses to build this.
+                      Perspectives remain separated by lens. Pathfinder does not force theoretical
+                      agreement or auto-convert modalities.
                     </p>
-                  )}
-                </section>
+                    {core?.workingHypotheses?.filter((h) => h.clinicianApproved).length ? (
+                      <ul className="session-prep-list">
+                        {core.workingHypotheses
+                          .filter((h) => h.clinicianApproved)
+                          .map((h) => (
+                            <li key={h.id}>
+                              {h.statement}{' '}
+                              <span className="pf-meta">({h.evidenceStrength})</span>
+                            </li>
+                          ))}
+                      </ul>
+                    ) : (
+                      <p className="pf-meta">No clinician-approved integrated working hypothesis yet.</p>
+                    )}
+                    {!isEmdrPrimary && (
+                      <Link
+                        className="btn tertiary"
+                        to={`/clients/${clientId}/clinical-intelligence?exploreEmdr=1`}
+                      >
+                        Explore with EMDR lens
+                      </Link>
+                    )}
+                  </section>
+                )}
 
                 <div className="stack-btns horizontal wrap">
-                  <Link
-                    className="btn primary"
-                    to={`/clients/${clientId}/clinical-intelligence`}
-                  >
+                  <Link className="btn primary" to={`/clients/${clientId}/clinical-intelligence`}>
                     Analyse Transcript
                   </Link>
                   <Link className="btn secondary" to={`/clients/${clientId}?tab=preparation`}>
@@ -439,7 +386,7 @@ export function ClinicalReasoningPage({ clientId }: { clientId: string }) {
                   )}
                   <Link
                     className="btn primary"
-                    to={`/clients/${clientId}/clinical-intelligence?protocol=transactional-analysis&lens=transactional-analysis`}
+                    to={`/clients/${clientId}/clinical-intelligence?protocol=transactional-analysis&lens=transactional-analysis&mode=primary-lens-only`}
                   >
                     Analyse with TA lens
                   </Link>

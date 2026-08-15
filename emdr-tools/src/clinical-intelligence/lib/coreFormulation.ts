@@ -11,6 +11,7 @@ import {
   type SignificantExperience,
   type TaLensFormulation,
 } from '../clinicalReasoning';
+import { ensureLensGovernance } from './lensGovernance';
 
 /** Migrate existing approved EMDR-shaped fields into core without data loss. */
 export function deriveCoreFormulation(client: ClientRecord): CoreClinicalFormulation {
@@ -64,18 +65,9 @@ export function deriveCoreFormulation(client: ClientRecord): CoreClinicalFormula
   };
 }
 
-/** Ensure client has core + empty TA lens without wiping EMDR fields. */
+/** Ensure client has core + lens stores + primary approach without wiping EMDR/TA data. */
 export function ensureClinicalReasoningStores(client: ClientRecord): ClientRecord {
-  return {
-    ...client,
-    coreFormulation: deriveCoreFormulation(client),
-    taLens: client.taLens ?? emptyTaLensFormulation(),
-    activeApproaches: client.activeApproaches?.length
-      ? client.activeApproaches
-      : client.themes.length || client.activeTarget
-        ? ['emdr']
-        : ['integrated'],
-  };
+  return ensureLensGovernance(client);
 }
 
 export function mergeTaLens(

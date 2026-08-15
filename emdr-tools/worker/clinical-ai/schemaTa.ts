@@ -63,6 +63,9 @@ export const TA_FORMULATION_JSON_SCHEMA = {
       'unansweredQuestions',
       'clarificationSuggestions',
       'noSufficientTaEvidence',
+      'lensConsiderations',
+      'reasoningMode',
+      'primaryApproach',
     ],
     properties: {
       analysisKind: { type: 'string', enum: ['ta-formulation'] },
@@ -248,6 +251,58 @@ export const TA_FORMULATION_JSON_SCHEMA = {
       unansweredQuestions: { type: 'array', items: { type: 'string' } },
       clarificationSuggestions: { type: 'array', items: { type: 'string' } },
       noSufficientTaEvidence: { type: 'boolean' },
+      lensConsiderations: {
+        type: 'array',
+        items: {
+          type: 'object',
+          additionalProperties: false,
+          required: ['id', 'lens', 'relevance', 'reason', 'label'],
+          properties: {
+            id: { type: 'string' },
+            lens: {
+              type: 'string',
+              enum: [
+                'emdr',
+                'transactional-analysis',
+                'gestalt',
+                'pain',
+                'attachment',
+                'act',
+                'cbt',
+              ],
+            },
+            relevance: {
+              type: 'string',
+              enum: [
+                'strongly-relevant',
+                'potentially-relevant',
+                'limited-current-evidence',
+                'not-currently-indicated',
+                'not-assessed',
+              ],
+            },
+            reason: { type: 'string' },
+            label: { type: 'string', enum: ['Possible complementary clinical lens'] },
+          },
+        },
+      },
+      reasoningMode: {
+        type: ['string', 'null'],
+        enum: ['primary-lens-only', 'integrated', 'core-only', 'choose-lenses', null],
+      },
+      primaryApproach: {
+        type: ['string', 'null'],
+        enum: [
+          'general-integrative',
+          'transactional-analysis',
+          'emdr',
+          'integrated-ta-emdr',
+          'pain',
+          'other',
+          'unspecified',
+          null,
+        ],
+      },
     },
   },
 } as const;
@@ -279,6 +334,10 @@ export function validateTaAnalysis(data: unknown): TaTranscriptAnalysis {
   d.redecisionAreas = d.redecisionAreas ?? [];
   d.unansweredQuestions = d.unansweredQuestions ?? [];
   d.clarificationSuggestions = d.clarificationSuggestions ?? [];
+  d.lensConsiderations = (d.lensConsiderations ?? []).map((c) => ({
+    ...c,
+    label: 'Possible complementary clinical lens' as const,
+  }));
   for (const inj of d.injunctionHypotheses) {
     inj.hypothesisLabel = 'Possible injunction hypothesis';
   }

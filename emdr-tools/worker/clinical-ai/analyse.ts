@@ -13,7 +13,15 @@ import {
   SCHEMA_VERSION,
 } from '../../src/clinical-intelligence/types';
 import type { ClinicalLens } from '../../src/clinical-intelligence/clinicalReasoning';
+import type {
+  PrimaryTreatmentApproach,
+  ReasoningMode,
+} from '../../src/clinical-intelligence/clinicalReasoning';
 import { PCR_PROMPT_VERSION, TA_SCHEMA_VERSION } from '../../src/clinical-intelligence/clinicalReasoning';
+import {
+  shouldRunEmdrPipeline,
+  shouldRunTaPipeline,
+} from '../../src/clinical-intelligence/lib/lensGovernance';
 import {
   BASE_SYSTEM_PROMPT,
   PHASE1_HISTORY_EXTRACTION,
@@ -25,6 +33,7 @@ import {
   TA_LENS_SYSTEM_APPEND,
   buildAnalyseUserInput,
 } from './prompts';
+import { LENS_CONSIDERATIONS_EXTRACTION } from './prompts/core';
 import { ClinicalAIError, callOpenAIResponses, type OpenAIEnv } from './openai';
 import {
   TRANSCRIPT_ANALYSIS_JSON_SCHEMA,
@@ -54,6 +63,9 @@ export function assertAnalyseRequest(body: unknown): {
   protocol: AnalyseProtocol;
   phase: SupportedAnalysisPhase | 'formulation';
   clinicalLens: ClinicalLens;
+  reasoningMode: ReasoningMode;
+  primaryApproach: PrimaryTreatmentApproach;
+  exploreEmdr: boolean;
   transcript: string;
   sessionDate?: string;
   parentAnalysisId?: string;
@@ -64,9 +76,13 @@ export function assertAnalyseRequest(body: unknown): {
   const b = body as Record<string, unknown>;
   const clientId = String(b.clientId ?? '').trim();
   const transcript = String(b.transcript ?? '');
-  const protocol = String(b.protocol ?? 'standard-emdr') as AnalyseProtocol;
-  const phase = String(b.phase ?? '') as SupportedAnalysisPhase | 'formulation';
+  // Never default to EMDR — therapist/client frame must select it
+  const protocol = String(b.protocol ?? 'general-psychotherapy') as AnalyseProtocol;
+  const phase = String(b.phase ?? 'formulation') as SupportedAnalysisPhase | 'formulation';
   const lensRaw = String(b.clinicalLens ?? '');
+  const modeRaw = String(b.reasoningMode ?? 'primary-lens-only');
+  const approachRaw = String(b.primaryApproach ?? 'unspecified');
+  const exploreEmdr = Boolean(b.exploreEmdr);
 
   if (!clientId) throw new ClinicalAIError('clientId is required.', 'request_failed', 400);
   if (!transcript.trim()) throw new ClinicalAIError('Transcript must not be empty.', 'request_failed', 400);
@@ -88,6 +104,25 @@ export function assertAnalyseRequest(body: unknown): {
     );
   }
 
+  const reasoningMode: ReasoningMode =
+    modeRaw === 'integrated' ||
+    modeRaw === 'core-only' ||
+    modeRaw === 'choose-lenses' ||
+    modeRaw === 'primary-lens-only'
+      ? modeRaw
+      : 'primary-lens-only';
+
+  const primaryApproach: PrimaryTreatmentApproach =
+    approachRaw === 'general-integrative' ||
+    approachRaw === 'transactional-analysis' ||
+    approachRaw === 'emdr' ||
+    approachRaw === 'integrated-ta-emdr' ||
+    approachRaw === 'pain' ||
+    approachRaw === 'other' ||
+    approachRaw === 'unspecified'
+      ? approachRaw
+      : 'unspecified';
+
   let clinicalLens: ClinicalLens =
     lensRaw === 'emdr' || lensRaw === 'transactional-analysis' || lensRaw === 'integrated'
       ? lensRaw
@@ -97,7 +132,23 @@ export function assertAnalyseRequest(body: unknown): {
           ? 'transactional-analysis'
           : 'integrated';
 
-  // TA / general / integrated formulation uses phase "formulation" or history
+  // Governance: TA / core / integrated-without-EMDR must not force EMDR phases
+  const runEmdr = shouldRunEmdrPipeline({
+    reasoningMode,
+    primaryApproach,
+    clinicalLens,
+    exploreEmdr,
+  });
+  const runTa = shouldRunTaPipeline({
+    reasoningMode,
+    primaryApproach,
+    clinicalLens,
+  });
+
+  if (runEmdr && !runTa) clinicalLens = 'emdr';
+  else if (runTa && !runEmdr) clinicalLens = 'transactional-analysis';
+  else if (reasoningMode === 'integrated') clinicalLens = 'integrated';
+
   const emdrPhases = phase === 'history' || phase === 'assessment' || phase === 'desensitisation';
   const taPhase = phase === 'formulation' || phase === 'history';
 
@@ -108,26 +159,37 @@ export function assertAnalyseRequest(body: unknown): {
       400,
     );
   }
-  if (clinicalLens === 'transactional-analysis' && !taPhase) {
+  if (
+    (clinicalLens === 'transactional-analysis' ||
+      reasoningMode === 'core-only' ||
+      (clinicalLens === 'integrated' && runTa && !runEmdr)) &&
+    !taPhase
+  ) {
     throw new ClinicalAIError(
-      'Transactional Analysis lens currently supports formulation / history analysis.',
+      'Transactional Analysis / core / integrated (non-EMDR) analysis supports formulation / history.',
       'request_failed',
       400,
     );
   }
-  if (clinicalLens === 'integrated' && !(emdrPhases || phase === 'formulation')) {
-    throw new ClinicalAIError('Unsupported phase for Integrated lens.', 'request_failed', 400);
-  }
+
+  const resolvedPhase: SupportedAnalysisPhase | 'formulation' =
+    clinicalLens === 'transactional-analysis' ||
+    reasoningMode === 'core-only' ||
+    (clinicalLens === 'integrated' && runTa && !runEmdr)
+      ? phase === 'history' || phase === 'formulation'
+        ? 'formulation'
+        : phase
+      : phase;
 
   return {
     clientId,
     sessionId: b.sessionId ? String(b.sessionId) : undefined,
     protocol,
-    phase:
-      clinicalLens === 'transactional-analysis' && phase === 'history'
-        ? 'formulation'
-        : phase,
+    phase: resolvedPhase,
     clinicalLens,
+    reasoningMode,
+    primaryApproach,
+    exploreEmdr,
     transcript,
     sessionDate: b.sessionDate ? String(b.sessionDate) : undefined,
     parentAnalysisId: b.parentAnalysisId ? String(b.parentAnalysisId) : undefined,
@@ -148,6 +210,9 @@ export async function analyseTranscript(
     phase: SupportedAnalysisPhase | 'formulation';
     clinicalLens?: ClinicalLens;
     protocol?: AnalyseProtocol;
+    reasoningMode?: ReasoningMode;
+    primaryApproach?: PrimaryTreatmentApproach;
+    exploreEmdr?: boolean;
     transcript: string;
     clientContext: ApprovedClientContext;
     sessionDate?: string;
@@ -155,33 +220,63 @@ export async function analyseTranscript(
     isSegment?: boolean;
   },
 ): Promise<AnalyseResult> {
-  const lens = args.clinicalLens ?? 'emdr';
+  const reasoningMode = args.reasoningMode ?? 'primary-lens-only';
+  const primaryApproach = args.primaryApproach ?? 'unspecified';
+  const clinicalLens = args.clinicalLens ?? 'integrated';
+  const runEmdr = shouldRunEmdrPipeline({
+    reasoningMode,
+    primaryApproach,
+    clinicalLens,
+    exploreEmdr: args.exploreEmdr,
+  });
+  const runTa = shouldRunTaPipeline({
+    reasoningMode,
+    primaryApproach,
+    clinicalLens,
+  });
+
   const priorSummary =
     args.isSegment && args.parentReviewed
       ? summariseApprovedForContext(args.parentReviewed)
       : undefined;
 
-  if (lens === 'transactional-analysis' || args.phase === 'formulation') {
-    return runTa(env, args, priorSummary);
+  // Three-layer rule: never start with EMDR unless selected / primary EMDR / explore
+  if (runTa && !runEmdr) {
+    return runTaAnalysis(env, {
+      ...args,
+      reasoningMode,
+      primaryApproach,
+      includeLensConsiderations: reasoningMode === 'integrated',
+      suppressTaConstructs: reasoningMode === 'core-only',
+    }, priorSummary);
   }
 
-  // Integrated with history: run EMDR phase 1 (core+EMDR); TA available as separate analysis
-  let result: AnalyseResult;
-  if (args.phase === 'assessment') {
-    result = await runPhase3(env, args, priorSummary);
-  } else if (args.phase === 'desensitisation') {
-    result = await runPhase4(env, args, priorSummary);
-  } else {
-    result = await runPhase1(env, args, priorSummary);
+  if (runEmdr) {
+    let result: AnalyseResult;
+    if (args.phase === 'assessment') {
+      result = await runPhase3(env, args, priorSummary);
+    } else if (args.phase === 'desensitisation') {
+      result = await runPhase4(env, args, priorSummary);
+    } else {
+      result = await runPhase1(env, args, priorSummary);
+    }
+    if (args.isSegment) {
+      return {
+        ...result,
+        analysis: applySegmentDeltas(result.analysis, args.parentReviewed),
+      };
+    }
+    return result;
   }
 
-  if (args.isSegment) {
-    return {
-      ...result,
-      analysis: applySegmentDeltas(result.analysis, args.parentReviewed),
-    };
-  }
-  return result;
+  // Fallback: core-only via TA schema with constructs suppressed
+  return runTaAnalysis(env, {
+    ...args,
+    reasoningMode: 'core-only',
+    primaryApproach,
+    includeLensConsiderations: false,
+    suppressTaConstructs: true,
+  }, priorSummary);
 }
 
 /** @deprecated use analyseTranscript — kept for callers expecting Phase 1 only */
@@ -247,7 +342,7 @@ async function runPhase1(
   });
 }
 
-async function runTa(
+async function runTaAnalysis(
   env: OpenAIEnv,
   args: {
     transcript: string;
@@ -255,10 +350,20 @@ async function runTa(
     sessionDate?: string;
     protocol?: AnalyseProtocol;
     isSegment?: boolean;
+    reasoningMode?: ReasoningMode;
+    primaryApproach?: PrimaryTreatmentApproach;
+    includeLensConsiderations?: boolean;
+    suppressTaConstructs?: boolean;
   },
   priorApprovedSummary?: unknown,
 ): Promise<AnalyseResult> {
-  const instructions = `${CORE_SYSTEM_PROMPT}\n\n${TA_LENS_SYSTEM_APPEND}\n\n${TA_FORMULATION_EXTRACTION}`;
+  const considerations =
+    args.includeLensConsiderations ? `\n\n${LENS_CONSIDERATIONS_EXTRACTION}` : '';
+  const instructions = `${CORE_SYSTEM_PROMPT}\n\n${
+    args.suppressTaConstructs
+      ? 'CORE-ONLY MODE: Do not produce TA constructs. Set noSufficientTaEvidence=true and leave TA arrays empty.'
+      : TA_LENS_SYSTEM_APPEND
+  }\n\n${TA_FORMULATION_EXTRACTION}${considerations}`;
   const input = buildAnalyseUserInput({
     transcript: args.transcript,
     clientContext: args.clientContext,
@@ -267,6 +372,10 @@ async function runTa(
     sessionDate: args.sessionDate,
     priorApprovedSummary,
     isSegment: args.isSegment,
+    reasoningMode: args.reasoningMode,
+    primaryApproach: args.primaryApproach,
+    includeLensConsiderations: args.includeLensConsiderations,
+    suppressTaConstructs: args.suppressTaConstructs,
   });
   return runStructured(env, {
     instructions,

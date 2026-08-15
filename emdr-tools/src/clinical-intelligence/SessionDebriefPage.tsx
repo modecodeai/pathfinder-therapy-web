@@ -113,6 +113,14 @@ export function SessionDebriefPage({ clientId }: { clientId: string }) {
   const [debriefLens, setDebriefLens] = useState<ClinicalLens>('integrated');
 
   useEffect(() => {
+    if (!client) return;
+    const approach = client.primaryTreatmentApproach;
+    if (approach === 'transactional-analysis') setDebriefLens('transactional-analysis');
+    else if (approach === 'emdr' || approach === 'pain') setDebriefLens('emdr');
+    else setDebriefLens('integrated');
+  }, [client?.primaryTreatmentApproach, client?.id]);
+
+  useEffect(() => {
     if (!auth.isAuthenticated) return;
     void getClient(clientId)
       .then((c) => {
@@ -360,7 +368,11 @@ export function SessionDebriefPage({ clientId }: { clientId: string }) {
               <SnapshotCompare prior={draft.priorFormulation} next={draft.updatedFormulation} />
             </section>
 
-            {(debriefLens === 'emdr' || debriefLens === 'integrated') && (
+            {(debriefLens === 'emdr' ||
+              (debriefLens === 'integrated' &&
+                (client.primaryTreatmentApproach === 'emdr' ||
+                  client.primaryTreatmentApproach === 'pain' ||
+                  client.primaryTreatmentApproach === 'integrated-ta-emdr'))) && (
               <section className="pf-surface-card">
                 <h2>EMDR updates</h2>
                 <p className="ci-ai-label">Lens — therapist review required</p>
@@ -389,12 +401,16 @@ export function SessionDebriefPage({ clientId }: { clientId: string }) {
               </section>
             )}
 
-            {(debriefLens === 'transactional-analysis' || debriefLens === 'integrated') &&
-              client.taLens && (
+            {(debriefLens === 'transactional-analysis' ||
+              (debriefLens === 'integrated' &&
+                (client.primaryTreatmentApproach === 'transactional-analysis' ||
+                  client.primaryTreatmentApproach === 'integrated-ta-emdr'))) &&
+              (client.taFormulation ?? client.taLens) && (
                 <section className="pf-surface-card">
                   <h2>TA updates</h2>
                   <p className="ci-ai-label">Lens — therapist review required</p>
-                  {client.taLens.noSufficientEvidence && !client.taLens.drivers.length ? (
+                  {(client.taFormulation ?? client.taLens)?.noSufficientEvidence &&
+                  !(client.taFormulation ?? client.taLens)?.drivers.length ? (
                     <p className="pf-meta">
                       No sufficiently supported TA-specific updates on this record.
                     </p>
@@ -402,18 +418,18 @@ export function SessionDebriefPage({ clientId }: { clientId: string }) {
                     <dl className="ci-kv">
                       <dt>Drivers</dt>
                       <dd>
-                        {client.taLens.drivers.length
-                          ? client.taLens.drivers
+                        {(client.taFormulation ?? client.taLens)?.drivers.length
+                          ? (client.taFormulation ?? client.taLens)!.drivers
                               .map((d) => TA_DRIVER_LABELS[d.driver])
                               .join('; ')
                           : '—'}
                       </dd>
                       <dt>Script summary</dt>
-                      <dd>{client.taLens.scriptSummary || '—'}</dd>
+                      <dd>{(client.taFormulation ?? client.taLens)?.scriptSummary || '—'}</dd>
                       <dt>Redecision areas</dt>
                       <dd>
-                        {client.taLens.redecisionAreas?.length
-                          ? client.taLens.redecisionAreas
+                        {(client.taFormulation ?? client.taLens)?.redecisionAreas?.length
+                          ? (client.taFormulation ?? client.taLens)!.redecisionAreas
                               .map((r) => `${r.oldDecision} → ${r.possibleNewDecision}`)
                               .join('; ')
                           : '—'}
