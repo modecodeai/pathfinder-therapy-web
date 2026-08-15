@@ -210,7 +210,7 @@ export function expectedSyntheticNoisyExtraction(): ExtractedIntake {
     },
     presentingProblem: {
       summary:
-        'Marriage of 12 years in crisis / possible separation, childhood patterns, emotional avoidance, defensiveness, severe anxiety, poor sleep, intrusive thoughts, sadness and hopelessness. I am seeking therapy because I want to become a healthier, e',
+        'I have been experiencing severe anxiety. Marriage of 12 years in crisis / possible divorce — partner wants a divorce. Childhood patterns, emotional avoidance, defensiveness, poor sleep (3–4 hours per night), intrusive thoughts, sadness and hopelessness. I am seeking therapy because I want to become a healthier, e',
       severity: null,
     },
     goals: {
@@ -218,6 +218,8 @@ export function expectedSyntheticNoisyExtraction(): ExtractedIntake {
         'heal unresolved childhood experiences and understand current impact',
         'develop emotional regulation and secure sense of self',
         'become more emotionally available / authentic in relationships',
+        'improve communication',
+        'create greater emotional safety in relationships',
       ],
     },
     medicalHistory: {
@@ -228,12 +230,12 @@ export function expectedSyntheticNoisyExtraction(): ExtractedIntake {
       chronicPain: null,
     },
     psychologicalHistory: {
-      previousTherapy: true,
+      previousTherapy: null,
       previousTherapyDetails:
-        'prior therapy including ACT, anxiety/stress management, relationship work and attachment exploration.',
+        'I worked with a therapist through the U.S. Department of Veterans Affairs including ACT, anxiety/stress management, relationship work and attachment exploration.',
       psychiatricMedicationHistory: null,
       familyMentalHealthHistory: null,
-      familyMentalHealthDetails: null,
+      familyMentalHealthDetails: 'Biopolar, severe depression',
     },
     lifestyleAndSymptoms: {
       sleepProblems: null,
@@ -241,12 +243,12 @@ export function expectedSyntheticNoisyExtraction(): ExtractedIntake {
       exerciseFrequency: '2-3',
       exerciseTypes: ['Running', 'Kettlebell', 'Bands', 'Jiu-jitsu', 'Tennis'],
       foodBodyImageIssues: null,
-      foodBodyImageDetails: 'Stress currently contributing to skipped meals / not preparing food.',
+      foodBodyImageDetails: 'So stressed I am skipping meals. Not making my own food.',
       depressionGriefSadness: null,
       depressionGriefDetails:
-        'Significant grief/sadness/depressive symptoms related to marriage crisis and possible separation, with poor sleep, anxiety and periods of hopelessness.',
+        'Significant grief/sadness/symptoms of depression related to marriage crisis and possible divorce, with poor sleep, anxiety and periods of hopelessness.',
       anxietyPanicPhobias: null,
-      anxietyDetails: 'Severe anxiety with intrusive thoughts.',
+      anxietyDetails: null,
       alcoholDrugs: null,
       alcoholDrugDetails: null,
       romanticRelationship: null,
@@ -267,7 +269,7 @@ export function expectedSyntheticNoisyExtraction(): ExtractedIntake {
       traumaticEvent: null,
       traumaticEventDetails: 'Parent injury, house fire, parental fighting.',
       childhoodAdolescentAbuse: null,
-      abuseDetails: null,
+      abuseDetails: 'Father breaking right leg at the femur.',
     },
     identityAndSelfDescription: {
       fiveWords: ['Loyal', 'Strong', 'Kind', 'Big heart', 'Tenacious', 'Funny'],
@@ -276,11 +278,11 @@ export function expectedSyntheticNoisyExtraction(): ExtractedIntake {
     },
     strengths: {
       strengths:
-        'Motivated to change; values family; exercises regularly; reflective; previous therapy engagement.',
+        'Motivated to change; values family; exercises regularly; reflective; previous therapy engagement; loyal, kind, strong, tenacious.',
     },
     vulnerabilities: {
       weaknesses:
-        'Defensiveness, withdrawal, difficulty asking for help, fixing/solution focus, anxiety, self-doubt and overthinking.',
+        'I also struggle with anxiety, self-doubt, and overthinking. Defensive when criticised or misunderstood; withdraw emotionally; difficulty asking for help; handle problems alone; move into fixing / solutions.',
     },
     extractionWarnings: [
       {
@@ -290,10 +292,22 @@ export function expectedSyntheticNoisyExtraction(): ExtractedIntake {
         sourceExcerpt: 'Sleep problems\nNo\nYes',
       },
       {
+        code: 'ambiguous_boolean',
+        message: 'Yes/No options present without clear selection for anxiety.',
+        fieldPath: 'lifestyleAndSymptoms.anxietyPanicPhobias',
+        sourceExcerpt: null,
+      },
+      {
         code: 'ambiguous_rating',
         message: 'Severity scale listed without identifiable selection.',
         fieldPath: 'presentingProblem.severity',
         sourceExcerpt: null,
+      },
+      {
+        code: 'truncated',
+        message: 'Presenting problem response appears truncated in supplied text.',
+        fieldPath: 'presentingProblem.summary',
+        sourceExcerpt: 'become a healthier, e',
       },
       {
         code: 'truncated',

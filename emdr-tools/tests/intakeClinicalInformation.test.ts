@@ -26,6 +26,7 @@ import {
   extractedToStructuredIntake,
   validateAndSanitizeExtractedIntake,
 } from '../src/clinical-intelligence/lib/intakeExtraction';
+import { analyseConfirmedIntake } from '../src/clinical-intelligence/lib/intakeAnalysisPipeline';
 
 const root = resolve(import.meta.dirname, '..');
 
@@ -152,9 +153,15 @@ describe('Pathfinder intake clinical information', () => {
   it('Stage B — confirmed structured extraction yields useful core clinical findings', () => {
     const extracted = validateAndSanitizeExtractedIntake(expectedSyntheticNoisyExtraction());
     const { structured, answerMap } = extractedToStructuredIntake(extracted);
-    const result = analyseIntakeCoreOnly({ answers: answerMap, structured, rawSubmissionId: 'raw_syn' });
+    const result = analyseConfirmedIntake({
+      answers: answerMap,
+      structured,
+      extracted,
+      rawSubmissionId: 'raw_syn',
+    });
     expect(result.findings.some((f) => f.category === 'presenting-problem')).toBe(true);
     expect(result.findings.some((f) => f.category === 'therapeutic-goal')).toBe(true);
+    expect(result.findings.some((f) => /anxiety explicitly reported/i.test(f.text))).toBe(true);
     expect(result.findings.some((f) => /hopeless|clinical review/i.test(f.text))).toBe(true);
     expect(assertNoEmdrConstructs(result.findings)).toEqual([]);
     const approved = result.findings.map((f) => ({ ...f, reviewStatus: 'approved' as const }));

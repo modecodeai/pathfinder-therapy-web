@@ -603,6 +603,8 @@ export interface ClientRecord {
   intakeExtraction?: import('./lib/intakeExtraction').IntakeExtractionRecord;
   /** Prior extractions kept for audit when re-extracting */
   intakeExtractionHistory?: import('./lib/intakeExtraction').IntakeExtractionRecord[];
+  /** Semantic clinical evidence between confirmed extraction and formulation */
+  clinicalEvidence?: import('./lib/intakeSemanticEvidence').ClinicalEvidence[];
   /** Core-only intake findings pending / reviewed */
   intakeCoreFindings?: import('./lib/intakeReasoning').IntakeCoreFinding[];
   /** Clinical intake workflow status */

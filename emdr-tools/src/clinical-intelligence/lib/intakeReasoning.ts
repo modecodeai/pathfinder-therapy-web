@@ -626,11 +626,23 @@ export function approvedFindingsToCore(
 
 /** Assert core-only output has no EMDR target constructs. */
 export function assertNoEmdrConstructs(findings: IntakeCoreFinding[]): string[] {
-  const leaks: string[] = [];
-  const blob = findings.map((f) => `${f.category} ${f.text}`).join('\n');
-  for (const term of ['EMDR target', 'touchstone', 'memory network', ' negative cognition', 'positive cognition']) {
-    if (blob.toLowerCase().includes(term.toLowerCase())) leaks.push(term);
+  const hits: string[] = [];
+  const blob = findings.map((f) => f.text).join(' ');
+  for (const re of [
+    /\bEMDR target\b/i,
+    /\bnegative cognition\b/i,
+    /\bpositive cognition\b/i,
+    /\btouchstone\b/i,
+    /\b\bSUD\b/,
+    /\bVoC\b|\bVOC\b/,
+    /\binjunction\b/i,
+    /\bego state\b/i,
+    /\bAdapted Child\b/i,
+    /\bCritical Parent\b/i,
+    /\bBe Perfect\b/,
+  ]) {
+    const m = blob.match(re);
+    if (m) hits.push(m[0]);
   }
-  if (/\bSUD\b/.test(blob) || /\bVoC\b/.test(blob)) leaks.push('SUD/VoC');
-  return leaks;
+  return hits;
 }

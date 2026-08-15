@@ -17,6 +17,13 @@ import {
   type IntakeCoreFinding,
   type IntakeFindingCategory,
 } from './lib/intakeReasoning';
+import { analyseConfirmedIntake } from './lib/intakeAnalysisPipeline';
+import {
+  formatDisplayList,
+  formatGoalsAsBullets,
+  prioritiseExtractionWarnings,
+  type ClinicalEvidence,
+} from './lib/intakeSemanticEvidence';
 import {
   buildFirstSessionPreparation,
   firstSessionPreparationPlainText,
@@ -81,6 +88,7 @@ function ExtractionReviewSections({
   const sections: Array<{
     title: string;
     rows: Array<{ label: string; path: string; value: string }>;
+    goalsList?: string[];
   }> = [
     {
       title: 'Personal Details',
@@ -114,6 +122,7 @@ function ExtractionReviewSections({
       rows: [
         { label: 'Therapy goals', path: 'goals.therapyGoals', value: displayExtractedValue(g.therapyGoals) },
       ],
+      goalsList: formatGoalsAsBullets(g.therapyGoals),
     },
     {
       title: 'Medical / Psychological History',
@@ -137,31 +146,42 @@ function ExtractionReviewSections({
         {
           label: 'Family mental health',
           path: 'psychologicalHistory.familyMentalHealthDetails',
-          value: displayExtractedValue(psy.familyMentalHealthDetails ?? boolDisplay(psy.familyMentalHealthHistory)),
+          value: psy.familyMentalHealthDetails
+            ? `Reported family mental-health history: ${psy.familyMentalHealthDetails}. Relationship to client: Not established.`
+            : displayExtractedValue(boolDisplay(psy.familyMentalHealthHistory)),
         },
       ],
     },
     {
       title: 'Lifestyle / Symptoms',
       rows: [
-        { label: 'Sleep problems', path: 'lifestyleAndSymptoms.sleepProblems', value: displayExtractedValue(life.sleepProblems) },
-        { label: 'Sleep rating', path: 'lifestyleAndSymptoms.sleepRating', value: displayExtractedValue(life.sleepRating) },
+        {
+          label: 'Sleep problems (form)',
+          path: 'lifestyleAndSymptoms.sleepProblems',
+          value: displayExtractedValue(life.sleepProblems),
+        },
+        { label: 'Sleep rating (form)', path: 'lifestyleAndSymptoms.sleepRating', value: displayExtractedValue(life.sleepRating) },
         {
           label: 'Exercise',
           path: 'lifestyleAndSymptoms.exerciseFrequency',
-          value: displayExtractedValue(
-            [life.exerciseFrequency, ...(life.exerciseTypes ?? [])].filter(Boolean).join(' · ') || null,
+          value: formatDisplayList(
+            [life.exerciseFrequency, ...(life.exerciseTypes ?? [])].filter(Boolean) as string[],
           ),
+        },
+        {
+          label: 'Anxiety (form checkbox)',
+          path: 'lifestyleAndSymptoms.anxietyPanicPhobias',
+          value: displayExtractedValue(life.anxietyPanicPhobias),
+        },
+        {
+          label: 'Anxiety details',
+          path: 'lifestyleAndSymptoms.anxietyDetails',
+          value: displayExtractedValue(life.anxietyDetails),
         },
         {
           label: 'Depression / grief',
           path: 'lifestyleAndSymptoms.depressionGriefDetails',
           value: displayExtractedValue(life.depressionGriefDetails),
-        },
-        {
-          label: 'Anxiety',
-          path: 'lifestyleAndSymptoms.anxietyDetails',
-          value: displayExtractedValue(life.anxietyDetails),
         },
         {
           label: 'Food / body image',
@@ -223,7 +243,7 @@ function ExtractionReviewSections({
         {
           label: 'Five words',
           path: 'identityAndSelfDescription.fiveWords',
-          value: displayExtractedValue(id.fiveWords),
+          value: formatDisplayList(id.fiveWords),
         },
         {
           label: 'Most important thing',
@@ -250,16 +270,34 @@ function ExtractionReviewSections({
       {sections.map((sec) => (
         <details key={sec.title} className="pf-intake-section" open>
           <summary>{sec.title}</summary>
-          <dl className="pf-extraction-dl">
-            {sec.rows.map((row) => (
-              <div key={row.path} className="pf-extraction-row">
-                <FieldRow label={row.label} value={row.value} />
-                <button type="button" className="btn ghost" onClick={() => onEditField(row.path, row.value)}>
-                  Edit
-                </button>
-              </div>
-            ))}
-          </dl>
+          {sec.goalsList && sec.goalsList.length > 0 ? (
+            <div className="pf-goals-list">
+              <p className="pf-meta">Therapy goals</p>
+              <ul>
+                {sec.goalsList.map((goal) => (
+                  <li key={goal}>{goal}</li>
+                ))}
+              </ul>
+              <button
+                type="button"
+                className="btn ghost"
+                onClick={() => onEditField('goals.therapyGoals', sec.goalsList!.join('\n'))}
+              >
+                Edit
+              </button>
+            </div>
+          ) : (
+            <dl className="pf-extraction-dl">
+              {sec.rows.map((row) => (
+                <div key={row.path} className="pf-extraction-row">
+                  <FieldRow label={row.label} value={row.value} />
+                  <button type="button" className="btn ghost" onClick={() => onEditField(row.path, row.value)}>
+                    Edit
+                  </button>
+                </div>
+              ))}
+            </dl>
+          )}
         </details>
       ))}
     </>
@@ -332,6 +370,79 @@ function rawTextFromClient(client: ClientRecord): string | null {
   return JSON.stringify(last.rawPayload, null, 2);
 }
 
+function ExtractionWarningsPanel({ warnings }: { warnings: IntakeExtractionWarning[] }) {
+  const groups = prioritiseExtractionWarnings(warnings);
+  const renderGroup = (title: string, items: ReturnType<typeof prioritiseExtractionWarnings>['important']) => {
+    if (!items.length) return null;
+    return (
+      <details className="pf-warning-group" open={title.startsWith('IMPORTANT')}>
+        <summary>
+          {title} ({items.length})
+        </summary>
+        <ul>
+          {items.map((w) => (
+            <li key={w.key}>
+              {w.message}
+              {w.fieldPath ? ` (${w.fieldPath})` : ''}
+            </li>
+          ))}
+        </ul>
+      </details>
+    );
+  };
+  return (
+    <div className="pf-extraction-warnings-panel">
+      {renderGroup('IMPORTANT TO REVIEW', groups.important)}
+      {renderGroup('FORM SELECTIONS NOT RECOVERABLE', groups.formUnrecoverable)}
+      {renderGroup('OTHER', groups.other)}
+    </div>
+  );
+}
+
+function ClinicalEvidenceBrief({ evidence }: { evidence: ClinicalEvidence[] }) {
+  if (!evidence.length) return null;
+  const byConcept = new Map<string, ClinicalEvidence>();
+  for (const e of evidence) {
+    if (e.contradicts) continue;
+    const prev = byConcept.get(e.concept);
+    if (!prev || (e.corroborates?.length ?? 0) > (prev.corroborates?.length ?? 0)) {
+      byConcept.set(e.concept, e);
+    }
+  }
+  const items = [...byConcept.values()];
+  if (!items.length) return null;
+  return (
+    <details className="pf-intake-section">
+      <summary>Clinical evidence (narrative corroboration)</summary>
+      <p className="pf-meta">
+        Form values stay as extracted. This layer shows what the client explicitly reported elsewhere.
+      </p>
+      <ul className="pf-finding-list">
+        {items.map((e) => (
+          <li key={e.id}>
+            <div className="pf-finding-main">
+              <strong>{e.statement}</strong>
+              <span className="pf-meta">
+                Clinical evidence: {e.evidenceLevel.replace(/-/g, ' ')} · Confidence: {e.confidence}
+                {e.formFieldId
+                  ? ` · Form value: ${e.formSelectionStatus === 'unknown' || e.formSelectionStatus === 'absent' ? 'Not established' : e.formSelectionStatus}`
+                  : ''}
+                {e.corroborates && e.corroborates.length > 0
+                  ? ` · ${1 + e.corroborates.length} supporting intake sources`
+                  : ''}
+              </span>
+              <span className="pf-meta">
+                Source: {e.sourceField} · “{e.sourceExcerpt.slice(0, 100)}
+                {e.sourceExcerpt.length > 100 ? '…' : ''}”
+              </span>
+            </div>
+          </li>
+        ))}
+      </ul>
+    </details>
+  );
+}
+
 /**
  * Clinician intake workspace — extraction review and clinical reasoning remain distinct.
  */
@@ -352,6 +463,9 @@ export function IntakeClinicalView({
   );
   const [warnings, setWarnings] = useState<IntakeExtractionWarning[]>(
     client.intakeExtraction?.warnings ?? [],
+  );
+  const [clinicalEvidence, setClinicalEvidence] = useState<ClinicalEvidence[]>(
+    client.clinicalEvidence ?? [],
   );
   const [extractionFailed, setExtractionFailed] = useState(false);
   const [findings, setFindings] = useState<IntakeCoreFinding[]>(client.intakeCoreFindings ?? []);
@@ -501,9 +615,10 @@ export function IntakeClinicalView({
     setError(null);
     try {
       const { structured, answerMap } = extractedToStructuredIntake(extracted);
-      const analysis = analyseIntakeCoreOnly({
+      const analysis = analyseConfirmedIntake({
         answers: answerMap,
         structured,
+        extracted,
         rawSubmissionId: client.intakeExtraction?.rawSubmissionId,
       });
       const record: IntakeExtractionRecord = {
@@ -523,11 +638,13 @@ export function IntakeClinicalView({
         confirmedAt: new Date().toISOString(),
       };
       setFindings(analysis.findings);
+      setClinicalEvidence(analysis.clinicalEvidence);
       setAnswers(answerMap);
       const next = await persist({
         structuredIntake: structured,
         intakeExtraction: record,
         intakeCoreFindings: analysis.findings,
+        clinicalEvidence: analysis.clinicalEvidence,
         intakeClinicalStatus: 'clinical-reasoning-ready',
         intakeStatus: 'submitted',
         presentingProblem: structured.presentingProblem.mainProblems ?? client.presentingProblem,
@@ -894,16 +1011,13 @@ export function IntakeClinicalView({
             could not be reliably determined.
           </p>
           {(warnings.length > 0 || (extracted ?? client.intakeExtraction!.extracted).extractionWarnings?.length > 0) && (
-            <ul className="pf-extraction-warnings">
-              {(warnings.length ? warnings : (extracted ?? client.intakeExtraction!.extracted).extractionWarnings).map(
-                (w, i) => (
-                  <li key={`${w.code}-${i}`}>
-                    {w.message}
-                    {w.fieldPath ? ` (${w.fieldPath})` : ''}
-                  </li>
-                ),
-              )}
-            </ul>
+            <ExtractionWarningsPanel
+              warnings={
+                warnings.length
+                  ? warnings
+                  : (extracted ?? client.intakeExtraction!.extracted).extractionWarnings
+              }
+            />
           )}
           <ExtractionReviewSections
             extracted={extracted ?? client.intakeExtraction!.extracted}
@@ -969,15 +1083,24 @@ export function IntakeClinicalView({
                 />
                 <FieldRow
                   label="Goals"
-                  value={displayExtractedValue(client.structuredIntake.goals.clientStatedGoals)}
+                  value={formatDisplayList(client.structuredIntake.goals.clientStatedGoals)}
+                />
+                <FieldRow
+                  label="Anxiety (form)"
+                  value={displayExtractedValue(client.structuredIntake.lifestyleAndSymptoms.anxietyPanicPhobias)}
                 />
               </dl>
             </details>
           )}
 
+          <ClinicalEvidenceBrief evidence={clinicalEvidence.length ? clinicalEvidence : (client.clinicalEvidence ?? [])} />
+
           <section className="pf-surface-card">
             <h3>INITIAL CLINICAL UNDERSTANDING</h3>
-            <p className="pf-meta">Core only — runs after extraction is confirmed. Approve / Edit / Reject before formulation updates.</p>
+            <p className="pf-meta">
+              Core only — after confirmed extraction + semantic corroboration. Clinical record status: Approve /
+              Edit / Reject. Form value ≠ clinical evidence ≠ approved record.
+            </p>
             {REVIEW_SECTIONS.map((sec) => {
               const items = findings.filter((f) => sec.cats.includes(f.category));
               if (!items.length) return null;

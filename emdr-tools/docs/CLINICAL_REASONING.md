@@ -59,14 +59,21 @@ The therapist remains the author of the formulation.
 RAW INTAKE (immutable)
   → OpenAI Intake Reader (intake-reader-v2) — document extraction only
   → EXTRACTION REVIEW (therapist confirm / edit)
-  → STRUCTURED INTAKE (pathfinder-intake-v1)
+  → STRUCTURED INTAKE (pathfinder-intake-v1) — form selections preserved (null stays null)
+  → SEMANTIC CORROBORATION — narrative evidence across the intake
   → CORE CLINICAL REASONING (observe → … → working hypothesis)
   → THERAPIST REVIEW (Approve / Edit / Reject)
   → INITIAL CLINICAL UNDERSTANDING
-  → FIRST SESSION PREPARATION
+  → FIRST SESSION PREPARATION (core-first; no TA/EMDR leakage)
 ```
 
-Document extraction (“what the client wrote”) and clinical reasoning (“what this might mean”) are separate operations. Regex / positional form parsing is not the primary extractor. Labels, asterisks, and ambiguous Yes/No or rating lists must not become client values.
+Document extraction (“what was selected on this field?”) and clinical reasoning (“what has the client explicitly told us overall?”) are separate. An unknown radio/checkbox does not erase explicit narrative elsewhere.
+
+Three status languages must not be collapsed:
+
+- **Form value** — Not established / Yes / No / text
+- **Clinical evidence** — Explicitly reported / Inferred / Suggested
+- **Clinical record** — Approved / Pending / Rejected
 
 Nothing AI-derived enters the approved formulation until therapist review. “Therapist reviewed” requires an explicit clinician action after extraction is confirmed.
 

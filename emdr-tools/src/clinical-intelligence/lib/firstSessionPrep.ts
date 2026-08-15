@@ -1,6 +1,7 @@
 /**
  * First Session Preparation — briefing from approved intake / core only.
  * Target: readable in under ~2 minutes (~500 words).
+ * CORE-FIRST — no TA drivers/injunctions or EMDR constructs.
  */
 
 import type { ClientRecord } from '../types';
@@ -12,6 +13,8 @@ export interface FirstSessionPreparation {
   whySeekingTherapy: string;
   clientStatedGoals: string;
   relevantCurrentSymptoms: string;
+  /** Patterns the client identifies (core, not TA) */
+  patternsClientIdentifies: string;
   medicalPsychosocialContext: string;
   resourcesSupports: string;
   riskItemsToClarify: string;
@@ -38,17 +41,41 @@ function pick(findings: IntakeCoreFinding[], cats: IntakeCoreFinding['category']
     .join('\n');
 }
 
+function pickPatterns(findings: IntakeCoreFinding[]): string {
+  const approved = findings.filter(
+    (f) =>
+      (f.reviewStatus === 'approved' || f.reviewStatus === 'edited') &&
+      (f.category === 'relational-pattern' || f.category === 'protective-process') &&
+      /defensive|withdraw|asking for help|self-reli|fixing|overthink|self[- ]?doubt|alone/i.test(
+        f.text + (f.clientStatement ?? ''),
+      ),
+  );
+  if (!approved.length) {
+    // Fall back: any approved relational pattern that looks like a client-identified pattern
+    const rel = findings.filter(
+      (f) =>
+        (f.reviewStatus === 'approved' || f.reviewStatus === 'edited') &&
+        f.category === 'relational-pattern',
+    );
+    if (!rel.length) return 'Not established from approved intake.';
+    return rel
+      .map((f) => `• ${f.reviewStatus === 'edited' ? (f.therapistEditedValue ?? f.text) : f.text}`)
+      .join('\n');
+  }
+  return approved
+    .map((f) => `• ${f.reviewStatus === 'edited' ? (f.therapistEditedValue ?? f.text) : f.text}`)
+    .join('\n');
+}
+
 export function buildFirstSessionPreparation(
   client: ClientRecord,
   findings?: IntakeCoreFinding[],
 ): FirstSessionPreparation {
-  const f =
-    findings ??
-    client.intakeCoreFindings ??
-    [];
+  const f = findings ?? client.intakeCoreFindings ?? [];
   const why = pick(f, ['presenting-problem']);
   const goals = pick(f, ['therapeutic-goal']);
   const symptoms = pick(f, ['symptom', 'lifestyle', 'functional-impact', 'current-stressor']);
+  const patterns = pickPatterns(f);
   const context = pick(f, [
     'medical-consideration',
     'psychological-history',
@@ -56,14 +83,15 @@ export function buildFirstSessionPreparation(
     'veteran-information',
     'significant-experience',
     'trauma-adversity',
-    'relational-pattern',
   ]);
   const resources = pick(f, ['strength', 'internal-resource', 'external-resource', 'current-support']);
   const risk = pick(f, ['risk-clinical-review']);
   const outstanding = pick(f, ['outstanding-question', 'not-established']);
   const hypotheses = pick(f, ['working-hypothesis']);
 
-  const body = [why, goals, symptoms, context, resources, risk, outstanding, hypotheses].join('\n');
+  const body = [why, goals, symptoms, patterns, context, resources, risk, outstanding, hypotheses].join(
+    '\n',
+  );
   const wordCount = body.split(/\s+/).filter(Boolean).length;
 
   return {
@@ -72,6 +100,7 @@ export function buildFirstSessionPreparation(
     whySeekingTherapy: why,
     clientStatedGoals: goals,
     relevantCurrentSymptoms: symptoms,
+    patternsClientIdentifies: patterns,
     medicalPsychosocialContext: context,
     resourcesSupports: resources,
     riskItemsToClarify: risk,
@@ -80,25 +109,26 @@ export function buildFirstSessionPreparation(
     sourceLabel: 'Pre-session information from client intake.',
     modalityNote:
       client.primaryTreatmentApproach && client.primaryTreatmentApproach !== 'unspecified'
-        ? `Current approach selected: ${client.primaryTreatmentApproach}. Modality-specific formulation is not included here.`
-        : 'No treatment approach selected yet — this briefing is modality-neutral.',
+        ? `Current approach selected: ${client.primaryTreatmentApproach}. First Session Preparation remains core-first — lens-specific formulation is deferred until Primary Lens analysis.`
+        : 'No treatment approach selected yet — this briefing is modality-neutral (core-first).',
   };
 }
 
 export function firstSessionPreparationPlainText(prep: FirstSessionPreparation): string {
   const sections = [
-    ['Why client is seeking therapy', prep.whySeekingTherapy],
-    ["Client's stated goals", prep.clientStatedGoals],
-    ['Relevant current symptoms', prep.relevantCurrentSymptoms],
-    ['Important medical / psychosocial context', prep.medicalPsychosocialContext],
+    ['Why seeking therapy', prep.whySeekingTherapy],
+    ['Currently reported', prep.relevantCurrentSymptoms],
+    ['Patterns client identifies', prep.patternsClientIdentifies],
+    ['Goals', prep.clientStatedGoals],
     ['Resources / supports', prep.resourcesSupports],
-    ['Risk items to clarify', prep.riskItemsToClarify],
-    ['Outstanding questions', prep.outstandingQuestions],
-    ['Initial working hypotheses', prep.initialWorkingHypotheses],
+    ['Important medical / psychosocial context', prep.medicalPsychosocialContext],
+    ['Clinical review', prep.riskItemsToClarify],
+    ['To clarify', prep.outstandingQuestions],
+    ['Working hypotheses', prep.initialWorkingHypotheses],
   ] as const;
   let out = `${prep.sourceLabel}\n\n`;
   for (const [h, body] of sections) {
-    out += `${h}\n${body}\n\n`;
+    out += `${h.toUpperCase()}\n${body}\n\n`;
   }
   out += prep.modalityNote;
   return out.trim();
