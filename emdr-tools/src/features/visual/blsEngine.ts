@@ -148,17 +148,15 @@ export class BlsEngine {
     this.ctx.fillRect(0, 0, canvas.width, canvas.height);
     if (!this.opts.getVisualEnabled()) return;
 
-    const traj = this.opts.getTrajectory();
-    const pt = getTrajectoryPosition(0, traj, {
-      travelWidth: this.opts.getTravelWidth(),
-      verticalPosition: this.opts.getVerticalPosition(),
-      midline: this.opts.getMidline?.() ?? 'up',
-    });
+    // After a set (or while stopped), always rest the stimulus at centre —
+    // not at the trajectory start (typically the left edge).
+    const x = 0.5;
+    const y = this.opts.getVerticalPosition();
     const dpr = Math.min(window.devicePixelRatio || 1, 2);
     const r = this.opts.getSizePx() * dpr;
     this.ctx.beginPath();
     this.ctx.fillStyle = this.opts.getColour();
-    this.ctx.arc(pt.x * canvas.width, pt.y * canvas.height, r, 0, Math.PI * 2);
+    this.ctx.arc(x * canvas.width, y * canvas.height, r, 0, Math.PI * 2);
     this.ctx.fill();
   }
 }
