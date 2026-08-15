@@ -221,6 +221,7 @@ export async function listClientAnalyses(clientId: string): Promise<
     model: string;
     reviewStatus: string;
     createdAt: string;
+    sessionId?: string;
   }>
 > {
   const res = await fetch(`/api/clients/${encodeURIComponent(clientId)}/analyses`, {
@@ -235,9 +236,37 @@ export async function listClientAnalyses(clientId: string): Promise<
       model: string;
       reviewStatus: string;
       createdAt: string;
+      sessionId?: string;
     }>;
   }>(res);
   return data.analyses;
+}
+
+export async function purgeClientTranscripts(
+  clientId: string,
+  body: { sessionId?: string; analysisId?: string },
+): Promise<{ ok: boolean; deleted?: number; error?: string }> {
+  const res = await fetch(`/api/clients/${encodeURIComponent(clientId)}/purge-transcripts`, {
+    method: 'POST',
+    headers: authHeaders(),
+    body: JSON.stringify(body),
+  });
+  return parseJson(res);
+}
+
+export async function upsertClinicalSession(body: {
+  id: string;
+  referenceLabel?: string;
+  phase?: string;
+  target?: unknown;
+  totalProcessingMs?: number;
+}): Promise<{ ok: boolean; id?: string; error?: string }> {
+  const res = await fetch('/api/sessions', {
+    method: 'POST',
+    headers: authHeaders(),
+    body: JSON.stringify(body),
+  });
+  return parseJson(res);
 }
 
 export const SYNTHETIC_TEST_TRANSCRIPT = `THERAPIST:

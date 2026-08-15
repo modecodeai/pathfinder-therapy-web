@@ -316,7 +316,7 @@ export async function handleClientRoutes(
     target = '/clients';
   } else {
     const m = path.match(
-      /^\/api\/clients\/([^/]+)(?:\/(context|apply-findings|apply-to-target|analyses))?$/,
+      /^\/api\/clients\/([^/]+)(?:\/(context|apply-findings|apply-to-target|analyses|purge-transcripts))?$/,
     );
     if (!m) return Response.json({ error: 'Not found' }, { status: 404 });
     const clientId = decodeURIComponent(m[1]);
@@ -324,6 +324,7 @@ export async function handleClientRoutes(
     else if (m[2] === 'apply-findings') target = `/clients/${clientId}/apply-findings`;
     else if (m[2] === 'apply-to-target') target = `/clients/${clientId}/apply-to-target`;
     else if (m[2] === 'analyses') target = `/clients/${clientId}/analyses`;
+    else if (m[2] === 'purge-transcripts') target = `/clients/${clientId}/purge-transcripts`;
     else target = `/clients/${clientId}`;
   }
 

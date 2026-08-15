@@ -24,11 +24,21 @@ import {
   applyToTarget,
   fetchCIStatus,
   getClient,
+  patchClient,
   saveReviewedAnalysis,
 } from './lib/api';
 import { Phase3ReviewPanel } from './components/Phase3ReviewPanel';
 import { Phase4ReviewPanel } from './components/Phase4ReviewPanel';
 import { CompactFindingCard } from './components/CompactFindingCard';
+import { ClinicalContextBar } from './components/ClinicalContextBar';
+import { ClinicalCycleRail } from './components/ClinicalCycleRail';
+import {
+  debriefHref,
+  markAnalysisStarted,
+  markFindingsAwaitingReview,
+  markFindingsReviewed,
+  markTranscriptDraft,
+} from './lib/clinicalCycle';
 
 type View = 'form' | 'review' | 'apply-preview';
 type ReviewFilter =
@@ -91,12 +101,14 @@ export function AnalyseTranscriptPage({ clientId }: { clientId: string }) {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const finishFlow = searchParams.get('finish') === '1';
+  const sessionIdParam = searchParams.get('sessionId');
   const [client, setClient] = useState<ClientRecord | null>(null);
   const [ciReady, setCiReady] = useState<boolean | null>(null);
   const [protocol, setProtocol] = useState<'standard-emdr'>('standard-emdr');
   const [phase, setPhase] = useState<(typeof PHASES)[number]['id']>('history');
   const [sessionDate, setSessionDate] = useState(() => new Date().toISOString().slice(0, 10));
   const [transcript, setTranscript] = useState('');
+  const [draftStatus, setDraftStatus] = useState<'saved' | 'saving' | 'unsaved' | null>(null);
   const [view, setView] = useState<View>('form');
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -122,17 +134,49 @@ export function AnalyseTranscriptPage({ clientId }: { clientId: string }) {
 
   useEffect(() => {
     if (!auth.isAuthenticated) return;
-    void getClient(clientId).then(setClient);
+    void getClient(clientId).then((c) => {
+      setClient(c);
+      const draftText = c.activeCycle?.drafts?.transcript;
+      if (draftText && !transcript) {
+        setTranscript(draftText);
+        setDraftStatus('saved');
+      }
+      if (c.activeCycle?.sessionDate) setSessionDate(c.activeCycle.sessionDate);
+    });
     void fetchCIStatus()
       .then((s) => setCiReady(s.configured))
       .catch(() => setCiReady(false));
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- restore draft once on load
   }, [auth.isAuthenticated, clientId]);
+
+  useEffect(() => {
+    if (!client || !auth.isAuthenticated) return;
+    if (!transcript.trim() && !client.activeCycle?.drafts?.transcript) return;
+    setDraftStatus('unsaved');
+    const t = window.setTimeout(() => {
+      setDraftStatus('saving');
+      const next = markTranscriptDraft(client, transcript);
+      void patchClient(clientId, {
+        activeCycle: next.activeCycle,
+        sessionTimeline: next.sessionTimeline,
+      })
+        .then((res) => {
+          if (res.client) setClient(res.client);
+          setDraftStatus('saved');
+        })
+        .catch(() => setDraftStatus('unsaved'));
+    }, 900);
+    return () => window.clearTimeout(t);
+  }, [transcript]); // intentionally transcript-driven autosave
 
   useEffect(() => {
     if (!highlight || !transcriptPaneRef.current) return;
     const mark = transcriptPaneRef.current.querySelector('mark');
     mark?.scrollIntoView({ behavior: 'smooth', block: 'center' });
   }, [highlight]);
+
+  const activeSessionId =
+    sessionIdParam || client?.activeCycle?.sessionId || undefined;
 
   const onAnalyse = async () => {
     if (!analysisSupported) return;
@@ -145,6 +189,7 @@ export function AnalyseTranscriptPage({ clientId }: { clientId: string }) {
         phase: phase as SupportedAnalysisPhase,
         transcript,
         sessionDate,
+        sessionId: activeSessionId,
       });
       if (!res.success || !res.structuredResult) {
         setError(
@@ -158,7 +203,18 @@ export function AnalyseTranscriptPage({ clientId }: { clientId: string }) {
       setView('review');
       setSelectedIds(new Set());
       setHighlight(null);
-      void getClient(clientId).then(setClient);
+      if (client && res.analysis?.id) {
+        let next = markAnalysisStarted(client, res.analysis.id);
+        next = markFindingsAwaitingReview(next);
+        void patchClient(clientId, {
+          activeCycle: next.activeCycle,
+          sessionTimeline: next.sessionTimeline,
+        }).then((r) => {
+          if (r.client) setClient(r.client);
+        });
+      } else {
+        void getClient(clientId).then(setClient);
+      }
     } catch {
       setError(
         'Clinical Intelligence could not analyse this transcript. The transcript has been preserved.',
@@ -312,8 +368,17 @@ export function AnalyseTranscriptPage({ clientId }: { clientId: string }) {
           setError(res.error ?? 'Could not apply to target assessment');
           return;
         }
+        if (client) {
+          const next = markFindingsReviewed(client, analysisId);
+          await patchClient(clientId, {
+            activeCycle: next.activeCycle,
+            sessionTimeline: next.sessionTimeline,
+          });
+        }
         navigate(
-          `/clients/${clientId}/debrief?analysisId=${encodeURIComponent(analysisId)}`,
+          debriefHref(clientId, activeSessionId || client?.activeCycle?.sessionId || 'unknown', {
+            analysisId,
+          }),
         );
       } catch {
         setError('Could not apply to target assessment');
@@ -355,8 +420,17 @@ export function AnalyseTranscriptPage({ clientId }: { clientId: string }) {
         setError(res.error ?? 'Could not apply findings');
         return;
       }
+      if (client) {
+        const next = markFindingsReviewed(client, analysisId);
+        await patchClient(clientId, {
+          activeCycle: next.activeCycle,
+          sessionTimeline: next.sessionTimeline,
+        });
+      }
       navigate(
-        `/clients/${clientId}/debrief${analysisId ? `?analysisId=${encodeURIComponent(analysisId)}` : ''}`,
+        debriefHref(clientId, activeSessionId || client?.activeCycle?.sessionId || 'unknown', {
+          analysisId,
+        }),
       );
     } catch {
       setError('Could not apply findings');
@@ -416,13 +490,34 @@ export function AnalyseTranscriptPage({ clientId }: { clientId: string }) {
           <p className="lede">Client: {client?.displayName || '…'}</p>
         </header>
 
+        {client && (
+          <>
+            <ClinicalContextBar
+              clientName={client.displayName}
+              clientId={client.id}
+              cycle={client.activeCycle}
+              draftStatus={draftStatus}
+            />
+            <ClinicalCycleRail cycle={client.activeCycle} />
+          </>
+        )}
+
         {finishFlow && auth.isAuthenticated && view === 'form' && (
           <section className="pf-surface-card session-finish-banner">
             <h2>Finish session</h2>
             <p>
-              Paste the transcript below → review Clinical Intelligence → apply approved findings →
-              Session Debrief opens automatically.
+              Paste the transcript below → Analyse Transcript → review findings → Continue to
+              Debrief. Or skip AI and use a manual debrief.
             </p>
+            {activeSessionId && (
+              <p className="pf-meta">Session ID: {activeSessionId}</p>
+            )}
+            <Link
+              className="btn tertiary"
+              to={debriefHref(clientId, activeSessionId || 'manual', { manual: true })}
+            >
+              Finish without transcript (manual debrief)
+            </Link>
           </section>
         )}
 

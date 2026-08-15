@@ -192,6 +192,9 @@ export class AccountDirectory extends DurableObject {
       if (path.match(/\/clients\/[^/]+\/analyses$/) && request.method === 'GET') {
         return this.listAnalyses(request, path);
       }
+      if (path.match(/\/clients\/[^/]+\/purge-transcripts$/) && request.method === 'POST') {
+        return this.purgeTranscripts(request, path);
+      }
       if (path.endsWith('/clinical-ai/store-analysis') && request.method === 'POST') {
         return this.storeAnalysis(request);
       }
@@ -686,6 +689,59 @@ export class AccountDirectory extends DurableObject {
     });
   }
 
+  private async purgeTranscripts(request: Request, path: string): Promise<Response> {
+    const user = await this.userFromAuth(request);
+    if (!user) return Response.json({ error: 'Unauthorized' }, { status: 401 });
+    const parts = path.split('/');
+    const clientId = parts[parts.length - 2];
+    const client = this.loadClient(user.id, clientId);
+    if (!client) return Response.json({ error: 'Not found' }, { status: 404 });
+    const body = (await request.json()) as { sessionId?: string; analysisId?: string };
+    if (!body.sessionId && !body.analysisId) {
+      return Response.json({ error: 'sessionId or analysisId required' }, { status: 400 });
+    }
+    let deleted = 0;
+    if (body.sessionId) {
+      const rows = this.ctx.storage.sql
+        .exec(
+          `SELECT id FROM raw_transcripts WHERE therapist_id = ? AND client_id = ? AND session_id = ?`,
+          user.id,
+          clientId,
+          body.sessionId,
+        )
+        .toArray() as Array<{ id: string }>;
+      for (const r of rows) {
+        this.ctx.storage.sql.exec(`DELETE FROM raw_transcripts WHERE id = ? AND therapist_id = ?`, r.id, user.id);
+        deleted += 1;
+      }
+    } else if (body.analysisId) {
+      const rows = this.ctx.storage.sql
+        .exec(
+          `SELECT raw_transcript_id FROM clinical_ai_analyses WHERE id = ? AND therapist_id = ? AND client_id = ?`,
+          body.analysisId,
+          user.id,
+          clientId,
+        )
+        .toArray() as Array<{ raw_transcript_id: string }>;
+      for (const r of rows) {
+        if (!r.raw_transcript_id) continue;
+        this.ctx.storage.sql.exec(
+          `DELETE FROM raw_transcripts WHERE id = ? AND therapist_id = ?`,
+          r.raw_transcript_id,
+          user.id,
+        );
+        deleted += 1;
+      }
+    }
+    this.insertAudit(user.id, clientId, 'system', {
+      event: 'raw_transcript_purged',
+      sessionId: body.sessionId,
+      analysisId: body.analysisId,
+      deleted,
+    });
+    return Response.json({ ok: true, deleted });
+  }
+
   private async listAnalyses(request: Request, path: string): Promise<Response> {
     const user = await this.userFromAuth(request);
     if (!user) return Response.json({ error: 'Unauthorized' }, { status: 401 });
@@ -695,7 +751,7 @@ export class AccountDirectory extends DurableObject {
     if (!client) return Response.json({ error: 'Not found' }, { status: 404 });
     const rows = this.ctx.storage.sql
       .exec(
-        `SELECT id, protocol, phase, model, prompt_version, review_status, created_at, raw_transcript_id
+        `SELECT id, protocol, phase, model, prompt_version, review_status, created_at, raw_transcript_id, session_id
          FROM clinical_ai_analyses WHERE therapist_id = ? AND client_id = ?
          ORDER BY created_at DESC LIMIT 50`,
         user.id,
@@ -712,6 +768,7 @@ export class AccountDirectory extends DurableObject {
         reviewStatus: r.review_status,
         createdAt: new Date(Number(r.created_at)).toISOString(),
         rawTranscriptId: r.raw_transcript_id,
+        sessionId: r.session_id || undefined,
       })),
     });
   }

@@ -378,13 +378,35 @@ export interface SessionChangeSummary {
 }
 
 /** Therapist-approved outstanding clarifying questions (longitudinal). */
+export type OutstandingQuestionStatus =
+  | 'open'
+  | 'addressed'
+  | 'no-longer-relevant'
+  | 'deferred';
+
 export interface OutstandingQuestion {
   id: string;
   text: string;
   source?: 'gap' | 'transcript' | 'therapist' | 'debrief';
-  status: 'open' | 'resolved';
+  status: OutstandingQuestionStatus;
   createdAt: string;
   resolvedAt?: string;
+  /** CI suggested a possible answer — therapist must confirm */
+  possibleAnswerFound?: boolean;
+  possibleAnswerExcerpt?: string;
+  possibleAnswerAnalysisId?: string;
+}
+
+export type StrategyDecision = 'pending' | 'accepted' | 'edited' | 'rejected' | 'deferred';
+
+export interface TreatmentStrategyItem {
+  id: string;
+  text: string;
+  decision: StrategyDecision;
+  editedText?: string;
+  source: 'ai-assisted' | 'therapist' | 'debrief';
+  rejectedAt?: string;
+  sessionId?: string;
 }
 
 export type SessionTimelineKind =
@@ -401,6 +423,7 @@ export interface SessionTimelineEvent {
   kind: SessionTimelineKind;
   label: string;
   at: string;
+  sessionId?: string;
   analysisId?: string;
   debriefId?: string;
   href?: string;
@@ -433,9 +456,21 @@ export interface TreatmentPlanSuggestion {
   rationale: string;
 }
 
+export type DebriefUpdateSource = 'transcript-ci' | 'therapist' | 'approved-apply' | 'system';
+
+export interface DebriefProvenanceItem {
+  id: string;
+  label: string;
+  detail?: string;
+  source: DebriefUpdateSource;
+  status: 'approved' | 'suggested' | 'therapist-entered';
+  analysisId?: string;
+}
+
 /** Therapist-reviewed session debrief — nothing enters record until approved. */
 export interface SessionDebriefRecord {
   id: string;
+  sessionId?: string;
   analysisId?: string;
   phase?: string;
   createdAt: string;
@@ -443,6 +478,7 @@ export interface SessionDebriefRecord {
   status: 'draft' | 'approved';
   sessionSummary: string;
   whatChanged: string[];
+  provenance?: DebriefProvenanceItem[];
   priorFormulation: FormulationSnapshot;
   updatedFormulation: FormulationSnapshot;
   targetStatus: {
@@ -458,6 +494,61 @@ export interface SessionDebriefRecord {
   homework: string[];
   nextSessionPrep: string[];
   outstandingQuestions: string[];
+  manual?: boolean;
+}
+
+/** Workflow status for the clinical cycle rail (not a rigid protocol). */
+export type CycleWorkflowStatus =
+  | 'not-started'
+  | 'in-progress'
+  | 'awaiting-transcript'
+  | 'awaiting-ci-review'
+  | 'awaiting-debrief'
+  | 'complete';
+
+export type TranscriptLifecycleStatus =
+  | 'no-transcript'
+  | 'transcript-added'
+  | 'analysis-pending'
+  | 'analysis-complete'
+  | 'findings-awaiting-review'
+  | 'findings-reviewed';
+
+export type CycleRailStep = 'preparation' | 'practice' | 'review' | 'debrief' | 'ready';
+
+/** One immutable clinical session threading Prep → Practice → CI → Debrief. */
+export interface ClinicalCycleState {
+  sessionId: string;
+  clientId: string;
+  protocol: string;
+  phase?: string;
+  targetHeadline?: string;
+  sud?: number | null;
+  voc?: number | null;
+  sessionDate: string;
+  workflowStatus: CycleWorkflowStatus;
+  transcriptStatus: TranscriptLifecycleStatus;
+  analysisId?: string;
+  debriefId?: string;
+  startedAt: string;
+  updatedAt: string;
+  finishMode?: 'with-transcript' | 'without-transcript';
+  retentionDecision?: 'keep' | 'delete' | 'pending' | 'asked';
+  blsElapsedMs?: number;
+  unsavedNotes?: boolean;
+  lock?: {
+    ownerToken: string;
+    ownerLabel: string;
+    at: string;
+    expiresAt: string;
+  };
+  drafts?: {
+    transcript?: string;
+    debriefSummary?: string;
+    preparationNotes?: string;
+    processingNotes?: string;
+    savedAt?: string;
+  };
 }
 
 export interface AuditProvenance {
@@ -521,6 +612,12 @@ export interface ClientRecord {
   sessionCount?: number;
   /** Preferred protocol label for preparation briefing */
   currentProtocol?: string;
+  /** Active clinical cycle (Prep → Practice → Review → Debrief) */
+  activeCycle?: ClinicalCycleState | null;
+  /** Closed cycles (newest last) */
+  clinicalCycles?: ClinicalCycleState[];
+  /** Structured strategy items with accept/edit/reject/defer */
+  strategyItems?: TreatmentStrategyItem[];
   createdAt: string;
   updatedAt: string;
 }

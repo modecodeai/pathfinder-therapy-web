@@ -4,7 +4,7 @@
  * Suggestions are labelled AI-assisted planning — never treatment decisions.
  */
 
-import { CLINICAL_THEME_LABELS, type ClientRecord, type FormulationSnapshot, type OutstandingQuestion, type SessionDebriefRecord, type SessionTimelineEvent, type SessionTimelineKind, type TreatmentPlanSuggestion } from '../types';
+import { CLINICAL_THEME_LABELS, type ClientRecord, type DebriefUpdateSource, type FormulationSnapshot, type OutstandingQuestion, type SessionDebriefRecord, type SessionTimelineEvent, type SessionTimelineKind, type TreatmentPlanSuggestion } from '../types';
 
 const MAX_SNAPSHOT_WORDS = 250;
 
@@ -264,7 +264,9 @@ export function buildTreatmentStrategySuggestions(client: ClientRecord): Strateg
 }
 
 export function deriveOutstandingQuestions(client: ClientRecord): OutstandingQuestion[] {
-  const stored = (client.outstandingQuestions ?? []).filter((q) => q.status === 'open');
+  const stored = (client.outstandingQuestions ?? []).filter(
+    (q) => q.status === 'open' || q.status === 'deferred',
+  );
   const derived: OutstandingQuestion[] = [];
   const now = client.updatedAt || new Date().toISOString();
   const target = client.activeTarget;
@@ -272,6 +274,7 @@ export function deriveOutstandingQuestions(client: ClientRecord): OutstandingQue
   const pushGap = (id: string, text: string) => {
     if (stored.some((q) => q.text.toLowerCase() === text.toLowerCase())) return;
     if (derived.some((q) => q.text.toLowerCase() === text.toLowerCase())) return;
+    // Never resurface from rejected/pending AI — gaps only from approved record shape
     derived.push({ id, text, source: 'gap', status: 'open', createdAt: now });
   };
 
@@ -455,18 +458,23 @@ export function buildNextSessionPrep(client: ClientRecord, debriefQuestions: str
 
 export function buildDebriefDraft(
   client: ClientRecord,
-  opts?: { analysisId?: string; phase?: string; prior?: FormulationSnapshot },
+  opts?: {
+    analysisId?: string;
+    phase?: string;
+    prior?: FormulationSnapshot;
+    sessionId?: string;
+    manual?: boolean;
+  },
 ): SessionDebriefRecord {
   const latest = (client.sessionChanges ?? []).slice(-1)[0];
   const prior = opts?.prior ?? captureFormulationSnapshot(client);
-  // Prefer prior from previous debrief if available
   const lastDebrief = (client.sessionDebriefs ?? []).filter((d) => d.status === 'approved').slice(-1)[0];
   const priorSnap = opts?.prior ?? lastDebrief?.updatedFormulation ?? prior;
   const updated = captureFormulationSnapshot(client);
+  const sessionId = opts?.sessionId ?? client.activeCycle?.sessionId;
 
-  const whatChanged = buildSinceLastSessionDelta(client)
-    .filter((b) => b.kind !== 'unchanged')
-    .map((b) => b.text);
+  const delta = buildSinceLastSessionDelta(client);
+  const whatChanged = delta.filter((b) => b.kind !== 'unchanged').map((b) => b.text);
 
   const outstandingWork: string[] = [];
   if (client.activeTarget && !client.activeTarget.image) outstandingWork.push('Clarify target image');
@@ -476,33 +484,64 @@ export function buildDebriefDraft(
   }
 
   const questions = deriveOutstandingQuestions(client).map((q) => q.text);
-  const summary =
-    client.lastSessionSummary?.trim() ||
-    truncateWords(
-      [
-        whatChanged.length
-          ? `This session updated the approved record with: ${whatChanged.slice(0, 4).join('; ')}.`
-          : 'Approved findings were applied; no major deltas were recorded.',
-        client.activeTarget?.headline
-          ? `Active target: ${client.activeTarget.headline}.`
-          : '',
-        client.activeTarget?.sud != null ? `Current SUD: ${client.activeTarget.sud}.` : '',
-        client.activeTarget?.voc != null ? `Current VoC: ${client.activeTarget.voc}.` : '',
-      ]
-        .filter(Boolean)
-        .join(' '),
-      MAX_SNAPSHOT_WORDS,
-    );
+  const manual = Boolean(opts?.manual);
+  const summary = manual
+    ? truncateWords(
+        [
+          `Manual debrief for ${client.preferredName || client.displayName}.`,
+          client.activeTarget?.headline
+            ? `Active target: ${client.activeTarget.headline}.`
+            : 'No active target on the approved record.',
+          client.activeTarget?.sud != null ? `Current SUD: ${client.activeTarget.sud}.` : '',
+          client.activeTarget?.voc != null ? `Current VoC: ${client.activeTarget.voc}.` : '',
+          'No transcript analysis was used for this session.',
+        ]
+          .filter(Boolean)
+          .join(' '),
+        MAX_SNAPSHOT_WORDS,
+      )
+    : client.lastSessionSummary?.trim() ||
+      truncateWords(
+        [
+          whatChanged.length
+            ? `This session updated the approved record with: ${whatChanged.slice(0, 4).join('; ')}.`
+            : 'Approved findings were applied; no major deltas were recorded.',
+          client.activeTarget?.headline
+            ? `Active target: ${client.activeTarget.headline}.`
+            : '',
+          client.activeTarget?.sud != null ? `Current SUD: ${client.activeTarget.sud}.` : '',
+          client.activeTarget?.voc != null ? `Current VoC: ${client.activeTarget.voc}.` : '',
+        ]
+          .filter(Boolean)
+          .join(' '),
+        MAX_SNAPSHOT_WORDS,
+      );
 
-  const id = `debrief_${latest?.id ?? client.id}_${Date.now()}`;
+  const provenance = delta.map((b) => ({
+    id: b.id,
+    label: b.text,
+    source: (manual ? 'therapist' : 'approved-apply') as DebriefUpdateSource,
+    status: (manual ? 'therapist-entered' : 'approved') as 'approved' | 'suggested' | 'therapist-entered',
+    analysisId: opts?.analysisId ?? latest?.analysisId,
+  }));
+
+  const id = `debrief_${sessionId ?? latest?.id ?? client.id}_${Date.now()}`;
   return {
     id,
+    sessionId,
     analysisId: opts?.analysisId ?? latest?.analysisId,
-    phase: opts?.phase ?? latest?.phase ?? client.currentPhase,
+    phase: opts?.phase ?? client.activeCycle?.phase ?? latest?.phase ?? client.currentPhase,
     createdAt: new Date().toISOString(),
     status: 'draft',
     sessionSummary: summary,
-    whatChanged: whatChanged.length ? whatChanged : ['No material deltas recorded in the latest approved apply.'],
+    whatChanged: whatChanged.length
+      ? whatChanged
+      : [
+          manual
+            ? 'Manual session close — no CI apply deltas.'
+            : 'No material deltas recorded in the latest approved apply.',
+        ],
+    provenance,
     priorFormulation: priorSnap,
     updatedFormulation: updated,
     targetStatus: {
@@ -521,6 +560,7 @@ export function buildDebriefDraft(
     homework: buildHomeworkFromApproved(client),
     nextSessionPrep: buildNextSessionPrep(client, questions),
     outstandingQuestions: questions,
+    manual,
   };
 }
 
@@ -530,21 +570,30 @@ export function approveDebrief(
   opts?: { approvedPlanIds?: SessionDebriefRecord['approvedPlanIds']; editedSummary?: string },
 ): ClientRecord {
   const now = new Date().toISOString();
+  const sessionId = draft.sessionId ?? client.activeCycle?.sessionId;
   const approved: SessionDebriefRecord = {
     ...draft,
+    sessionId,
     status: 'approved',
     approvedAt: now,
     sessionSummary: opts?.editedSummary?.trim() || draft.sessionSummary,
     approvedPlanIds: opts?.approvedPlanIds ?? draft.approvedPlanIds,
   };
 
-  const openQuestions: OutstandingQuestion[] = approved.outstandingQuestions.map((text, i) => ({
-    id: `oq_${approved.id}_${i}`,
-    text,
-    source: 'debrief' as const,
-    status: 'open' as const,
-    createdAt: now,
-  }));
+  const existingQs = client.outstandingQuestions ?? [];
+  const kept = existingQs.filter(
+    (q) => q.status === 'addressed' || q.status === 'no-longer-relevant' || q.status === 'deferred',
+  );
+  const openQuestions: OutstandingQuestion[] = [
+    ...kept,
+    ...approved.outstandingQuestions.map((text, i) => ({
+      id: `oq_${approved.id}_${i}`,
+      text,
+      source: 'debrief' as const,
+      status: 'open' as const,
+      createdAt: now,
+    })),
+  ];
 
   const strategy =
     approved.approvedPlanIds?.length
@@ -553,10 +602,33 @@ export function approveDebrief(
           .map((s) => s.label)
       : (client.treatmentStrategy ?? []);
 
+  const strategyItems = [
+    ...(client.strategyItems ?? []).filter((s) => s.decision === 'rejected' || s.decision === 'deferred'),
+    ...strategy.map((text, i) => ({
+      id: `strat_${approved.id}_${i}`,
+      text,
+      decision: 'accepted' as const,
+      source: 'debrief' as const,
+      sessionId,
+    })),
+  ];
+
   const timeline = appendTimeline(client.sessionTimeline ?? [], [
-    { kind: 'approved', label: 'Findings approved', at: now, analysisId: approved.analysisId },
-    { kind: 'debrief', label: 'Session debrief approved', at: now, debriefId: approved.id, analysisId: approved.analysisId },
-    { kind: 'formulation-updated', label: 'Formulation updated', at: now, debriefId: approved.id },
+    {
+      kind: 'debrief',
+      label: 'Session debrief approved',
+      at: now,
+      sessionId,
+      debriefId: approved.id,
+      analysisId: approved.analysisId,
+    },
+    {
+      kind: 'formulation-updated',
+      label: 'Formulation updated',
+      at: now,
+      sessionId,
+      debriefId: approved.id,
+    },
   ]);
 
   return {
@@ -564,6 +636,7 @@ export function approveDebrief(
     lastSessionSummary: approved.sessionSummary,
     outstandingQuestions: openQuestions,
     treatmentStrategy: strategy.length ? strategy : client.treatmentStrategy,
+    strategyItems,
     nextSessionPrepHints: approved.nextSessionPrep,
     sessionDebriefs: [...(client.sessionDebriefs ?? []), approved],
     sessionTimeline: timeline,
@@ -578,6 +651,7 @@ export function appendTimeline(
     kind: SessionTimelineKind;
     label: string;
     at: string;
+    sessionId?: string;
     analysisId?: string;
     debriefId?: string;
     href?: string;
@@ -590,6 +664,7 @@ export function appendTimeline(
       kind: e.kind,
       label: e.label,
       at: e.at,
+      sessionId: e.sessionId,
       analysisId: e.analysisId,
       debriefId: e.debriefId,
       href: e.href,

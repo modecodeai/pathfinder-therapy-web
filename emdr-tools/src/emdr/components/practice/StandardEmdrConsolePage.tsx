@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { Link, useSearchParams } from 'react-router-dom';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { BlsStage } from '../../../components/BlsStage';
 import { GuidedPracticeConsole } from '../../guided/components/GuidedPracticeConsole';
 import { LiveBlsPanel } from '../../guided/components/LiveBlsPanel';
@@ -40,6 +40,16 @@ import {
   STANDARD_SOURCE_LABEL,
 } from '../../data/scripts/standardPhases';
 import { ClinicalIntelligencePanel } from '../../../clinical-intelligence/components/ClinicalIntelligencePanel';
+import { ClinicalContextBar } from '../../../clinical-intelligence/components/ClinicalContextBar';
+import { FinishSessionModal } from '../../../clinical-intelligence/components/FinishSessionModal';
+import { getClient, patchClient } from '../../../clinical-intelligence/lib/api';
+import {
+  ciHref,
+  debriefHref,
+  ensureActiveCycle,
+  markSessionFinished,
+} from '../../../clinical-intelligence/lib/clinicalCycle';
+import type { ClientRecord } from '../../../clinical-intelligence/types';
 import type { ConsoleViewMode, GuidedScriptStep } from '../../guided/types/guidedScript';
 
 const PHASES = Object.keys(STANDARD_PHASE_LABELS) as StandardPhaseId[];
@@ -78,8 +88,10 @@ function stepsForPhase(state: StandardSessionState): GuidedScriptStep[] {
 }
 
 export function StandardEmdrConsolePage() {
+  const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const linkedClientId = searchParams.get('clientId');
+  const linkedSessionId = searchParams.get('sessionId');
   const {
     bls,
     clientDisplay,
@@ -103,11 +115,16 @@ export function StandardEmdrConsolePage() {
   const [helper, setHelper] = useState<'none' | 'cognitions' | 'themes'>('none');
   const [cogQuery, setCogQuery] = useState('');
   const [showPhasePicker, setShowPhasePicker] = useState(true);
+  const [clinicalClient, setClinicalClient] = useState<ClientRecord | null>(null);
+  const [finishOpen, setFinishOpen] = useState(false);
+  const [finishBusy, setFinishBusy] = useState(false);
 
-  const finishSessionHref = linkedClientId
-    ? `/clients/${encodeURIComponent(linkedClientId)}/clinical-intelligence?finish=1`
-    : '/clients';
-
+  useEffect(() => {
+    if (!linkedClientId) return;
+    void getClient(linkedClientId)
+      .then(setClinicalClient)
+      .catch(() => setClinicalClient(null));
+  }, [linkedClientId]);
 
   useEffect(() => {
     saveStandardSession(ws);
@@ -119,6 +136,57 @@ export function StandardEmdrConsolePage() {
 
   const blsRunning = bls.state.running && !bls.state.paused;
   const steps = useMemo(() => stepsForPhase(ws), [ws]);
+  const activeCycle =
+    clinicalClient?.activeCycle &&
+    (!linkedSessionId || clinicalClient.activeCycle.sessionId === linkedSessionId)
+      ? clinicalClient.activeCycle
+      : clinicalClient?.activeCycle ?? null;
+
+  const finishSession = async (mode: 'with-transcript' | 'without-transcript') => {
+    if (!linkedClientId) {
+      navigate('/clients');
+      return;
+    }
+    setFinishBusy(true);
+    try {
+      let client = clinicalClient ?? (await getClient(linkedClientId));
+      if (!client.activeCycle || client.activeCycle.workflowStatus === 'complete') {
+        const ensured = ensureActiveCycle(client);
+        client = ensured.client;
+      }
+      const phaseLabel = STANDARD_PHASE_LABELS[ws.phase] ?? ws.phase;
+      const next = markSessionFinished(client, {
+        mode,
+        phase: phaseLabel,
+        targetHeadline: ws.target.label || client.activeTarget?.headline,
+        sud: ws.target.sud ?? client.activeTarget?.sud ?? null,
+        voc: ws.target.voc ?? client.activeTarget?.voc ?? null,
+        blsElapsedMs: bls.metrics.timeMs,
+        unsavedNotes: Boolean(ws.timeline?.length),
+      });
+      const res = await patchClient(linkedClientId, {
+        activeCycle: next.activeCycle,
+        currentPhase: next.currentPhase,
+      });
+      if (res.client) setClinicalClient(res.client);
+      const sid = next.activeCycle?.sessionId ?? linkedSessionId ?? '';
+      setFinishOpen(false);
+      if (mode === 'with-transcript') {
+        navigate(ciHref(linkedClientId, sid, true));
+      } else {
+        navigate(debriefHref(linkedClientId, sid, { manual: true }));
+      }
+    } catch {
+      setFinishOpen(false);
+      navigate(
+        linkedClientId
+          ? `/clients/${encodeURIComponent(linkedClientId)}/clinical-intelligence?finish=1`
+          : '/clients',
+      );
+    } finally {
+      setFinishBusy(false);
+    }
+  };
 
   useEffect(() => {
     setStepIndex(0);
@@ -140,15 +208,18 @@ export function StandardEmdrConsolePage() {
   });
 
   const headerModel = {
-    protocol: 'Standard EMDR',
+    protocol: clinicalClient
+      ? `${clinicalClient.displayName} · Standard EMDR`
+      : 'Standard EMDR',
     phase: STANDARD_PHASE_LABELS[ws.phase],
-    target: ws.target.label || ws.target.image || undefined,
-    sud: ws.target.sud,
-    voc: ws.target.voc,
+    target: ws.target.label || ws.target.image || clinicalClient?.activeTarget?.headline || undefined,
+    sud: ws.target.sud ?? clinicalClient?.activeTarget?.sud,
+    voc: ws.target.voc ?? clinicalClient?.activeTarget?.voc,
     blsSummary: `${bls.state.audioOnly ? 'Auditory' : bls.state.visualEnabled ? 'Visual' : 'Off'} · ${
       bls.state.taxationMode === 'standard' ? 'Standard' : bls.state.taxationMode
     } · ${bls.state.speedHz?.toFixed?.(1) ?? '?'} Hz`,
     setCount: ws.setCount,
+    elapsedLabel: bls.formatTime(bls.metrics.timeMs),
   };
 
   const enterPhase = (phase: StandardPhaseId) => {
@@ -253,9 +324,14 @@ export function StandardEmdrConsolePage() {
               onOpenClientPanel={() => setRemotePanelOpen(true)}
               rightSlot={
                 <div className="stack-btns horizontal wrap">
-                  <Link className="btn secondary pf-header-btn" to={finishSessionHref}>
+                  <button
+                    type="button"
+                    className="btn secondary pf-header-btn"
+                    onClick={() => setFinishOpen(true)}
+                    disabled={finishBusy}
+                  >
                     Finish Session
-                  </Link>
+                  </button>
                   <button
                     type="button"
                     className="btn ghost pf-header-btn"
@@ -266,6 +342,13 @@ export function StandardEmdrConsolePage() {
                 </div>
               }
             />
+            {clinicalClient && (
+              <ClinicalContextBar
+                clientName={clinicalClient.displayName}
+                clientId={clinicalClient.id}
+                cycle={activeCycle}
+              />
+            )}
             <SessionStatusStrip
               model={headerModel}
               blsActive={blsRunning}
@@ -384,9 +467,14 @@ export function StandardEmdrConsolePage() {
                 >
                   Incomplete Target Session
                 </button>
-                <Link className="btn primary" to={finishSessionHref}>
-                  Finish Session → Transcript
-                </Link>
+                <button
+                  type="button"
+                  className="btn primary"
+                  onClick={() => setFinishOpen(true)}
+                  disabled={finishBusy}
+                >
+                  Finish Session
+                </button>
               </div>
             )}
             {ws.phase === 'reevaluation' && (
@@ -507,6 +595,21 @@ export function StandardEmdrConsolePage() {
         onTherapistPreview={setTherapistPreview}
       />
       <ClientDisplayPreviewModal display={clientDisplay} />
+      <FinishSessionModal
+        open={finishOpen}
+        onClose={() => setFinishOpen(false)}
+        cycle={activeCycle}
+        protocol="Standard EMDR"
+        phase={STANDARD_PHASE_LABELS[ws.phase]}
+        target={ws.target.label || clinicalClient?.activeTarget?.headline}
+        sud={ws.target.sud ?? clinicalClient?.activeTarget?.sud}
+        voc={ws.target.voc ?? clinicalClient?.activeTarget?.voc}
+        blsElapsedMs={bls.metrics.timeMs}
+        unsavedNotes={Boolean(ws.timeline?.length)}
+        onContinue={() => setFinishOpen(false)}
+        onFinishWithTranscript={() => void finishSession('with-transcript')}
+        onFinishWithoutTranscript={() => void finishSession('without-transcript')}
+      />
     </div>
   );
 }
