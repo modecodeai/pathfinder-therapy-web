@@ -2682,3 +2682,166 @@ body:has(.join-page.live) {
   grid-template-columns: 1fr 1fr;
   gap: 0.15rem 0.5rem;
 }
+
+/* —— EMDR Pain Protocol —— */
+.pain-workspace,
+.pain-protocol-page {
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+}
+
+.pain-dashboard-main {
+  padding: 1rem 1.25rem 2rem;
+  max-width: 1100px;
+  margin: 0 auto;
+  width: 100%;
+}
+
+.pain-dash-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 0.75rem;
+  margin: 1rem 0;
+}
+
+.pain-dash-card {
+  text-align: left;
+  padding: 1rem;
+  border: 1px solid var(--pf-border, #444);
+  border-radius: 10px;
+  background: color-mix(in srgb, var(--pf-surface, #1a1a1a) 90%, #333);
+  cursor: pointer;
+}
+
+.pain-dash-card h3 {
+  margin: 0 0 0.35rem;
+  font-size: 1rem;
+}
+
+.pain-status-strip {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem 1.25rem;
+  margin: 0.75rem 0 1rem;
+  font-size: 0.9rem;
+}
+
+.pain-navigator {
+  padding: 0.5rem;
+}
+
+.pain-nav-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  max-height: min(60vh, 520px);
+  overflow: auto;
+}
+
+.pain-nav-item {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  text-align: left;
+  padding: 0.35rem 0.4rem;
+  margin: 0.15rem 0;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+  font-size: 0.8rem;
+}
+
+.pain-nav-item.is-active {
+  border-color: var(--pf-accent, #0d9488);
+  background: color-mix(in srgb, var(--pf-accent, #0d9488) 14%, transparent);
+}
+
+.pain-nav-item.is-done .pain-nav-check {
+  margin-left: auto;
+  color: var(--pf-accent, #0d9488);
+}
+
+.pain-nav-num {
+  opacity: 0.65;
+  min-width: 1.2rem;
+}
+
+.pain-script-panel {
+  margin-top: 0.5rem;
+  border: 1px solid var(--pf-border, #444);
+  border-radius: 8px;
+  padding: 0.55rem 0.65rem;
+  max-height: min(50vh, 420px);
+  overflow: auto;
+}
+
+.pain-script-panel.is-collapsed {
+  max-height: none;
+}
+
+.pain-script-text {
+  white-space: pre-wrap;
+  font-family: inherit;
+  font-size: 0.85rem;
+  line-height: 1.45;
+  margin: 0.35rem 0 0.75rem;
+}
+
+.badge-protocol,
+.badge-practice {
+  display: inline-block;
+  font-size: 0.7rem;
+  padding: 0.1rem 0.4rem;
+  border-radius: 4px;
+  border: 1px solid var(--pf-border, #555);
+}
+
+.badge-protocol {
+  background: color-mix(in srgb, var(--pf-accent, #0d9488) 16%, transparent);
+}
+
+.badge-practice {
+  background: color-mix(in srgb, #64748b 20%, transparent);
+}
+
+.medical-safety-note {
+  font-size: 0.82rem;
+}
+
+.pain-drawing-placeholder {
+  border: 1px dashed var(--pf-border, #555);
+  border-radius: 8px;
+  padding: 1rem;
+  text-align: center;
+  opacity: 0.85;
+  font-size: 0.85rem;
+}
+
+.pain-workspace-body {
+  display: grid;
+  grid-template-columns: minmax(180px, 240px) 1fr minmax(260px, 340px);
+  gap: 0.75rem;
+  padding: 0.5rem 0.75rem 1rem;
+  min-height: 0;
+  flex: 1;
+}
+
+@media (max-width: 1100px) {
+  .pain-workspace-body {
+    grid-template-columns: 1fr;
+  }
+}
+
+.hint-list {
+  margin: 0.25rem 0 0.5rem;
+  padding-left: 1.1rem;
+  font-size: 0.82rem;
+}
+
+.protocol-mode-selector {
+  margin: 0.35rem 0;
+}

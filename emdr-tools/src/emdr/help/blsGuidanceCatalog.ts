@@ -294,6 +294,51 @@ export const SCRIPT_BLS_GUIDANCE: Record<string, BLSGuidance> = {
       'Never hard-lock a qualified practitioner out of a setting solely because of selected phase — guidance is advisory.',
     sourceSection: 'Working Memory Taxation (EMDR 2.0-informed)',
   },
+  'pain-protocol-full': {
+    status: 'optional',
+    title: 'EMDR Pain — Grant Pain Default (auditory / continuous)',
+    rationale:
+      'Mark Grant Pain Protocol prefers continuous auditory BLS for desensitisation; check-ins without stopping stimulation. Use the EMDR Pain workspace.',
+    suggestedPreset: 'Grant Pain Default · auditory · continuous',
+    instructions: [
+      'Open /pain workspace for the guided protocol.',
+      'Do not auto-activate Working Memory Taxation.',
+      'Stop BLS if pain worsens intolerably.',
+    ],
+    caution: 'Does not replace medical assessment or treatment.',
+    sourceSection: 'Mark Grant EMDR Pain Protocol',
+  },
+  'pain-protocol-short': {
+    status: 'optional',
+    title: 'EMDR Pain — Short protocol script',
+    rationale: 'Short version kept separate from the full Mark Grant script.',
+    instructions: ['Use EMDR Pain → Scripts → Short.'],
+    sourceSection: 'Mark Grant EMDR Pain Protocol (short)',
+  },
+  'pain-reevaluation': {
+    status: 'optional',
+    title: 'Pain re-evaluation before new sets',
+    rationale: 'Review pain, sleep, activity, mood and related change before targeting.',
+    sourceSection: 'Mark Grant EMDR Pain Protocol',
+  },
+  'pain-antidote': {
+    status: 'optional',
+    title: 'Antidote imagery installation',
+    rationale: 'Client-derived relief imagery paired with BLS — not therapist-suggested images.',
+    sourceSection: 'Mark Grant EMDR Pain Protocol',
+  },
+  'pain-closure': {
+    status: 'optional',
+    title: 'Pain session closure',
+    rationale: 'Include between-session self-soothing BLS guidance only after positive in-session effects.',
+    sourceSection: 'Mark Grant EMDR Pain Protocol',
+  },
+  'pain-variations-help': {
+    status: 'optional',
+    title: 'Pain protocol variations from standard EMDR',
+    rationale: 'Present-pain targeting, continuous/auditory BLS, partial improvement expectations.',
+    sourceSection: 'Mark Grant Pain Protocol Variations',
+  },
 };
 
 /** Default phase-level activation guidance (when opening Help without a specific card) */

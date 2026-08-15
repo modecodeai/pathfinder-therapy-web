@@ -35,7 +35,8 @@ export function ResourcesPage() {
           </span>
         </Link>
         <nav className="site-nav">
-          <Link to="/session">Session</Link>
+          <Link to="/session">Standard EMDR</Link>
+          <Link to="/pain">EMDR Pain</Link>
           <Link to="/tools">BLS Studio</Link>
           <Link to="/account">Account</Link>
         </nav>

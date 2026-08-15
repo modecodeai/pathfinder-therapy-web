@@ -9,6 +9,7 @@ import {
   PHASE8_SCRIPTS,
 } from './content/phase8andMore';
 import { WORKING_MEMORY_TAXATION_SCRIPTS } from './content/workingMemoryTaxation';
+import { PAIN_PROTOCOL_SCRIPTS } from './content/painProtocol';
 import type { EMDRScript } from './types';
 import { HELP_LIBRARY_META } from './types';
 import type { EMDRPhase, SetResponse } from '../types/emdr';
@@ -44,6 +45,7 @@ export const ALL_SCRIPTS: EMDRScript[] = enrich([
   ...INFINITY_SCRIPTS,
   ...CROSS_PHASE_SCRIPTS,
   ...WORKING_MEMORY_TAXATION_SCRIPTS,
+  ...PAIN_PROTOCOL_SCRIPTS,
 ]);
 
 export function getScriptById(id: string): EMDRScript | undefined {
@@ -168,6 +170,16 @@ export const LIBRARY_GROUPS: { title: string; ids: string[] }[] = [
   },
   {
     title: 'Advanced Tools',
-    ids: ['phase2-rdi-placeholder', 'wmt-overview', 'wmt-phase-guide'],
+    ids: [
+      'phase2-rdi-placeholder',
+      'wmt-overview',
+      'wmt-phase-guide',
+      'pain-protocol-full',
+      'pain-protocol-short',
+      'pain-reevaluation',
+      'pain-antidote',
+      'pain-closure',
+      'pain-variations-help',
+    ],
   },
 ];

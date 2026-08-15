@@ -23,8 +23,9 @@ export function LandingPage() {
           </span>
         </div>
         <nav className="site-nav">
-          <Link to="/session">Session</Link>
-          <Link to="/resources">Script Library</Link>
+          <Link to="/session">Standard EMDR</Link>
+          <Link to="/pain">EMDR Pain</Link>
+          <Link to="/resources">Scripts</Link>
           <Link to="/tools">BLS Studio</Link>
           <Link to="/account">Account</Link>
           <Link to="/about">About</Link>
@@ -45,6 +46,9 @@ export function LandingPage() {
           </Link>
           <Link className="btn large" to="/session">
             EMDR Session Companion
+          </Link>
+          <Link className="btn large" to="/pain">
+            EMDR Pain Protocol
           </Link>
         </div>
         <div className="cta-row cta-utility">

@@ -1519,9 +1519,10 @@ export function PainProtocolPage() {
           </div>
         )}
         <div className="banner notice medical-safety-note" role="note">
-          <strong>Medical safety:</strong> EMDR pain work does not replace medical assessment or
-          treatment. Discuss limits of change, medication, and escalation pathways. Stop BLS if pain
-          becomes intolerable. Seek medical help when pain exceeds client capacity to cope.
+          <strong>Medical safety:</strong> EMDR pain work does not replace appropriate medical
+          assessment, diagnosis or treatment. New, unexplained, rapidly worsening or otherwise
+          concerning pain requires appropriate medical evaluation. Do not diagnose pain origin in
+          this app. Stop BLS if pain becomes intolerable.
         </div>
       </div>
 
