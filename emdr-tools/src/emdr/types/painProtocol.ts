@@ -174,6 +174,11 @@ export interface PainWorkspaceState {
   continuousBlsPreferred: boolean;
   scriptPanelOpen: boolean;
   updatedAt: string;
+  /** Linked clinical client — required before session metrics / live stages */
+  linkedClientId?: string;
+  linkedClientName?: string;
+  /** Protocol template chosen from the landing page */
+  protocolVariant?: string;
 }
 
 export const PAIN_STAGE_LABELS: Record<PainProtocolStage, string> = {
@@ -336,5 +341,8 @@ export function createEmptyPainWorkspace(): PainWorkspaceState {
     continuousBlsPreferred: true,
     scriptPanelOpen: true,
     updatedAt: new Date().toISOString(),
+    linkedClientId: undefined,
+    linkedClientName: undefined,
+    protocolVariant: undefined,
   };
 }

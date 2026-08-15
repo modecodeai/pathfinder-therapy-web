@@ -3132,31 +3132,142 @@ html:has(.join-page.live),
 }
 
 .pain-dashboard-main {
-  padding: 1rem 1.25rem 2rem;
-  max-width: 1100px;
+  padding: var(--pf-space-4) var(--pf-space-3) var(--pf-space-6);
+  max-width: 960px;
   margin: 0 auto;
   width: 100%;
 }
 
-.pain-dash-cards {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 0.75rem;
-  margin: 1rem 0;
+.pain-landing-shell {
+  background: var(--pf-bg);
+  min-height: 100vh;
 }
 
-.pain-dash-card {
+.pain-landing-hero {
+  margin-bottom: var(--pf-space-4);
+}
+
+.pf-eyebrow {
+  margin: 0 0 8px;
+  font-size: var(--pf-meta);
+  font-weight: 600;
+  color: var(--pf-primary);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.pain-landing-section {
+  margin-bottom: var(--pf-space-5);
+}
+
+.pain-primary-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-bottom: var(--pf-space-2);
+}
+
+.pain-landing-note {
+  margin: 0;
+  max-width: 40rem;
+}
+
+.pain-protocol-grid {
+  display: flex;
+  flex-direction: column;
+  gap: var(--pf-space-2);
+}
+
+button.pain-template-card {
+  width: 100%;
+  font: inherit;
   text-align: left;
-  padding: 1rem;
-  border: 1px solid var(--pf-border, #444);
-  border-radius: 10px;
-  background: color-mix(in srgb, var(--pf-surface, #1a1a1a) 90%, #333);
   cursor: pointer;
 }
 
-.pain-dash-card h3 {
-  margin: 0 0 0.35rem;
-  font-size: 1rem;
+.pain-resource-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: var(--pf-space-2);
+}
+
+button.pain-resource-card {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  text-align: left;
+  cursor: pointer;
+  font: inherit;
+  color: inherit;
+  border: 1px solid var(--pf-border);
+  background: #fff;
+  box-shadow: var(--pf-shadow);
+  padding: var(--pf-space-3);
+  border-radius: var(--pf-radius);
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+button.pain-resource-card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--pf-shadow-hover);
+  border-color: color-mix(in srgb, var(--pf-primary) 28%, var(--pf-border));
+}
+
+button.pain-resource-card span:last-child {
+  display: grid;
+  gap: 4px;
+}
+
+button.pain-resource-card strong {
+  font-size: 15px;
+}
+
+.pain-resource-bar {
+  padding: 8px var(--pf-space-3);
+  border-bottom: 1px solid var(--pf-border);
+  background: #fff;
+}
+
+.pain-client-pick {
+  display: flex;
+  width: 100%;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 0;
+  border: none;
+  border-bottom: 1px solid var(--pf-border);
+  background: transparent;
+  cursor: pointer;
+  font: inherit;
+  color: inherit;
+  min-height: 44px;
+}
+
+.pain-client-pick:hover .pf-recent-name {
+  color: var(--pf-primary);
+}
+
+/* Override legacy dark pain cards */
+.pain-dash-card {
+  text-align: left;
+  padding: var(--pf-space-3);
+  border: 1px solid var(--pf-border);
+  border-radius: var(--pf-radius);
+  background: #fff;
+  box-shadow: var(--pf-shadow);
+  cursor: pointer;
+  color: var(--pf-text);
+}
+
+.pain-drawing-box {
+  min-height: 120px;
+  border: 1px dashed var(--pf-border-strong);
+  border-radius: 10px;
+  background: var(--pf-bg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .pain-status-strip {
