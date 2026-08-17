@@ -28,9 +28,17 @@
       nav.parentNode.insertBefore(toggle, nav);
     }
 
-    toggle.addEventListener("click", () => {
-      const isOpen = header.classList.toggle("is-nav-open");
+    function setMenuOpen(isOpen) {
+      header.classList.toggle("is-nav-open", isOpen);
       toggle.setAttribute("aria-expanded", String(isOpen));
+      toggle.setAttribute("aria-label", isOpen ? "Close menu" : "Open menu");
+    }
+
+    setMenuOpen(false);
+
+    toggle.addEventListener("click", () => {
+      const isOpen = !header.classList.contains("is-nav-open");
+      setMenuOpen(isOpen);
       if (!isOpen) closeDropdowns(nav);
     });
 
@@ -54,22 +62,21 @@
 
     document.addEventListener("click", (event) => {
       if (header.contains(event.target)) return;
-      header.classList.remove("is-nav-open");
-      toggle.setAttribute("aria-expanded", "false");
+      setMenuOpen(false);
       closeDropdowns(nav);
     });
 
     document.addEventListener("keydown", (event) => {
       if (event.key !== "Escape") return;
-      header.classList.remove("is-nav-open");
-      toggle.setAttribute("aria-expanded", "false");
+      const wasOpen = header.classList.contains("is-nav-open");
+      setMenuOpen(false);
       closeDropdowns(nav);
+      if (wasOpen) toggle.focus();
     });
 
     breakpoint.addEventListener("change", () => {
       if (!breakpoint.matches) {
-        header.classList.remove("is-nav-open");
-        toggle.setAttribute("aria-expanded", "false");
+        setMenuOpen(false);
       }
       nav.querySelectorAll(".nav-dropdown-toggle").forEach((button) => {
         button.setAttribute("aria-expanded", breakpoint.matches ? "true" : "false");
