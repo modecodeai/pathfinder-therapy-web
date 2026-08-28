@@ -11,6 +11,7 @@
     "lint": "eslint .",
     "verify:built": "node scripts/verify-built-html.mjs",
     "verify:cic-login": "node scripts/verify-cic-client-login.mjs",
+    "verify:cic-login-breakpoints": "node scripts/verify-cic-login-breakpoints.mjs",
     "qa:browser": "node scripts/browser-qa.mjs",
     "qa:visual": "node scripts/capture-visual-qa.mjs"
   },
