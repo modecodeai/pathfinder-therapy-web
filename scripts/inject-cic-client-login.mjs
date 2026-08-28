@@ -9,6 +9,7 @@ import { fileURLToPath } from "node:url";
 
 const LOGIN = "https://my.pathfindertherapy.org.uk/my/login";
 const HEADER_LINK = `<a class="nav-link nav-client-login" href="${LOGIN}">Client Login</a>`;
+const HEADER_BAR_LINK = `<a class="header-client-login" href="${LOGIN}">Client Login</a>`;
 const FOOTER_LINK = `<a href="${LOGIN}">Client Login</a>`;
 const ROOT = path.join(path.dirname(fileURLToPath(import.meta.url)), "..", "cic-site");
 
@@ -32,6 +33,17 @@ function patch(html, basename) {
       throw new Error(`${basename}: Header Contact link not found`);
     }
     next = header;
+  }
+
+  if (!/class="header-client-login"/.test(next)) {
+    const bar = next.replace(
+      /(<button class="mobile-nav-toggle")/,
+      `${HEADER_BAR_LINK}\n    $1`,
+    );
+    if (bar === next) {
+      throw new Error(`${basename}: mobile nav toggle not found for header Client Login`);
+    }
+    next = bar;
   }
 
   if (!next.includes(`aria-label="Legal and support links"`) || !next.includes(FOOTER_LINK)) {

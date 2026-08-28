@@ -30,6 +30,9 @@ for (const file of files) {
   if (!html.includes('class="nav-link nav-client-login"')) {
     issues.push(`${rel}: missing header Client Login class`);
   }
+  if (!html.includes('class="header-client-login"')) {
+    issues.push(`${rel}: missing mobile header Client Login class`);
+  }
   if (html.includes('class="header-cta"') && /class="header-cta"[^>]*>Client Login/.test(html)) {
     issues.push(`${rel}: Client Login must not use the Get Support CTA style`);
   }
