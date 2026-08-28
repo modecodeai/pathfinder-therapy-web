@@ -52,6 +52,17 @@ if (!getSupport.includes("Already a Client?")) {
   issues.push("get-support.html missing contextual My Pathfinder login copy");
 }
 
+const css = fs.readFileSync(path.join(ROOT, "styles.css"), "utf8");
+if (!css.includes(".header-client-login{\n  display:none !important;")) {
+  issues.push("styles.css must hide .header-client-login on desktop with display:none !important");
+}
+if (!/@media\(min-width:1101px\)[\s\S]*?\.header-client-login\{\s*display:none !important;/.test(css)) {
+  issues.push("styles.css must keep .header-client-login hidden at min-width 1101px");
+}
+if (!/@media\(max-width:1100px\)[\s\S]*?\.main-nav \.nav-client-login\{\s*display:none !important;/.test(css)) {
+  issues.push("styles.css must hide in-nav Client Login below 1101px to prevent duplicates");
+}
+
 if (issues.length) {
   console.error("CIC Client Login verification failed:");
   for (const issue of issues) console.error(`- ${issue}`);

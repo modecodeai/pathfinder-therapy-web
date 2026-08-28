@@ -137,7 +137,7 @@ body{
 }
 
 .header-client-login{
-  display:none;
+  display:none !important;
   align-items:center;
   min-height:44px;
   padding:0 10px;
@@ -151,6 +151,12 @@ body{
   background:transparent;
   border:0;
   white-space:nowrap;
+}
+
+.header-client-login:link,
+.header-client-login:visited{
+  color:#e7e7df;
+  text-decoration:none;
 }
 
 .header-client-login:focus-visible{
@@ -3567,6 +3573,10 @@ html[lang="en-GB"] body{
   .site-header .main-nav{
     display:flex!important;
   }
+
+  .header-client-login{
+    display:none !important;
+  }
 }
 
 @media(max-width:1100px){
@@ -3580,8 +3590,12 @@ html[lang="en-GB"] body{
   }
 
   .header-client-login{
-    display:inline-flex;
+    display:inline-flex !important;
     margin-left:auto;
+  }
+
+  .main-nav .nav-client-login{
+    display:none !important;
   }
 
   .mobile-nav-toggle{
