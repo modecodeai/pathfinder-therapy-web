@@ -5,6 +5,9 @@ export const BOOKING_PATH = CONSULTATION_PATH;
 export const BOOKING_LABEL = "Arrange an initial consultation";
 /** Secondary CTA — written enquiry form. */
 export const ENQUIRY_LABEL = "Send an enquiry";
+/** Public Client Login — My Pathfinder hostname only. Do not add Access, tokens, or credential collection. */
+export const CLIENT_LOGIN_URL = "https://my.pathfindertherapy.org.uk/my/login";
+export const CLIENT_LOGIN_LABEL = "Client Login";
 
 export const SITE_UX_CSS = `<style id="pathfinder-site-ux">
 .pfStickyBook { position: fixed; left: 0; right: 0; bottom: 0; z-index: 50; display: none; padding: 12px 16px calc(12px + env(safe-area-inset-bottom)); background: rgba(8,16,15,.94); border-top: 1px solid rgba(246,242,234,.1); backdrop-filter: blur(10px); }

@@ -253,6 +253,48 @@ function auditMembershipBadges() {
   return issues;
 }
 
+function auditClientLogin() {
+  const LOGIN = "https://my.pathfindertherapy.org.uk/my/login";
+  const issues = [];
+  const files = collectHtmlFiles(OUT_DIR);
+
+  for (const file of files) {
+    const rel = path.relative(OUT_DIR, file);
+    const html = fs.readFileSync(file, "utf8");
+    const hasShell = html.includes('class="lpHeader"');
+    if (!hasShell) continue;
+
+    const loginHrefs = [...html.matchAll(/href="([^"]*my\.pathfindertherapy[^"]*)"/g)].map((m) => m[1]);
+    if (!loginHrefs.length) {
+      issues.push(`${rel}: shell page missing Client Login href`);
+      continue;
+    }
+    for (const href of loginHrefs) {
+      if (href !== LOGIN) issues.push(`${rel}: Client Login href "${href}"`);
+      if (href.includes("?") || href.includes("token") || href.includes("alpha.pathfindertherapy.com")) {
+        issues.push(`${rel}: Client Login URL must be the exact My Pathfinder login with no tokens`);
+      }
+    }
+    if (/class="[^"]*lpHeaderCta[^"]*"[^>]*>\s*Client Login/.test(html)) {
+      issues.push(`${rel}: Client Login must not use the booking CTA style`);
+    }
+    if (!html.includes("class=\"lpHeaderLogin\"")) {
+      issues.push(`${rel}: missing desktop Client Login link`);
+    }
+    if (!html.includes("class=\"lpMobileNavLogin\"")) {
+      issues.push(`${rel}: missing mobile Client Login link`);
+    }
+    if (/<form[^>]*action="https:\/\/my\.pathfindertherapy/.test(html)) {
+      issues.push(`${rel}: must not collect My Pathfinder credentials`);
+    }
+    if (/type="password"/.test(html) && html.includes(LOGIN)) {
+      issues.push(`${rel}: must not embed a password field with the login destination`);
+    }
+  }
+
+  return issues;
+}
+
 function main() {
   const errors = [];
 
@@ -330,6 +372,10 @@ function main() {
     }
     if (route === "/contact/") {
       if (!html.includes("pfContactDetails")) errors.push("/contact/ missing refined contact hierarchy");
+      if (!html.includes("Already a Client?")) errors.push("/contact/ missing Client Login contextual copy");
+      if (!html.includes("https://my.pathfindertherapy.org.uk/my/login")) {
+        errors.push("/contact/ missing My Pathfinder login URL");
+      }
     }
     if (route === "/") {
       if (html.includes("lpFeedbackQuote")) errors.push("Homepage still uses unverified quoted feedback");
@@ -340,6 +386,7 @@ function main() {
   errors.push(...auditLegacyMarkers());
   errors.push(...auditPriorityRoutes());
   errors.push(...auditMembershipBadges());
+  errors.push(...auditClientLogin());
 
   if (errors.length) {
     console.error("Built HTML verification failed:");

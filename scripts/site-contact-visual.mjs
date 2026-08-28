@@ -1,4 +1,4 @@
-import { BOOKING_LABEL, BOOKING_PATH, ENQUIRY_LABEL, ENQUIRY_PATH } from "./site-ux-layer.mjs";
+import { BOOKING_LABEL, BOOKING_PATH, CLIENT_LOGIN_URL, ENQUIRY_LABEL, ENQUIRY_PATH } from "./site-ux-layer.mjs";
 
 const CLINIC = {
   street: "R. Rodrigues Sampaio 76 1º Andar",
@@ -24,6 +24,8 @@ export const CONTACT_VISUAL_CSS = `<style id="pathfinder-contact-visual">
 .pfContactTertiaryNote { margin: 0; font-family: var(--pf-font-sans); font-size: 0.8125rem; line-height: var(--pf-leading-body); color: var(--pf-stone-muted); }
 .pfContactTertiaryNote a { color: var(--pf-stone-muted); text-decoration: underline; text-underline-offset: 2px; }
 .pfContactTertiaryNote a:hover { color: var(--pf-bronze); }
+.pfContactLoginNote { margin: 4px 0 0; font-family: var(--pf-font-sans); font-size: 0.9375rem; line-height: 1.6; color: var(--pf-linen-muted); }
+.pfContactLoginNote a { color: var(--pf-bronze-soft); font-weight: 500; text-decoration: underline; text-underline-offset: 3px; min-height: 44px; display: inline-flex; align-items: center; }
 .pfContactMap { border: 1px solid var(--pf-border-light); border-radius: var(--pf-radius-lg); overflow: hidden; background: #fff; min-height: 360px; }
 .pfContactMap iframe { display: block; width: 100%; height: 100%; min-height: 360px; border: 0; }
 .pfContactFormSection { padding: clamp(32px, 5vw, 48px) var(--pf-space-inline); background: var(--pf-parchment-muted); }
@@ -47,6 +49,7 @@ export function buildContactVisualBody(formHtml) {
         <a class="lpPrimaryCta" href="${BOOKING_PATH}">${BOOKING_LABEL}</a>
         <a class="lpSecondaryCta" href="${ENQUIRY_PATH}">${ENQUIRY_LABEL}</a>
       </div>
+      <p class="pfContactLoginNote">Already a Client? <a href="${CLIENT_LOGIN_URL}">Log in to My Pathfinder</a></p>
     </div>
   </section>
   <div class="pfContactGrid">

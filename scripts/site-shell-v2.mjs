@@ -1,4 +1,11 @@
-import { BOOKING_LABEL, BOOKING_PATH, ENQUIRY_LABEL, ENQUIRY_PATH } from "./site-ux-layer.mjs";
+import {
+  BOOKING_LABEL,
+  BOOKING_PATH,
+  CLIENT_LOGIN_LABEL,
+  CLIENT_LOGIN_URL,
+  ENQUIRY_LABEL,
+  ENQUIRY_PATH
+} from "./site-ux-layer.mjs";
 import { applyContentFixes, applyContentFixesToPage, stripLegacyMarkup } from "./site-content-fixes.mjs";
 import {
   DESIGN_TOKENS_CSS,
@@ -55,6 +62,8 @@ ${LEGAL_ENTITY_CSS}
 .lpHeaderActions { display: flex; align-items: center; gap: 8px; margin-left: auto; flex-shrink: 0; }
 .lpHeaderPhone { display: none; color: rgba(246,242,234,.52); padding: 8px 10px; font-size: 12px; text-decoration: none; white-space: nowrap; }
 .lpHeaderPhone:hover { color: rgba(246,242,234,.72); }
+.lpHeaderLogin { display: none; align-items: center; min-height: 44px; padding: 0 10px; color: rgba(246,242,234,.7); font-size: 13px; font-weight: 500; text-decoration: none; white-space: nowrap; background: transparent; border: 0; }
+.lpHeaderLogin:hover { color: #d9b777; text-decoration: underline; text-underline-offset: 3px; }
 .lpHeaderCta { display: none; align-items: center; min-height: 44px; padding: 0 16px; border-radius: 999px; background: rgba(200,154,88,.18); border: 1px solid rgba(200,154,88,.75); color: #d9b777; font-size: 13px; font-weight: 600; text-decoration: none; white-space: nowrap; }
 .lpHeaderCta:hover { background: rgba(200,154,88,.28); }
 .lpMenuBtn { display: grid; place-items: center; width: 44px; height: 44px; border: 1px solid rgba(246,242,234,.14); border-radius: 999px; background: transparent; color: #d9b777; cursor: pointer; }
@@ -62,6 +71,7 @@ ${LEGAL_ENTITY_CSS}
 .lpMobileNav.isOpen { display: flex; }
 .lpMobileNav a { min-height: 44px; display: flex; align-items: center; padding: 0 12px; border-radius: 10px; color: rgba(246,242,234,.86); text-decoration: none; font-size: 16px; }
 .lpMobileNav a[aria-current="page"] { color: #d9b777; background: rgba(200,154,88,.1); }
+.lpMobileNavLogin { min-height: 44px; font-weight: 500; }
 .lpMobileNavCta { margin-top: 8px; padding-top: 12px; border-top: 1px solid rgba(246,242,234,.08); }
 .lpMobileNavCta a { justify-content: center; min-height: 48px; background: rgba(200,154,88,.18); border: 1px solid rgba(200,154,88,.75); color: #d9b777; font-weight: 600; }
 .lpMobileNavMore { margin-top: 8px; padding-top: 12px; border-top: 1px solid rgba(246,242,234,.08); }
@@ -108,7 +118,7 @@ body.lpMenuOpen { overflow: hidden; }
 a:focus-visible, button:focus-visible, summary:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-visible { outline: 2px solid #d9b777; outline-offset: 2px; }
 @media (min-width: 901px) {
   .lpTopNav { display: flex; }
-  .lpHeaderPhone, .lpHeaderCta { display: inline-flex; align-items: center; }
+  .lpHeaderPhone, .lpHeaderLogin, .lpHeaderCta { display: inline-flex; align-items: center; }
   .lpMenuBtn { display: none; }
   .lpMobileNav { display: none !important; }
   .lpStickyCta { display: none; }
@@ -328,6 +338,7 @@ export function buildHeader(route) {
     <nav class="lpTopNav" aria-label="Main navigation">${primary}</nav>
     <div class="lpHeaderActions">
       <a class="lpHeaderPhone" href="tel:+351914775365" aria-label="Call Pathfinder Therapy">+351 914 775 365</a>
+      <a class="lpHeaderLogin" href="${CLIENT_LOGIN_URL}">${CLIENT_LOGIN_LABEL}</a>
       <a class="lpHeaderCta" href="${BOOKING_PATH}">${BOOKING_LABEL}</a>
       <button class="lpMenuBtn" type="button" aria-label="Open menu" aria-expanded="false" aria-controls="lpMobileNav">
         <svg aria-hidden="true" viewBox="0 0 24 24" width="20" height="20" fill="none"><path d="M5 7h14M5 12h14M5 17h14" stroke="currentColor" stroke-linecap="round" stroke-width="1.5"/></svg>
@@ -342,6 +353,7 @@ export function buildHeader(route) {
     </div>
     ${contactItem ? navLink(contactItem, route) : ""}
     <a class="lpMobileNavPhone" href="tel:+351914775365">Call +351 914 775 365</a>
+    <a class="lpMobileNavLogin" href="${CLIENT_LOGIN_URL}">${CLIENT_LOGIN_LABEL}</a>
     <div class="lpMobileNavCta">
       <a href="${BOOKING_PATH}">${BOOKING_LABEL}</a>
     </div>
@@ -362,7 +374,8 @@ export function buildSiteFooter() {
     ...RESOURCES_LINKS,
     { href: "/privacy/", label: "Privacy" },
     { href: "/terms/", label: "Terms" },
-    { href: "/crisis-support/", label: "Crisis support" }
+    { href: "/crisis-support/", label: "Crisis support" },
+    { href: CLIENT_LOGIN_URL, label: CLIENT_LOGIN_LABEL }
   ];
   const quickNav = quickLinks.map((item) => `<a href="${item.href}">${item.label}</a>`).join("");
 
