@@ -12,6 +12,8 @@ const REPLACEMENTS = [
   [/"role":"Psychotherapist"/g, '"role":"Therapist"'],
   [/"registrations":\["NCPS"\]/g, '"registrations":["EATA","ITAA"]'],
   [/Brent is NCPS registered/gi, "Brent is registered with EATA and a member of ITAA"],
+  [/EMDR-informed trauma work/gi, "EMDR Practitioner"],
+  [/EMDR-informed work/gi, "EMDR practitioner-led trauma work"],
   [/\bPsychotherapist\b/g, "Therapist"],
   [/\bpsychotherapist\b/g, "therapist"]
 ];

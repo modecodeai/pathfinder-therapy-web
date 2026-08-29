@@ -122,7 +122,7 @@ const PROCESS_STAGES = [
   },
   {
     title: "Heal",
-    copy: "Trauma-informed psychotherapy and EMDR where appropriate — paced carefully around your nervous system."
+    copy: "Trauma-informed psychotherapy and EMDR Practitioner-led care where appropriate — paced carefully around your nervous system."
   },
   {
     title: "Move forward",

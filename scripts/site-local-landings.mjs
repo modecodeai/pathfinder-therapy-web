@@ -48,7 +48,7 @@ export const LOCAL_LANDING_PAGES = [
         "Approach",
         "Trauma-informed and relational",
         "psy-approach",
-        `<p>Brent Kelly works with trauma, anxiety, attachment, relationships, and major life transitions — using EMDR and Transactional Analysis where clinically appropriate. Therapy is paced carefully and shaped around your life, not a formula.</p>
+        `<p>Brent Kelly works with trauma, anxiety, attachment, relationships, and major life transitions as an EMDR Practitioner, using EMDR and Transactional Analysis where clinically appropriate. Therapy is paced carefully and shaped around your life, not a formula.</p>
         <p><a href="/approach/">Read about the approach</a> · <a href="/therapy/">View therapy services</a> · <a href="/faq/">FAQ</a> · <a href="/fees/">Fees from €75</a></p>`
       )
     ],
@@ -61,7 +61,7 @@ export const LOCAL_LANDING_PAGES = [
     route: "/trauma-therapy-lisbon/",
     title: "Trauma Therapy Lisbon | Trauma-Informed Therapist | Pathfinder",
     description:
-      "Trauma-informed psychotherapy in Lisbon with Brent Kelly. Support for PTSD, complex trauma, and anxiety — EMDR where appropriate. English-speaking sessions in Lisbon or online.",
+      "Trauma-informed psychotherapy in Lisbon with Brent Kelly, EMDR Practitioner. Support for PTSD, complex trauma, and anxiety — EMDR where appropriate. English-speaking sessions in Lisbon or online.",
     serviceName: "Trauma therapy in Lisbon",
     serviceType: "Trauma therapy",
     hero: {
@@ -101,7 +101,7 @@ export const LOCAL_LANDING_PAGES = [
     route: "/emdr-therapy-lisbon/",
     title: "EMDR Therapist Lisbon | Pathfinder Therapy",
     description:
-      "EMDR therapy in Lisbon with Brent Kelly. Trauma-informed EMDR for adults — English-speaking sessions in Lisbon or online across Portugal. Book an initial consultation.",
+      "EMDR therapy in Lisbon with Brent Kelly, EMDR Practitioner. Trauma-informed EMDR for adults — English-speaking sessions in Lisbon or online across Portugal. Book an initial consultation.",
     serviceName: "EMDR therapy in Lisbon",
     serviceType: "EMDR",
     hero: {

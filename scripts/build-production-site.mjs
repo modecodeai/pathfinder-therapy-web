@@ -805,7 +805,7 @@ function buildFaqPage(shellHtml) {
     <p class="sectionKicker">EMDR &amp; trauma</p>
     <h2 class="approachSectionTitle" id="faq-emdr">Do you offer EMDR and trauma therapy?</h2>
     <div class="approachBody">
-      <p>Yes. Brent offers trauma-informed psychotherapy and EMDR where clinically appropriate, alongside Transactional Analysis and relational work.</p>
+      <p>Yes. Brent is an EMDR Practitioner and offers trauma-informed psychotherapy, EMDR where clinically appropriate, Transactional Analysis and relational work.</p>
       <p><a href="/knowledge-library/what-is-trauma-therapy/">What is trauma therapy?</a> · <a href="/knowledge-library/how-does-emdr-work/">How does EMDR work?</a></p>
     </div>
   </div>
@@ -844,7 +844,7 @@ function buildFaqPage(shellHtml) {
 {"@type":"Question","name":"How do I arrange an initial consultation?","acceptedAnswer":{"@type":"Answer","text":"You can arrange an initial consultation at pathfindertherapy.com/book or send an enquiry at pathfindertherapy.com/start. Brent replies within one working day."}},
 {"@type":"Question","name":"Can I see Brent in person or online?","acceptedAnswer":{"@type":"Answer","text":"Yes. Sessions are available at the Lisbon clinic and securely online across Portugal."}},
 {"@type":"Question","name":"How much do sessions cost?","acceptedAnswer":{"@type":"Answer","text":"Individual sessions are from EUR 75 for 50 minutes."}},
-{"@type":"Question","name":"Do you offer EMDR and trauma therapy?","acceptedAnswer":{"@type":"Answer","text":"Yes. Brent offers trauma-informed psychotherapy and EMDR where clinically appropriate."}}
+{"@type":"Question","name":"Do you offer EMDR and trauma therapy?","acceptedAnswer":{"@type":"Answer","text":"Yes. Brent is an EMDR Practitioner and offers trauma-informed psychotherapy and EMDR where clinically appropriate."}}
 ]}
 </script>`;
 
@@ -1114,7 +1114,7 @@ async function main() {
     patchHtml(buildHomePageV2(homeHtml), {
       title: "Trauma-Informed Psychotherapy in Lisbon | Pathfinder Therapy",
       description:
-        "Trauma-informed psychotherapy with Brent Kelly in Lisbon and online. English-speaking therapy for adults and couples, including EMDR and an emerging immersive EMDR therapy pilot. Arrange an initial consultation.",
+        "Trauma-informed psychotherapy with Brent Kelly, EMDR Practitioner, in Lisbon and online. English-speaking therapy for adults and couples, including EMDR and an emerging immersive EMDR therapy pilot. Arrange an initial consultation.",
       canonical: "https://www.pathfindertherapy.com/"
     })
   );
