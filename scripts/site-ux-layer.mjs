@@ -180,7 +180,7 @@ Pathfinder Therapy is a trading name of Pathfinder Therapy CIC, a community inte
 Pathfinder Therapy CIC is an NCPS Recognised Counselling Service (membership number RCS6035).
 
 ## Clinician
-Brent Kelly — therapist (EATA registered · ITAA member). Specialities: trauma, EMDR, Transactional Analysis, military veterans, attachment.
+Brent Kelly — therapist (EATA registered · ITAA member). Specialities: trauma, EMDR Practitioner, Transactional Analysis, military veterans, attachment.
 
 ## Fees
 Sessions from EUR 75. Non-urgent enquiries only — not a crisis service.

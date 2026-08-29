@@ -327,7 +327,7 @@ export function buildHomePageBody() {
       </article>
       <article class="lpCard">
         <h3>Heal</h3>
-        <p>Trauma-informed psychotherapy and EMDR where appropriate — paced carefully around your nervous system.</p>
+        <p>Trauma-informed psychotherapy and EMDR Practitioner-led care where appropriate — paced carefully around your nervous system.</p>
       </article>
       <article class="lpCard">
         <h3>Move forward</h3>

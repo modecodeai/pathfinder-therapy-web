@@ -84,12 +84,12 @@ export const SERVICE_PAGES = [
       "Grief, loss and periods of change"
     ],
     paragraphs: [
-      "Individual therapy offers a regular, confidential space that belongs to you. Brent works relationally and in a trauma-informed way — drawing on Transactional Analysis, EMDR where appropriate, and steady attention to what your mind and body may still be protecting.",
+      "Individual therapy offers a regular, confidential space that belongs to you. Brent works relationally and in a trauma-informed way as an EMDR Practitioner — drawing on Transactional Analysis, EMDR where appropriate, and steady attention to what your mind and body may still be protecting.",
       "Sessions are 50 minutes, in person at the Lisbon clinic or securely online across Portugal and internationally where appropriate. Therapy is paced carefully; you do not need a diagnosis to begin.",
       "Brent works with adults navigating trauma, anxiety, attachment difficulties, military experiences, expatriation, and significant life transitions — always in English."
     ],
     approach:
-      "Therapy is collaborative rather than formulaic. Brent listens carefully, asks thoughtful questions, and works at a pace that respects your nervous system — with evidence-informed methods including EMDR where clinically appropriate."
+      "Therapy is collaborative rather than formulaic. Brent listens carefully, asks thoughtful questions, and works at a pace that respects your nervous system — with evidence-informed methods including EMDR Practitioner-led care where clinically appropriate."
   },
   {
     slug: "couples",
@@ -126,7 +126,7 @@ export const SERVICE_PAGES = [
     route: "/therapy/emdr/",
     title: "EMDR Therapy | Pathfinder Therapy Lisbon",
     description:
-      "EMDR within trauma-informed psychotherapy in Lisbon and online. 60-minute sessions from €95 with Brent Kelly, EATA registered and ITAA member.",
+      "EMDR Practitioner-led therapy within trauma-informed psychotherapy in Lisbon and online. 60-minute sessions from €95 with Brent Kelly, EATA registered and ITAA member.",
     canonical: "https://www.pathfindertherapy.com/therapy/emdr/",
     label: "Trauma processing",
     h1: "EMDR",
