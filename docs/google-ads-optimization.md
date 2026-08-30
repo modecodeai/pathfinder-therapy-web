@@ -160,14 +160,10 @@ See [`google-ads-copy.md`](google-ads-copy.md).
 
 ### 8. Fix conversion tracking (critical)
 
-Live site currently has **empty conversion labels**:
+The marketing site and Pathfinder Clinic now split conversion tracking:
 
-```javascript
-var LEAD = ""
-var BOOKING = ""
-```
-
-So **tag-based** conversions from the site code do **not** fire until GitHub secrets are set.
+- The marketing website owns lead-form conversions on `/thank-you/`.
+- Pathfinder Clinic owns booking conversions on `booking.pathfindertherapy.com/book/confirmed`.
 
 #### Option A — URL conversions in Google Ads (fastest)
 
@@ -177,21 +173,22 @@ So **tag-based** conversions from the site code do **not** fire until GitHub sec
 | Name | URL rule | Count |
 |------|----------|-------|
 | Lead form submitted | URL contains `/thank-you/` | One |
-| Zoom call booked | URL contains `/book-confirmed/` | One |
+| Booking completed | URL starts with `https://booking.pathfindertherapy.com/book/confirmed` | One |
 
 3. When asked about the tag → **Confirm** (tag already on site)
 4. Mark both as **Primary** conversion actions for this campaign
 
 #### Option B — GitHub secrets (tag events)
 
-In GitHub repo → **Settings → Secrets → Actions**:
+In GitHub repo → **Settings → Secrets → Actions** for the marketing site:
 
 | Secret | Value |
 |--------|-------|
 | `PATHFINDER_GOOGLE_ADS_LEAD_LABEL` | Label from Google Ads conversion for `/thank-you/` |
-| `PATHFINDER_GOOGLE_ADS_BOOKING_LABEL` | Label from Google Ads conversion for `/book-confirmed/` |
 
-Redeploy (push to `main`). Verify live page shows `var LEAD = "AW-10976126920/xxxxx"`.
+In Cloudflare for the Pathfinder Clinic Worker, add `PATHFINDER_GOOGLE_ADS_BOOKING_LABEL` only if using an event-snippet booking conversion. URL-based booking conversion does not need that label.
+
+Redeploy after changing secrets. Verify the live marketing page shows `var LEAD = "AW-10976126920/xxxxx"`.
 
 #### Consent note (EU)
 
@@ -228,7 +225,7 @@ After changes above:
 
 1. **Budget:** Keep ~£10/day — do not scale until conversions appear
 2. **Monitor:** Search terms report every 3 days → add negatives
-3. **Success:** 1–3 tracked conversions (form or Calendly) in 14 days
+3. **Success:** 1–3 tracked conversions (form or native booking) in 14 days
 4. **If still zero clicks on good terms:** Improve ad rank (Quality Score) — geo landing page + English keywords + negative list
 5. **If clicks but no conversions:** Test final URL `/book/` vs `/psychotherapy-lisbon/`
 
@@ -241,7 +238,7 @@ After changes above:
 - [ ] Negatives: pasted (Portuguese + free + psychiatry)
 - [ ] Keywords: phrase/exact English only
 - [ ] Final URL: `/psychotherapy-lisbon/` or `/book/`
-- [ ] Conversions: `/thank-you/` + `/book-confirmed/` URL actions **Primary**
+- [ ] Conversions: `/thank-you/` + `booking.pathfindertherapy.com/book/confirmed` URL actions **Primary**
 - [ ] Ad copy: “English · from €75” · no “free therapy”
 - [ ] Search terms: reviewed weekly
 

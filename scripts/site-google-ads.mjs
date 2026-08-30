@@ -97,11 +97,15 @@ export function logGoogleAdsBuildConfig() {
   console.log(`Google Ads account: ${ADS_ID}`);
   console.log(`Google Analytics: ${GA_ID}`);
   console.log(`Google Ads lead conversion: ${ADS_LEAD_SEND_TO || "NOT CONFIGURED — set PATHFINDER_GOOGLE_ADS_LEAD_LABEL"}`);
-  console.log(`Google Ads booking conversion: ${ADS_BOOKING_SEND_TO || "NOT CONFIGURED — set PATHFINDER_GOOGLE_ADS_BOOKING_LABEL"}`);
+  console.log(
+    `Google Ads booking conversion: ${
+      ADS_BOOKING_SEND_TO || "handled by booking.pathfindertherapy.com /book/confirmed"
+    }`
+  );
   console.log(`Google Ads phone conversion: ${ADS_PHONE_SEND_TO}`);
-  if (!ADS_LEAD_SEND_TO || !ADS_BOOKING_SEND_TO) {
+  if (!ADS_LEAD_SEND_TO) {
     console.warn(
-      "Google Ads conversion labels missing. Add PATHFINDER_GOOGLE_ADS_LEAD_LABEL and PATHFINDER_GOOGLE_ADS_BOOKING_LABEL as GitHub Actions secrets, then redeploy."
+      "Google Ads lead conversion label missing. Add PATHFINDER_GOOGLE_ADS_LEAD_LABEL as a GitHub Actions secret, then redeploy."
     );
   }
 }

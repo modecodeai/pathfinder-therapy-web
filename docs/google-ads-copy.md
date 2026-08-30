@@ -13,7 +13,7 @@ Use this document when writing or editing Search campaigns in Google Ads for **p
 
 | Item | Price | Notes |
 |------|-------|-------|
-| **Initial Zoom consultation** | Free / no charge | 30-minute conversation to see if therapy is a fit — booked at `/book/` (Calendly: `hi-pathfindertherapy/30min`) |
+| **Initial Zoom consultation** | Free / no charge | 30-minute conversation to see if therapy is a fit — booked through Pathfinder Clinic at `/book/` |
 | **Individual therapy session** | **From €75** | 50 minutes — see `/fees/` |
 | **Couples therapy session** | Discussed on enquiry | See `/fees/` |
 | **Ongoing sessions** | From €75 | Fees confirmed before work begins |
@@ -112,7 +112,7 @@ Non-urgent enquiries only. Free initial consultation call · ongoing sessions fr
 | EMDR | `https://www.pathfindertherapy.com/emdr-therapy-lisbon/` | |
 | English-speaking / expats | `https://www.pathfindertherapy.com/english-speaking-therapist-lisbon/` | |
 | Enquiry form funnel | `https://www.pathfindertherapy.com/start/` | noindex — use only if testing form-led campaigns |
-| Direct booking | `https://www.pathfindertherapy.com/book/` | Calendly — good for high-intent “book” queries |
+| Direct booking | `https://www.pathfindertherapy.com/book/` | Redirects to Pathfinder Clinic booking — good for high-intent “book” queries |
 
 Prefer **indexable geo landing pages** for location + service keywords. Use `/start/` only for dedicated form campaigns (page is `noindex`).
 
@@ -122,13 +122,13 @@ Prefer **indexable geo landing pages** for location + service keywords. Use `/st
 
 Configure in Google Ads → **Goals → Conversions**. The site fires tags automatically; do not duplicate the global snippet.
 
-| Conversion | Trigger URL | GitHub secret (label) |
+| Conversion | Trigger URL | Label / owner |
 |------------|-------------|------------------------|
-| Lead form submitted | `/thank-you/` | `PATHFINDER_GOOGLE_ADS_LEAD_LABEL` |
-| Zoom consultation booked | `/book-confirmed/` | `PATHFINDER_GOOGLE_ADS_BOOKING_LABEL` |
+| Lead form submitted | `/thank-you/` | `PATHFINDER_GOOGLE_ADS_LEAD_LABEL` in the marketing website |
+| Booking completed | `https://booking.pathfindertherapy.com/book/confirmed` | URL conversion in Google Ads; optional event label `PATHFINDER_GOOGLE_ADS_BOOKING_LABEL` in Pathfinder Clinic |
 | Phone call (optional) | Click-to-call | `phone` (default in build) |
 
-**Page-load conversions:** Create URL-based conversions in Google Ads for `/thank-you/` and `/book-confirmed/` and click **Confirm** when asked about the tag (site already has it).
+**Page-load conversions:** Create URL-based conversions in Google Ads for `/thank-you/` and `https://booking.pathfindertherapy.com/book/confirmed`. Use a **URL starts with** rule for the booking confirmation URL because Pathfinder adds a booking token after it.
 
 **Do not create** broken combined conversions like `thank-you/book-confirmed`.
 
