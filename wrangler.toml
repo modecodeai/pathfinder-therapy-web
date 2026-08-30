@@ -4,16 +4,14 @@ pages_build_output_dir = "out"
 
 [vars]
 CONTACT_TO_EMAIL = "hi@pathfindertherapy.com"
-# Set in Cloudflare dashboard → Settings → Environment variables:
-# PATHFINDER_CALENDLY_URL = https://calendly.com/hi-pathfindertherapy/30min
-# Optional: PATHFINDER_CALENDLY_DURATION_MINUTES = 30
-# Secret: CALENDLY_WEBHOOK_SIGNING_KEY (for /api/calendly-webhook)
-# Secret: RESEND_API_KEY (shared with /api/contact — required for booking emails)
-# Optional: CALENDLY_NOTIFY_EMAIL (defaults to CONTACT_TO_EMAIL)
+# Set in Cloudflare dashboard -> Settings -> Environment variables:
+# PATHFINDER_BOOKING_URL = https://booking.pathfindertherapy.com/book
+# Optional: PATHFINDER_BOOKING_DURATION_MINUTES = 30
+# Secret: RESEND_API_KEY (shared with /api/contact)
 # Optional: CONTACT_FROM_EMAIL (verified sender in Resend)
 #
 # Google Ads conversion labels (GitHub Actions secrets at build time):
-# PATHFINDER_GOOGLE_ADS_LEAD_LABEL = form enquiry conversion label (from Google Ads → Conversions)
-# PATHFINDER_GOOGLE_ADS_BOOKING_LABEL = Calendly booking conversion label
+# PATHFINDER_GOOGLE_ADS_LEAD_LABEL = form enquiry conversion label (from Google Ads -> Conversions)
+# PATHFINDER_GOOGLE_ADS_BOOKING_LABEL = native booking conversion label
 # Optional: PATHFINDER_GOOGLE_ADS_ID (default AW-10976126920), PATHFINDER_GA_ID (default G-ERMVWYL4J6)
 # Ad copy guidelines: docs/google-ads-copy.md

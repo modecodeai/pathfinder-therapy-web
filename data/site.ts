@@ -89,5 +89,5 @@ export const chapters = [
 export const leadFunnel = {
   landingPath: "/start/",
   thankYouPath: "/thank-you/",
-  defaultCtaPath: "/book/"
+  defaultCtaPath: "https://booking.pathfindertherapy.com/book"
 };

@@ -7,6 +7,7 @@ import { chromium, devices } from "playwright";
 import process from "node:process";
 
 const baseUrl = process.argv[2] || process.env.PATHFINDER_QA_BASE_URL || "http://127.0.0.1:3456";
+const nativeBookingUrl = "https://booking.pathfindertherapy.com/book";
 const widths = [320, 375, 390, 430, 768, 1024, 1440];
 const results = [];
 const errors = [];
@@ -54,30 +55,24 @@ async function runDesktop(browser) {
 
   await page.goto(`${baseUrl}/book/`, { waitUntil: "domcontentloaded" });
   const meta = await page.textContent(".lpConsultMeta");
-  if (meta?.includes("30-minute initial consultation · Free · Zoom")) {
+  if (meta?.includes("30-minute initial consultation · Free · Secure Zoom")) {
     pass("/book/ consultation meta", meta);
   } else {
     fail("/book/ consultation meta", meta || "missing");
   }
 
-  const loading = page.locator(".lpCalendlyLoading");
-  await loading.waitFor({ state: "attached", timeout: 5000 }).catch(() => {});
-  const calendlyFrame = page.locator(".calendly-inline-widget iframe, .calendly-inline-widget [data-testid]");
-  try {
-    await Promise.race([
-      calendlyFrame.first().waitFor({ state: "attached", timeout: 20000 }),
-      page.locator(".lpCalendlyPanel.isError").waitFor({ state: "attached", timeout: 20000 })
-    ]);
-    const hasError = await page.locator(".lpCalendlyPanel.isError").count();
-    if (hasError) fail("/book/ Calendly widget load", "error fallback visible");
-    else pass("/book/ Calendly widget load", "widget attached without manual click");
-  } catch {
-    fail("/book/ Calendly widget load", "timed out waiting for widget");
+  const bookingPanel = page.locator(".lpNativeBookingPanel");
+  await bookingPanel.waitFor({ state: "attached", timeout: 5000 }).catch(() => {});
+  const bookingHref = await page.locator("[data-native-booking-link]").first().getAttribute("href");
+  if (bookingHref?.startsWith(nativeBookingUrl)) {
+    pass("/book/ native booking handoff", bookingHref);
+  } else {
+    fail("/book/ native booking handoff", bookingHref || "missing");
   }
 
-  const panelHeight = await page.locator(".lpCalendlyPanel").evaluate((el) => el.getBoundingClientRect().height);
-  if (panelHeight >= 600) pass("/book/ Calendly reserved height", `${Math.round(panelHeight)}px`);
-  else fail("/book/ Calendly reserved height", `${Math.round(panelHeight)}px`);
+  const panelHeight = await bookingPanel.evaluate((el) => el.getBoundingClientRect().height);
+  if (panelHeight >= 240) pass("/book/ native booking panel height", `${Math.round(panelHeight)}px`);
+  else fail("/book/ native booking panel height", `${Math.round(panelHeight)}px`);
 
   await page.goto(`${baseUrl}/start/#enquiry`, { waitUntil: "domcontentloaded" });
   await page.waitForTimeout(400);

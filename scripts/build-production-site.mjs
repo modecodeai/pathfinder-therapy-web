@@ -21,12 +21,12 @@ import { applySprint3Transforms, stripHydrationScripts } from "./site-sprint3.mj
 import {
   BOOK_CONFIRMED_PATH,
   BOOK_PATH,
+  BOOKING_CSS,
+  BOOKING_INLINE_SCRIPT,
   buildBookConfirmedBody,
   buildBookPageBody,
-  CALENDLY_CSS,
-  CALENDLY_INLINE_SCRIPT,
-  DEFAULT_CALENDLY_URL
-} from "./site-calendly.mjs";
+  DEFAULT_BOOKING_URL
+} from "./site-booking.mjs";
 import {
   GOOGLE_ADS_HELPER_SCRIPT,
   injectGtag,
@@ -643,7 +643,7 @@ function buildBookPage(contactHtml) {
   const parts = extractPageParts(contactHtml);
   let head = parts.head.replace(
     "</head>",
-    `<link href="https://assets.calendly.com/assets/external/widget.css" rel="stylesheet">\n<script src="https://assets.calendly.com/assets/external/widget.js" async></script>\n${CALENDLY_CSS}\n</head>`
+    `${BOOKING_CSS}\n</head>`
   );
   let html = wrapInShellV2({
     ...parts,
@@ -652,8 +652,8 @@ function buildBookPage(contactHtml) {
     mainInner: buildBookPageBody(),
     interior: false
   });
-  html = html.replace(buildStickyBar(), buildStickyBar("#calendly-booking", BOOKING_LABEL));
-  html = injectBeforeBodyClose(html, `${LANDING_SCRIPT}\n${CALENDLY_INLINE_SCRIPT}`);
+  html = html.replace(buildStickyBar(), buildStickyBar("#native-booking", BOOKING_LABEL));
+  html = injectBeforeBodyClose(html, `${LANDING_SCRIPT}\n${BOOKING_INLINE_SCRIPT}`);
   html = patchHtml(html, {
     robots: "noindex, nofollow",
     title: "Arrange an Initial Consultation | Pathfinder Therapy Lisbon",
@@ -1145,7 +1145,7 @@ async function main() {
   await writeRoute(PREVIEW_ORIGIN, BOOK_PATH, bookHtml);
   await writeRoute(PREVIEW_ORIGIN, BOOK_CONFIRMED_PATH, bookConfirmedHtml);
   console.log("Added /start/, /thank-you/, /book/, and /book-confirmed/");
-  console.log(`Calendly embed: ${DEFAULT_CALENDLY_URL.replace(/^https?:\/\//, "")}`);
+  console.log(`Native booking: ${DEFAULT_BOOKING_URL.replace(/^https?:\/\//, "")}`);
   logGoogleAdsBuildConfig();
 
   const shellHtml = await fetchText(`${PREVIEW_ORIGIN}/approach/`);

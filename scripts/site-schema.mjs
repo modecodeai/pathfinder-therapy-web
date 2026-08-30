@@ -1,6 +1,7 @@
 import { getClinicGeo } from "./site-location.mjs";
 
 const SITE = "https://www.pathfindertherapy.com";
+const BOOKING_SITE = "https://booking.pathfindertherapy.com/book";
 const geo = getClinicGeo();
 const LISBON_ADDRESS = {
   "@type": "PostalAddress",
@@ -137,7 +138,7 @@ export function buildServiceSchema({ name, description, url, serviceType }) {
     areaServed: { "@type": "City", name: "Lisboa" },
     availableChannel: {
       "@type": "ServiceChannel",
-      serviceUrl: `${SITE}/book/`,
+      serviceUrl: BOOKING_SITE,
       servicePhone: "+351914775365"
     }
   })}</script>`;

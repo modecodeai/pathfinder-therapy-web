@@ -19,6 +19,10 @@ export function LeadCtaLink({ href, className, label, children }: LeadCtaLinkPro
     event.preventDefault();
     const destination = appendAttributionToUrl(href);
     trackLeadCtaClick(label, destination);
+    if (/^https?:\/\//i.test(destination)) {
+      window.location.href = destination;
+      return;
+    }
     router.push(destination);
   }
 

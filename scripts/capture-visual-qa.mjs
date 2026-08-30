@@ -25,33 +25,16 @@ async function capturePage(browser, { name, url, viewport, device, fullPage = tr
   console.log(`Captured ${name}.png`);
 }
 
-async function captureBookLoading(browser) {
+async function captureBookHandoff(browser) {
   const context = await browser.newContext({ viewport: { width: 1440, height: 900 } });
   const page = await context.newPage();
-  await page.route("**/assets.calendly.com/assets/external/widget.js", async (route) => {
-    await new Promise((resolve) => setTimeout(resolve, 60000));
-    await route.continue();
-  });
   await page.goto(`${baseUrl}/book/`, { waitUntil: "domcontentloaded" });
-  await page.waitForTimeout(600);
-  await page.locator(".lpCalendlyPanel").screenshot({
-    path: path.join(outputDir, "book-page-loading.png")
+  await page.waitForTimeout(300);
+  await page.locator(".lpNativeBookingPanel").screenshot({
+    path: path.join(outputDir, "book-page-handoff.png")
   });
   await context.close();
-  console.log("Captured book-page-loading.png");
-}
-
-async function captureBookError(browser) {
-  const context = await browser.newContext({ viewport: { width: 1440, height: 900 } });
-  const page = await context.newPage();
-  await page.route("**/assets.calendly.com/**", (route) => route.abort());
-  await page.goto(`${baseUrl}/book/`, { waitUntil: "domcontentloaded" });
-  await page.waitForSelector(".lpCalendlyPanel.isError", { timeout: 8000 });
-  await page.locator(".lpCalendlyPanel").screenshot({
-    path: path.join(outputDir, "book-page-error.png")
-  });
-  await context.close();
-  console.log("Captured book-page-error.png");
+  console.log("Captured book-page-handoff.png");
 }
 
 async function captureFooterHiddenFloat(browser) {
@@ -121,8 +104,7 @@ async function main() {
       url: "/approach/",
       device: "iPhone 13"
     });
-    await captureBookLoading(browser);
-    await captureBookError(browser);
+    await captureBookHandoff(browser);
     await captureFooterHiddenFloat(browser);
     console.log(`Visual QA screenshots written to ${outputDir}`);
   } finally {

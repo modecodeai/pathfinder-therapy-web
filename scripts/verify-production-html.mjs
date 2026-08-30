@@ -3,6 +3,7 @@ import process from "node:process";
 
 const sha = process.env.PATHFINDER_BUILD_SHA || "";
 const baseUrl = process.env.PATHFINDER_VERIFY_BASE_URL || "https://www.pathfindertherapy.com";
+const nativeBookingUrl = "https://booking.pathfindertherapy.com/book";
 const routes = ["/", "/start/", "/book/", "/fees/", "/about/", "/approach/", "/therapy/", "/contact/", "/faq/"];
 
 const LEGACY_LABELS = [
@@ -28,7 +29,7 @@ const contentChecks = [
       html.includes("Trauma-informed psychotherapy in Lisbon and online") &&
       !html.includes("Choose the route that suits you") &&
       html.includes("Not sure where to begin?") &&
-      html.includes('href="/book/"') &&
+      html.includes(`href="${nativeBookingUrl}"`) &&
       html.includes('href="/start/#enquiry"')
   },
   {
@@ -41,10 +42,11 @@ const contentChecks = [
   {
     route: "/book/",
     test: (html) =>
-      html.includes("30-minute initial consultation · Free · Zoom") &&
-      html.includes("hi-pathfindertherapy/30min") &&
-      html.includes("calendly-inline-widget") &&
-      html.includes("lpCalendlyLoading")
+      html.includes("30-minute initial consultation · Free · Secure Zoom") &&
+      html.includes(nativeBookingUrl) &&
+      html.includes("lpNativeBookingPanel") &&
+      !html.includes("assets.calendly.com") &&
+      !html.includes("calendly-inline-widget")
   },
   {
     route: "/therapy/",

@@ -3,6 +3,7 @@ import fs from "node:fs";
 import path from "node:path";
 
 const OUT_DIR = process.env.PATHFINDER_OUT_DIR || path.join(process.cwd(), "out");
+const NATIVE_BOOKING_URL = "https://booking.pathfindertherapy.com/book";
 
 const ROUTES = [
   "/",
@@ -197,7 +198,7 @@ function auditCtas() {
       /<a\b(?=[^>]*\bclass="[^"]*\blpPrimaryCta\b)(?=[^>]*\bhref="([^"]+)")[^>]*>\s*Arrange an initial consultation|<a\b(?=[^>]*\bhref="([^"]+)")(?=[^>]*\bclass="[^"]*\blpPrimaryCta\b)[^>]*>\s*Arrange an initial consultation/gi;
     for (const match of html.matchAll(primaryPattern)) {
       const href = match[1] || match[2];
-      if (href !== "/book/") {
+      if (href !== NATIVE_BOOKING_URL) {
         issues.push(`${rel}: primary CTA href "${href}"`);
       }
     }
@@ -331,14 +332,17 @@ function main() {
       if (html.includes('id="home-faq"')) errors.push("Homepage FAQ section still present");
     }
     if (route === "/book/") {
-      if (!html.includes("30-minute initial consultation · Free · Zoom")) {
+      if (!html.includes("30-minute initial consultation · Free · Secure Zoom")) {
         errors.push("/book/ missing exact consultation meta line");
       }
-      if (!html.includes("hi-pathfindertherapy/30min")) {
-        errors.push("/book/ missing live Calendly event URL");
+      if (!html.includes(NATIVE_BOOKING_URL)) {
+        errors.push("/book/ missing native Pathfinder booking URL");
       }
-      if (!html.includes("lpCalendlyLoading")) {
-        errors.push("/book/ missing Calendly loading state");
+      if (!html.includes("lpNativeBookingPanel")) {
+        errors.push("/book/ missing native booking handoff panel");
+      }
+      if (html.includes("assets.calendly.com") || html.includes("calendly-inline-widget")) {
+        errors.push("/book/ still loads Calendly");
       }
     }
     if (route === "/therapy/") {

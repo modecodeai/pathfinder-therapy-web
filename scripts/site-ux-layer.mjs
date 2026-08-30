@@ -1,6 +1,6 @@
-export const CONSULTATION_PATH = "/book/";
+export const CONSULTATION_PATH = "https://booking.pathfindertherapy.com/book";
 export const ENQUIRY_PATH = "/start/#enquiry";
-/** Primary CTA — consultation booking (Calendly). */
+/** Primary CTA — native Pathfinder booking. */
 export const BOOKING_PATH = CONSULTATION_PATH;
 export const BOOKING_LABEL = "Arrange an initial consultation";
 /** Secondary CTA — written enquiry form. */
@@ -164,7 +164,7 @@ export function buildLlmsTxt() {
 - https://www.pathfindertherapy.com/english-speaking-therapist-lisbon/
 
 ## Booking
-- Arrange an initial consultation: https://www.pathfindertherapy.com/book/
+- Arrange an initial consultation: https://booking.pathfindertherapy.com/book
 - Send an enquiry: https://www.pathfindertherapy.com/start/#enquiry
 - Email: hi@pathfindertherapy.com
 - Phone/WhatsApp: +351 914 775 365

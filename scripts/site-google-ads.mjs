@@ -82,7 +82,7 @@ export const GOOGLE_ADS_HELPER_SCRIPT = `<script id="pathfinder-google-ads">
     },
     fireBookingConversion: function (source) {
       if (sessionStorage.getItem(BOOKING_KEY)) return;
-      fireGa4Lead(source, "calendly");
+      fireGa4Lead(source, "booking");
       fireAds(BOOKING);
       sessionStorage.setItem(BOOKING_KEY, "1");
     },
