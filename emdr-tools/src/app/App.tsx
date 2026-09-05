@@ -1,0 +1,137 @@
+import { BrowserRouter, Navigate, Route, Routes, useParams } from 'react-router-dom';
+import { AnalyseTranscriptPage } from '../clinical-intelligence/AnalyseTranscriptPage';
+import { AipFormulationPage } from '../clinical-intelligence/AipFormulationPage';
+import { ClinicalReasoningPage } from '../clinical-intelligence/ClinicalReasoningPage';
+import {
+  AppearanceSettingsPage,
+  ClinicalIntelligenceSettingsPage,
+  DataRetentionSettingsPage,
+  RemoteSessionsSettingsPage,
+  SecurityPrivacySettingsPage,
+  SettingsHomePage,
+} from '../clinical-intelligence/ClinicalIntelligenceSettingsPage';
+import { ClientDetailPage, ClientsListPage } from '../clinical-intelligence/ClientsPage';
+import { ClientSetupPage } from '../clinical-intelligence/ClientSetupPage';
+import { SessionDebriefPage } from '../clinical-intelligence/SessionDebriefPage';
+import { PainProtocolPage } from '../emdr/components/emdr-pain/PainProtocolPage';
+import {
+  ClinicalLibraryDetailPage,
+  ClinicalLibraryPage,
+} from '../emdr/components/practice/ClinicalLibraryPage';
+import { EmdPage } from '../emdr/components/practice/EmdPage';
+import { FloatbackPage } from '../emdr/components/practice/FloatbackPage';
+import { FutureTemplatePage } from '../emdr/components/practice/FutureTemplatePage';
+import { KnowledgePage } from '../emdr/components/practice/KnowledgePage';
+import { PracticeHomePage } from '../emdr/components/practice/PracticeHomePage';
+import { ProtocolsPage } from '../emdr/components/practice/ProtocolsPage';
+import { RecentEventsPage } from '../emdr/components/practice/RecentEventsPage';
+import { RdiPage } from '../emdr/components/practice/RdiPage';
+import { SafeCalmPage } from '../emdr/components/practice/SafeCalmPage';
+import { StandardEmdrConsolePage } from '../emdr/components/practice/StandardEmdrConsolePage';
+import { SessionCompanionPage } from '../emdr/components/SessionCompanion';
+import { ResourcesPage } from '../emdr/help/ResourcesPage';
+import { BookAppointmentPage, BookConfirmedPage } from '../os/pages/BookAppointmentPage';
+import {
+  ClientPortalHomePage,
+  PortalAppointmentsPage,
+  PortalIntakePage,
+  PortalPaymentsPage,
+  PublicHomePage,
+  PublicServicesPage,
+  PublicTherapistsPage,
+} from '../os/pages/PublicPages';
+import { AboutPage } from '../routes/AboutPage';
+import { AccountPage } from '../routes/AccountPage';
+import { JoinPage } from '../routes/JoinPage';
+import { LandingPage } from '../routes/LandingPage';
+import { ToolsPage } from '../routes/ToolsPage';
+
+function ClientDetailRoute() {
+  const { clientId } = useParams<{ clientId: string }>();
+  if (!clientId) return <Navigate to="/clients" replace />;
+  return <ClientDetailPage clientId={clientId} />;
+}
+
+function ClientSetupRoute() {
+  const { clientId } = useParams<{ clientId: string }>();
+  if (!clientId) return <Navigate to="/clients" replace />;
+  return <ClientSetupPage clientId={clientId} />;
+}
+
+function AnalyseRoute() {
+  const { clientId } = useParams<{ clientId: string }>();
+  if (!clientId) return <Navigate to="/clients" replace />;
+  return <AnalyseTranscriptPage clientId={clientId} />;
+}
+
+function AipFormulationRoute() {
+  const { clientId } = useParams<{ clientId: string }>();
+  if (!clientId) return <Navigate to="/clients" replace />;
+  return <AipFormulationPage clientId={clientId} />;
+}
+
+function SessionDebriefRoute() {
+  const { clientId } = useParams<{ clientId: string }>();
+  if (!clientId) return <Navigate to="/clients" replace />;
+  return <SessionDebriefPage clientId={clientId} />;
+}
+
+function ClinicalReasoningRoute() {
+  const { clientId } = useParams<{ clientId: string }>();
+  if (!clientId) return <Navigate to="/clients" replace />;
+  return <ClinicalReasoningPage clientId={clientId} />;
+}
+
+export default function App() {
+  return (
+    <BrowserRouter>
+      <Routes>
+        <Route path="/" element={<LandingPage />} />
+        <Route path="/public" element={<PublicHomePage />} />
+        <Route path="/services" element={<PublicServicesPage />} />
+        <Route path="/therapists" element={<PublicTherapistsPage />} />
+        <Route path="/book" element={<BookAppointmentPage />} />
+        <Route path="/book/confirmed" element={<BookConfirmedPage />} />
+        <Route path="/portal" element={<ClientPortalHomePage />} />
+        <Route path="/portal/appointments" element={<PortalAppointmentsPage />} />
+        <Route path="/portal/intake" element={<PortalIntakePage />} />
+        <Route path="/portal/payments" element={<PortalPaymentsPage />} />
+        <Route path="/practice" element={<PracticeHomePage />} />
+        <Route path="/knowledge" element={<KnowledgePage />} />
+        <Route path="/protocols" element={<Navigate to="/knowledge" replace />} />
+        <Route path="/protocols/catalogue" element={<ProtocolsPage />} />
+        <Route path="/practice/standard" element={<StandardEmdrConsolePage />} />
+        <Route path="/practice/safe-calm" element={<SafeCalmPage />} />
+        <Route path="/practice/rdi" element={<RdiPage />} />
+        <Route path="/practice/emd" element={<EmdPage />} />
+        <Route path="/practice/floatback" element={<FloatbackPage />} />
+        <Route path="/practice/future-template" element={<FutureTemplatePage />} />
+        <Route path="/practice/recent-events" element={<RecentEventsPage />} />
+        <Route path="/practice/library" element={<ClinicalLibraryPage />} />
+        <Route path="/practice/library/:resourceId" element={<ClinicalLibraryDetailPage />} />
+        <Route path="/tools" element={<ToolsPage />} />
+        <Route path="/session" element={<SessionCompanionPage />} />
+        <Route path="/pain" element={<PainProtocolPage />} />
+        <Route path="/resources" element={<ResourcesPage />} />
+        <Route path="/settings" element={<SettingsHomePage />} />
+        <Route path="/settings/clinical-intelligence" element={<ClinicalIntelligenceSettingsPage />} />
+        <Route path="/settings/security" element={<SecurityPrivacySettingsPage />} />
+        <Route path="/settings/data-retention" element={<DataRetentionSettingsPage />} />
+        <Route path="/settings/appearance" element={<AppearanceSettingsPage />} />
+        <Route path="/settings/remote-sessions" element={<RemoteSessionsSettingsPage />} />
+        <Route path="/clients" element={<ClientsListPage />} />
+        <Route path="/clients/:clientId" element={<ClientDetailRoute />} />
+        <Route path="/clients/:clientId/setup" element={<ClientSetupRoute />} />
+        <Route path="/clients/:clientId/clinical-intelligence" element={<AnalyseRoute />} />
+        <Route path="/clients/:clientId/clinical-reasoning" element={<ClinicalReasoningRoute />} />
+        <Route path="/clients/:clientId/aip-formulation" element={<AipFormulationRoute />} />
+        <Route path="/clients/:clientId/debrief" element={<SessionDebriefRoute />} />
+        <Route path="/account" element={<AccountPage />} />
+        <Route path="/join/:roomId" element={<JoinPage />} />
+        <Route path="/client/session/:roomId" element={<JoinPage />} />
+        <Route path="/about" element={<AboutPage />} />
+        <Route path="*" element={<Navigate to="/" replace />} />
+      </Routes>
+    </BrowserRouter>
+  );
+}
