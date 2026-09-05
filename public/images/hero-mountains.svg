@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 1200" preserveAspectRatio="xMidYMid slice">
+  <defs>
+    <linearGradient id="sky" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#283735"/><stop offset="0.45" stop-color="#d6a66c"/><stop offset="1" stop-color="#2b302b"/>
+    </linearGradient>
+    <radialGradient id="sun" cx="67%" cy="23%" r="45%">
+      <stop offset="0" stop-color="#fff3d2" stop-opacity=".95"/><stop offset=".28" stop-color="#d99b5a" stop-opacity=".45"/><stop offset="1" stop-color="#101c1a" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="shadow" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#111d1b" stop-opacity=".05"/><stop offset="1" stop-color="#06110f" stop-opacity=".88"/>
+    </linearGradient>
+  </defs>
+  <rect width="1600" height="1200" fill="url(#sky)"/>
+  <rect width="1600" height="1200" fill="url(#sun)"/>
+  <path d="M0 470 C180 330 275 420 395 275 C520 120 640 450 790 290 C945 125 1060 380 1230 235 C1360 125 1480 260 1600 180 L1600 1200 L0 1200Z" fill="#172421" opacity=".55"/>
+  <path d="M0 590 C170 470 325 540 470 390 C610 250 740 535 905 360 C1040 220 1170 480 1330 315 C1430 210 1510 270 1600 225 L1600 1200 L0 1200Z" fill="#12201e" opacity=".72"/>
+  <path d="M0 780 C155 620 305 720 470 560 C640 390 775 710 960 500 C1090 355 1275 640 1600 400 L1600 1200 L0 1200Z" fill="#091513" opacity=".9"/>
+  <path d="M870 705 C965 665 1040 620 1130 575 C1080 640 1025 710 960 790 C925 790 895 760 870 705Z" fill="#24372f"/>
+  <path d="M930 610 C980 590 1060 650 1080 705 C1020 680 965 675 910 710 C905 660 910 630 930 610Z" fill="#59614f" opacity=".8"/>
+  <path d="M815 930 C920 810 1010 760 1110 720 C1015 835 975 940 1040 1200 L760 1200 C760 1100 770 1010 815 930Z" fill="#151a17"/>
+  <path d="M970 672 l18 0 l8 90 l-35 0z" fill="#0a0e0c"/><circle cx="979" cy="648" r="20" fill="#0a0e0c"/>
+  <path d="M973 763 l-22 118 M992 762 l36 116" stroke="#0a0e0c" stroke-width="14" stroke-linecap="round"/>
+  <path d="M962 710 l-45 54 M996 710 l48 54" stroke="#0a0e0c" stroke-width="11" stroke-linecap="round"/>
+  <path d="M0 0 H1600 V1200 H0Z" fill="url(#shadow)"/>
+  <path d="M0 0 H1600 V1200 H0Z" fill="#06110f" opacity=".2"/>
+</svg>

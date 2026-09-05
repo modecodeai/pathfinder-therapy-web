@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 220 220" role="img" aria-label="ITAA Member">
+  <defs>
+    <linearGradient id="itaaRim" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#d7d7d7"/>
+      <stop offset="55%" stop-color="#f4f4f4"/>
+      <stop offset="100%" stop-color="#5bb5e0"/>
+    </linearGradient>
+    <filter id="itaaShadow" x="-12%" y="-12%" width="124%" height="124%">
+      <feDropShadow dx="-2" dy="2" stdDeviation="2.2" flood-color="#000000" flood-opacity="0.28"/>
+    </filter>
+  </defs>
+  <circle cx="110" cy="110" r="102" fill="#ffffff" stroke="url(#itaaRim)" stroke-width="4" filter="url(#itaaShadow)"/>
+  <circle cx="42" cy="72" r="7.5" fill="#8bc34a"/>
+  <circle cx="42" cy="96" r="7.5" fill="#4eb5e8"/>
+  <circle cx="42" cy="120" r="7.5" fill="#8a8f94"/>
+  <text x="62" y="112" font-family="Helvetica, Arial, sans-serif" font-size="46" font-weight="700" fill="#6f757a" letter-spacing="-1">itaa</text>
+  <g transform="translate(168 58)" fill="none" stroke="#8bc34a" stroke-width="2.4" stroke-linecap="round">
+    <circle cx="18" cy="34" r="24"/>
+    <ellipse cx="18" cy="34" rx="10" ry="24"/>
+    <path d="M-4 22c12 4 32 4 44 0"/>
+    <path d="M-4 34c12 4 32 4 44 0"/>
+    <path d="M-4 46c12 4 32 4 44 0"/>
+  </g>
+  <text x="110" y="148" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="8.5" font-weight="600" fill="#6f757a" letter-spacing="1.2">INTERNATIONAL TRANSACTIONAL</text>
+  <text x="110" y="160" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="8.5" font-weight="600" fill="#6f757a" letter-spacing="1.2">ANALYSIS ASSOCIATION</text>
+  <text x="110" y="186" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="22" font-weight="500" fill="#4eb5e8">Member</text>
+</svg>

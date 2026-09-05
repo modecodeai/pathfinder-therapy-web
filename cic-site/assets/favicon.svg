@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 160" aria-label="Pathfinder Therapy CIC logo">
+  <circle cx="80" cy="80" r="70" fill="#070707" stroke="#f4f4f1" stroke-width="3.2"/>
+  <g fill="none" stroke="#f4f4f1" stroke-width="1.2" opacity=".36">
+    <path d="M18 38 C42 25,60 36,82 22 C103 9,120 16,142 6"/>
+    <path d="M15 58 C39 44,60 54,83 39 C106 25,124 32,146 18"/>
+    <path d="M15 81 C41 66,64 77,90 58 C113 42,130 49,148 34"/>
+    <path d="M20 104 C46 88,69 101,96 78 C116 62,133 69,148 52"/>
+    <path d="M33 132 C58 111,82 121,106 99 C124 82,139 88,153 70"/>
+  </g>
+  <g fill="#f97316">
+    <circle cx="66" cy="133" r="4.4"/><circle cx="64" cy="119" r="4.4"/><circle cx="63" cy="105" r="4.4"/>
+    <circle cx="63" cy="91" r="4.4"/><circle cx="65" cy="77" r="4.4"/><circle cx="69" cy="63" r="4.4"/>
+    <circle cx="77" cy="51" r="4.4"/><circle cx="90" cy="43" r="4.4"/><circle cx="105" cy="43" r="4.4"/>
+    <circle cx="117" cy="51" r="4.4"/><circle cx="121" cy="64" r="4.4"/><circle cx="116" cy="76" r="4.4"/>
+    <circle cx="103" cy="83" r="4.4"/><circle cx="88" cy="84" r="4.4"/><circle cx="75" cy="79" r="4.4"/>
+  </g>
+</svg>

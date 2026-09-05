@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 420 140" role="img" aria-label="Locallista Lisbon member business 2026, trusted by expats">
+  <defs>
+    <style>
+      .locallista-sans { font-family: "Avenir Next", "Helvetica Neue", Arial, sans-serif; }
+      .locallista-serif { font-family: Georgia, "Times New Roman", serif; }
+    </style>
+  </defs>
+  <rect width="420" height="140" rx="16" ry="16" fill="#121621"/>
+  <rect x="18" y="24" width="92" height="92" rx="14" ry="14" fill="#e8c872"/>
+  <circle cx="64" cy="58" r="15" fill="#121621"/>
+  <circle cx="64" cy="58" r="5.5" fill="#e8c872"/>
+  <path d="M44 78 Q64 64 84 78" fill="none" stroke="#121621" stroke-width="6" stroke-linecap="round"/>
+  <text x="126" y="40" class="locallista-sans" fill="#e8c872" font-size="12" font-weight="600" letter-spacing="2.2">LOCALLISTA LISBON</text>
+  <text x="126" y="72" class="locallista-sans" fill="#ffffff" font-size="28" font-weight="700" letter-spacing="0.4">MEMBER</text>
+  <text x="126" y="104" class="locallista-sans" fill="#ffffff" font-size="28" font-weight="700" letter-spacing="0.4">BUSINESS</text>
+  <text x="272" y="104" class="locallista-serif" fill="#ffffff" font-size="28" font-weight="400">2026</text>
+  <text x="126" y="126" class="locallista-sans" fill="#ffffff" font-size="12" font-weight="400">trusted by expats</text>
+  <g fill="#e8c872">
+    <polygon points="252,118 254.4,124.2 261.2,124.2 255.6,128.2 258,134.4 252,130.2 246,134.4 248.4,128.2 242.8,124.2 249.6,124.2"/>
+    <polygon points="267,118 269.4,124.2 276.2,124.2 270.6,128.2 273,134.4 267,130.2 261,134.4 263.4,128.2 257.8,124.2 264.6,124.2"/>
+    <polygon points="282,118 284.4,124.2 291.2,124.2 285.6,128.2 288,134.4 282,130.2 276,134.4 278.4,128.2 272.8,124.2 279.6,124.2"/>
+    <polygon points="297,118 299.4,124.2 306.2,124.2 300.6,128.2 303,134.4 297,130.2 291,134.4 293.4,128.2 287.8,124.2 294.6,124.2"/>
+    <polygon points="312,118 314.4,124.2 321.2,124.2 315.6,128.2 318,134.4 312,130.2 306,134.4 308.4,128.2 302.8,124.2 309.6,124.2"/>
+  </g>
+</svg>
