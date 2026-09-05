@@ -1,6 +1,7 @@
 node_modules/
 .next/
 out/
+cic-out/
 .DS_Store
 *.log
 .env

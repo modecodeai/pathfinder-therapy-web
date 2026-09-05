@@ -48,12 +48,7 @@ export const GLOBAL_SCHEMA = [
     name: "Pathfinder Therapy",
     url: SITE,
     inLanguage: "en-GB",
-    publisher: { "@id": `${SITE}/#organization` },
-    potentialAction: {
-      "@type": "SearchAction",
-      target: `${SITE}/knowledge-library/?q={search_term_string}`,
-      "query-input": "required name=search_term_string"
-    }
+    publisher: { "@id": `${SITE}/#organization` }
   },
   {
     "@context": "https://schema.org",
@@ -61,6 +56,8 @@ export const GLOBAL_SCHEMA = [
     "@id": `${SITE}/about/#brent-kelly`,
     name: "Brent Kelly",
     jobTitle: "Therapist",
+    description: "English-speaking therapist offering trauma-informed psychotherapy, EMDR and Transactional Analysis for adults in Lisbon and online across Portugal.",
+    knowsLanguage: "English",
     worksFor: { "@id": `${SITE}/#organization` },
     url: `${SITE}/about/`,
     image: `${SITE}/assets/images/about-brent.webp`,
@@ -97,6 +94,7 @@ export const GLOBAL_SCHEMA = [
     email: "hi@pathfindertherapy.com",
     telephone: "+351 914 775 365",
     priceRange: "EUR75",
+    employee: { "@id": `${SITE}/about/#brent-kelly` },
     medicalSpecialty: ["Psychotherapy", "Trauma therapy", "EMDR", "Relationship therapy"],
     address: LISBON_ADDRESS,
     geo: {
@@ -138,6 +136,7 @@ export function buildServiceSchema({ name, description, url, serviceType }) {
     areaServed: { "@type": "City", name: "Lisboa" },
     availableChannel: {
       "@type": "ServiceChannel",
+      availableLanguage: "English",
       serviceUrl: BOOKING_SITE,
       servicePhone: "+351914775365"
     }

@@ -4,6 +4,11 @@ import { getClinicDirectionsUrl } from "./site-location.mjs";
 
 const SITE = "https://www.pathfindertherapy.com";
 const DIRECTIONS_LINK = `<p><a class="lpLocationMapLink" href="${getClinicDirectionsUrl()}" target="_blank" rel="noopener noreferrer">Get directions on Google Maps →</a></p>`;
+const TRAUMA_FAQS = [
+  { question: "Can I have trauma therapy in English with Brent Kelly?", answer: "Yes. Brent offers trauma-informed psychotherapy in English for adults at Pathfinder Therapy in central Lisbon and online across Portugal. EMDR and Transactional Analysis are used where clinically appropriate." },
+  { question: "Where is the Lisbon clinic?", answer: "The Pathfinder Therapy Lisbon clinic is at R. Rodrigues Sampaio 76, 1º Andar, 1150-281 Lisboa, Portugal. Brent holds face-to-face sessions at this clinic." },
+  { question: "How do I find out whether Brent is the right therapist for me?", answer: "Start with a free 30-minute initial consultation by Zoom to discuss what you are looking for and whether the service is suitable. There is no obligation to continue. Therapy sessions start from €75." },
+];
 
 function section(kicker, title, id, bodyHtml) {
   return `<section class="lpLocalSection" aria-labelledby="${id}">
@@ -59,15 +64,16 @@ export const LOCAL_LANDING_PAGES = [
   },
   {
     route: "/trauma-therapy-lisbon/",
-    title: "Trauma Therapy Lisbon | Trauma-Informed Therapist | Pathfinder",
+    title: "English-Speaking Trauma Therapist Lisbon | Brent Kelly",
     description:
       "Trauma-informed psychotherapy in Lisbon with Brent Kelly, EMDR Practitioner. Support for PTSD, complex trauma, and anxiety — EMDR where appropriate. English-speaking sessions in Lisbon or online.",
     serviceName: "Trauma therapy in Lisbon",
+    faqs: TRAUMA_FAQS,
     serviceType: "Trauma therapy",
     hero: {
       kicker: "Trauma therapy · Lisbon",
-      title: "Trauma therapy in Lisbon — when the past still shapes the present.",
-      lead: "Trauma-informed psychotherapy for adults navigating PTSD, complex trauma, anxiety, and life after difficult experiences. In person in Lisbon or securely online."
+      title: "Trauma therapy in English with Brent Kelly.",
+      lead: "Brent Kelly offers trauma-informed psychotherapy in English for adults in Lisbon and online across Portugal. EMDR and Transactional Analysis are used where clinically appropriate. Start with a free 30-minute initial consultation by Zoom."
     },
     sections: [
       section(
@@ -75,7 +81,7 @@ export const LOCAL_LANDING_PAGES = [
         "When trauma therapy may help",
         "trauma-who",
         `<p>Many people seek trauma therapy when anxiety, flashbacks, hypervigilance, relationship patterns, or a sense of shutdown persist long after difficult events. You do not need a formal diagnosis to begin a conversation.</p>
-        <p>Brent works with military veterans, expatriates, and adults facing complex life experiences — always at a pace that respects your nervous system.</p>`
+        <p><a href="/about/#brent-kelly">Brent Kelly</a> works with military veterans, expatriates, and adults facing complex life experiences — always at a pace that respects your nervous system.</p>`
       ),
       section(
         "Methods",
@@ -139,7 +145,7 @@ export const LOCAL_LANDING_PAGES = [
   },
   {
     route: "/english-speaking-therapist-lisbon/",
-    title: "English Speaking Therapist Lisbon | Pathfinder Therapy",
+    title: "English-Speaking Therapist Lisbon | Brent Kelly, Pathfinder",
     description:
       "English-speaking therapist in Lisbon — Brent Kelly offers trauma-informed psychotherapy for expats and international clients. In-person sessions in Lisbon or online across Portugal.",
     serviceName: "English-speaking therapy in Lisbon",
@@ -187,6 +193,7 @@ export function buildLocalLandingBody(page) {
   return `<article class="lpLocalLanding">
 ${hero(page.hero.kicker, page.hero.title, "local-landing-title", page.hero.lead)}
 ${page.sections.join("\n")}
+${page.faqs ? section("Practical questions", "Starting trauma therapy with Brent", "trauma-questions", page.faqs.map((faq) => `<h3>${faq.question}</h3><p>${faq.answer}</p>`).join("")) : ""}
 ${buildPublicFeedbackSection({ compact: true })}
 <section class="lpLocalSection" aria-labelledby="local-related">
   <div class="lpLocalSectionInner">
@@ -210,7 +217,7 @@ export function buildLocalLandingPage(shellHtml, page, buildInteriorPageWithBook
 ${buildBreadcrumbSchema([
     { name: "Home", url: `${SITE}/` },
     { name: page.serviceName, url: canonicalUrl }
-  ])}`;
+  ])}${page.faqs ? `<script type="application/ld+json">${JSON.stringify({ "@context": "https://schema.org", "@type": "FAQPage", mainEntity: page.faqs.map((faq) => ({ "@type": "Question", name: faq.question, acceptedAnswer: { "@type": "Answer", text: faq.answer } })) })}</script>` : ""}`;
 
   return buildInteriorPageWithBookingPanel(shellHtml, {
     title: page.title,

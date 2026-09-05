@@ -51,6 +51,7 @@ import {
 } from "./site-knowledge-articles.mjs";
 import { buildAllServicePages, getServicePageRoutes } from "./site-service-pages.mjs";
 import { CONTACT_VISUAL_CSS } from "./site-contact-visual.mjs";
+import { optimiseStaticSite } from "./optimise-static-site.mjs";
 
 const PREVIEW_ORIGIN =
   process.env.PATHFINDER_PREVIEW_ORIGIN ?? "https://9aa49f15.pathfinder-therapy-web.pages.dev";
@@ -828,7 +829,7 @@ function buildAboutPage(shellHtml) {
 
   const teamCards = therapists
     .map(
-      (therapist) => `<article class="pfTherapistCard">
+      (therapist) => `<article class="pfTherapistCard" id="${therapist.name.toLowerCase().replaceAll(" ", "-")}">
   <img src="${therapist.image}" width="320" height="400" alt="${therapist.alt}" loading="lazy" decoding="async" />
   <div class="pfTherapistCopy">
     <p class="pfTherapistAvailability">${therapist.availability}</p>
@@ -849,7 +850,7 @@ function buildAboutPage(shellHtml) {
   <div class="pfAboutHeroInner">
     <p class="pfKicker">About Pathfinder Therapy</p>
     <h1 class="pfSectionTitle" id="about-title">A Lisbon clinic, with a carefully held online team.</h1>
-    <p class="pfSectionLead">Pathfinder Therapy is led in Lisbon by Brent Kelly. Face-to-face therapy is held by Brent at the Lisbon clinic; online provision is supported by trusted therapists including Tim Felton and Sophie Gidley.</p>
+    <p class="pfSectionLead">Brent Kelly is an English-speaking therapist offering trauma-informed psychotherapy, EMDR and Transactional Analysis in Lisbon and online across Portugal. He leads Pathfinder Therapy and holds face-to-face therapy at the Lisbon clinic. Trusted therapists Tim Felton and Sophie Gidley also support online provision.</p>
     <p class="pfAboutNote">For people looking for therapy in Lisbon, Brent remains the local point of contact and the therapist available for face-to-face work. Tim and Sophie extend Pathfinder's online provision only.</p>
   </div>
 </section>
@@ -891,9 +892,9 @@ function buildAboutPage(shellHtml) {
 </script>`;
 
   return buildInteriorPageV2(shellHtml, {
-    title: "About the Team | Pathfinder Therapy Lisbon & Online",
+    title: "Brent Kelly & the Team | Trauma Therapy in Lisbon & Online",
     description:
-      "Meet Brent Kelly, who leads Pathfinder Therapy in Lisbon, and Tim Felton and Sophie Gidley, who support online therapy through Pathfinder.",
+      "Meet Brent Kelly, an English-speaking trauma therapist in Lisbon offering psychotherapy and EMDR, and Pathfinder's online therapy team.",
     canonical: "https://www.pathfindertherapy.com/about/",
     mainInner,
     schema
@@ -1365,6 +1366,21 @@ async function main() {
     await downloadAsset(assetPath);
   }
 
+  // CSS can reference fonts that are absent from the HTML asset list.
+  const stylesheetDependencies = new Set();
+  for (const assetPath of assetPaths) {
+    if (!assetPath.endsWith(".css")) continue;
+    const css = await readFile(path.join(OUT_DIR, assetPath), "utf8");
+    for (const match of css.matchAll(/url\(["']?([^)'"\s]+)["']?\)/g)) {
+      const dependency = new URL(match[1], `${PREVIEW_ORIGIN}${assetPath}`);
+      if (dependency.origin === new URL(PREVIEW_ORIGIN).origin) stylesheetDependencies.add(dependency.pathname);
+    }
+  }
+  const dependencyPaths = [...stylesheetDependencies];
+  for (let offset = 0; offset < dependencyPaths.length; offset += 8) {
+    await Promise.all(dependencyPaths.slice(offset, offset + 8).map(downloadAsset));
+  }
+
   const sitemapPath = path.join(OUT_DIR, "sitemap.xml");
   try {
     const existingSitemap = await readFile(sitemapPath, "utf8");
@@ -1381,6 +1397,8 @@ async function main() {
   }
 
   await embedBuildProvenance();
+  await cp(path.join(repoRoot, "public", "robots.txt"), path.join(OUT_DIR, "robots.txt"));
+  await optimiseStaticSite(OUT_DIR);
 
   console.log(`Production build written to ${OUT_DIR}`);
 }

@@ -144,7 +144,7 @@ function applyHomepageUx(html) {
 export function buildLlmsTxt() {
   return `# Pathfinder Therapy — Private Practice (.com)
 
-> Trauma-informed psychotherapy with Brent Kelly in Lisbon, with online therapy support through Pathfinder where appropriate.
+> English-speaking trauma-informed psychotherapy with Brent Kelly in Lisbon and online across Portugal, with online therapy support through Pathfinder where appropriate.
 
 ## Primary pages
 - https://www.pathfindertherapy.com/
@@ -164,7 +164,7 @@ export function buildLlmsTxt() {
 - https://www.pathfindertherapy.com/english-speaking-therapist-lisbon/
 
 ## Booking
-- Arrange an initial consultation: https://booking.pathfindertherapy.com/book
+- Arrange a free 30-minute initial consultation by Zoom: https://booking.pathfindertherapy.com/book
 - Send an enquiry: https://www.pathfindertherapy.com/start/#enquiry
 - Email: hi@pathfindertherapy.com
 - Phone/WhatsApp: +351 914 775 365
@@ -225,6 +225,8 @@ export function buildAiSummaryJson() {
       languages: ["English"],
       fees: { currency: "EUR", from: 75 },
       booking: {
+        consultation_url: "https://booking.pathfindertherapy.com/book",
+        consultation_description: "Free 30-minute initial consultation by Zoom, with no obligation to continue",
         enquiry_url: "https://www.pathfindertherapy.com/start/#enquiry",
         email: "hi@pathfindertherapy.com",
         phone: "+351914775365"

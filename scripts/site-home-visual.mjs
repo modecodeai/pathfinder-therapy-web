@@ -398,6 +398,7 @@ export function buildVisualHomePageBody() {
         <p class="pfKicker">English-speaking therapy · Lisbon and online</p>
         <h1 class="pfTitle" id="home-title">Trauma-informed psychotherapy in Lisbon and online</h1>
         <p class="pfLead" style="color:rgba(246,242,234,.84)">Therapy for adults and couples navigating trauma, anxiety, attachment difficulties and significant life transitions.</p>
+        <p class="pfLead" style="color:rgba(246,242,234,.84)">Start with a free 30-minute initial consultation by Zoom. There is no obligation to continue.</p>
         <div class="pfHeroActions">
           <a class="lpPrimaryCta" href="${BOOKING_PATH}">${BOOKING_LABEL}</a>
           <a class="pfHeroTextLink" href="/therapy/">Explore therapy</a>
