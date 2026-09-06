@@ -86,7 +86,7 @@ const ATTRIBUTION_SCRIPT = `<script id="pathfinder-lead-attribution">
   }
 
   function saveStored(next) {
-    sessionStorage.setItem(KEY, JSON.stringify(next));
+    try { sessionStorage.setItem(KEY, JSON.stringify(next)); } catch (error) {}
   }
 
   function capture() {
@@ -107,7 +107,7 @@ const ATTRIBUTION_SCRIPT = `<script id="pathfinder-lead-attribution">
     PARAMS.forEach(function (key) {
       if (stored[key] && !next.searchParams.has(key)) next.searchParams.set(key, stored[key]);
     });
-    return next.pathname + next.search + next.hash;
+    return next.origin === window.location.origin ? next.pathname + next.search + next.hash : next.toString();
   }
 
   window.pathfinderLead = {
@@ -124,7 +124,13 @@ const ATTRIBUTION_SCRIPT = `<script id="pathfinder-lead-attribution">
     var link = event.target.closest("a[href]");
     if (!link) return;
     var href = link.getAttribute("href");
-    if (!href || href.indexOf("http") === 0 || href.indexOf("mailto:") === 0 || href.indexOf("tel:") === 0) return;
+    if (!href || href.indexOf("mailto:") === 0 || href.indexOf("tel:") === 0) return;
+    var target = new URL(href, window.location.origin);
+    if (target.origin === "https://booking.pathfindertherapy.com" && target.pathname === "/book") {
+      link.setAttribute("href", appendAttribution(href));
+      return;
+    }
+    if (target.origin !== window.location.origin) return;
     if (href.indexOf("/contact") === 0 || href.indexOf("/start") === 0 || href.indexOf("/book") === 0) {
       var nextHref = appendAttribution(href);
       if (nextHref !== href) link.setAttribute("href", nextHref);
@@ -132,6 +138,9 @@ const ATTRIBUTION_SCRIPT = `<script id="pathfinder-lead-attribution">
   });
 
   document.addEventListener("DOMContentLoaded", function () {
+    document.querySelectorAll('a[href^="https://booking.pathfindertherapy.com/book"]').forEach(function (link) {
+      link.setAttribute("href", appendAttribution(link.getAttribute("href")));
+    });
     document.querySelectorAll('a[href="/contact/"], a[href="/contact/#contact-form"]').forEach(function (link) {
       link.setAttribute("href", appendAttribution("/start/"));
     });

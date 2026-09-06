@@ -91,7 +91,7 @@ export function appendAttributionToUrl(href: string): string {
       }
     }
 
-    return `${url.pathname}${url.search}${url.hash}`;
+    return url.origin === window.location.origin ? `${url.pathname}${url.search}${url.hash}` : url.toString();
   } catch {
     return href;
   }
