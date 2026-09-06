@@ -307,17 +307,10 @@ function main() {
 
     if (route === "/") {
       const order = [
-        'id="home-title"',
-        'id="home-who"',
-        'id="home-approach"',
-        'id="home-about"',
-        'id="home-reassurance"',
-        'id="home-services"',
-        'id="home-immersive"',
-        'id="home-next"',
-        "Independent feedback",
-        'id="home-final-cta"',
-        'id="home-lisbon"'
+        'id="home-title"', 'id="home-about"', 'id="home-who"',
+        'id="home-services"', 'id="home-approach"', 'id="home-next"',
+        'id="home-lisbon"', 'id="home-reassurance"', "Independent feedback",
+        'id="home-immersive"', 'id="home-final-cta"'
       ];
       if (!html.includes("Immersive EMDR Therapy")) {
         errors.push("Homepage missing Immersive EMDR Therapy announcement");

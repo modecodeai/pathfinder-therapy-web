@@ -17,3 +17,5 @@ out/
 *.tsbuildinfo
 .env*
 .dev.vars*
+
+work/

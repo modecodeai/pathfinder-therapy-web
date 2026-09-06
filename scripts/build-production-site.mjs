@@ -52,6 +52,7 @@ import {
 import { buildAllServicePages, getServicePageRoutes } from "./site-service-pages.mjs";
 import { CONTACT_VISUAL_CSS } from "./site-contact-visual.mjs";
 import { optimiseStaticSite } from "./optimise-static-site.mjs";
+import { applyLisbonRedesign } from "./site-lisbon-redesign.mjs";
 
 const PREVIEW_ORIGIN =
   process.env.PATHFINDER_PREVIEW_ORIGIN ?? "https://9aa49f15.pathfinder-therapy-web.pages.dev";
@@ -353,11 +354,7 @@ function patchOpenGraph(html, { title, description, canonical, ogImage }) {
   const image =
     ogImage || "https://www.pathfindertherapy.com/assets/images/hero-01.webp";
 
-  next = next.replace(/<meta property="og:title" content="[^"]*"\/>/g, "");
-  next = next.replace(/<meta property="og:description" content="[^"]*"\/>/g, "");
-  next = next.replace(/<meta property="og:url" content="[^"]*"\/>/g, "");
-  next = next.replace(/<meta name="twitter:title" content="[^"]*"\/>/g, "");
-  next = next.replace(/<meta name="twitter:description" content="[^"]*"\/>/g, "");
+  next = next.replace(/<meta\b(?=[^>]*(?:property="og:|name="twitter:))[^>]*>/g, "");
 
   const ogBlock = `<meta property="og:type" content="website"/>
 <meta property="og:site_name" content="Pathfinder Therapy"/>
@@ -1267,9 +1264,9 @@ async function main() {
 
   let homePageV2 = stripHydrationScripts(
     patchHtml(buildHomePageV2(homeHtml), {
-      title: "Trauma-Informed Psychotherapy in Lisbon | Pathfinder Therapy",
+      title: "English-Speaking Therapist Lisbon | Brent Kelly | Pathfinder",
       description:
-        "Trauma-informed psychotherapy with Brent Kelly, EMDR Practitioner, in Lisbon, with online therapy support through Pathfinder. English-speaking therapy for adults and couples. Arrange an initial consultation.",
+        "English-speaking psychotherapy and trauma therapy with Brent Kelly in Lisbon or online. Individual sessions from €75. Book a free 30-minute initial Zoom call.",
       canonical: "https://www.pathfindertherapy.com/"
     })
   );
@@ -1398,6 +1395,7 @@ async function main() {
 
   await embedBuildProvenance();
   await cp(path.join(repoRoot, "public", "robots.txt"), path.join(OUT_DIR, "robots.txt"));
+  await applyLisbonRedesign(OUT_DIR);
   await optimiseStaticSite(OUT_DIR);
 
   console.log(`Production build written to ${OUT_DIR}`);

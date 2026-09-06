@@ -431,7 +431,7 @@ export function wrapInShellV2({ head, route, mainInner, tail, bodySchemas = [], 
   const floatScript = showFloat ? FLOATING_CTA_SCRIPT : "";
   const stickyMarkup = showFloat ? "" : buildStickyBar();
 
-  return `${head}${SHELL_V2_CSS}
+  return `${head.replace(/<\/head>\s*$/i, "")}${SHELL_V2_CSS}
 </head><body class="lpShell lpBody">
 <a class="skipLink" href="#main-content">Skip to main content</a>
 ${schemas}
