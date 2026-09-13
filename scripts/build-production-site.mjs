@@ -50,6 +50,7 @@ import {
   loadKnowledgeArticles
 } from "./site-knowledge-articles.mjs";
 import { buildAllServicePages, getServicePageRoutes } from "./site-service-pages.mjs";
+import { applyUkEmdrLanding, UK_EMDR_ROUTE } from "./site-uk-emdr.mjs";
 import { CONTACT_VISUAL_CSS } from "./site-contact-visual.mjs";
 import { optimiseStaticSite } from "./optimise-static-site.mjs";
 import { applyLisbonRedesign } from "./site-lisbon-redesign.mjs";
@@ -1216,6 +1217,7 @@ async function main() {
     "/about/",
     "/",
     ...getServicePageRoutes(),
+    UK_EMDR_ROUTE,
     ...getLocalLandingRoutes(),
     ...getKnowledgeLibraryBuiltRoutes()
   ]);
@@ -1405,6 +1407,7 @@ async function main() {
   await embedBuildProvenance();
   await cp(path.join(repoRoot, "public", "robots.txt"), path.join(OUT_DIR, "robots.txt"));
   await applyLisbonRedesign(OUT_DIR);
+  await applyUkEmdrLanding(OUT_DIR);
   await optimiseStaticSite(OUT_DIR);
 
   console.log(`Production build written to ${OUT_DIR}`);
