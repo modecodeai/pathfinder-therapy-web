@@ -107,7 +107,7 @@ export const LOCAL_LANDING_PAGES = [
     route: "/emdr-therapy-lisbon/",
     title: "EMDR Therapist Lisbon | Pathfinder Therapy",
     description:
-      "EMDR therapy in Lisbon with Brent Kelly, EMDR Practitioner. Trauma-informed EMDR for adults — English-speaking sessions in Lisbon or online across Portugal. Book an initial consultation.",
+      "EMDR therapy in English with Brent Kelly. €95 for 60 minutes, in Lisbon or online across Portugal and the UK. Start with a free initial consultation.",
     serviceName: "EMDR therapy in Lisbon",
     serviceType: "EMDR",
     hero: {
@@ -134,7 +134,7 @@ export const LOCAL_LANDING_PAGES = [
         "Practical details",
         "Sessions in English — Lisbon or online",
         "emdr-practical",
-        `<p>EMDR sessions are available in English at the Lisbon clinic or online. Individual sessions from €75 for 50 minutes. <a href="/fees/">See fees</a>.</p>
+        `<p>EMDR sessions are available in English at the Lisbon clinic or online across Portugal and the UK. Sessions are €95 for 60 minutes. Start with a free 30-minute initial consultation by Zoom to discuss suitability. <a href="/fees/">See fees</a>.</p>
         ${DIRECTIONS_LINK}`
       )
     ],

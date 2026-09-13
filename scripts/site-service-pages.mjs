@@ -146,7 +146,7 @@ export const SERVICE_PAGES = [
     paragraphs: [
       "EMDR is offered within broader trauma-informed psychotherapy — not as a standalone technique. Brent assesses whether it feels clinically appropriate and prepares work carefully before processing begins.",
       "Sessions are 60 minutes. EMDR is not suitable for everyone; suitability is discussed openly in an initial consultation and ongoing therapy.",
-      "Work takes place in English, in person at the Lisbon clinic or online where appropriate. Brent is EATA registered and an ITAA member, with training in EMDR as part of integrative trauma-informed practice."
+      "Work takes place in English, in person at the Lisbon clinic or online across Portugal and the UK where appropriate. Brent is EATA registered and an ITAA member, with training in EMDR as part of integrative trauma-informed practice."
     ],
     approach:
       "EMDR is integrated thoughtfully with relational psychotherapy and nervous-system awareness. Brent does not rush processing — stabilisation and trust in the therapeutic relationship come first."
