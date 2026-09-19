@@ -116,6 +116,7 @@ export const SERVICE_PAGES = [
     paragraphs: [
       "Couples therapy offers a structured, confidential space to understand what is happening between you — not to assign blame, but to see patterns clearly and explore whether change feels possible.",
       "Through Pathfinder Therapy, online couples work is offered by Sophie Gidley, a psychotherapeutic counsellor whose practice is grounded in Transactional Analysis and couples counselling.",
+      "Begin with a free, private 30-minute introductory call with Brent. Each partner has a separate conversation before the next step is agreed. Ongoing online couples sessions with Sophie are arranged separately and cost €120 for 90 minutes.",
       "Brent continues to lead the Lisbon clinic and face-to-face provision. If you are in Lisbon and unsure which route is right, an initial enquiry can clarify whether online couples therapy or another pathway is appropriate."
     ],
     approach:
@@ -146,7 +147,7 @@ export const SERVICE_PAGES = [
     paragraphs: [
       "EMDR is offered within broader trauma-informed psychotherapy — not as a standalone technique. Brent assesses whether it feels clinically appropriate and prepares work carefully before processing begins.",
       "Sessions are 60 minutes. EMDR is not suitable for everyone; suitability is discussed openly in an initial consultation and ongoing therapy.",
-      "Work takes place in English, in person at the Lisbon clinic or online across Portugal and the UK where appropriate. Brent is EATA registered and an ITAA member, with training in EMDR as part of integrative trauma-informed practice."
+      "Work takes place in English, in person at the Lisbon clinic or online across Portugal where appropriate. UK clients can explore our <a href=\"/online-emdr-therapy-uk/\">separate online EMDR service at £80 for 60 minutes</a>. Brent is EATA registered and an ITAA member, with training in EMDR as part of integrative trauma-informed practice."
     ],
     approach:
       "EMDR is integrated thoughtfully with relational psychotherapy and nervous-system awareness. Brent does not rush processing — stabilisation and trust in the therapeutic relationship come first."
@@ -297,6 +298,11 @@ export function buildServicePage(shellHtml, service) {
     mainInner: buildServicePageBody(service),
     interior: false
   });
+  if (service.slug === "couples") {
+    const couplesBooking = new URL(BOOKING_PATH);
+    couplesBooking.searchParams.set("intent", "couples");
+    html = html.replaceAll(`href="${BOOKING_PATH}"`, `href="${couplesBooking.toString()}"`);
+  }
   return html;
 }
 

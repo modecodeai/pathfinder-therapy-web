@@ -107,7 +107,7 @@ export const LOCAL_LANDING_PAGES = [
     route: "/emdr-therapy-lisbon/",
     title: "EMDR Therapist Lisbon | Pathfinder Therapy",
     description:
-      "EMDR therapy in English with Brent Kelly. €95 for 60 minutes, in Lisbon or online across Portugal and the UK. Start with a free initial consultation.",
+      "EMDR therapy in English with Brent Kelly. €95 for 60 minutes, in Lisbon or online across Portugal. Start with a free initial consultation.",
     serviceName: "EMDR therapy in Lisbon",
     serviceType: "EMDR",
     hero: {
@@ -134,7 +134,8 @@ export const LOCAL_LANDING_PAGES = [
         "Practical details",
         "Sessions in English — Lisbon or online",
         "emdr-practical",
-        `<p>EMDR sessions are available in English at the Lisbon clinic or online across Portugal and the UK. Sessions are €95 for 60 minutes. Start with a free 30-minute initial consultation by Zoom to discuss suitability. <a href="/fees/">See fees</a>.</p>
+        `<p>EMDR sessions are available in English at the Lisbon clinic or online across Portugal. Portugal sessions are €95 for 60 minutes. Start with a free 30-minute initial consultation by Zoom to discuss suitability. <a href="/fees/">See fees</a>.</p>
+        <p>Joining from the UK? Our <a href="/online-emdr-therapy-uk/">UK online EMDR service</a> with Brent Kelly or Tim Felton costs £80 for 60 minutes, subject to suitability and availability.</p>
         ${DIRECTIONS_LINK}`
       )
     ],

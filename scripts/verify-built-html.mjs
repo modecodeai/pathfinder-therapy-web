@@ -201,7 +201,10 @@ function auditCtas() {
       /<a\b(?=[^>]*\bclass="[^"]*\blpPrimaryCta\b)(?=[^>]*\bhref="([^"]+)")[^>]*>\s*Arrange an initial consultation|<a\b(?=[^>]*\bhref="([^"]+)")(?=[^>]*\bclass="[^"]*\blpPrimaryCta\b)[^>]*>\s*Arrange an initial consultation/gi;
     for (const match of html.matchAll(primaryPattern)) {
       const href = match[1] || match[2];
-      if (href !== NATIVE_BOOKING_URL) {
+      const expectedBookingUrl = rel === "therapy/couples/index.html"
+        ? `${NATIVE_BOOKING_URL}?intent=couples`
+        : NATIVE_BOOKING_URL;
+      if (href !== expectedBookingUrl) {
         issues.push(`${rel}: primary CTA href "${href}"`);
       }
     }
