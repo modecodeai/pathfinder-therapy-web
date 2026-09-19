@@ -46,7 +46,11 @@ ${LEGAL_ENTITY_CSS}
 .lpShell { min-height: 100vh; background: var(--pf-forest-deep); color: var(--pf-linen); font-family: var(--pf-font-sans); font-size: 16px; overflow-x: clip; }
 .lpHeader { position: sticky; top: 0; z-index: 40; background: rgba(8,16,15,.94); border-bottom: 1px solid rgba(246,242,234,.08); backdrop-filter: blur(10px); }
 .lpHeaderInner { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 14px clamp(16px, 3vw, 32px); max-width: 1280px; margin: 0 auto; }
-.lpBrand { color: var(--pf-bronze); font-family: var(--pf-font-serif); letter-spacing: .08em; font-size: 13px; text-decoration: none; white-space: nowrap; }
+.lpBrand { display: inline-flex; align-items: center; gap: 10px; color: var(--pf-bronze); font-family: var(--pf-font-serif); letter-spacing: .08em; font-size: 13px; text-decoration: none; white-space: nowrap; }
+.lpBrandMark { display: block; width: 44px; height: 44px; flex: 0 0 44px; border-radius: 50%; }
+.lpBrandText { display: flex; flex-direction: column; gap: 3px; line-height: 1.1; }
+.lpBrandText small { font-family: var(--pf-font-sans); font-size: 9px; letter-spacing: .17em; }
+.pfFooterBrandMark { display: block; width: 72px; height: 72px; margin-bottom: 16px; border-radius: 50%; }
 .lpTopNav { display: none; gap: 2px; align-items: center; }
 .lpTopNav a { padding: 8px 12px; border-radius: 999px; font-size: 13px; font-weight: 500; color: rgba(246,242,234,.78); text-decoration: none; min-height: 44px; display: inline-flex; align-items: center; }
 .lpTopNav a:hover { color: #d9b777; background: rgba(200,154,88,.08); }
@@ -334,7 +338,7 @@ export function buildHeader(route) {
 
   return `<header class="lpHeader">
   <div class="lpHeaderInner">
-    <a class="lpBrand" href="/" aria-label="Pathfinder Therapy home">PATHFINDER THERAPY</a>
+    <a class="lpBrand" href="/" aria-label="Pathfinder Therapy home"><img class="lpBrandMark" src="/assets/images/pathfinder-path-icon.png" width="44" height="44" alt=""><span class="lpBrandText">PATHFINDER<small>THERAPY</small></span></a>
     <nav class="lpTopNav" aria-label="Main navigation">${primary}</nav>
     <div class="lpHeaderActions">
       <a class="lpHeaderPhone" href="tel:+351914775365" aria-label="Call Pathfinder Therapy">+351 914 775 365</a>
@@ -383,6 +387,7 @@ export function buildSiteFooter() {
   <div class="pfFooterInner">
     <div class="pfFooterGrid">
       <div class="pfFooterBrand">
+        <img class="pfFooterBrandMark" src="/assets/images/pathfinder-path-icon.png" width="72" height="72" loading="lazy" alt="">
         <div class="pfFooterLogo">Pathfinder<small>Therapy</small></div>
         <p>Trauma-informed psychotherapy led by Brent Kelly in Lisbon, with online therapy support through Pathfinder where appropriate.</p>
         ${buildTradingNameBlock()}

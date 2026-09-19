@@ -18,6 +18,7 @@ export const GLOBAL_SCHEMA = [
     "@id": `${SITE}/#organization`,
     name: "Pathfinder Therapy",
     legalName: "Pathfinder Therapy CIC",
+    logo: `${SITE}/assets/images/pathfinder-path-icon-hq.png`,
     slogan: "Navigating Life's Difficult Terrain",
     url: SITE,
     email: "hi@pathfindertherapy.com",

@@ -1172,6 +1172,8 @@ async function main() {
 
   const repoRoot = path.join(path.dirname(fileURLToPath(import.meta.url)), "..");
   const staticAssets = [
+    ["public/assets/images/pathfinder-path-icon.png", "assets/images/pathfinder-path-icon.png"],
+    ["public/assets/images/pathfinder-path-icon-hq.png", "assets/images/pathfinder-path-icon-hq.png"],
     ["public/assets/images/eata-logo.svg", "assets/images/eata-logo.svg"],
     ["public/assets/images/itaa-member-badge.svg", "assets/images/itaa-member-badge.svg"],
     ["public/images/team/brent-kelly.jpeg", "assets/images/team/brent-kelly.jpeg"],
