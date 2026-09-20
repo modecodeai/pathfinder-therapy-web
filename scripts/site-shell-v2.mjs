@@ -81,6 +81,7 @@ ${LEGAL_ENTITY_CSS}
 .lpMobileNavMore { margin-top: 8px; padding-top: 12px; border-top: 1px solid rgba(246,242,234,.08); }
 .lpMobileNavMore p { margin: 0 0 8px 12px; font-size: 11px; letter-spacing: .12em; text-transform: uppercase; color: rgba(246,242,234,.48); }
 body.lpMenuOpen { overflow: hidden; }
+.lpMobileNav.isOpen { max-height: calc(100dvh - 76px); overflow-y: auto; overscroll-behavior: contain; }
 .lpMain { padding: clamp(20px, 4vw, 40px) clamp(16px, 3vw, 40px) 80px; max-width: 1280px; margin: 0 auto; }
 .lpMainInterior { max-width: none; padding: 0; }
 .lpInteriorBody { width: 100%; }
@@ -163,7 +164,7 @@ document.addEventListener("DOMContentLoaded", function () {
     document.body.classList.toggle("lpMenuOpen", open);
     if (open) {
       var first = mobileNav.querySelector(focusableSelector);
-      if (first) first.focus();
+      if (first) first.focus({ preventScroll: true });
     } else {
       menuBtn.focus();
     }
@@ -322,8 +323,8 @@ function buildResourcesDropdown(route) {
   const links = RESOURCES_LINKS.map((item) => navLink(item, route)).join("");
   const active = isResourcesRouteActive(route) ? ' aria-current="page"' : "";
   return `<div class="lpMoreNav" data-resources-nav>
-    <button class="lpMoreBtn" type="button" aria-expanded="false" aria-haspopup="true" aria-controls="lpResourcesMenu"${active}>Resources <span aria-hidden="true">▾</span></button>
-    <div class="lpMoreMenu" id="lpResourcesMenu" role="menu">${links}</div>
+    <button class="lpMoreBtn" type="button" aria-expanded="false" aria-controls="lpResourcesMenu"${active}>Resources <span aria-hidden="true">▾</span></button>
+    <div class="lpMoreMenu" id="lpResourcesMenu">${links}</div>
   </div>`;
 }
 
@@ -370,7 +371,8 @@ export function buildSiteFooter() {
     { href: "/therapy/", label: "Therapy" },
     { href: "/therapy/individual/", label: "Individual therapy" },
     { href: "/therapy/couples/", label: "Couples therapy" },
-    { href: "/therapy/emdr/", label: "EMDR" },
+    { href: "/therapy/emdr/", label: "EMDR in Lisbon" },
+    { href: "/online-emdr-therapy-uk/", label: "Online EMDR · UK" },
     { href: "/therapy/online/", label: "Online therapy" },
     { href: "/about/", label: "About the team" },
     { href: "/approach/", label: "Approach" },

@@ -47,7 +47,8 @@ import {
   buildKnowledgeArticlePage,
   buildKnowledgeLibraryIndexPage,
   getKnowledgeLibraryBuiltRoutes,
-  loadKnowledgeArticles
+  loadKnowledgeArticles,
+  KNOWLEDGE_ARTICLE_META
 } from "./site-knowledge-articles.mjs";
 import { buildAllServicePages, getServicePageRoutes } from "./site-service-pages.mjs";
 import { applyUkEmdrLanding, UK_EMDR_ROUTE } from "./site-uk-emdr.mjs";
@@ -1016,12 +1017,20 @@ function buildFaqPage(shellHtml) {
 }
 
 function buildFeesPage(shellHtml) {
-  const mainInner = `<article class="approachPage">
+  const mainInner = `<article class="approachPage feesPage">
 <section class="approachHero" aria-labelledby="fees-title">
   <div class="approachHeroCopy">
     <p class="sectionKicker">Fees</p>
     <h1 class="approachHeroTitle" id="fees-title">Session fees</h1>
     <p class="approachHeroText">Transparent pricing for private psychotherapy in Lisbon and online. Fees are discussed clearly before work begins.</p>
+    <table class="pfFeeSummary"><caption>Fees at a glance</caption><thead><tr><th scope="col">Session</th><th scope="col">Length</th><th scope="col">Fee</th></tr></thead><tbody>
+      <tr><th scope="row"><a href="#fees-consultation">Initial Zoom call with Brent</a></th><td>30 min</td><td>Free</td></tr>
+      <tr><th scope="row"><a href="#fees-individual">Individual therapy</a></th><td>50 min</td><td>€75</td></tr>
+      <tr><th scope="row"><a href="#fees-emdr">EMDR · Lisbon / Portugal</a></th><td>60 min</td><td>€95</td></tr>
+      <tr><th scope="row"><a href="#fees-couples">Couples therapy</a></th><td>90 min</td><td>€120</td></tr>
+      <tr><th scope="row"><a href="/online-emdr-therapy-uk/">EMDR · UK, online only</a></th><td>60 min</td><td>£80</td></tr>
+    </tbody></table>
+    <p>The free initial conversation is separate from a paid therapy session. There is no obligation to continue.</p>
   </div>
 </section>
 <section class="approachEssay" aria-labelledby="fees-individual">
@@ -1070,7 +1079,9 @@ function buildFeesPage(shellHtml) {
 </section>
 </article>`;
 
-  const schema = `<script type="application/ld+json">
+  const schema = `<style id="pathfinder-fee-summary">
+.feesPage .approachHero{padding-block:32px}.feesPage .approachEssay{padding-block:32px}.feesPage .approachHeroText{margin-bottom:24px}.pfFeeSummary{width:100%;border-collapse:collapse;font-size:15px;line-height:1.5;margin:24px 0}.pfFeeSummary caption{text-align:left;font-size:18px;font-weight:600;margin-bottom:12px}.pfFeeSummary th,.pfFeeSummary td{padding:12px 8px;border-bottom:1px solid rgba(246,242,234,.2);text-align:left}.pfFeeSummary th:first-child{padding-left:0}.pfFeeSummary tbody th{font-weight:400}.pfFeeSummary td{white-space:nowrap}.pfFeeSummary a{text-underline-offset:4px}.feesPage [id^="fees-"]{scroll-margin-top:100px}@media(max-width:480px){.pfFeeSummary{font-size:14px}.pfFeeSummary th,.pfFeeSummary td{padding:12px 5px}}
+</style><script type="application/ld+json">
 {"@context":"https://schema.org","@type":"MedicalBusiness","name":"Pathfinder Therapy","url":"https://www.pathfindertherapy.com/fees/","priceRange":"EUR75","makesOffer":[
 {"@type":"Offer","price":"75","priceCurrency":"EUR","description":"Individual psychotherapy session (50 minutes)"},
 {"@type":"Offer","price":"95","priceCurrency":"EUR","description":"EMDR session (60 minutes)"},
@@ -1091,7 +1102,6 @@ function buildFeesPage(shellHtml) {
 
 function patchSitemap(sitemapXml) {
   let next = sitemapXml;
-  const today = new Date().toISOString().slice(0, 10);
   const additions = [
     { loc: "https://www.pathfindertherapy.com/about/", priority: "0.8" },
     { loc: "https://www.pathfindertherapy.com/faq/", priority: "0.75" },
@@ -1111,10 +1121,19 @@ function patchSitemap(sitemapXml) {
     if (next.includes(entry.loc)) continue;
     next = next.replace(
       "</urlset>",
-      `  <url>\n    <loc>${entry.loc}</loc>\n    <lastmod>${today}</lastmod>\n    <priority>${entry.priority}</priority>\n  </url>\n</urlset>`
+      `  <url>\n    <loc>${entry.loc}</loc>\n    <priority>${entry.priority}</priority>\n  </url>\n</urlset>`
     );
   }
 
+  // Only claim dates for pages materially updated by this release; never use build time.
+  const updatedRoutes = new Set(["/", "/fees/", "/knowledge-library/", ...KNOWLEDGE_ARTICLE_META.map(article => `/knowledge-library/${article.slug}/`)]);
+  next = next.replace(/<url>[\s\S]*?<\/url>/g, entry => {
+    const location = entry.match(/<loc>([^<]+)<\/loc>/)?.[1];
+    if (!location || !updatedRoutes.has(new URL(location).pathname)) return entry;
+    return /<lastmod>/.test(entry)
+      ? entry.replace(/<lastmod>[^<]+<\/lastmod>/, "<lastmod>2026-09-20</lastmod>")
+      : entry.replace("</loc>", "</loc><lastmod>2026-09-20</lastmod>");
+  });
   return next;
 }
 
@@ -1394,12 +1413,7 @@ async function main() {
   }
 
   const sitemapPath = path.join(OUT_DIR, "sitemap.xml");
-  try {
-    const existingSitemap = await readFile(sitemapPath, "utf8");
-    await writeFile(sitemapPath, patchSitemap(existingSitemap), "utf8");
-  } catch {
-    await writeFile(sitemapPath, patchSitemap(sitemapXml), "utf8");
-  }
+  await writeFile(sitemapPath, patchSitemap(sitemapXml), "utf8");
 
   const redirectsSource = path.join(path.dirname(fileURLToPath(import.meta.url)), "..", "public", "_redirects");
   try {

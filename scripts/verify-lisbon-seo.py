@@ -5,6 +5,7 @@ from collections import Counter
 from html.parser import HTMLParser
 from pathlib import Path
 from urllib.parse import urlsplit, unquote
+import xml.etree.ElementTree as ET
 
 
 class Page(HTMLParser):
@@ -75,6 +76,27 @@ for file, page in pages.items():
             check(unquote(url.fragment) in pages[target].ids, f'missing anchor {link}')
     if route in ('/', '/psychotherapy-lisbon/', '/trauma-therapy-lisbon/', '/emdr-therapy-lisbon/', '/english-speaking-therapist-lisbon/'):
         check(not any(k == 'robots' and 'noindex' in v for k, v in page.metas), 'public landing must be indexable')
+# The sitemap must describe exactly the indexable built pages, without redirects or assets.
+indexable = {
+    'https://www.pathfindertherapy.com/' + file.relative_to(root).as_posix().removesuffix('index.html')
+    for file, page in pages.items()
+    if not any(key == 'robots' and 'noindex' in value for key, value in page.metas)
+}
+sitemap = ET.fromstring((root / 'sitemap.xml').read_text())
+locations = [item.text for item in sitemap.findall('.//{*}loc')]
+if len(locations) != len(set(locations)):
+    errors.append('Sitemap contains duplicate URLs')
+if set(locations) != indexable:
+    errors.append(f'Sitemap differs from indexable pages: {sorted(set(locations) ^ indexable)}')
+for file, page in pages.items():
+    if file.parent.parent.name != 'knowledge-library':
+        continue
+    for schema in page.schemas:
+        for node in schema if isinstance(schema, list) else [schema]:
+            if node.get('@type') == 'FAQPage':
+                errors.append(f'{file}: article prompts must not claim generic FAQ answers')
+            if node.get('@type') == 'Article' and node.get('mainEntityOfPage') != page.canonicals[0]:
+                errors.append(f'{file}: article schema must use the canonical URL')
 if errors:
     print('\n'.join(errors))
     sys.exit(1)

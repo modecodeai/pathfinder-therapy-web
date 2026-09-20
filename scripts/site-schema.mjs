@@ -32,9 +32,7 @@ export const GLOBAL_SCHEMA = [
     award: "NCPS Recognised Counselling Service, Membership No. RCS6035",
     sameAs: [
       "https://www.instagram.com/pathfinder.therapy/",
-      "https://share.google/9avIEL6pz3bn4kETg",
-      "https://www.locallista.com",
-      "https://ncps.com/about-us/our-community/our-recognised-counselling-services"
+      "https://share.google/9avIEL6pz3bn4kETg"
     ],
     address: LISBON_ADDRESS,
     areaServed: [
@@ -61,7 +59,7 @@ export const GLOBAL_SCHEMA = [
     knowsLanguage: "English",
     worksFor: { "@id": `${SITE}/#organization` },
     url: `${SITE}/about/`,
-    image: `${SITE}/assets/images/about-brent.webp`,
+    image: `${SITE}/assets/images/about-brent-pathfinder-logo.webp`,
     knowsAbout: [
       "Trauma",
       "EMDR",
