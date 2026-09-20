@@ -203,13 +203,13 @@ function buildRelatedSection(related) {
 }
 
 export function buildKnowledgeArticleSchema(article) {
-  const canonical = `${SITE}/knowledge-library/${article.slug}`;
+  const canonical = `${SITE}/knowledge-library/${article.slug}/`;
   const breadcrumb = {
     "@context": "https://schema.org",
     "@type": "BreadcrumbList",
     itemListElement: [
       { "@type": "ListItem", position: 1, name: "Home", item: `${SITE}/` },
-      { "@type": "ListItem", position: 2, name: "Knowledge Library", item: `${SITE}/knowledge-library` },
+      { "@type": "ListItem", position: 2, name: "Knowledge Library", item: `${SITE}/knowledge-library/` },
       { "@type": "ListItem", position: 3, name: article.title, item: canonical }
     ]
   };
@@ -224,36 +224,36 @@ export function buildKnowledgeArticleSchema(article) {
     mainEntityOfPage: canonical,
     image: ARTICLE_IMAGE
   };
-  const faqSchema = {
-    "@context": "https://schema.org",
-    "@type": "FAQPage",
-    mainEntity: article.faqs.map((question) => ({
-      "@type": "Question",
-      name: question,
-      acceptedAnswer: {
-        "@type": "Answer",
-        text: article.description
-      }
-    }))
-  };
-
-  return `<script id="knowledge-article-schema" type="application/ld+json">${JSON.stringify([breadcrumb, articleSchema, faqSchema])}</script>`;
+  // These are prompts addressed throughout the article, not visible FAQ answers.
+  return `<script id="knowledge-article-schema" type="application/ld+json">${JSON.stringify([breadcrumb, articleSchema])}</script>`;
 }
 
-const LIBRARY_TOPICS = `<section class="journalTopics" aria-labelledby="library-topics"><p class="sectionKicker">Browse by Topic</p><h2 class="journalSectionTitle" id="library-topics">The library is built around subject depth, not keywords.</h2><div class="knowledgeCategoryGrid"><a class="knowledgeCategory" href="/knowledge-library/?topic=trauma"><span>Trauma</span><small>Understanding survival, adaptation and recovery.</small></a><a class="knowledgeCategory" href="/knowledge-library/?topic=relationships"><span>Relationships</span><small>How attachment, safety and repeated patterns shape us.</small></a><a class="knowledgeCategory" href="/knowledge-library/?topic=emotions"><span>Emotions</span><small>Feelings as information, not interruptions.</small></a><a class="knowledgeCategory" href="/knowledge-library/?topic=attachment"><span>Attachment</span><small>The psychology of connection, distance and belonging.</small></a><a class="knowledgeCategory" href="/knowledge-library/?topic=neuroscience"><span>Neuroscience</span><small>Plain-language ideas about the brain and nervous system.</small></a><a class="knowledgeCategory" href="/knowledge-library/?topic=veterans"><span>Veterans</span><small>Military experience, transition, identity and trauma.</small></a><a class="knowledgeCategory" href="/knowledge-library/?topic=transactional-analysis"><span>Transactional Analysis</span><small>Readable introductions to TA ideas and language.</small></a><a class="knowledgeCategory" href="/knowledge-library/?topic=polyvagal-theory"><span>Polyvagal Theory</span><small>Nervous system states, safety and regulation.</small></a><a class="knowledgeCategory" href="/knowledge-library/?topic=self-development"><span>Self Development</span><small>Growth, authenticity and the movement towards freedom.</small></a><a class="knowledgeCategory" href="/knowledge-library/?topic=therapy-explained"><span>Therapy Explained</span><small>Clear answers to common questions about therapy.</small></a></div></section>`;
+function topicId(category) {
+  return `topic-${category.toLowerCase().replace(/[^a-z0-9]+/g, "-")}`;
+}
+
+function buildLibraryTopics(articles) {
+  const categories = [...new Set(articles.map(article => article.category))];
+  const links = categories.map(category => {
+    const count = articles.filter(article => article.category === category).length;
+    return `<a class="knowledgeCategory" href="#${topicId(category)}"><span>${escapeHtml(category)}</span><small>${count} ${count === 1 ? "article" : "articles"}</small></a>`;
+  }).join("");
+  return `<nav class="journalTopics" aria-labelledby="library-topics"><p class="sectionKicker">Browse by topic</p><h2 class="journalSectionTitle" id="library-topics">Find a starting point.</h2><div class="knowledgeCategoryGrid">${links}</div></nav>`;
+}
 
 const LIBRARY_PHILOSOPHY = `<section class="journalPhilosophy" aria-labelledby="library-why"><div class="journalPhilosophyCopy"><p class="sectionKicker">Why This Exists</p><h2 class="journalSectionTitle" id="library-why">Understanding should not begin only when therapy starts.</h2><div class="journalBody"><p>Sometimes one sentence gives a person enough language to stop blaming themselves.</p><p>Sometimes one idea helps someone recognise that a pattern was once protection.</p><p>The Knowledge Library is built for those moments: careful, readable psychological writing that points back towards lived experience.</p></div></div></section>`;
 
 function buildLibraryArticleListItem(article) {
   const readTimeLabel = article.readTime ? `${article.readTime} read` : "";
-  return `<li class="knowledgeArticleItem"><p class="journalEssayCategory">${escapeHtml(article.category)}</p><h3><a href="/knowledge-library/${article.slug}/">${escapeHtml(article.title)}</a></h3><p>${escapeHtml(article.description)}</p>${readTimeLabel ? `<small>${escapeHtml(readTimeLabel)}</small>` : ""}</li>`;
+  return `<li class="knowledgeArticleItem"><p class="journalEssayCategory">${escapeHtml(article.category)}</p><h4><a href="/knowledge-library/${article.slug}/">${escapeHtml(article.title)}</a></h4><p>${escapeHtml(article.description)}</p>${readTimeLabel ? `<small>${escapeHtml(readTimeLabel)}</small>` : ""}</li>`;
 }
 
 export function buildKnowledgeLibraryIndexBody(articles) {
-  const articleList = articles.map(buildLibraryArticleListItem).join("");
-  const breadcrumbSchema = `<script id="knowledge-library-breadcrumb-schema" type="application/ld+json">{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Home","item":"${SITE}/"},{"@type":"ListItem","position":2,"name":"Knowledge Library","item":"${SITE}/knowledge-library"}]}</script>`;
+  const categories = [...new Set(articles.map(article => article.category))];
+  const articleList = categories.map(category => `<section aria-labelledby="${topicId(category)}"><h3 id="${topicId(category)}" style="scroll-margin-top:100px">${escapeHtml(category)}</h3><ol class="knowledgeArticleList">${articles.filter(article => article.category === category).map(buildLibraryArticleListItem).join("")}</ol></section>`).join("");
+  const breadcrumbSchema = `<script id="knowledge-library-breadcrumb-schema" type="application/ld+json">{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Home","item":"${SITE}/"},{"@type":"ListItem","position":2,"name":"Knowledge Library","item":"${SITE}/knowledge-library/"}]}</script>`;
 
-  return `${breadcrumbSchema}<article class="journalPage"><section class="journalHero" aria-labelledby="library-title"><div class="journalHeroCopy"><nav class="breadcrumbs" aria-label="Breadcrumb"><ol><li><a href="/">Home</a></li><li><span aria-current="page">Knowledge Library</span></li></ol></nav><p class="sectionKicker">Knowledge Library</p><h1 class="journalHeroTitle" id="library-title">Clear ideas for difficult human things.</h1><p class="journalHeroText">A growing library of trauma-informed writing on emotion, relationships, attachment, the body, veterans, therapy and the psychology of being human.</p></div></section><section class="journalLatest" aria-labelledby="library-articles"><div class="journalSectionIntro"><p class="sectionKicker">Articles</p><h2 class="journalSectionTitle" id="library-articles">Start with the questions people ask most often.</h2></div><ol class="knowledgeArticleList">${articleList}</ol></section>${LIBRARY_TOPICS}${LIBRARY_PHILOSOPHY}${RELATED_PAGES}</article>`;
+  return `${breadcrumbSchema}<article class="journalPage"><section class="journalHero" aria-labelledby="library-title"><div class="journalHeroCopy"><nav class="breadcrumbs" aria-label="Breadcrumb"><ol><li><a href="/">Home</a></li><li><span aria-current="page">Knowledge Library</span></li></ol></nav><p class="sectionKicker">Knowledge Library</p><h1 class="journalHeroTitle" id="library-title">Clear ideas for difficult human things.</h1><p class="journalHeroText">A growing library of trauma-informed writing on emotion, relationships, attachment, the body, veterans, therapy and the psychology of being human.</p></div></section>${buildLibraryTopics(articles)}<section class="journalLatest" aria-labelledby="library-articles"><div class="journalSectionIntro"><p class="sectionKicker">Articles</p><h2 class="journalSectionTitle" id="library-articles">Start with the questions people ask most often.</h2></div>${articleList}</section>${LIBRARY_PHILOSOPHY}${RELATED_PAGES}</article>`;
 }
 
 export function buildKnowledgeLibraryIndexPage(shellHtml, articles, buildInteriorPageV2) {
@@ -269,7 +269,7 @@ export function buildKnowledgeLibraryIndexPage(shellHtml, articles, buildInterio
 
 export function buildKnowledgeArticleBody(article) {
   const readTimeLabel = article.readTime ? `${article.readTime} read` : "";
-  const hero = `<section class="approachHero" aria-labelledby="article-title"><div class="approachHeroCopy"><nav class="breadcrumbs" aria-label="Breadcrumb"><ol><li><a href="/">Home</a></li><li><a href="/knowledge-library/">Knowledge Library</a></li><li><span aria-current="page">${escapeHtml(article.title)}</span></li></ol></nav><p class="sectionKicker">${escapeHtml(article.category)}</p><h1 class="approachHeroTitle" id="article-title">${escapeHtml(article.title)}</h1><div class="approachHeroText"><p>${escapeHtml(article.description)}</p>${readTimeLabel ? `<p>${escapeHtml(readTimeLabel)}</p>` : ""}</div></div></section>`;
+  const hero = `<section class="approachHero" aria-labelledby="article-title"><div class="approachHeroCopy"><nav class="breadcrumbs" aria-label="Breadcrumb"><ol><li><a href="/">Home</a></li><li><a href="/knowledge-library/">Knowledge Library</a></li><li><span aria-current="page">${escapeHtml(article.title)}</span></li></ol></nav><p class="sectionKicker">${escapeHtml(article.category)}</p><h1 class="approachHeroTitle" id="article-title">${escapeHtml(article.title)}</h1><div class="approachHeroText"><p>${escapeHtml(article.description)}</p><p>By <a href="/about/#brent-kelly">Brent Kelly</a> · Pathfinder Therapy</p>${readTimeLabel ? `<p>${escapeHtml(readTimeLabel)}</p>` : ""}</div></div></section>`;
   const contentSections = article.sections
     .map((section) => buildEssaySection(article.slug, section))
     .join("");

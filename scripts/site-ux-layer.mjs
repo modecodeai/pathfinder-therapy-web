@@ -163,6 +163,13 @@ export function buildLlmsTxt() {
 - https://www.pathfindertherapy.com/emdr-therapy-lisbon/
 - https://www.pathfindertherapy.com/english-speaking-therapist-lisbon/
 
+## Service pages
+- [Individual therapy in Lisbon](https://www.pathfindertherapy.com/therapy/individual/)
+- [Online couples therapy with Sophie Gidley](https://www.pathfindertherapy.com/therapy/couples/)
+- [EMDR in Lisbon](https://www.pathfindertherapy.com/therapy/emdr/)
+- [Online therapy](https://www.pathfindertherapy.com/therapy/online/)
+- [Online EMDR for UK clients](https://www.pathfindertherapy.com/online-emdr-therapy-uk/)
+
 ## Booking
 - Arrange a free 30-minute initial consultation by Zoom: https://booking.pathfindertherapy.com/book
 - Send an enquiry: https://www.pathfindertherapy.com/start/#enquiry
@@ -183,7 +190,7 @@ Pathfinder Therapy CIC is an NCPS Recognised Counselling Service (membership num
 Brent Kelly — therapist (EATA registered · ITAA member), leading the Lisbon clinic and face-to-face provision. Tim Felton and Sophie Gidley support online therapy through Pathfinder; Sophie offers online couples therapy.
 
 ## Fees
-Sessions from EUR 75. Non-urgent enquiries only — not a crisis service.
+Lisbon individual therapy: from EUR 75 for 50 minutes. UK online EMDR: GBP 80 for 60 minutes with Brent Kelly or Tim Felton, subject to assessment. The initial 30-minute Zoom consultation with Brent is free and is separate from a paid therapy session. Check https://www.pathfindertherapy.com/fees/ and the UK EMDR page for service-specific terms. Non-urgent enquiries only — not a crisis service.
 `;
 }
 
@@ -207,7 +214,8 @@ export function buildAiSummaryJson() {
       clinical_team: {
         name: "Brent Kelly",
         role: "Lead therapist, Lisbon clinic",
-        registrations: ["EATA", "ITAA"],
+        registrations: ["EATA"],
+        memberships: ["ITAA"],
         specialties: ["Trauma", "EMDR", "Transactional Analysis", "Military veterans", "Attachment"],
         online_collaborators: [
           { name: "Tim Felton", role: "Online therapist" },
@@ -223,7 +231,11 @@ export function buildAiSummaryJson() {
       ],
       services: ["Individual therapy", "Online couples therapy", "EMDR", "Online therapy"],
       languages: ["English"],
-      fees: { currency: "EUR", from: 75 },
+      fees: {
+        lisbon_individual: { currency: "EUR", from: 75, duration_minutes: 50, source: "https://www.pathfindertherapy.com/fees/" },
+        uk_online_emdr: { currency: "GBP", amount: 80, duration_minutes: 60, practitioners: ["Brent Kelly", "Tim Felton"], delivery: "Online only", subject_to_assessment: true, source: "https://www.pathfindertherapy.com/online-emdr-therapy-uk/" }
+      },
+      service_pages: ["https://www.pathfindertherapy.com/therapy/individual/", "https://www.pathfindertherapy.com/therapy/couples/", "https://www.pathfindertherapy.com/therapy/emdr/", "https://www.pathfindertherapy.com/therapy/online/", "https://www.pathfindertherapy.com/online-emdr-therapy-uk/"],
       booking: {
         consultation_url: "https://booking.pathfindertherapy.com/book",
         consultation_description: "Free 30-minute initial consultation by Zoom, with no obligation to continue",

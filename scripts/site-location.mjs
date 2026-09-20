@@ -4,8 +4,8 @@ const CLINIC = {
   locality: "Lisboa",
   postalCode: "1150-281",
   country: "Portugal",
-  latitude: 38.7324,
-  longitude: -9.1458,
+  latitude: 38.722773,
+  longitude: -9.1462559,
   mapsUrl: "https://maps.google.com/?q=R.+Rodrigues+Sampaio+76,+1150-281+Lisboa,+Portugal",
   directionsUrl:
     "https://www.google.com/maps/dir//Pathfinder+Therapy,+R.+Rodrigues+Sampaio+76+1st+floor,+1150-281+Lisboa/@39.4892942,-8.9907968,14z/data=!4m8!4m7!1m0!1m5!1m1!1s0xd19330c2be20db7:0xcfab6dd1105cebe1!2m2!1d-9.1462559!2d38.722773?hl=en-PT&entry=ttu&g_ep=EgoyMDI2MDYyOS4wIKXMDSoASAFQAw%3D%3D",

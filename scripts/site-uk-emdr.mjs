@@ -148,15 +148,12 @@ export async function applyUkEmdrLanding(outDir) {
   await writeFile(path.join(outDir,UK_EMDR_ROUTE,"index.html"),html,"utf8");
   for(const relative of ["therapy/emdr/index.html","therapy/online/index.html"]) {
     const file=path.join(outDir,relative); let source=await readFile(file,"utf8");
-    if (!source.includes(`href="${UK_EMDR_ROUTE}"`)) {
+    if (!(source.match(/<main[\s\S]*?<\/main>/)?.[0] ?? "").includes(`href="${UK_EMDR_ROUTE}"`)) {
       source=source.replace("</main>",`<aside class="ukEmdrRelated" style="padding:28px clamp(20px,5vw,64px);background:#eef0e5;color:#283c2f"><p style="max-width:1040px;margin:0 auto;line-height:1.7">Joining from the UK? <a href="${UK_EMDR_ROUTE}">Explore online EMDR with Brent Kelly or Tim Felton</a> — £80 for 60 minutes, online only.</p></aside></main>`);
       await writeFile(file,source,"utf8");
     }
   }
   const sitemapPath=path.join(outDir,"sitemap.xml"); let sitemap=await readFile(sitemapPath,"utf8");
   if(!sitemap.includes(`<loc>${URL}</loc>`)) sitemap=sitemap.replace("</urlset>",`  <url><loc>${URL}</loc><lastmod>2026-09-13</lastmod></url>\n</urlset>`);
-  for (const route of ["therapy/emdr/", "therapy/online/"]) {
-    sitemap = sitemap.replace(new RegExp(`(<loc>https://www\\.pathfindertherapy\\.com/${route}</loc>\\s*<lastmod>)[^<]+`), (_, prefix) => `${prefix}2026-09-13`);
-  }
   await writeFile(sitemapPath,sitemap,"utf8");
 }
