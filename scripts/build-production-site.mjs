@@ -1172,6 +1172,7 @@ async function main() {
 
   const repoRoot = path.join(path.dirname(fileURLToPath(import.meta.url)), "..");
   const staticAssets = [
+    ["public/assets/images/about-brent-pathfinder-logo.webp", "assets/images/about-brent-pathfinder-logo.webp"],
     ["public/assets/images/pathfinder-path-icon.png", "assets/images/pathfinder-path-icon.png"],
     ["public/assets/images/pathfinder-path-icon-hq.png", "assets/images/pathfinder-path-icon-hq.png"],
     ["public/assets/images/eata-logo.svg", "assets/images/eata-logo.svg"],
@@ -1372,8 +1373,9 @@ async function main() {
   await writeFile(path.join(OUT_DIR, "ai-summary.json"), applyCredentialCopy(buildAiSummaryJson()), "utf8");
   console.log("Added llms.txt and ai-summary.json");
 
+  const bundledAssetPaths = new Set(staticAssets.map(([, target]) => `/${target}`));
   for (const assetPath of assetPaths) {
-    await downloadAsset(assetPath);
+    if (!bundledAssetPaths.has(assetPath)) await downloadAsset(assetPath);
   }
 
   // CSS can reference fonts that are absent from the HTML asset list.
