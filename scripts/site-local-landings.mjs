@@ -53,7 +53,7 @@ export const LOCAL_LANDING_PAGES = [
         "Approach",
         "Trauma-informed and relational",
         "psy-approach",
-        `<p>Brent Kelly works with trauma, anxiety, attachment, relationships, and major life transitions as an EMDR Practitioner, using EMDR and Transactional Analysis where clinically appropriate. Therapy is paced carefully and shaped around your life, not a formula.</p>
+        `<p>Brent Kelly works with trauma, anxiety, attachment, relationships, and major life transitions as an EMDR Therapist, using EMDR and Transactional Analysis where clinically appropriate. Therapy is paced carefully and shaped around your life, not a formula.</p>
         <p><a href="/approach/">Read about the approach</a> · <a href="/therapy/">View therapy services</a> · <a href="/faq/">FAQ</a> · <a href="/fees/">Fees from €75</a></p>`
       )
     ],
@@ -66,7 +66,7 @@ export const LOCAL_LANDING_PAGES = [
     route: "/trauma-therapy-lisbon/",
     title: "English-Speaking Trauma Therapist Lisbon | Brent Kelly",
     description:
-      "Trauma-informed psychotherapy in Lisbon with Brent Kelly, EMDR Practitioner. Support for PTSD, complex trauma, and anxiety — EMDR where appropriate. English-speaking sessions in Lisbon or online.",
+      "Trauma-informed psychotherapy in Lisbon with Brent Kelly, EMDR Therapist. Support for PTSD, complex trauma, and anxiety — EMDR where appropriate. English-speaking sessions in Lisbon or online.",
     serviceName: "Trauma therapy in Lisbon",
     faqs: TRAUMA_FAQS,
     serviceType: "Trauma therapy",

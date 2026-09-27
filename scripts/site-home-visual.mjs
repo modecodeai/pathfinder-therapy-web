@@ -122,7 +122,7 @@ const PROCESS_STAGES = [
   },
   {
     title: "Heal",
-    copy: "Trauma-informed psychotherapy and EMDR Practitioner-led care where appropriate — paced carefully around your nervous system."
+    copy: "Trauma-informed psychotherapy and EMDR Therapist-led care where appropriate — paced carefully around your nervous system."
   },
   {
     title: "Move forward",
@@ -323,7 +323,7 @@ function buildImmersiveEmdrSection() {
       <h2 class="pfSectionTitle" id="home-immersive">Immersive EMDR Therapy</h2>
       <p>Pathfinder Therapy is preparing to pilot an innovative approach to trauma therapy that combines EMDR with carefully selected virtual reality environments.</p>
       <p>Using PsyTechVR and Meta Quest headsets, immersive EMDR may help clients engage with grounding, emotional regulation and trauma-processing exercises within a controlled therapeutic environment.</p>
-      <p>The pilot will be offered by trained EMDR practitioners from our Lisbon clinic and remotely where this is clinically appropriate — as immersive EMDR therapy in Lisbon, or as EMDR therapy with virtual reality online when that is suitable.</p>
+      <p>The pilot will be offered by trained EMDR therapists from our Lisbon clinic and remotely where this is clinically appropriate — as immersive EMDR therapy in Lisbon, or as EMDR therapy with virtual reality online when that is suitable.</p>
       <p class="pfImmersiveNote">Immersive EMDR will only be offered following an individual assessment of clinical suitability. Virtual reality is used as an adjunct to therapy and does not replace the therapeutic relationship or professional clinical judgement.</p>
       <div class="pfHeroActions">
         <a class="lpPrimaryCta" href="/contact/?enquiryType=${encodeURIComponent("Immersive EMDR Therapy")}">Register Your Interest</a>
