@@ -799,7 +799,7 @@ function buildAboutPage(shellHtml) {
   const therapists = [
     {
       name: "Brent Kelly",
-      role: "Trauma-informed psychotherapist",
+      role: "Trauma-informed psychotherapist · EMDR Practitioner",
       availability: "Lisbon clinic and online",
       image: "/assets/images/team/brent-kelly.jpeg",
       alt: "Brent Kelly, therapist at Pathfinder Therapy Lisbon",
@@ -807,11 +807,11 @@ function buildAboutPage(shellHtml) {
         "Brent leads Pathfinder Therapy in Lisbon and holds the face-to-face clinical space for clients who want to meet in person.",
       detail:
         "His work is relational, trauma-informed and grounded in Transactional Analysis, EMDR and careful attention to attachment, identity, anxiety and life transitions.",
-      tags: ["EATA registered", "ITAA member", "EMDR", "Transactional Analysis"]
+      tags: ["EATA registered", "ITAA member", "EMDR Practitioner", "Transactional Analysis"]
     },
     {
       name: "Tim Felton",
-      role: "Online therapist",
+      role: "Online therapist · EMDR Practitioner",
       availability: "Online sessions only",
       image: "/assets/images/team/tim-felton.jpeg",
       alt: "Tim Felton, online therapist with Pathfinder Therapy",
@@ -819,7 +819,7 @@ function buildAboutPage(shellHtml) {
         "Tim supports Pathfinder clients online, offering a steady therapeutic space for people navigating stress, change and the impact of difficult life experiences.",
       detail:
         "His background brings together clinical training, lived experience and a calm, practical approach to helping clients make sense of what they are carrying.",
-      tags: ["Therapist", "Veteran", "Online therapy"]
+      tags: ["Therapist", "EMDR Practitioner", "Veteran", "Online therapy"]
     },
     {
       name: "Sophie Gidley",
