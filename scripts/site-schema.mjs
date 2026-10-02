@@ -54,7 +54,7 @@ export const GLOBAL_SCHEMA = [
     "@type": "Person",
     "@id": `${SITE}/about/#brent-kelly`,
     name: "Brent Kelly",
-    jobTitle: "Therapist",
+    jobTitle: "Trauma-informed psychotherapist and EMDR Therapist",
     description: "English-speaking therapist offering trauma-informed psychotherapy, EMDR and Transactional Analysis for adults in Lisbon and online across Portugal.",
     knowsLanguage: "English",
     worksFor: { "@id": `${SITE}/#organization` },
@@ -81,6 +81,32 @@ export const GLOBAL_SCHEMA = [
         url: "https://itaaworld.com/"
       }
     ]
+  },
+  {
+    "@context": "https://schema.org",
+    "@type": "Person",
+    "@id": `${SITE}/about/#tim-felton`,
+    name: "Tim Felton",
+    jobTitle: "Online therapist and EMDR Therapist",
+    description: "Online therapist with Pathfinder Therapy, offering online EMDR for UK clients where clinically appropriate.",
+    knowsLanguage: "English",
+    worksFor: { "@id": `${SITE}/#organization` },
+    url: `${SITE}/about/#tim-felton`,
+    image: `${SITE}/assets/images/team/tim-felton.jpeg`,
+    knowsAbout: ["EMDR", "Trauma-informed therapy", "Online therapy"]
+  },
+  {
+    "@context": "https://schema.org",
+    "@type": "Person",
+    "@id": `${SITE}/about/#sophie-gidley`,
+    name: "Sophie Gidley",
+    jobTitle: "Online couples therapist",
+    description: "Psychotherapeutic counsellor offering online couples therapy through Pathfinder Therapy, grounded in Transactional Analysis.",
+    knowsLanguage: "English",
+    worksFor: { "@id": `${SITE}/#organization` },
+    url: `${SITE}/about/#sophie-gidley`,
+    image: `${SITE}/assets/images/team/sophie-gidley.webp`,
+    knowsAbout: ["Couples counselling", "Transactional Analysis", "Online therapy"]
   },
   {
     "@context": "https://schema.org",
@@ -123,23 +149,44 @@ export function patchGlobalSchema(html) {
   );
 }
 
-export function buildServiceSchema({ name, description, url, serviceType }) {
+export function buildServiceSchema({ name, description, url, serviceType,
+  areaServed = [{ "@type": "City", name: "Lisboa" }, { "@type": "Country", name: "Portugal" }],
+  providerId = `${SITE}/#medical-business`, price, minPrice, priceCurrency = "EUR" }) {
   return `<script type="application/ld+json">${JSON.stringify({
     "@context": "https://schema.org",
     "@type": "Service",
+    "@id": `${url}#service`,
     name,
     description,
     url,
     serviceType,
-    provider: { "@id": `${SITE}/#medical-business` },
-    areaServed: { "@type": "City", name: "Lisboa" },
+    provider: { "@id": providerId },
+    areaServed,
+    ...(price != null || minPrice != null ? { offers: {
+      "@type": "Offer", url,
+      ...(minPrice != null ? { priceSpecification: {
+        "@type": "PriceSpecification", minPrice: String(minPrice), priceCurrency
+      } } : { price: String(price), priceCurrency })
+    } } : {}),
     availableChannel: {
       "@type": "ServiceChannel",
       availableLanguage: "English",
       serviceUrl: BOOKING_SITE,
-      servicePhone: "+351914775365"
+      servicePhone: { "@type": "ContactPoint", telephone: "+351914775365", contactType: "Non-urgent therapy enquiries", availableLanguage: "English" }
     }
   })}</script>`;
+}
+
+export function buildFaqSchema(faqs) {
+  const plainText = value => value.replace(/<[^>]*>/g, "").replaceAll("&amp;", "&");
+  return `<script type="application/ld+json">${JSON.stringify({
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    mainEntity: faqs.map(faq => ({
+      "@type": "Question", name: plainText(faq.question),
+      acceptedAnswer: { "@type": "Answer", text: plainText(faq.answer) }
+    }))
+  }).replaceAll("<", "\\u003c")}</script>`;
 }
 
 export function buildBreadcrumbSchema(items) {

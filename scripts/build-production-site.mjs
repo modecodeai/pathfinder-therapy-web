@@ -1127,12 +1127,16 @@ function patchSitemap(sitemapXml) {
 
   // Only claim dates for pages materially updated by this release; never use build time.
   const updatedRoutes = new Set(["/", "/fees/", "/knowledge-library/", ...KNOWLEDGE_ARTICLE_META.map(article => `/knowledge-library/${article.slug}/`)]);
+  const searchContentUpdates = new Set(["/", "/trauma-therapy-lisbon/", "/emdr-therapy-lisbon/", "/therapy/emdr/", "/therapy/online/"]);
   next = next.replace(/<url>[\s\S]*?<\/url>/g, entry => {
     const location = entry.match(/<loc>([^<]+)<\/loc>/)?.[1];
-    if (!location || !updatedRoutes.has(new URL(location).pathname)) return entry;
+    if (!location) return entry;
+    const route = new URL(location).pathname;
+    if (!updatedRoutes.has(route) && !searchContentUpdates.has(route)) return entry;
+    const lastmod = searchContentUpdates.has(route) ? "2026-10-02" : "2026-09-20";
     return /<lastmod>/.test(entry)
-      ? entry.replace(/<lastmod>[^<]+<\/lastmod>/, "<lastmod>2026-09-20</lastmod>")
-      : entry.replace("</loc>", "</loc><lastmod>2026-09-20</lastmod>");
+      ? entry.replace(/<lastmod>[^<]+<\/lastmod>/, `<lastmod>${lastmod}</lastmod>`)
+      : entry.replace("</loc>", `</loc><lastmod>${lastmod}</lastmod>`);
   });
   return next;
 }
@@ -1297,9 +1301,9 @@ async function main() {
 
   let homePageV2 = stripHydrationScripts(
     patchHtml(buildHomePageV2(homeHtml), {
-      title: "English-Speaking Therapist Lisbon | Brent Kelly | Pathfinder",
+      title: "Trauma Therapy & EMDR in Lisbon and Online | Pathfinder Therapy",
       description:
-        "English-speaking psychotherapy and trauma therapy with Brent Kelly in Lisbon or online. Individual sessions from €75. Book a free 30-minute initial Zoom call.",
+        "English-speaking trauma therapy and EMDR with Brent Kelly in Lisbon and online across Portugal. Explore UK online EMDR with Brent Kelly or Tim Felton.",
       canonical: "https://www.pathfindertherapy.com/"
     })
   );

@@ -1,13 +1,23 @@
-import { buildBreadcrumbSchema, buildServiceSchema } from "./site-schema.mjs";
+import { buildBreadcrumbSchema, buildServiceSchema, buildFaqSchema } from "./site-schema.mjs";
 import { buildPublicFeedbackSection } from "./site-reviews.mjs";
 import { getClinicDirectionsUrl } from "./site-location.mjs";
 
 const SITE = "https://www.pathfindertherapy.com";
 const DIRECTIONS_LINK = `<p><a class="lpLocationMapLink" href="${getClinicDirectionsUrl()}" target="_blank" rel="noopener noreferrer">Get directions on Google Maps →</a></p>`;
 const TRAUMA_FAQS = [
-  { question: "Can I have trauma therapy in English with Brent Kelly?", answer: "Yes. Brent offers trauma-informed psychotherapy in English for adults at Pathfinder Therapy in central Lisbon and online across Portugal. EMDR and Transactional Analysis are used where clinically appropriate." },
+  { question: "Can I have trauma therapy in English with Brent Kelly?", answer: "Yes. Brent Kelly is an EMDR Therapist offering trauma-informed psychotherapy in English for adults at Pathfinder Therapy in Lisbon and online across Portugal. EMDR and Transactional Analysis are used where clinically appropriate." },
   { question: "Where is the Lisbon clinic?", answer: "The Pathfinder Therapy Lisbon clinic is at R. Rodrigues Sampaio 76, 1º Andar, 1150-281 Lisboa, Portugal. Brent holds face-to-face sessions at this clinic." },
-  { question: "How do I find out whether Brent is the right therapist for me?", answer: "Start with a free 30-minute initial consultation by Zoom to discuss what you are looking for and whether the service is suitable. There is no obligation to continue. Therapy sessions start from €75." },
+  { question: "How much does trauma therapy or EMDR cost?", answer: "Individual therapy in Lisbon or online across Portugal starts from €75 for 50 minutes. EMDR sessions in Lisbon or online across Portugal cost €95 for 60 minutes. The separate <a href=\"/online-emdr-therapy-uk/\">UK online EMDR service</a> with Brent Kelly or Tim Felton costs £80 for 60 minutes." },
+  { question: "Do I need a diagnosis or have to share my full history straight away?", answer: "No diagnosis is needed to begin a conversation. The first meeting helps clarify what brings you to therapy and whether the approach is suitable. There is no pressure to share your full history immediately; EMDR is considered following assessment and preparation." },
+  { question: "Is the initial consultation free?", answer: "Yes. The initial 30-minute Zoom consultation with Brent is free and separate from a paid therapy session. You can ask about the approach, fees and suitability, with no obligation to continue. Fees are agreed before therapy begins." },
+];
+const EMDR_FAQS = [
+  { question: "Who offers EMDR therapy in English in Lisbon?", answer: "Brent Kelly is an EMDR Therapist offering EMDR in English for adults through Pathfinder Therapy, in person in Lisbon and online across Portugal where clinically appropriate." },
+  { question: "Where are in-person EMDR sessions held?", answer: "Brent holds in-person sessions at Pathfinder Therapy, R. Rodrigues Sampaio 76, 1º Andar, 1150-281 Lisboa, Portugal." },
+  { question: "Can I have EMDR online in Portugal?", answer: "Yes. EMDR is available online in English across Portugal where assessment indicates that the approach and format are suitable. Your therapist discusses preparation, privacy and practical arrangements before processing begins." },
+  { question: "How much does EMDR cost in Portugal and the UK?", answer: "EMDR with Brent in Lisbon or online across Portugal costs €95 for a 60-minute session. The separate <a href=\"/online-emdr-therapy-uk/\">UK online EMDR service</a> with Brent Kelly or Tim Felton costs £80 for 60 minutes and is online only. Suitability and availability are discussed before sessions are agreed." },
+  { question: "Is EMDR suitable for everyone?", answer: "No. Your therapist assesses whether EMDR is appropriate for your circumstances and plans the work with you. Assessment, preparation and the therapeutic relationship come before processing; another approach or more preparation may be suggested." },
+  { question: "Is the initial EMDR consultation free?", answer: "The initial 30-minute Zoom consultation with Brent is free and separate from a paid EMDR session. It is a chance to ask questions and discuss suitability, with no obligation to continue. EMDR processing does not have to begin in the first therapy session." },
 ];
 
 function section(kicker, title, id, bodyHtml) {
@@ -110,10 +120,11 @@ export const LOCAL_LANDING_PAGES = [
       "EMDR therapy in English with Brent Kelly. €95 for 60 minutes, in Lisbon or online across Portugal. Start with a free initial consultation.",
     serviceName: "EMDR therapy in Lisbon",
     serviceType: "EMDR",
+    faqs: EMDR_FAQS,
     hero: {
       kicker: "EMDR · Lisbon & online",
       title: "EMDR therapy in Lisbon with a trauma-informed therapist.",
-      lead: "Eye Movement Desensitisation and Reprocessing (EMDR) where clinically appropriate — integrated within broader trauma-informed psychotherapy, not as a standalone quick fix."
+      lead: "Brent Kelly, EMDR Therapist, offers EMDR in English for adults in Lisbon and online across Portugal. Eye Movement Desensitisation and Reprocessing is integrated within trauma-informed psychotherapy, following individual assessment and preparation."
     },
     sections: [
       section(
@@ -134,7 +145,7 @@ export const LOCAL_LANDING_PAGES = [
         "Practical details",
         "Sessions in English — Lisbon or online",
         "emdr-practical",
-        `<p>EMDR sessions are available in English at the Lisbon clinic or online across Portugal. Portugal sessions are €95 for 60 minutes. Start with a free 30-minute initial consultation by Zoom to discuss suitability. <a href="/fees/">See fees</a>.</p>
+        `<p>EMDR sessions with Brent are available in English at R. Rodrigues Sampaio 76, 1º Andar, 1150-281 Lisboa, Portugal, or online across Portugal. Portugal sessions are €95 for 60 minutes. Start with a free 30-minute initial consultation by Zoom to discuss suitability; this is separate from a paid therapy session. <a href="/fees/">See fees</a>.</p>
         <p>Joining from the UK? Our <a href="/online-emdr-therapy-uk/">UK online EMDR service</a> with Brent Kelly or Tim Felton costs £80 for 60 minutes, subject to suitability and availability.</p>
         ${DIRECTIONS_LINK}`
       )
@@ -194,7 +205,7 @@ export function buildLocalLandingBody(page) {
   return `<article class="lpLocalLanding">
 ${hero(page.hero.kicker, page.hero.title, "local-landing-title", page.hero.lead)}
 ${page.sections.join("\n")}
-${page.faqs ? section("Practical questions", "Starting trauma therapy with Brent", "trauma-questions", page.faqs.map((faq) => `<h3>${faq.question}</h3><p>${faq.answer}</p>`).join("")) : ""}
+${page.faqs ? section("Practical questions", "Questions about therapy", "local-questions", page.faqs.map((faq) => `<h3>${faq.question}</h3><p>${faq.answer}</p>`).join("")) : ""}
 ${buildPublicFeedbackSection({ compact: true })}
 <section class="lpLocalSection" aria-labelledby="local-related">
   <div class="lpLocalSectionInner">
@@ -213,12 +224,13 @@ export function buildLocalLandingPage(shellHtml, page, buildInteriorPageWithBook
     name: page.serviceName,
     description: page.description,
     url: canonicalUrl,
-    serviceType: page.serviceType
+    serviceType: page.serviceType,
+    ...(page.serviceType === "EMDR" ? { price: 95 } : {})
   })}
 ${buildBreadcrumbSchema([
     { name: "Home", url: `${SITE}/` },
     { name: page.serviceName, url: canonicalUrl }
-  ])}${page.faqs ? `<script type="application/ld+json">${JSON.stringify({ "@context": "https://schema.org", "@type": "FAQPage", mainEntity: page.faqs.map((faq) => ({ "@type": "Question", name: faq.question, acceptedAnswer: { "@type": "Answer", text: faq.answer } })) })}</script>` : ""}`;
+  ])}${page.faqs ? buildFaqSchema(page.faqs) : ""}`;
 
   return buildInteriorPageWithBookingPanel(shellHtml, {
     title: page.title,
