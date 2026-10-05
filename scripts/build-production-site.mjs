@@ -509,6 +509,10 @@ function prepareLandingForm(formHtml) {
     next = next.replace("<option>EMDR</option>", "<option>EMDR</option><option>Nature-based therapy in Alcobaça</option>");
   }
 
+  if (!next.includes("Provider collaboration in Alcobaça")) {
+    next = next.replace("<option>EMDR</option>", "<option>EMDR</option><option>Provider collaboration in Alcobaça</option>");
+  }
+
   return next;
 }
 

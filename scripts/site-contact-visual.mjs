@@ -68,6 +68,7 @@ export function buildContactVisualBody(formHtml) {
           <li>Nature-based psychotherapy incorporating Eco-TA and EMDR where clinically appropriate.</li>
           <li>Around 10 minutes from the centre of Alcobaça. Sessions by arrangement; directions and arrival details are shared when your session is arranged.</li>
           <li><a href="/nature-based-therapy-alcobaca/">Explore the Alcobaça practice</a></li>
+          <li><a href="/nature-based-therapy-alcobaca/#nature-providers">Local provider referrals and on-site collaboration</a></li>
         </ul>
       </div>
       <div>

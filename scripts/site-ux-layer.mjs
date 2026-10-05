@@ -184,6 +184,9 @@ Individual therapy, online couples therapy, EMDR, online therapy, trauma-informe
 Pathfinder Therapy Lisbon Clinic, R. Rodrigues Sampaio 76 1º Andar, 1150-281 Lisboa, Portugal.
 Pathfinder Therapy Alcobaça nature-based practice, around 10 minutes from the centre of Alcobaça, Portugal. Sessions by arrangement; directions and arrival details are shared when a session is arranged. Availability, suitability, session length, fees and outdoor conditions are discussed before attendance. The practice welcomes enquiries from Alcobaça, Nazaré, São Martinho do Porto, Benedita and Pataias in the surrounding Silver Coast area. Travel times vary by starting point, route and traffic.
 
+## Local provider collaboration
+Brent welcomes referrals and collaborative work with local therapists, clinics and other providers in Alcobaça and the surrounding Silver Coast area. English-speaking psychotherapy and EMDR can be offered at providers’ premises by arrangement or at the Alcobaça practice, with Eco-TA incorporated where appropriate. Scope, responsibilities, client consent, availability, fees and a suitable private space are agreed before sessions begin. See https://www.pathfindertherapy.com/nature-based-therapy-alcobaca/#nature-providers. Initial provider enquiries should not include identifying client details.
+
 ## Legal entity
 Pathfinder Therapy is a trading name of Pathfinder Therapy CIC, a community interest company registered in England and Wales under company number 17248842.
 Pathfinder Therapy CIC is an NCPS Recognised Counselling Service (membership number RCS6035).
@@ -239,6 +242,7 @@ export function buildAiSummaryJson() {
           delivery: "Nature-based psychotherapy incorporating Eco-TA and EMDR where clinically appropriate",
           access: "Sessions by arrangement; directions and arrival details shared when a session is arranged",
           practicalities: "Availability, suitability, session length, fees, privacy, access and weather arrangements agreed before attendance",
+          provider_collaboration: "Referrals and collaborative work with local therapists, clinics and other providers. English-speaking psychotherapy and EMDR at providers’ premises by arrangement or at the Alcobaça practice, with Eco-TA where appropriate; scope, responsibilities, client consent, availability, fees and a suitable private space agreed before sessions begin.",
           url: "https://www.pathfindertherapy.com/nature-based-therapy-alcobaca/"
         }
       ],
