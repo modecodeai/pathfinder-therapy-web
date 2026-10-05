@@ -374,6 +374,7 @@ export function buildSiteFooter() {
     { href: "/therapy/emdr/", label: "EMDR in Lisbon" },
     { href: "/online-emdr-therapy-uk/", label: "Online EMDR · UK" },
     { href: "/therapy/online/", label: "Online therapy" },
+    { href: "/nature-based-therapy-alcobaca/", label: "Alcobaça nature practice" },
     { href: "/about/", label: "About the team" },
     { href: "/approach/", label: "Approach" },
     { href: "/fees/", label: "Fees" },
@@ -391,7 +392,7 @@ export function buildSiteFooter() {
       <div class="pfFooterBrand">
         <img class="pfFooterBrandMark" src="/assets/images/pathfinder-path-icon.png" width="72" height="72" loading="lazy" alt="">
         <div class="pfFooterLogo">Pathfinder<small>Therapy</small></div>
-        <p>Trauma-informed psychotherapy led by Brent Kelly in Lisbon, with online therapy support through Pathfinder where appropriate.</p>
+        <p>Trauma-informed psychotherapy with Brent Kelly in Lisbon and at our nature-based practice in Alcobaça, with online therapy support through Pathfinder where appropriate.</p>
         ${buildTradingNameBlock()}
         <p style="margin-top:12px"><a href="https://www.instagram.com/pathfinder.therapy/" rel="noopener noreferrer" target="_blank">Instagram<span class="visually-hidden"> (opens in a new tab)</span></a></p>
       </div>
@@ -410,6 +411,7 @@ export function buildSiteFooter() {
         <p><a href="mailto:hi@pathfindertherapy.com">hi@pathfindertherapy.com</a></p>
         <p>R. Rodrigues Sampaio 76 1º Andar<br>1150-281 Lisboa, Portugal</p>
         <p><a href="https://www.google.com/maps/dir//Pathfinder+Therapy,+R.+Rodrigues+Sampaio+76+1st+floor,+1150-281+Lisboa" target="_blank" rel="noopener noreferrer">Get directions →<span class="visually-hidden"> (opens in a new tab)</span></a></p>
+        <p><a href="/nature-based-therapy-alcobaca/">Alcobaça nature-based practice</a><br>Around 10 minutes from the centre<br>Sessions by arrangement</p>
       </div>
     </div>
     <div class="pfFooterBottom">

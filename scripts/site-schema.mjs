@@ -37,6 +37,7 @@ export const GLOBAL_SCHEMA = [
     address: LISBON_ADDRESS,
     areaServed: [
       { "@type": "City", name: "Lisboa" },
+      { "@type": "City", name: "Alcobaça" },
       { "@type": "Country", name: "Portugal" }
     ]
   },
@@ -55,7 +56,7 @@ export const GLOBAL_SCHEMA = [
     "@id": `${SITE}/about/#brent-kelly`,
     name: "Brent Kelly",
     jobTitle: "Trauma-informed psychotherapist and EMDR Therapist",
-    description: "English-speaking therapist offering trauma-informed psychotherapy, EMDR and Transactional Analysis for adults in Lisbon and online across Portugal.",
+    description: "English-speaking therapist offering trauma-informed psychotherapy in Lisbon, nature-based therapy incorporating Eco-TA and EMDR where appropriate in Alcobaça, and online therapy across Portugal.",
     knowsLanguage: "English",
     worksFor: { "@id": `${SITE}/#organization` },
     url: `${SITE}/about/`,
@@ -64,6 +65,7 @@ export const GLOBAL_SCHEMA = [
       "Trauma",
       "EMDR",
       "Transactional Analysis",
+      "Ecological Transactional Analysis (Eco-TA)",
       "Military veterans",
       "Attachment",
       "Anxiety",

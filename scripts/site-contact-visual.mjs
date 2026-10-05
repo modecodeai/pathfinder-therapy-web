@@ -42,7 +42,7 @@ export function buildContactVisualBody(formHtml) {
   return `<div class="pfContactPage">
   <section class="pfContactHero" aria-labelledby="contact-title">
     <div class="pfContactHeroInner">
-      <p class="pfKicker">Contact · Lisbon clinic &amp; online</p>
+      <p class="pfKicker">Contact · Lisbon, Alcobaça &amp; online</p>
       <h1 class="pfTitle" id="contact-title">Reach out when you are ready</h1>
       <p class="pfLead" style="color:var(--pf-linen-muted)">You can arrange an initial consultation directly or send an enquiry first — whichever feels easier. Both routes are confidential and non-urgent.</p>
       <div class="pfHeroActions">
@@ -60,6 +60,14 @@ export function buildContactVisualBody(formHtml) {
           <li>${CLINIC.street}, ${CLINIC.postalCode} ${CLINIC.locality}</li>
           <li><a href="${CLINIC.directionsUrl}" target="_blank" rel="noopener noreferrer">Get directions</a></li>
           <li>In person at the Lisbon clinic or securely online · from €75 for 50 minutes</li>
+        </ul>
+      </div>
+      <div>
+        <h2>Alcobaça nature-based practice</h2>
+        <ul class="pfContactList">
+          <li>Nature-based psychotherapy incorporating Eco-TA and EMDR where clinically appropriate.</li>
+          <li>Around 10 minutes from the centre of Alcobaça. Sessions by arrangement; directions and arrival details are shared when your session is arranged.</li>
+          <li><a href="/nature-based-therapy-alcobaca/">Explore the Alcobaça practice</a></li>
         </ul>
       </div>
       <div>

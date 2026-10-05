@@ -3,6 +3,7 @@ const VALID_ENQUIRY_TYPES = new Set([
   "Couples therapy",
   "EMDR",
   "Immersive EMDR Therapy",
+  "Nature-based therapy in Alcobaça",
   "Online therapy",
   "Clinical enquiry",
   "Other"

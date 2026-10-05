@@ -55,6 +55,7 @@ import { applyUkEmdrLanding, UK_EMDR_ROUTE } from "./site-uk-emdr.mjs";
 import { CONTACT_VISUAL_CSS } from "./site-contact-visual.mjs";
 import { optimiseStaticSite } from "./optimise-static-site.mjs";
 import { applyLisbonRedesign } from "./site-lisbon-redesign.mjs";
+import { applyAlcobacaPractice, ALCOBACA_ROUTE } from "./site-alcobaca.mjs";
 
 const PREVIEW_ORIGIN =
   process.env.PATHFINDER_PREVIEW_ORIGIN ?? "https://9aa49f15.pathfinder-therapy-web.pages.dev";
@@ -504,6 +505,10 @@ function prepareLandingForm(formHtml) {
     );
   }
 
+  if (!next.includes("Nature-based therapy in Alcobaça")) {
+    next = next.replace("<option>EMDR</option>", "<option>EMDR</option><option>Nature-based therapy in Alcobaça</option>");
+  }
+
   return next;
 }
 
@@ -742,9 +747,9 @@ function buildContactPageV2(contactHtml) {
     buildStickyBar(BOOKING_PATH, BOOKING_LABEL)
   );
   html = patchHtml(html, {
-    title: "Contact | Arrange a Consultation | Pathfinder Therapy Lisbon",
+    title: "Contact | Lisbon, Alcobaça & Online | Pathfinder Therapy",
     description:
-      "Contact Brent Kelly to arrange a confidential initial psychotherapy consultation in Lisbon or online. Response within one working day.",
+      "Contact Brent Kelly about therapy in Lisbon, nature-based Eco-TA and EMDR in Alcobaça, or online sessions. Arrange a free initial Zoom consultation.",
     canonical: "https://www.pathfindertherapy.com/contact/"
   });
   return html;
@@ -1244,6 +1249,7 @@ async function main() {
     "/",
     ...getServicePageRoutes(),
     UK_EMDR_ROUTE,
+    ALCOBACA_ROUTE,
     ...getLocalLandingRoutes(),
     ...getKnowledgeLibraryBuiltRoutes()
   ]);
@@ -1429,6 +1435,7 @@ async function main() {
   await embedBuildProvenance();
   await cp(path.join(repoRoot, "public", "robots.txt"), path.join(OUT_DIR, "robots.txt"));
   await applyLisbonRedesign(OUT_DIR);
+  await applyAlcobacaPractice(OUT_DIR);
   await applyUkEmdrLanding(OUT_DIR);
   await optimiseStaticSite(OUT_DIR);
 

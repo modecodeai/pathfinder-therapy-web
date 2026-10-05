@@ -144,7 +144,7 @@ function applyHomepageUx(html) {
 export function buildLlmsTxt() {
   return `# Pathfinder Therapy — Private Practice (.com)
 
-> English-speaking trauma-informed psychotherapy with Brent Kelly in Lisbon and online across Portugal, with online therapy support through Pathfinder where appropriate.
+> English-speaking trauma-informed psychotherapy with Brent Kelly in Lisbon, nature-based therapy incorporating Eco-TA and EMDR where appropriate in Alcobaça, and online therapy across Portugal.
 
 ## Primary pages
 - https://www.pathfindertherapy.com/
@@ -164,6 +164,7 @@ export function buildLlmsTxt() {
 - https://www.pathfindertherapy.com/english-speaking-therapist-lisbon/
 
 ## Service pages
+- [Nature-based therapy in Alcobaça: Eco-TA and EMDR](https://www.pathfindertherapy.com/nature-based-therapy-alcobaca/)
 - [Individual therapy in Lisbon](https://www.pathfindertherapy.com/therapy/individual/)
 - [Online couples therapy with Sophie Gidley](https://www.pathfindertherapy.com/therapy/couples/)
 - [EMDR in Lisbon](https://www.pathfindertherapy.com/therapy/emdr/)
@@ -177,10 +178,11 @@ export function buildLlmsTxt() {
 - Phone/WhatsApp: +351 914 775 365
 
 ## Services
-Individual therapy, online couples therapy, EMDR, online therapy, trauma-informed psychotherapy.
+Individual therapy, online couples therapy, EMDR, online therapy, trauma-informed psychotherapy, nature-based therapy incorporating Ecological Transactional Analysis (Eco-TA).
 
 ## Location
 Pathfinder Therapy Lisbon Clinic, R. Rodrigues Sampaio 76 1º Andar, 1150-281 Lisboa, Portugal.
+Pathfinder Therapy Alcobaça nature-based practice, around 10 minutes from the centre of Alcobaça, Portugal. Sessions by arrangement; directions and arrival details are shared when a session is arranged. Availability, suitability, session length, fees and outdoor conditions are discussed before attendance.
 
 ## Legal entity
 Pathfinder Therapy is a trading name of Pathfinder Therapy CIC, a community interest company registered in England and Wales under company number 17248842.
@@ -213,10 +215,10 @@ export function buildAiSummaryJson() {
       },
       clinical_team: {
         name: "Brent Kelly",
-        role: "Lead therapist and EMDR Therapist, Lisbon clinic and online",
+        role: "Lead therapist and EMDR Therapist, Lisbon clinic, Alcobaça nature-based practice and online",
         registrations: ["EATA"],
         memberships: ["ITAA"],
-        specialties: ["Trauma", "EMDR", "Transactional Analysis", "Military veterans", "Attachment"],
+        specialties: ["Trauma", "EMDR", "Transactional Analysis", "Ecological Transactional Analysis (Eco-TA)", "Military veterans", "Attachment"],
         online_collaborators: [
           { name: "Tim Felton", role: "Online therapist and EMDR Therapist" },
           { name: "Sophie Gidley", role: "Online couples therapist", approach: "Transactional Analysis" }
@@ -227,16 +229,26 @@ export function buildAiSummaryJson() {
           city: "Lisboa",
           country: "Portugal",
           address: "R. Rodrigues Sampaio 76 1º Andar, 1150-281 Lisboa"
+        },
+        {
+          city: "Alcobaça",
+          country: "Portugal",
+          name: "Pathfinder Therapy Alcobaça nature-based practice",
+          location_description: "Around 10 minutes from the centre of Alcobaça",
+          delivery: "Nature-based psychotherapy incorporating Eco-TA and EMDR where clinically appropriate",
+          access: "Sessions by arrangement; directions and arrival details shared when a session is arranged",
+          practicalities: "Availability, suitability, session length, fees, privacy, access and weather arrangements agreed before attendance",
+          url: "https://www.pathfindertherapy.com/nature-based-therapy-alcobaca/"
         }
       ],
-      services: ["Trauma-informed psychotherapy", "Individual therapy", "Online couples therapy", "EMDR", "Online therapy"],
+      services: ["Trauma-informed psychotherapy", "Individual therapy", "Online couples therapy", "EMDR", "Online therapy", "Nature-based therapy incorporating Eco-TA"],
       languages: ["English"],
       fees: {
         lisbon_individual: { currency: "EUR", from: 75, duration_minutes: 50, source: "https://www.pathfindertherapy.com/fees/" },
         portugal_emdr: { currency: "EUR", amount: 95, duration_minutes: 60, practitioners: ["Brent Kelly"], delivery: "In person in Lisbon or online across Portugal", subject_to_assessment: true, source: "https://www.pathfindertherapy.com/emdr-therapy-lisbon/" },
         uk_online_emdr: { currency: "GBP", amount: 80, duration_minutes: 60, practitioners: ["Brent Kelly", "Tim Felton"], delivery: "Online only", subject_to_assessment: true, source: "https://www.pathfindertherapy.com/online-emdr-therapy-uk/" }
       },
-      service_pages: ["https://www.pathfindertherapy.com/therapy/individual/", "https://www.pathfindertherapy.com/therapy/couples/", "https://www.pathfindertherapy.com/therapy/emdr/", "https://www.pathfindertherapy.com/therapy/online/", "https://www.pathfindertherapy.com/online-emdr-therapy-uk/"],
+      service_pages: ["https://www.pathfindertherapy.com/therapy/individual/", "https://www.pathfindertherapy.com/therapy/couples/", "https://www.pathfindertherapy.com/therapy/emdr/", "https://www.pathfindertherapy.com/therapy/online/", "https://www.pathfindertherapy.com/online-emdr-therapy-uk/", "https://www.pathfindertherapy.com/nature-based-therapy-alcobaca/"],
       booking: {
         consultation_url: "https://booking.pathfindertherapy.com/book",
         consultation_description: "Free 30-minute initial consultation by Zoom, with no obligation to continue",
@@ -249,7 +261,9 @@ export function buildAiSummaryJson() {
         "Trauma therapist Lisbon",
         "EMDR Lisbon",
         "English speaking therapist Lisbon",
-        "Online therapy Portugal"
+        "Online therapy Portugal",
+        "Nature-based therapy Alcobaça",
+        "Eco-TA Alcobaça"
       ],
       local_pages: [
         "https://www.pathfindertherapy.com/psychotherapy-lisbon/",
