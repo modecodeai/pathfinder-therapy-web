@@ -182,7 +182,7 @@ Individual therapy, online couples therapy, EMDR, online therapy, trauma-informe
 
 ## Location
 Pathfinder Therapy Lisbon Clinic, R. Rodrigues Sampaio 76 1º Andar, 1150-281 Lisboa, Portugal.
-Pathfinder Therapy Alcobaça nature-based practice, around 10 minutes from the centre of Alcobaça, Portugal. Sessions by arrangement; directions and arrival details are shared when a session is arranged. Availability, suitability, session length, fees and outdoor conditions are discussed before attendance.
+Pathfinder Therapy Alcobaça nature-based practice, around 10 minutes from the centre of Alcobaça, Portugal. Sessions by arrangement; directions and arrival details are shared when a session is arranged. Availability, suitability, session length, fees and outdoor conditions are discussed before attendance. The practice welcomes enquiries from Alcobaça, Nazaré, São Martinho do Porto, Benedita and Pataias in the surrounding Silver Coast area. Travel times vary by starting point, route and traffic.
 
 ## Legal entity
 Pathfinder Therapy is a trading name of Pathfinder Therapy CIC, a community interest company registered in England and Wales under company number 17248842.
@@ -235,6 +235,7 @@ export function buildAiSummaryJson() {
           country: "Portugal",
           name: "Pathfinder Therapy Alcobaça nature-based practice",
           location_description: "Around 10 minutes from the centre of Alcobaça",
+          nearby_communities: ["Alcobaça", "Nazaré", "São Martinho do Porto", "Benedita", "Pataias"],
           delivery: "Nature-based psychotherapy incorporating Eco-TA and EMDR where clinically appropriate",
           access: "Sessions by arrangement; directions and arrival details shared when a session is arranged",
           practicalities: "Availability, suitability, session length, fees, privacy, access and weather arrangements agreed before attendance",
