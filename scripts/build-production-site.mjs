@@ -1448,8 +1448,25 @@ async function main() {
       if (entry.isDirectory()) { await connectAlphaEnquiries(file); continue; }
       if (!entry.name.endsWith('.html')) continue;
       const original = await readFile(file, 'utf8');
-      const next = original.replace(/<form\b[^>]*class="[^"]*contactForm[^"]*"[\s\S]*?<\/form>/g,
-        `<div class="contactForm"><p>New appointments are currently available online only. Prefer face-to-face therapy? Join the waiting list and receive your intake form and therapy agreement for review.</p><p><a class="contactSubmit" href="https://booking.pathfindertherapy.com/book/enquiry">Open the secure enquiry form</a></p><p><a href="https://booking.pathfindertherapy.com/book/enquiry?waiting=1">Join the face-to-face waiting list</a></p><p>We will contact you when a suitable face-to-face appointment becomes available; joining does not confirm a place or start date.</p></div>`);
+      let next = original.replace(/<form\b[^>]*class="[^"]*contactForm[^"]*"[\s\S]*?<\/form>/g,
+        `<div class="pfEnquiryOptions"><p class="pfEnquiryAvailability"><strong>New appointments are online only at present.</strong></p><p>Send an enquiry, or join the waiting list if you would prefer a face-to-face session.</p><div class="pfEnquiryActions"><a class="pfEnquiryButton" href="https://booking.pathfindertherapy.com/book/enquiry">Send an enquiry</a><a class="pfEnquiryButton pfEnquiryButtonSecondary" href="https://booking.pathfindertherapy.com/book/enquiry?waiting=1">Join the face-to-face waiting list</a></div><p class="pfEnquiryNote">For the waiting list, complete the secure form and confirm your email address. Your intake form and therapy agreement will follow automatically. We will contact you when a suitable appointment becomes available; joining does not confirm a place or start date.</p></div>`);
+      if(next!==original) next=next.replace('</head>',`<style id="pf-enquiry-options-style">
+#consultation-form.pfContactFormSection{background:#e9e4d8!important;color:#263c35!important;padding:48px 24px!important}
+#consultation-form .pfContactFormInner{max-width:760px;margin:0 auto}
+#consultation-form .pfSectionTitle{color:#203b33!important;margin:0 0 12px!important}
+#consultation-form .pfSectionLead{color:#40534b!important;line-height:1.65}
+#consultation-form .pfKicker{color:#765321!important}
+.pfEnquiryOptions{display:grid;gap:16px;margin-top:24px;padding:24px;border:1px solid #c6cfc6;border-radius:16px;background:#faf9f4;color:#263c35!important}
+.pfEnquiryOptions p{color:#263c35!important;margin:0!important;line-height:1.65!important;font-size:16px}
+.pfEnquiryActions{display:flex;flex-wrap:wrap;gap:12px;margin:4px 0}
+.pfEnquiryOptions a.pfEnquiryButton{display:inline-flex;align-items:center;justify-content:center;padding:13px 18px;border:1px solid #183c31;border-radius:8px;background:#183c31;color:#fff!important;font-size:15px;font-weight:600;line-height:1.4;text-align:center;text-decoration:none!important;min-height:48px}
+.pfEnquiryOptions a.pfEnquiryButtonSecondary{background:#faf9f4;color:#183c31!important}
+.pfEnquiryOptions a.pfEnquiryButton:hover{background:#2d5145;color:#fff!important}
+.pfEnquiryOptions a.pfEnquiryButton:focus-visible{outline:3px solid #a36b22;outline-offset:4px}
+.pfEnquiryOptions p.pfEnquiryNote{font-size:14px;color:#40534b!important}
+#enquiry .lpFormIntro{color:#40534b!important}
+@media(max-width:600px){#consultation-form.pfContactFormSection{padding:32px 20px!important}.pfEnquiryOptions{padding:20px}.pfEnquiryActions{flex-direction:column}.pfEnquiryButton{width:100%;box-sizing:border-box}}
+</style></head>`);
       if(next!==original) await writeFile(file,next,'utf8');
     }
   }
