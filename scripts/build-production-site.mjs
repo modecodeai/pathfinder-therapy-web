@@ -1441,6 +1441,19 @@ async function main() {
   await applyLisbonRedesign(OUT_DIR);
   await applyAlcobacaPractice(OUT_DIR);
   await applyUkEmdrLanding(OUT_DIR);
+  // Use the same verified enquiry form as booking so every new request reaches Alpha.
+  async function connectAlphaEnquiries(directory) {
+    for (const entry of await readdir(directory, { withFileTypes: true })) {
+      const file = path.join(directory, entry.name);
+      if (entry.isDirectory()) { await connectAlphaEnquiries(file); continue; }
+      if (!entry.name.endsWith('.html')) continue;
+      const original = await readFile(file, 'utf8');
+      const next = original.replace(/<form\b[^>]*class="[^"]*contactForm[^"]*"[\s\S]*?<\/form>/g,
+        `<div class="contactForm"><p>New appointments are currently available online only. Prefer face-to-face therapy? Join the waiting list and receive your intake form and therapy agreement for review.</p><p><a class="contactSubmit" href="https://booking.pathfindertherapy.com/book/enquiry">Open the secure enquiry form</a></p><p><a href="https://booking.pathfindertherapy.com/book/enquiry?waiting=1">Join the face-to-face waiting list</a></p><p>Veterans can identify themselves on the form for priority enquiry review. We will contact you when a suitable face-to-face appointment becomes available; joining does not confirm a place or start date.</p></div>`);
+      if(next!==original) await writeFile(file,next,'utf8');
+    }
+  }
+  await connectAlphaEnquiries(OUT_DIR);
   await optimiseStaticSite(OUT_DIR);
 
   console.log(`Production build written to ${OUT_DIR}`);
