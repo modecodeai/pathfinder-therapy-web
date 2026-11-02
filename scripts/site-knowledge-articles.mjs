@@ -20,6 +20,7 @@ export const KNOWLEDGE_ARTICLE_META = [
       "Can trauma therapy be gentle?"
     ],
     related: [
+      { href: "/trauma-therapy-lisbon/", label: "Trauma therapy in Lisbon and online" },
       { href: "/knowledge-library/can-therapy-help-anxiety/", label: "Can therapy help anxiety?" },
       { href: "/knowledge-library/the-body-remembers/", label: "The body remembers." }
     ]
@@ -27,8 +28,18 @@ export const KNOWLEDGE_ARTICLE_META = [
   {
     slug: "how-does-emdr-work",
     sourceFile: "how-does-emdr-work.md",
+    modifiedAt: "2026-11-02",
+    sources: [
+      { href: "https://www.nice.org.uk/guidance/ng116/chapter/recommendations", label: "NICE: PTSD treatment recommendations, including EMDR" },
+      { href: "https://www.ptsd.va.gov/understand_tx/emdr.asp", label: "National Center for PTSD: what to expect from EMDR" }
+    ],
     faqs: ["How does EMDR work?", "Is EMDR only for trauma?", "Will I stay in control during EMDR?"],
-    related: [{ href: "/knowledge-library/what-is-trauma-therapy/", label: "What is trauma therapy?" }]
+    related: [
+      { href: "/emdr-therapy-lisbon/", label: "EMDR in Lisbon: sessions, fees and the first conversation" },
+      { href: "/therapy/emdr/", label: "EMDR assessment, preparation and treatment" },
+      { href: "/online-emdr-therapy-uk/", label: "Online EMDR for people in the UK" },
+      { href: "/knowledge-library/what-is-trauma-therapy/", label: "What is trauma therapy?" }
+    ]
   },
   {
     slug: "can-therapy-help-anxiety",
@@ -64,6 +75,8 @@ export const KNOWLEDGE_ARTICLE_META = [
       "How do I know if therapy is right for me?"
     ],
     related: [
+      { href: "/english-speaking-therapist-lisbon/", label: "English-speaking therapy in Lisbon and online" },
+      { href: "/fees/", label: "Session fees and the free introductory call" },
       {
         href: "/knowledge-library/do-i-need-a-diagnosis-for-therapy/",
         label: "Do I need a diagnosis to begin therapy?"
@@ -79,6 +92,8 @@ export const KNOWLEDGE_ARTICLE_META = [
       "Can trauma therapy happen online?"
     ],
     related: [
+      { href: "/therapy/online/", label: "Online therapy: practical arrangements" },
+      { href: "/online-emdr-therapy-uk/", label: "Online EMDR in the UK" },
       {
         href: "/knowledge-library/what-happens-in-a-first-therapy-session/",
         label: "What happens in a first therapy session?"
@@ -199,7 +214,7 @@ function buildRelatedSection(related) {
   const links = related
     .map((item) => `<a href="${item.href}">${escapeHtml(item.label)}</a>`)
     .join("");
-  return `<section class="approachEssay" aria-labelledby="related-articles"><div class="approachEssayInner"><p class="sectionKicker">Related Articles</p><h2 class="approachSectionTitle" id="related-articles">Continue the thread.</h2><div class="knowledgeInlineLinks">${links}</div></div></section>`;
+  return `<section class="approachEssay" aria-labelledby="related-articles"><div class="approachEssayInner"><p class="sectionKicker">Related reading and therapy options</p><h2 class="approachSectionTitle" id="related-articles">Continue the thread.</h2><div class="knowledgeInlineLinks">${links}</div></div></section>`;
 }
 
 export function buildKnowledgeArticleSchema(article) {
@@ -224,6 +239,7 @@ export function buildKnowledgeArticleSchema(article) {
     mainEntityOfPage: canonical,
     image: ARTICLE_IMAGE
   };
+  if (article.modifiedAt) articleSchema.dateModified = article.modifiedAt;
   // These are prompts addressed throughout the article, not visible FAQ answers.
   return `<script id="knowledge-article-schema" type="application/ld+json">${JSON.stringify([breadcrumb, articleSchema])}</script>`;
 }
@@ -273,8 +289,11 @@ export function buildKnowledgeArticleBody(article) {
   const contentSections = article.sections
     .map((section) => buildEssaySection(article.slug, section))
     .join("");
+  const sources = article.sources?.length
+    ? `<section class="approachEssay" aria-labelledby="article-sources"><div class="approachEssayInner"><p class="sectionKicker">Further information</p><h2 class="approachSectionTitle" id="article-sources">Sources and guidance</h2><ul class="authorityList">${article.sources.map(source => `<li><a href="${escapeHtml(source.href)}">${escapeHtml(source.label)}</a></li>`).join("")}</ul><p>Article updated <time datetime="${article.modifiedAt}">2 November 2026</time>. This information supports a conversation with a therapist; it is not an individual assessment.</p></div></section>`
+    : "";
 
-  return `<article class="approachPage">${hero}${buildIntroSection(article.intro)}${contentSections}${buildFaqSection(article.faqs)}${buildRelatedSection(article.related)}${RELATED_PAGES}</article>`;
+  return `<article class="approachPage">${hero}${buildIntroSection(article.intro)}${contentSections}${sources}${buildFaqSection(article.faqs)}${buildRelatedSection(article.related)}${RELATED_PAGES}</article>`;
 }
 
 export async function loadKnowledgeArticles() {

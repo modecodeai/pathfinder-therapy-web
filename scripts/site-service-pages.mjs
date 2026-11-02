@@ -138,21 +138,21 @@ export const SERVICE_PAGES = [
   {
     slug: "emdr",
     route: "/therapy/emdr/",
-    title: "EMDR Therapy in Lisbon & Online | Pathfinder Therapy",
+    title: "EMDR Therapy: Assessment & What to Expect | Pathfinder",
     description:
-      "EMDR therapy in English with Brent Kelly, in Lisbon or online across Portugal. €95 for 60 minutes, following assessment. Free 30-minute initial call.",
+      "What to expect from EMDR with Brent Kelly: an initial conversation, assessment, preparation and review. Explore focused work, session fees and availability.",
     canonical: "https://www.pathfindertherapy.com/therapy/emdr/",
     serviceType: "EMDR therapy in English",
-    label: "Trauma processing",
-    h1: "EMDR therapy in Lisbon and online",
-    heroLead: "EMDR therapy in English with Brent Kelly, at the Lisbon clinic or online across Portugal following assessment and preparation.",
+    label: "Assessment, preparation and review",
+    h1: "EMDR therapy: what to expect",
+    heroLead: "A guide to beginning EMDR with Brent Kelly, from the first conversation to agreeing a plan and reviewing the work together.",
     image: "/assets/images/hero-01.webp",
     imageAlt: "Atmospheric landscape — EMDR within trauma-informed psychotherapy",
     fee: "€95",
     price: "95",
     priceCurrency: "EUR",
     duration: "60 minutes",
-    format: "In person at the Lisbon clinic or securely online where clinically appropriate.",
+    format: "Lisbon or online in Portugal, subject to suitability and availability.",
     helpsWith: [
       "PTSD and trauma-related symptoms",
       "Distressing memories that feel stuck",
@@ -161,19 +161,21 @@ export const SERVICE_PAGES = [
       "Processing when talk therapy alone feels insufficient"
     ],
     paragraphs: [
-      "EMDR is offered within broader trauma-informed psychotherapy — not as a standalone technique. Brent assesses whether it feels clinically appropriate and prepares work carefully before processing begins.",
-      "Sessions are 60 minutes. EMDR is not suitable for everyone; suitability is discussed openly in an initial consultation and ongoing therapy.",
-      "Work takes place in English, in person at the Lisbon clinic or online across Portugal where appropriate. UK clients can explore our <a href=\"/online-emdr-therapy-uk/\">separate online EMDR service at £80 for 60 minutes</a>. Brent is EATA registered and an ITAA member, with training in EMDR as part of integrative trauma-informed practice."
+      "EMDR begins with understanding what brings you to therapy and whether this approach fits your needs. A free 30-minute initial Zoom call gives you space to ask questions and check current availability. The call is separate from a paid therapy session and carries no obligation to continue.",
+      "If you agree to work together, assessment and preparation come before memory processing. You discuss the focus of the work, how to pause and practical support between appointments. Your feedback helps shape the pace, and progress is reviewed together.",
+      "For some people, EMDR is agreed as focused, short-term work for a specific difficulty. For others, it forms part of longer psychotherapy. There is no fixed number of sessions or guaranteed timeline; assessment, preparation and review shape the plan.",
+      "Portugal sessions with Brent are 60 minutes and cost €95. See <a href=\"/emdr-therapy-lisbon/\">EMDR in Lisbon and practical arrangements in Portugal</a>, or the separate <a href=\"/online-emdr-therapy-uk/\">UK online EMDR service at £80 for 60 minutes</a>. For an introduction to the approach itself, read <a href=\"/knowledge-library/how-does-emdr-work/\">how EMDR works</a>.",
+      "Brent is EATA registered and an ITAA member, with training in EMDR as part of integrative trauma-informed practice. If no suitable appointment is available, you can ask about the waiting list. An initial call does not guarantee a therapy place or start date."
     ],
     approach:
-      "EMDR is integrated thoughtfully with relational psychotherapy and nervous-system awareness. Brent does not rush processing — stabilisation and trust in the therapeutic relationship come first.",
-    faqTitle: "Questions about EMDR in Lisbon and online",
+      "Whether the work is focused or longer-term, EMDR takes place within a therapeutic relationship. Suitability, preparation, consent and a pace you can discuss with your therapist remain part of the work throughout.",
+    faqTitle: "Questions about starting EMDR",
     faqs: [
-      { question: "Who offers EMDR therapy at the Lisbon clinic?", answer: "Brent Kelly offers EMDR within trauma-informed psychotherapy for adults at Pathfinder Therapy's Lisbon clinic. Sessions are in English. Brent leads the Lisbon face-to-face provision; Tim Felton supports online care." },
-      { question: "Can I have EMDR online in Portugal?", answer: "Online EMDR is available with Brent Kelly across Portugal where assessment indicates it is appropriate. Before starting, you discuss suitability, preparation, privacy, your location and practical support arrangements." },
-      { question: "How much does EMDR therapy in Portugal cost?", answer: "A 60-minute EMDR session with Brent Kelly costs €95, in Lisbon or online across Portugal. The free 30-minute initial Zoom call with Brent is a separate conversation to discuss your needs, not a paid therapy session. <a href=\"/fees/\">See fees and practical details</a>." },
-      { question: "Can I book online EMDR from the UK?", answer: "Pathfinder has a separate <a href=\"/online-emdr-therapy-uk/\">UK online EMDR service</a> with Brent Kelly or Tim Felton. UK sessions cost £80 for 60 minutes and are online only, subject to assessment and availability. The Portugal fee is €95 for 60 minutes." },
-      { question: "What happens before EMDR processing begins?", answer: "Brent discusses what brings you to therapy, assesses whether EMDR is suitable and agrees preparation and a pace with you. EMDR is not suitable for everyone; processing begins only when clinically appropriate." }
+      { question: "Does EMDR processing begin during the free call?", answer: "No. The free 30-minute call is an introductory conversation about your needs, questions and availability. Assessment and preparation are part of the therapy agreed afterwards; processing does not have to begin in the first paid session." },
+      { question: "Do I need to describe my whole history straight away?", answer: "You do not need to give a detailed account of every experience during the introductory call. If therapy begins, you and Brent discuss what information is needed for assessment and planning, at an agreed pace." },
+      { question: "Can I pause or discuss a different approach?", answer: "Yes. You agree how to pause before processing begins and can discuss your concerns throughout. EMDR is not suitable for everyone; further preparation or a different approach may be considered." },
+      { question: "Will I need short-term or longer therapy?", answer: "That is an individual decision made through assessment and review. Some people agree focused work for a particular difficulty; others need or prefer a longer course of therapy. Session length is 60 minutes, but it does not determine the number of appointments needed." },
+      { question: "Where can I check fees and availability?", answer: "Read the <a href=\"/emdr-therapy-lisbon/\">Lisbon and Portugal EMDR page</a> for the €95 session fee and practical arrangements, or the <a href=\"/online-emdr-therapy-uk/\">UK online page</a> for the £80 service. Current availability is checked in the initial conversation. If no suitable slot is available, ask about the waiting list." }
     ]
   },
   {

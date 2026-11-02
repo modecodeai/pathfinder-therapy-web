@@ -56,6 +56,7 @@ import { CONTACT_VISUAL_CSS } from "./site-contact-visual.mjs";
 import { optimiseStaticSite } from "./optimise-static-site.mjs";
 import { applyLisbonRedesign } from "./site-lisbon-redesign.mjs";
 import { applyAlcobacaPractice, ALCOBACA_ROUTE } from "./site-alcobaca.mjs";
+import { buildJournalPage } from "./site-journal.mjs";
 
 const PREVIEW_ORIGIN =
   process.env.PATHFINDER_PREVIEW_ORIGIN ?? "https://9aa49f15.pathfinder-therapy-web.pages.dev";
@@ -1137,12 +1138,13 @@ function patchSitemap(sitemapXml) {
   // Only claim dates for pages materially updated by this release; never use build time.
   const updatedRoutes = new Set(["/", "/fees/", "/knowledge-library/", ...KNOWLEDGE_ARTICLE_META.map(article => `/knowledge-library/${article.slug}/`)]);
   const searchContentUpdates = new Set(["/", "/trauma-therapy-lisbon/", "/emdr-therapy-lisbon/", "/therapy/emdr/", "/therapy/online/"]);
+  const organicDiscoveryUpdates = new Set(["/", "/journal/", "/psychotherapy-lisbon/", "/english-speaking-therapist-lisbon/", "/emdr-therapy-lisbon/", "/therapy/emdr/", "/knowledge-library/how-does-emdr-work/", "/knowledge-library/what-is-trauma-therapy/", "/knowledge-library/what-happens-in-a-first-therapy-session/", "/knowledge-library/online-therapy/"]);
   next = next.replace(/<url>[\s\S]*?<\/url>/g, entry => {
     const location = entry.match(/<loc>([^<]+)<\/loc>/)?.[1];
     if (!location) return entry;
     const route = new URL(location).pathname;
-    if (!updatedRoutes.has(route) && !searchContentUpdates.has(route)) return entry;
-    const lastmod = searchContentUpdates.has(route) ? "2026-10-02" : "2026-09-20";
+    if (!updatedRoutes.has(route) && !searchContentUpdates.has(route) && !organicDiscoveryUpdates.has(route)) return entry;
+    const lastmod = organicDiscoveryUpdates.has(route) ? "2026-11-02" : searchContentUpdates.has(route) ? "2026-10-02" : "2026-09-20";
     return /<lastmod>/.test(entry)
       ? entry.replace(/<lastmod>[^<]+<\/lastmod>/, `<lastmod>${lastmod}</lastmod>`)
       : entry.replace("</loc>", `</loc><lastmod>${lastmod}</lastmod>`);
@@ -1401,6 +1403,10 @@ async function main() {
     await writeRoute(PREVIEW_ORIGIN, article.route, articleHtml);
     console.log(`Added ${article.route} (knowledge article)`);
   }
+
+  const journalHtml = stripHydrationScripts(applySprint3Transforms(buildJournalPage(shellHtml, knowledgeArticles, buildInteriorPageV2), "/journal/"));
+  await writeRoute(PREVIEW_ORIGIN, "/journal/", journalHtml);
+  console.log("Added /journal/ with links to published articles");
 
   await writeFile(path.join(OUT_DIR, "llms.txt"), applyCredentialCopy(buildLlmsTxt()), "utf8");
   await writeFile(path.join(OUT_DIR, "ai-summary.json"), applyCredentialCopy(buildAiSummaryJson()), "utf8");

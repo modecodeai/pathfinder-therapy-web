@@ -142,6 +142,17 @@ export function buildGlobalSchemaScript() {
 }
 
 export function patchGlobalSchema(html) {
+  // Availability is agreed individually; inherited offers must not imply an open therapy place.
+  html = html.replace(/(<script\b[^>]*type="application\/ld\+json"[^>]*>)([\s\S]*?)(<\/script>)/gi, (block, open, body, close) => {
+    if (!body.includes("https://schema.org/InStock")) return block;
+    const schema = JSON.parse(body, (key, value) => {
+      if (value && typeof value === "object" && value["@type"] === "Offer" && value.availability === "https://schema.org/InStock") {
+        delete value.availability;
+      }
+      return value;
+    });
+    return `${open}${JSON.stringify(schema)}${close}`;
+  });
   if (!html.includes('id="pathfinder-global-schema"')) {
     return html.replace("</head>", `${buildGlobalSchemaScript()}\n</head>`);
   }

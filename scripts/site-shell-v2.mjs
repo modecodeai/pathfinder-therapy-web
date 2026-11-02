@@ -35,6 +35,7 @@ export const NAV_ITEMS = [
 export const RESOURCES_LINKS = [
   { href: "/knowledge-library/", label: "Knowledge Library" },
   { href: "/journal/", label: "Journal" },
+  { href: "/research/", label: "Research" },
   { href: "/faq/", label: "FAQ" },
   { href: "/retreats/", label: "Retreats" }
 ];
@@ -371,7 +372,8 @@ export function buildSiteFooter() {
     { href: "/therapy/", label: "Therapy" },
     { href: "/therapy/individual/", label: "Individual therapy" },
     { href: "/therapy/couples/", label: "Couples therapy" },
-    { href: "/therapy/emdr/", label: "EMDR in Lisbon" },
+    { href: "/emdr-therapy-lisbon/", label: "EMDR in Lisbon" },
+    { href: "/english-speaking-therapist-lisbon/", label: "English-speaking therapy" },
     { href: "/online-emdr-therapy-uk/", label: "Online EMDR · UK" },
     { href: "/therapy/online/", label: "Online therapy" },
     { href: "/nature-based-therapy-alcobaca/", label: "Alcobaça nature practice" },
@@ -381,6 +383,7 @@ export function buildSiteFooter() {
     ...RESOURCES_LINKS,
     { href: "/privacy/", label: "Privacy" },
     { href: "/terms/", label: "Terms" },
+    { href: "/arbitration-centre/", label: "Consumer dispute resolution" },
     { href: "/crisis-support/", label: "Crisis support" },
     { href: CLIENT_LOGIN_URL, label: CLIENT_LOGIN_LABEL }
   ];
