@@ -149,6 +149,14 @@ a:focus-visible, button:focus-visible, summary:focus-visible, input:focus-visibl
   html { scroll-behavior: auto; }
   * { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; }
 }
+.pfProfessionalReferrals { padding: clamp(32px, 5vw, 48px) var(--pf-space-inline); background: #f6f3eb; color: #263c35; scroll-margin-top: 100px; }
+.pfProfessionalReferralsInner { max-width: 760px; margin: 0 auto; display: grid; gap: 16px; }
+.pfProfessionalReferrals h2 { margin: 0; color: #183b33; font-size: clamp(1.6rem, 3vw, 2rem); line-height: 1.2; }
+.pfProfessionalReferrals p { margin: 0; color: #40534b; line-height: 1.7; }
+.pfProfessionalReferrals .pfKicker { color: #765321; }
+.pfProfessionalReferrals a { color: #183b33; text-decoration: underline; text-underline-offset: 3px; }
+.pfProfessionalReferrals a:focus-visible { outline: 3px solid #a36b22; outline-offset: 4px; }
+.pfProfessionalReferrals .pfReferralEmail { display: inline-flex; align-items: center; min-height: 48px; justify-self: start; font-weight: 600; }
 </style>`;
 
 export const SHELL_V2_SCRIPT = `<script id="pathfinder-shell-v2">
@@ -380,6 +388,7 @@ export function buildSiteFooter() {
     { href: "/about/", label: "About the team" },
     { href: "/approach/", label: "Approach" },
     { href: "/fees/", label: "Fees" },
+    { href: "/contact/#professional-referrals", label: "Professional referrals" },
     ...RESOURCES_LINKS,
     { href: "/privacy/", label: "Privacy" },
     { href: "/terms/", label: "Terms" },
@@ -482,5 +491,20 @@ export function applyShellV2(html, route) {
 }
 
 export function buildContactPageBody(formHtml) {
-  return injectLegalPageDisclosure(buildContactVisualBody(formHtml), "/contact/");
+  const professionalReferrals = `<section class="pfProfessionalReferrals" id="professional-referrals" aria-labelledby="professional-referrals-title">
+  <div class="pfProfessionalReferralsInner">
+    <p class="pfKicker">For therapists, clinics and other professionals</p>
+    <h2 id="professional-referrals-title">Professional referrals and collaboration</h2>
+    <p>You can contact Pathfinder about a potential referral or collaborative work in Lisbon, Alcobaça or online. We are currently at capacity for new therapy clients. Please enquire about suitability, availability and possible next steps before proposing a start date to a client.</p>
+    <p>For an initial enquiry, tell us about your organisation, the type of support you are exploring and the location or format. Please do not include client names, identifying details or clinical records.</p>
+    <p>Before any client information is shared, we will agree the purpose of the referral, the client’s consent and a suitable secure method. An enquiry does not confirm acceptance into therapy or a start date.</p>
+    <a class="pfReferralEmail" href="mailto:hi@pathfindertherapy.com?subject=Professional%20referral%20enquiry">Email a professional enquiry</a>
+    <p>For your own therapy enquiry, use the availability options below. Both routes are for non-urgent contact.</p>
+  </div>
+</section>`;
+  const body = buildContactVisualBody(formHtml)
+    .replace("You can arrange an initial consultation directly or send an enquiry first — whichever feels easier. Both routes are confidential and non-urgent.", "We are currently at capacity for new therapy clients. You can enquire about availability and next steps, or discuss suitability in an initial consultation. An enquiry or consultation does not guarantee a therapy place or start date. Both routes are confidential and non-urgent.")
+    .replace(`>${ENQUIRY_LABEL}</a>`, ">Enquire about availability and next steps</a>")
+    .replace('  <section class="pfContactFormSection" id="consultation-form"', `${professionalReferrals}\n  <section class="pfContactFormSection" id="consultation-form"`);
+  return injectLegalPageDisclosure(body, "/contact/");
 }

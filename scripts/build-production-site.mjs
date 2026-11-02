@@ -603,19 +603,19 @@ function buildStartPageBody(formHtml) {
   return `<section class="lpStartIntro" aria-labelledby="start-title">
   <p class="lpKicker">Getting started · Lisbon and online</p>
   <h1 class="lpTitle" id="start-title">Begin with Pathfinder Therapy</h1>
-  <p class="lpLead">Arrange a consultation directly or send an enquiry first — whichever feels easier. Both routes are confidential and non-urgent.</p>
+  <p class="lpLead">We are currently at capacity for new therapy clients. You can enquire about availability and next steps, or discuss suitability in an initial consultation. An enquiry or consultation does not guarantee a therapy place or start date. Both routes are confidential and non-urgent.</p>
 </section>
 <div class="lpStartPathways">
   <article class="lpStartPathCard lpStartPathCard--primary" aria-labelledby="start-book-direct">
-    <p class="lpStartPathLabel">Fastest route</p>
+    <p class="lpStartPathLabel">Initial conversation</p>
     <h2 id="start-book-direct">Arrange a consultation directly</h2>
-    <p>Choose a convenient time for a confidential initial conversation by Zoom.</p>
+    <p>A confidential initial conversation by Zoom is separate from a therapy appointment. It does not guarantee a therapy place or start date.</p>
     <a class="lpPrimaryCta" href="${BOOKING_PATH}">${BOOKING_LABEL}</a>
   </article>
   <article class="lpStartPathCard" aria-labelledby="start-enquiry-card">
-    <h2 id="start-enquiry-card">Send an enquiry first</h2>
-    <p>Ask a question or briefly explain what you are looking for before choosing a time.</p>
-    <a class="lpSecondaryCta" href="#enquiry" data-open-enquiry>Open the enquiry form</a>
+    <h2 id="start-enquiry-card">Ask about availability</h2>
+    <p>Ask about suitable options, current availability or the face-to-face waiting list before choosing a time.</p>
+    <a class="lpSecondaryCta" href="#enquiry" data-open-enquiry>Enquire about availability and next steps</a>
   </article>
 </div>
 <noscript><style>.lpStartEnquiryPanel { display: grid !important; gap: 14px; }</style></noscript>
@@ -1455,7 +1455,7 @@ async function main() {
       if (!entry.name.endsWith('.html')) continue;
       const original = await readFile(file, 'utf8');
       let next = original.replace(/<form\b[^>]*class="[^"]*contactForm[^"]*"[\s\S]*?<\/form>/g,
-        `<div class="pfEnquiryOptions"><p class="pfEnquiryAvailability"><strong>New appointments are online only at present.</strong></p><p>Send an enquiry, or join the waiting list if you would prefer a face-to-face session.</p><div class="pfEnquiryActions"><a class="pfEnquiryButton" href="https://booking.pathfindertherapy.com/book/enquiry">Send an enquiry</a><a class="pfEnquiryButton pfEnquiryButtonSecondary" href="https://booking.pathfindertherapy.com/book/enquiry?waiting=1">Join the face-to-face waiting list</a></div><p class="pfEnquiryNote">For the waiting list, complete the secure form and confirm your email address. Your intake form and therapy agreement will follow automatically. We will contact you when a suitable appointment becomes available; joining does not confirm a place or start date.</p></div>`);
+        `<div class="pfEnquiryOptions"><p class="pfEnquiryAvailability"><strong>We are currently at capacity for new therapy clients.</strong></p><p>You can ask about availability and possible next steps. If you are seeking a face-to-face session, you can use the separate waiting-list route below. An enquiry does not confirm a therapy place or start date.</p><div class="pfEnquiryActions"><a class="pfEnquiryButton" href="https://booking.pathfindertherapy.com/book/enquiry">Enquire about availability and next steps</a><a class="pfEnquiryButton pfEnquiryButtonSecondary" href="https://booking.pathfindertherapy.com/book/enquiry?waiting=1">Join the face-to-face waiting list</a></div><p class="pfEnquiryNote">For the face-to-face waiting list, complete the secure form and confirm your email address. Your intake form and therapy agreement will follow automatically. The form explains the paperwork required to join. Completing paperwork does not confirm a therapy place, start date or acceptance into therapy; we will contact you about availability and next steps.</p></div>`);
       if(next!==original) next=next.replace('</head>',`<style id="pf-enquiry-options-style">
 #consultation-form.pfContactFormSection{background:#e9e4d8!important;color:#263c35!important;padding:48px 24px!important}
 #consultation-form .pfContactFormInner{max-width:760px;margin:0 auto}
