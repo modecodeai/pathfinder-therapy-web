@@ -56,6 +56,7 @@ import { CONTACT_VISUAL_CSS } from "./site-contact-visual.mjs";
 import { optimiseStaticSite } from "./optimise-static-site.mjs";
 import { applyLisbonRedesign } from "./site-lisbon-redesign.mjs";
 import { applyAlcobacaPractice, ALCOBACA_ROUTE } from "./site-alcobaca.mjs";
+import { applyDiscoveryPause } from "./site-discovery-pause.mjs";
 import { buildJournalPage } from "./site-journal.mjs";
 
 const PREVIEW_ORIGIN =
@@ -1477,6 +1478,7 @@ async function main() {
     }
   }
   await connectAlphaEnquiries(OUT_DIR);
+  await applyDiscoveryPause(OUT_DIR);
   await optimiseStaticSite(OUT_DIR);
 
   console.log(`Production build written to ${OUT_DIR}`);
