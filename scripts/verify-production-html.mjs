@@ -26,25 +26,25 @@ const contentChecks = [
   {
     route: "/",
     test: (html) =>
-      html.includes("Trauma-informed psychotherapy in Lisbon and online") &&
+      html.includes("English-speaking psychotherapy in") && html.includes("Lisbon.") &&
       !html.includes("Choose the route that suits you") &&
-      html.includes("Not sure where to begin?") &&
-      html.includes(`href="${nativeBookingUrl}"`) &&
+      html.includes("nature around you.") &&
+      html.includes('href="/availability/"') &&
       html.includes('href="/start/#enquiry"')
   },
   {
     route: "/start/",
     test: (html) =>
       html.includes("lpStartPathways") &&
-      html.includes("Arrange a consultation directly") &&
+      html.includes("Currently at capacity") &&
       html.includes('id="enquiry"')
   },
   {
     route: "/book/",
     test: (html) =>
-      html.includes("15-minute Discovery Call · Secure Zoom") &&
-      html.includes(nativeBookingUrl) &&
-      html.includes("lpNativeBookingPanel") &&
+      html.includes("15-minute Discovery Calls are paused.") &&
+      html.includes(`${nativeBookingUrl}/enquiry`) &&
+      !html.includes("lpNativeBookingPanel") &&
       !html.includes("assets.calendly.com") &&
       !html.includes("calendly-inline-widget")
   },
@@ -52,7 +52,7 @@ const contentChecks = [
     route: "/therapy/",
     test: (html) =>
       html.includes("Take the next step") &&
-      html.includes("Choose a consultation time") &&
+      html.includes("Currently at capacity") &&
       !html.includes("Begin with a conversation") &&
       !html.includes('<aside class="lpBookingPanel"')
   },

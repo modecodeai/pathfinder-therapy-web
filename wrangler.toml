@@ -6,7 +6,7 @@ pages_build_output_dir = "out"
 CONTACT_TO_EMAIL = "hi@pathfindertherapy.com"
 # Set in Cloudflare dashboard -> Settings -> Environment variables:
 # PATHFINDER_BOOKING_URL = https://booking.pathfindertherapy.com/book
-# Optional: PATHFINDER_BOOKING_DURATION_MINUTES = 30
+# Optional: PATHFINDER_BOOKING_DURATION_MINUTES = 15
 # Secret: RESEND_API_KEY (shared with /api/contact)
 # Optional: CONTACT_FROM_EMAIL (verified sender in Resend)
 #

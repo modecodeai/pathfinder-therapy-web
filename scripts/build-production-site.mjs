@@ -325,7 +325,7 @@ function routeToFilePath(route) {
 async function writeRoute(origin, route, html) {
   const filePath = path.join(OUT_DIR, routeToFilePath(route));
   await mkdir(path.dirname(filePath), { recursive: true });
-  await writeFile(filePath, applyDiscoveryCallCopy(applyCredentialCopy(html)), "utf8");
+  await writeFile(filePath, applyCredentialCopy(html), "utf8");
 }
 
 async function walkHtmlFiles(dir) {
@@ -1480,6 +1480,10 @@ async function main() {
   }
   await connectAlphaEnquiries(OUT_DIR);
   await applyDiscoveryPause(OUT_DIR);
+  // Run after every page generator and the capacity pause, including metadata.
+  for (const file of [...await walkHtmlFiles(OUT_DIR), path.join(OUT_DIR, "llms.txt"), path.join(OUT_DIR, "ai-summary.json")]) {
+    await writeFile(file, applyDiscoveryCallCopy(await readFile(file, "utf8")).replaceAll("€75", "€95").replaceAll("€120", "€170").replaceAll("EUR75", "EUR95").replaceAll("EUR 75", "EUR 95").replaceAll('"price":"75","priceCurrency":"EUR"', '"price":"95","priceCurrency":"EUR"'), "utf8");
+  }
   await optimiseStaticSite(OUT_DIR);
 
   console.log(`Production build written to ${OUT_DIR}`);

@@ -1,11 +1,11 @@
 import { mkdir, readFile, readdir, writeFile } from "node:fs/promises";
 import path from "node:path";
 
-export const CAPACITY_MESSAGE = "We are currently at capacity. Free 30-minute discovery calls are paused.";
+export const CAPACITY_MESSAGE = "We are currently at capacity. 15-minute Discovery Calls are paused.";
 const AVAILABILITY_PATH = "/availability/";
 const LABEL = "Currently at capacity";
 const BOOKING_URL = /^(?:https:\/\/(?:booking\.)?(?:www\.)?pathfindertherapy\.com)?\/book\/?(?:[?#].*)?$/i;
-const notice = `<aside class="pfCapacityNotice" aria-label="Current availability"><strong>Currently at capacity</strong><span>Free 30-minute discovery calls are paused.</span><a href="/availability/">Availability information</a></aside>`;
+const notice = `<aside class="pfCapacityNotice" aria-label="Current availability"><strong>Currently at capacity</strong><span>15-minute Discovery Calls are paused.</span><a href="/availability/">Availability information</a></aside>`;
 const style = `<style id="pf-capacity-style">.pfCapacityNotice{display:flex;justify-content:center;align-items:center;flex-wrap:wrap;gap:8px 18px;padding:16px 24px;background:#e9e4d8;color:#203b33;font-size:15px;line-height:1.5;text-align:center;border-bottom:1px solid #c6cfc6}.pfCapacityNotice strong{font-weight:700}.pfCapacityNotice a{color:#203b33;text-decoration:underline;text-underline-offset:3px}.pfCapacityPage{max-width:760px;margin:0 auto;padding:64px 24px 80px;color:#f6f2ea}.pfCapacityPage h1{font-size:clamp(2rem,5vw,3.2rem);line-height:1.15;margin:0 0 24px}.pfCapacityPage p{font-size:18px;line-height:1.7;margin:0 0 20px}.pfCapacityPage a{color:#dfbd80;text-decoration:underline;text-underline-offset:4px}.pfCapacityPage a:focus-visible,.pfCapacityNotice a:focus-visible{outline:3px solid #a36b22;outline-offset:4px}@media(max-width:600px){.pfCapacityNotice{align-items:flex-start;gap:4px;padding:14px 20px}.pfCapacityNotice>*{width:100%}.pfCapacityPage{padding:40px 22px 64px}}</style>`;
 
 function updateCopy(text) {
@@ -86,12 +86,12 @@ export async function applyDiscoveryPause(root) {
   await walk(root);
   for(const file of files) await writeFile(file,pauseDiscoveryHtml(await readFile(file,'utf8')));
   let shell=await readFile(path.join(root,'contact/index.html'),'utf8');
-  const main=`<main id="main-content" class="lpMain" tabindex="-1">${notice}<section class="pfCapacityPage"><h1>We are currently at capacity</h1><p>Thank you for your interest in Pathfinder Therapy. We have paused free 30-minute discovery calls while we are at capacity and are not accepting new discovery-call bookings.</p><p>If you would like to ask about future availability, you can <a href="https://booking.pathfindertherapy.com/book/enquiry">send a non-urgent written enquiry</a>. You can also <a href="https://booking.pathfindertherapy.com/book/enquiry?waiting=1">ask to join the face-to-face waiting list</a>. An enquiry or waiting-list request does not guarantee a therapy place or start date.</p><p>Existing clients can continue to use <a href="https://my.pathfindertherapy.org.uk/my/login">My Pathfinder</a> or contact us through their usual route.</p><p>Thank you for your understanding.</p></section></main>`;
+  const main=`<main id="main-content" class="lpMain" tabindex="-1">${notice}<section class="pfCapacityPage"><h1>We are currently at capacity</h1><p>Thank you for your interest in Pathfinder Therapy. We have paused 15-minute Discovery Calls while we are at capacity and are not accepting new discovery-call bookings.</p><p>If you would like to ask about future availability, you can <a href="https://booking.pathfindertherapy.com/book/enquiry">send a non-urgent written enquiry</a>. You can also <a href="https://booking.pathfindertherapy.com/book/enquiry?waiting=1">ask to join the face-to-face waiting list</a>. An enquiry or waiting-list request does not guarantee a therapy place or start date.</p><p>Existing clients can continue to use <a href="https://my.pathfindertherapy.org.uk/my/login">My Pathfinder</a> or contact us through their usual route.</p><p>Thank you for your understanding.</p></section></main>`;
   shell=shell.replace(/<main\b[^>]*>[\s\S]*?<\/main>/,main).replace(/<title>[\s\S]*?<\/title>/,'<title>Currently at Capacity | Pathfinder Therapy</title>').replace(/(<link\b[^>]*rel="canonical"[^>]*href=")[^"]+/, '$1https://www.pathfindertherapy.com/availability/').replace(/<meta\b[^>]*(?:name="description"|property="og:(?:title|description|url)")[^>]*>/g,'');
-  shell=shell.replace('</head>',`<meta name="description" content="Pathfinder Therapy is currently at capacity. Free 30-minute discovery calls are paused. Find information about future availability and existing-client access."/></head>`);
+  shell=shell.replace('</head>',`<meta name="description" content="Pathfinder Therapy is currently at capacity. 15-minute Discovery Calls are paused. Find information about future availability and existing-client access."/><meta property="og:title" content="Currently at Capacity | Pathfinder Therapy"/><meta property="og:description" content="15-minute Discovery Calls are paused while Pathfinder Therapy is at capacity. Find future availability and existing-client access."/><meta property="og:url" content="https://www.pathfindertherapy.com/availability/"/></head>`);
   await mkdir(path.join(root,'availability'),{recursive:true});
   await writeFile(path.join(root,'availability/index.html'),shell);
-  await writeFile(path.join(root,'book/index.html'),shell.replace('https://www.pathfindertherapy.com/availability/','https://www.pathfindertherapy.com/book/'));
+  await writeFile(path.join(root,'book/index.html'),shell.replaceAll('https://www.pathfindertherapy.com/availability/','https://www.pathfindertherapy.com/book/'));
   const summaryPath=path.join(root,'ai-summary.json');
   const summary=updateStructured(JSON.parse(await readFile(summaryPath,'utf8')));
   summary.booking={...summary.booking,status:'paused_at_capacity',consultation_url:'https://www.pathfindertherapy.com/availability/',consultation_description:CAPACITY_MESSAGE};
@@ -103,6 +103,7 @@ export async function applyDiscoveryPause(root) {
   const sitemapPath=path.join(root,'sitemap.xml');
   let sitemap=await readFile(sitemapPath,'utf8');
   if(!sitemap.includes('/availability/')) sitemap=sitemap.replace('</urlset>','<url><loc>https://www.pathfindertherapy.com/availability/</loc><lastmod>2026-11-10</lastmod></url></urlset>');
+  if(!sitemap.includes('<loc>https://www.pathfindertherapy.com/book/</loc>')) sitemap=sitemap.replace('</urlset>','<url><loc>https://www.pathfindertherapy.com/book/</loc><lastmod>2026-11-11</lastmod></url></urlset>');
   await writeFile(sitemapPath,sitemap);
   console.log(`Paused discovery calls across ${files.length+1} public HTML pages`);
 }

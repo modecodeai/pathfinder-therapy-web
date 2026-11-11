@@ -54,25 +54,14 @@ async function runDesktop(browser) {
   });
 
   await page.goto(`${baseUrl}/book/`, { waitUntil: "domcontentloaded" });
-  const meta = await page.textContent(".lpConsultMeta");
-  if (meta?.includes("15-minute Discovery Call · Secure Zoom")) {
-    pass("/book/ consultation meta", meta);
-  } else {
-    fail("/book/ consultation meta", meta || "missing");
-  }
-
-  const bookingPanel = page.locator(".lpNativeBookingPanel");
-  await bookingPanel.waitFor({ state: "attached", timeout: 5000 }).catch(() => {});
-  const bookingHref = await page.locator("[data-native-booking-link]").first().getAttribute("href");
-  if (bookingHref?.startsWith(nativeBookingUrl)) {
-    pass("/book/ native booking handoff", bookingHref);
-  } else {
-    fail("/book/ native booking handoff", bookingHref || "missing");
-  }
-
-  const panelHeight = await bookingPanel.evaluate((el) => el.getBoundingClientRect().height);
-  if (panelHeight >= 240) pass("/book/ native booking panel height", `${Math.round(panelHeight)}px`);
-  else fail("/book/ native booking panel height", `${Math.round(panelHeight)}px`);
+  const bookingText = await page.locator("main").innerText();
+  if (bookingText.includes("15-minute Discovery Calls are paused.")) pass("/book/ preserves Discovery Call pause");
+  else fail("/book/ preserves Discovery Call pause");
+  const enquiryHref = await page.locator('.pfCapacityPage a').first().getAttribute("href");
+  if (enquiryHref === `${nativeBookingUrl}/enquiry`) pass("/book/ secure written enquiry route");
+  else fail("/book/ secure written enquiry route", enquiryHref || "missing");
+  if (await page.locator(".lpNativeBookingPanel").count() === 0) pass("/book/ has no active call booking panel");
+  else fail("/book/ has no active call booking panel");
 
   await page.goto(`${baseUrl}/start/#enquiry`, { waitUntil: "domcontentloaded" });
   await page.waitForTimeout(400);
