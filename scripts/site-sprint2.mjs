@@ -170,7 +170,7 @@ const TRUST_PILLS = `<ul class="lpTrustList" aria-label="Professional reassuranc
 
 const TRUST_STRIP = `<div class="lpTrustStrip" aria-label="Professional credentials">
   ${buildEataBadge()}
-  <p class="lpTrustStripNote">EATA registered · ITAA member · clinical supervision · professional indemnity insurance · sessions from €75 · Lisbon clinic or secure online</p>
+  <p class="lpTrustStripNote">EATA registered · ITAA member · clinical supervision · professional indemnity insurance · sessions from €95 · Lisbon clinic or secure online</p>
 </div>`;
 
 const BOOKING_FIRST_STEPS = `<ul class="lpSteps" aria-label="What happens next">
@@ -189,7 +189,7 @@ export function buildBookingPanel({ slim = false } = {}) {
     <a class="lpPrimaryCta" href="${BOOKING_PATH}">${BOOKING_LABEL}</a>
     <a class="lpSecondaryCta" href="${ENQUIRY_PATH}">${ENQUIRY_LABEL}</a>
   </div>
-  <p class="lpReassurance">Sessions from €75 · Lisbon clinic or secure online · Non-urgent enquiries only</p>
+  <p class="lpReassurance">Sessions from €95 · Lisbon clinic or secure online · Non-urgent enquiries only</p>
 </aside>`;
   }
 
@@ -204,7 +204,7 @@ export function buildBookingPanel({ slim = false } = {}) {
     <a class="lpPrimaryCta" href="${BOOKING_PATH}">${BOOKING_LABEL}</a>
     <a class="lpSecondaryCta" href="${ENQUIRY_PATH}">${ENQUIRY_LABEL}</a>
   </div>
-  <p class="lpReassurance">Sessions from €75 · Lisbon clinic or secure online · Non-urgent enquiries only</p>
+  <p class="lpReassurance">Sessions from €95 · Lisbon clinic or secure online · Non-urgent enquiries only</p>
 </aside>`;
 }
 
@@ -287,7 +287,7 @@ export function buildHomePageBody() {
         <a class="lpPrimaryCta" href="${BOOKING_PATH}">${BOOKING_LABEL}</a>
         <a class="lpHeroTextLink" href="/therapy/">Explore therapy</a>
       </div>
-      <p class="lpHeroTrustLine">EATA registered · ITAA member · Confidential · Sessions from €75</p>
+      <p class="lpHeroTrustLine">EATA registered · ITAA member · Confidential · Sessions from €95</p>
     </section>
   </div>
 

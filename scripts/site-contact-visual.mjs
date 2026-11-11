@@ -59,7 +59,7 @@ export function buildContactVisualBody(formHtml) {
         <ul class="pfContactList">
           <li>${CLINIC.street}, ${CLINIC.postalCode} ${CLINIC.locality}</li>
           <li><a href="${CLINIC.directionsUrl}" target="_blank" rel="noopener noreferrer">Get directions</a></li>
-          <li>In person at the Lisbon clinic or securely online · from €75 for 50 minutes</li>
+          <li>In person at the Lisbon clinic or securely online · from €95 for 50 minutes</li>
         </ul>
       </div>
       <div>
@@ -82,7 +82,7 @@ export function buildContactVisualBody(formHtml) {
       <h2 class="pfSectionTitle" id="consultation-form-intro" style="color:var(--pf-stone)">Send an enquiry</h2>
       <p class="pfSectionLead">This takes about two minutes. Your details are sent securely to Brent — for non-urgent enquiries only.</p>
       ${formHtml}
-      <p class="pfSectionLead" style="margin-top:16px;font-size:0.8125rem">Sessions from €75 · Lisbon clinic or secure online · Professional indemnity insurance · Clinical supervision in place</p>
+      <p class="pfSectionLead" style="margin-top:16px;font-size:0.8125rem">Sessions from €95 · Lisbon clinic or secure online · Professional indemnity insurance · Clinical supervision in place</p>
     </div>
   </section>
 </div>`;

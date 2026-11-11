@@ -14,9 +14,10 @@ Use this document when writing or editing Search campaigns in Google Ads for **p
 | Item | Price | Notes |
 |------|-------|-------|
 | **Initial Zoom consultation** | Free / no charge | 30-minute conversation to see if therapy is a fit — booked through Pathfinder Clinic at `/book/` |
-| **Individual therapy session** | **From €75** | 50 minutes — see `/fees/` |
-| **Couples therapy session** | Discussed on enquiry | See `/fees/` |
-| **Ongoing sessions** | From €75 | Fees confirmed before work begins |
+| **Individual therapy session** | **From €95** | 50 minutes — see `/fees/` |
+| **EMDR session** | **€95** | 50 minutes |
+| **Couples therapy session** | **€170** | 90 minutes |
+| **Existing clients** | Agreed fee retained | Agreed duration retained; do not migrate automatically |
 
 The **initial consultation call is free**. **Therapy sessions are not free.**
 
@@ -31,7 +32,7 @@ Use these phrases in headlines and descriptions:
 - **Arrange an initial consultation**
 - **English-speaking therapist in Lisbon**
 - **Trauma-informed psychotherapy · Lisbon & online**
-- **Sessions from €75**
+- **Sessions from €95**
 - **In person in Lisbon or securely online**
 - **EATA registered · ITAA member · confidential**
 - **Non-urgent enquiries only**
@@ -42,12 +43,12 @@ Use these phrases in headlines and descriptions:
 
 | Avoid | Why | Use instead |
 |-------|-----|-------------|
-| **First session free** | Therapy sessions cost from €75 | **Free initial Zoom call** |
+| **First session free** | Therapy sessions cost from €95 | **Free initial Zoom call** |
 | **Free therapy** | Misleading — only the intro call is free | **Free initial consultation call** |
-| **Free counselling sessions** | Same | **Sessions from €75** |
+| **Free counselling sessions** | Same | **Sessions from €95** |
 | **Book a free session** | Ambiguous — sounds like free therapy | **Book a free initial Zoom call** |
-| **100% free** | Overstates what is free | **Free initial consultation · sessions from €75** |
-| **Cheap / cheapest therapist** | Unprofessional; may violate healthcare ad policies | **Sessions from €75** |
+| **100% free** | Overstates what is free | **Free initial consultation · sessions from €95** |
+| **Cheap / cheapest therapist** | Unprofessional; may violate healthcare ad policies | **Sessions from €95** |
 | **Cure / guaranteed results** | Not clinically accurate | **Trauma-informed support** |
 | **Emergency / crisis service** | Site explicitly says non-urgent only | **Non-urgent enquiries · see crisis support page** |
 | **Psychiatrist / medical doctor** | Brent is a psychotherapist, not a psychiatrist | **Therapist / psychotherapist** |
@@ -71,7 +72,7 @@ Trauma Therapy Lisbon
 Book Free Initial Zoom Call
 Psychotherapy Lisbon
 EMDR Therapist Lisbon
-Sessions From €75
+Sessions From €95
 Lisbon Clinic & Online
 Trauma-Informed Therapy
 Arrange Initial Consultation
@@ -86,9 +87,9 @@ Regain Stability & Clarity
 
 ```
 Confidential psychotherapy for stress, trauma & life transitions. English-speaking.
-Book a free initial Zoom call. Sessions from €75 · Lisbon clinic or secure online.
+Book a free initial Zoom call. Sessions from €95 · Lisbon clinic or secure online.
 Trauma-informed therapy with Brent Kelly in Lisbon. EATA registered · ITAA member. Enquire today.
-Non-urgent enquiries only. Free initial consultation call · ongoing sessions from €75.
+Non-urgent enquiries only. Free initial consultation call · ongoing sessions from €95.
 ```
 
 ### Ad group: EMDR / trauma (optional)
@@ -155,7 +156,7 @@ Before saving any ad or asset:
 
 - [ ] No “first session free” or “free therapy session” language
 - [ ] “Free” only refers to the **initial Zoom consultation call**
-- [ ] “From €75” included where space allows (or visible on landing page above the fold)
+- [ ] “From €95” included where space allows (or visible on landing page above the fold)
 - [ ] Final URL matches ad intent (geo page for local keywords)
 - [ ] Display path readable (`Lisbon`, `Therapy`, etc.)
 - [ ] “Non-urgent” implied or stated for healthcare appropriateness
@@ -183,3 +184,23 @@ If an active ad shows **“First Session Free”** or **“Book a free consultat
 | `scripts/site-cookie-consent.mjs` | Consent Mode v2 (required before ads fire in EU) |
 | `.github/workflows/deploy-production.yml` | Conversion label secrets at deploy |
 | `wrangler.toml` | Documents conversion label env vars |
+
+
+## New-client pricing update — 11 November 2026
+
+Update price-bearing responsive search ads, sitelink descriptions, callouts and other text assets. Retain existing campaign status, budgets, targeting, bids and conversion settings. This change does not authorise restarting a paused campaign.
+
+| Asset | Replacement wording |
+|---|---|
+| Individual headline | Psychotherapy €95 / 50 Min |
+| EMDR headline | EMDR €95 / 50 Minutes |
+| Couples headline | Couples Therapy €170 / 90 Min |
+| General price headline | Sessions From €95 |
+| Individual description | English-speaking psychotherapy in Lisbon or online. €95 for 50 minutes. |
+| EMDR description | EMDR in Lisbon or online, where clinically appropriate. €95 for 50 minutes. |
+| Couples description | Couples therapy in Lisbon or online. €170 for a 90-minute session. |
+| Consultation description | Book a free 30-minute initial Zoom consultation. Therapy sessions are charged separately. |
+
+All headlines above are within 30 characters; descriptions are within 90. Only the initial consultation is free. Existing clients retain agreed fees and session durations.
+
+Live Google Ads assets have not yet been edited; verify the authenticated Ads account and replace outdated assets without enabling paused ads or campaigns.

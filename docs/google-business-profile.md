@@ -46,7 +46,7 @@ Pathfinder Therapy offers trauma-informed psychotherapy in English for adults an
 
 Brent Kelly is an EATA registered therapist, ITAA member, and EMDR Practitioner working with trauma, anxiety, attachment, relationships, life transitions, and military veterans. EMDR and Transactional Analysis are integrated where clinically appropriate.
 
-Sessions are held at our clinic in Avenidas Novas (R. Rodrigues Sampaio 76), near Marquês de Pombal and Picoas, or online. Individual sessions from €75 for 50 minutes. Book a free initial Zoom consultation call on our website.
+Sessions are held at our clinic in Avenidas Novas (R. Rodrigues Sampaio 76), near Marquês de Pombal and Picoas, or online. Individual sessions from €95 for 50 minutes. Book a free initial Zoom consultation call on our website.
 
 Non-urgent enquiries only. Pathfinder Therapy is not a crisis or emergency service.
 ```
@@ -60,11 +60,11 @@ Add each service in **Edit profile → Services**. Use the service name as the t
 ### 1. Individual psychotherapy
 
 **Name:** Individual psychotherapy  
-**Price:** From €75  
+**Price:** From €95
 **Description:**
 
 ```
-Trauma-informed psychotherapy for adults — anxiety, trauma, attachment, and major life transitions. English-speaking sessions in person at our Lisbon clinic (Avenidas Novas) or securely online across Portugal. 50-minute sessions from €75.
+Trauma-informed psychotherapy for adults — anxiety, trauma, attachment, and major life transitions. English-speaking sessions in person at our Lisbon clinic (Avenidas Novas) or securely online across Portugal. 50-minute sessions from €95.
 ```
 
 ### 2. Couples therapy
@@ -163,7 +163,7 @@ Upload 5–10 images:
 ```
 Trauma-informed psychotherapy for adults and couples — in person in Avenidas Novas or securely online across Portugal.
 
-Book a free initial Zoom consultation call, or send a brief enquiry. Sessions from €75.
+Book a free initial Zoom consultation call, or send a brief enquiry. Sessions from €95.
 
 pathfindertherapy.com/book
 ```

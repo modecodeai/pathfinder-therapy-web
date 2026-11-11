@@ -64,7 +64,7 @@ const HOMEPAGE_HERO_INJECTION = `<div class="pfHeroConversion">
   <ol class="pfHeroSteps" aria-label="What happens next">
     <li>Send a brief secure enquiry — no detailed history needed.</li>
     <li>Brent replies within one working day.</li>
-    <li>Arrange your first session in Lisbon or online (from €75).</li>
+    <li>Arrange your first session in Lisbon or online (from €95).</li>
   </ol>
 </div>`;
 
@@ -183,7 +183,7 @@ Pathfinder Therapy CIC is an NCPS Recognised Counselling Service (membership num
 Brent Kelly — therapist (EATA registered · ITAA member). Specialities: trauma, EMDR Practitioner, Transactional Analysis, military veterans, attachment.
 
 ## Fees
-Sessions from EUR 75. Non-urgent enquiries only — not a crisis service.
+Sessions from EUR 95. Non-urgent enquiries only — not a crisis service.
 `;
 }
 

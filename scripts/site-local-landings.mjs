@@ -34,7 +34,7 @@ export const LOCAL_LANDING_PAGES = [
     hero: {
       kicker: "Psychotherapy · Lisbon & online",
       title: "Psychotherapy in Lisbon with an English-speaking therapist.",
-      lead: "Pathfinder Therapy offers calm, trauma-informed psychotherapy for adults and couples in central Lisbon and online across Portugal. Sessions from €75."
+      lead: "Pathfinder Therapy offers calm, trauma-informed psychotherapy for adults and couples in central Lisbon and online across Portugal. Sessions from €95."
     },
     sections: [
       section(
@@ -49,7 +49,7 @@ export const LOCAL_LANDING_PAGES = [
         "Trauma-informed and relational",
         "psy-approach",
         `<p>Brent Kelly works with trauma, anxiety, attachment, relationships, and major life transitions as an EMDR Practitioner, using EMDR and Transactional Analysis where clinically appropriate. Therapy is paced carefully and shaped around your life, not a formula.</p>
-        <p><a href="/approach/">Read about the approach</a> · <a href="/therapy/">View therapy services</a> · <a href="/faq/">FAQ</a> · <a href="/fees/">Fees from €75</a></p>`
+        <p><a href="/approach/">Read about the approach</a> · <a href="/therapy/">View therapy services</a> · <a href="/faq/">FAQ</a> · <a href="/fees/">Fees from €95</a></p>`
       )
     ],
     links: [
@@ -128,7 +128,7 @@ export const LOCAL_LANDING_PAGES = [
         "Practical details",
         "Sessions in English — Lisbon or online",
         "emdr-practical",
-        `<p>EMDR sessions are available in English at the Lisbon clinic or online. Individual sessions from €75 for 50 minutes. <a href="/fees/">See fees</a>.</p>
+        `<p>EMDR sessions are available in English at the Lisbon clinic or online. Individual sessions from €95 for 50 minutes. <a href="/fees/">See fees</a>.</p>
         ${DIRECTIONS_LINK}`
       )
     ],
