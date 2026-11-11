@@ -96,7 +96,7 @@ export const GLOBAL_SCHEMA = [
     image: `${SITE}/assets/images/hero-01.webp`,
     email: "hi@pathfindertherapy.com",
     telephone: "+351 914 775 365",
-    priceRange: "EUR75",
+    priceRange: "EUR95",
     medicalSpecialty: ["Psychotherapy", "Trauma therapy", "EMDR", "Relationship therapy"],
     address: LISBON_ADDRESS,
     geo: {

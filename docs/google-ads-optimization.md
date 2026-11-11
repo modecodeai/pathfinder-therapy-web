@@ -15,7 +15,7 @@ Diagnosis for **Trauma-Informed Therapy** campaign (account `AW-10976126920`).
 | mind project / fredy vinagre | Irrelevant brand/person searches |
 | (implicit) | No English therapist intent |
 
-**Brent offers:** private English-speaking psychotherapy from **€75** — not free Portuguese psychiatry or SNS/public clinics.
+**Brent offers:** private English-speaking psychotherapy from **€95** — not free Portuguese psychiatry or SNS/public clinics.
 
 You are paying for clicks from people who will **never** book.
 
@@ -136,7 +136,7 @@ Try: **25–35 km** centred on the clinic, or **Lisboa** + nearby municipalities
 
 For “book” intent tests: `https://www.pathfindertherapy.com/book/`
 
-Edit each ad → **Final URL** → geo landing page. Aligns ad promise with page (English · Lisbon · €75).
+Edit each ad → **Final URL** → geo landing page. Aligns ad promise with page (English · Lisbon · €95).
 
 ---
 
@@ -147,12 +147,12 @@ Remove vague “Book a free consultation” without context.
 **Use descriptions like:**
 
 ```
-English-speaking therapist in Lisbon. Sessions from €75. Private psychotherapy.
+English-speaking therapist in Lisbon. Sessions from €95. Private psychotherapy.
 Free initial Zoom call only — not free therapy. Book online or enquire today.
 Trauma-informed · EMDR · adults & couples · Lisbon clinic or secure online.
 ```
 
-Add headline: **`English Only · From €75`**
+Add headline: **`English Only · From €95`**
 
 See [`google-ads-copy.md`](google-ads-copy.md).
 
@@ -239,7 +239,7 @@ After changes above:
 - [ ] Keywords: phrase/exact English only
 - [ ] Final URL: `/psychotherapy-lisbon/` or `/book/`
 - [ ] Conversions: `/thank-you/` + `booking.pathfindertherapy.com/book/confirmed` URL actions **Primary**
-- [ ] Ad copy: “English · from €75” · no “free therapy”
+- [ ] Ad copy: “English · from €95” · no “free therapy”
 - [ ] Search terms: reviewed weekly
 
 ---

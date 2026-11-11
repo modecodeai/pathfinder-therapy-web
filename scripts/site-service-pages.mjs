@@ -66,14 +66,14 @@ export const SERVICE_PAGES = [
     route: "/therapy/individual/",
     title: "Individual Therapy | Pathfinder Therapy Lisbon",
     description:
-      "Trauma-informed individual psychotherapy for adults in Lisbon and online. Confidential 50-minute sessions from €75 with Brent Kelly.",
+      "Trauma-informed individual psychotherapy for adults in Lisbon and online. Confidential 50-minute sessions from €95 with Brent Kelly.",
     canonical: "https://www.pathfindertherapy.com/therapy/individual/",
     label: "For adults",
     h1: "Individual therapy",
     heroLead: "A steady one-to-one space to make sense of what you carry — and to move differently through it.",
     image: "/assets/images/understanding.webp",
     imageAlt: "Atmospheric forest path — individual therapy at Pathfinder Therapy Lisbon",
-    fee: "€75",
+    fee: "€95",
     duration: "50 minutes",
     format: "In person at the Lisbon clinic or securely online across Portugal.",
   helpsWith: [
@@ -96,14 +96,14 @@ export const SERVICE_PAGES = [
     route: "/therapy/couples/",
     title: "Couples Therapy | Pathfinder Therapy Lisbon",
     description:
-      "Relational couples therapy in Lisbon and online. 90-minute sessions from €120 with Brent Kelly — trauma-informed and English-speaking.",
+      "Relational couples therapy in Lisbon and online. 90-minute sessions from €170 with Brent Kelly — trauma-informed and English-speaking.",
     canonical: "https://www.pathfindertherapy.com/therapy/couples/",
     label: "For couples",
     h1: "Couples therapy",
     heroLead: "Relational work for couples navigating conflict, disconnection, and repeating patterns.",
     image: "/assets/images/working-together.webp",
     imageAlt: "Warm therapy room — couples therapy at Pathfinder Therapy Lisbon",
-    fee: "€120",
+    fee: "€170",
     duration: "90 minutes",
     format: "In person at the Lisbon clinic or securely online where appropriate.",
     helpsWith: [
@@ -126,7 +126,7 @@ export const SERVICE_PAGES = [
     route: "/therapy/emdr/",
     title: "EMDR Therapy | Pathfinder Therapy Lisbon",
     description:
-      "EMDR Practitioner-led therapy within trauma-informed psychotherapy in Lisbon and online. 60-minute sessions from €95 with Brent Kelly, EATA registered and ITAA member.",
+      "EMDR Practitioner-led therapy within trauma-informed psychotherapy in Lisbon and online. 50-minute sessions from €95 with Brent Kelly, EATA registered and ITAA member.",
     canonical: "https://www.pathfindertherapy.com/therapy/emdr/",
     label: "Trauma processing",
     h1: "EMDR",
@@ -134,7 +134,7 @@ export const SERVICE_PAGES = [
     image: "/assets/images/hero-01.webp",
     imageAlt: "Atmospheric landscape — EMDR within trauma-informed psychotherapy",
     fee: "€95",
-    duration: "60 minutes",
+    duration: "50 minutes",
     format: "In person at the Lisbon clinic or securely online where clinically appropriate.",
     helpsWith: [
       "PTSD and trauma-related symptoms",
@@ -145,7 +145,7 @@ export const SERVICE_PAGES = [
     ],
     paragraphs: [
       "EMDR is offered within broader trauma-informed psychotherapy — not as a standalone technique. Brent assesses whether it feels clinically appropriate and prepares work carefully before processing begins.",
-      "Sessions are 60 minutes. EMDR is not suitable for everyone; suitability is discussed openly in an initial consultation and ongoing therapy.",
+      "Sessions are 50 minutes. EMDR is not suitable for everyone; suitability is discussed openly in an initial consultation and ongoing therapy.",
       "Work takes place in English, in person at the Lisbon clinic or online where appropriate. Brent is EATA registered and an ITAA member, with training in EMDR as part of integrative trauma-informed practice."
     ],
     approach:
@@ -156,14 +156,14 @@ export const SERVICE_PAGES = [
     route: "/therapy/online/",
     title: "Online Therapy | Pathfinder Therapy Lisbon",
     description:
-      "Secure online psychotherapy in English across Portugal and internationally where appropriate. 50-minute sessions from €75 with Brent Kelly.",
+      "Secure online psychotherapy in English across Portugal and internationally where appropriate. 50-minute sessions from €95 with Brent Kelly.",
     canonical: "https://www.pathfindertherapy.com/therapy/online/",
     label: "Anywhere in Portugal",
     h1: "Online therapy",
     heroLead: "Secure English-speaking psychotherapy when travel, location or schedule makes in-person sessions difficult.",
     image: "/assets/images/journal.webp",
     imageAlt: "Quiet workspace — secure online therapy with Pathfinder Therapy",
-    fee: "€75",
+    fee: "€95",
     duration: "50 minutes",
     format: "Secure video sessions — same clinical approach as in-person work.",
     helpsWith: [
@@ -175,7 +175,7 @@ export const SERVICE_PAGES = [
     ],
     paragraphs: [
       "Online therapy offers the same relational, trauma-informed approach as in-person work — held securely by video. Brent works with adults and couples across Portugal and internationally where clinically and practically appropriate.",
-      "Individual online sessions are 50 minutes from €75. Couples sessions online follow the same fee structure as in person — see the fees page for current rates.",
+      "Individual online sessions are 50 minutes from €95. Couples sessions online follow the same fee structure as in person — see the fees page for current rates.",
       "You do not need to be in Lisbon to begin. An initial consultation by Zoom is often the simplest way to discuss what you are looking for and whether online work feels appropriate."
     ],
     approach:
@@ -272,7 +272,7 @@ export function buildServicePageBody(service) {
       <aside class="pfServicePanel" aria-labelledby="service-helps">
         <h2 id="service-helps">This may help with</h2>
         ${buildHelpsList(service.helpsWith)}
-        <p class="pfServicePanelMeta"><strong>${service.duration}</strong> · ${service.format}<br><strong>${service.fee}</strong> per session · <a href="/fees/">See fees</a></p>
+        <p class="pfServicePanelMeta"><strong>${service.duration}</strong> · ${service.format}<br><strong>${service.fee}</strong> per session for new clients · <a href="/fees/">See fees</a></p>
         <div class="pfServicePanelActions">
           <a class="pfPanelCta" href="${BOOKING_PATH}">${BOOKING_LABEL}</a>
           <a class="pfHeroTextLink" href="${ENQUIRY_PATH}" style="justify-content:center;min-height:44px">${ENQUIRY_LABEL}</a>
@@ -280,6 +280,7 @@ export function buildServicePageBody(service) {
       </aside>
     </div>
   </div>
+  <p class="pfSectionLead">Existing clients retain their agreed fees and session durations.</p>
   ${buildWhatHappensSection()}
   ${buildRelatedServices(service.slug)}
   ${buildFinalCta()}
