@@ -5,7 +5,7 @@ export const site = {
   companyNumber: "17248842",
   title: "Pathfinder Therapy | Trauma-Informed Psychotherapy in Lisbon",
   description:
-    "Trauma-informed psychotherapy with Brent Kelly at Pathfinder Therapy, online and in Lisbon.",
+    "Trauma-informed psychotherapy with Brent Kelly in Lisbon, with online therapy support through Pathfinder where appropriate.",
   url: "https://www.pathfindertherapy.com",
   email: "hi@pathfindertherapy.com",
   phoneDisplay: "+351 914 775 365",

@@ -99,7 +99,7 @@ const THERAPY_PROCESS_SECTION = `<section class="approachEssay" aria-labelledby=
     <h2 class="approachSectionTitle" id="therapy-process">What happens next</h2>
     <ul class="lpSteps" aria-label="How to begin">
       <li><span class="lpStepNum" aria-hidden="true">1</span><span><strong>Choose a consultation time</strong> — select a convenient time through the secure booking page.</span></li>
-      <li><span class="lpStepNum" aria-hidden="true">2</span><span><strong>Meet Brent by Zoom</strong> — use the initial conversation to briefly discuss what brings you to therapy and ask questions.</span></li>
+      <li><span class="lpStepNum" aria-hidden="true">2</span><span><strong>Meet by Zoom</strong> — use the initial conversation to briefly discuss what brings you to therapy and ask questions.</span></li>
       <li><span class="lpStepNum" aria-hidden="true">3</span><span><strong>Decide on the next step</strong> — there is no obligation to continue unless the working relationship feels appropriate.</span></li>
     </ul>
     <p class="lpTherapyEnquiryNote">Not ready to book? <a href="${ENQUIRY_PATH}">You can send an enquiry first.</a></p>

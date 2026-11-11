@@ -122,7 +122,7 @@ const PROCESS_STAGES = [
   },
   {
     title: "Heal",
-    copy: "Trauma-informed psychotherapy and EMDR Practitioner-led care where appropriate — paced carefully around your nervous system."
+    copy: "Trauma-informed psychotherapy and EMDR Therapist-led care where appropriate — paced carefully around your nervous system."
   },
   {
     title: "Move forward",
@@ -143,7 +143,7 @@ const SERVICES = [
     href: "/therapy/couples/",
     label: "For couples",
     title: "Couples therapy",
-    copy: "Relational work for couples navigating conflict, disconnection, and repeating patterns.",
+    copy: "Online couples therapy with Sophie Gidley for conflict, disconnection, and repeating patterns.",
     image: "/assets/images/working-together.webp",
     alt: "Therapy room — couples therapy"
   },
@@ -167,7 +167,7 @@ const SERVICES = [
     href: "/therapy/online/",
     label: "Anywhere in Portugal",
     title: "Online therapy",
-    copy: "Secure online sessions across Portugal and internationally where appropriate.",
+    copy: "Secure online sessions with Brent, Tim or Sophie where clinically appropriate.",
     image: "/assets/images/journal.webp",
     alt: "Quiet workspace — online therapy"
   }
@@ -223,7 +223,7 @@ function buildConcernsSection() {
         <div class="pfConcernIcon">${CONCERN_ICON}</div>
         <div>
           <h3>Attachment and relationships</h3>
-          <p>Individual and couples therapy for patterns that repeat in intimacy, trust, and communication.</p>
+          <p>Individual therapy and online couples work for patterns that repeat in intimacy, trust, and communication.</p>
           <a href="/therapy/">Couples &amp; individual therapy →</a>
         </div>
       </article>
@@ -232,7 +232,7 @@ function buildConcernsSection() {
         <div>
           <h3>Identity and life transitions</h3>
           <p>Support through change, expatriation, military experiences, and periods when life no longer fits.</p>
-          <a href="/about/">About Brent →</a>
+          <a href="/about/">Meet the team →</a>
         </div>
       </article>
       <article class="pfConcernCard">
@@ -256,13 +256,14 @@ function buildAboutSection() {
         <img src="/assets/images/about-brent.webp" width="480" height="600" alt="Brent Kelly, therapist at Pathfinder Therapy Lisbon" loading="lazy" decoding="async" />
       </figure>
       <div class="pfAboutCopy">
-        <p class="pfKicker">About Brent</p>
-        <h2 class="pfSectionTitle" id="home-about">Relationship focused. Personal and authentic.</h2>
-        <p>Pathfinder is built around evidence-informed care, real conversation, and a steady therapeutic relationship. Brent Kelly works with adults and couples in English — in Lisbon and online.</p>
+        <p class="pfKicker">About Pathfinder</p>
+        <h2 class="pfSectionTitle" id="home-about">Led in Lisbon by Brent, with trusted online support.</h2>
+        <p>Pathfinder is built around evidence-informed care, real conversation, and a steady therapeutic relationship. Brent Kelly leads the Lisbon clinic and sees clients face to face; Tim Felton and Sophie Gidley support online provision.</p>
+        <p>Sophie offers online couples therapy through Pathfinder. Tim offers online therapy. This keeps the Lisbon clinic clear and personal while widening access where online work is the better fit.</p>
         <p class="pfCredentials"><strong>EATA registered · ITAA member</strong> · EMDR · Transactional Analysis · clinical supervision</p>
         ${buildEataBadge()}
         <div class="pfHeroActions">
-          <a class="lpSecondaryCta" href="/about/">Meet Brent →</a>
+          <a class="lpSecondaryCta" href="/about/">Meet the team →</a>
         </div>
       </div>
     </div>
@@ -303,7 +304,7 @@ function buildServicesSection() {
     <div class="pfSectionHead">
       <p class="pfKicker">Therapy services</p>
       <h2 class="pfSectionTitle" id="home-services">How we can work together</h2>
-      <p class="pfSectionLead">Therapy shaped around your life — in person at our Lisbon clinic or securely online.</p>
+      <p class="pfSectionLead">Therapy shaped around your life — in person with Brent at the Lisbon clinic or securely online where appropriate.</p>
     </div>
     <div class="pfServiceList">${rows}</div>
     <div class="pfHeroActions" style="margin-top:24px">
@@ -322,7 +323,7 @@ function buildImmersiveEmdrSection() {
       <h2 class="pfSectionTitle" id="home-immersive">Immersive EMDR Therapy</h2>
       <p>Pathfinder Therapy is preparing to pilot an innovative approach to trauma therapy that combines EMDR with carefully selected virtual reality environments.</p>
       <p>Using PsyTechVR and Meta Quest headsets, immersive EMDR may help clients engage with grounding, emotional regulation and trauma-processing exercises within a controlled therapeutic environment.</p>
-      <p>The pilot will be offered by trained EMDR practitioners from our Lisbon clinic and remotely where this is clinically appropriate — as immersive EMDR therapy in Lisbon, or as EMDR therapy with virtual reality online when that is suitable.</p>
+      <p>The pilot will be offered by trained EMDR therapists from our Lisbon clinic and remotely where this is clinically appropriate — as immersive EMDR therapy in Lisbon, or as EMDR therapy with virtual reality online when that is suitable.</p>
       <p class="pfImmersiveNote">Immersive EMDR will only be offered following an individual assessment of clinical suitability. Virtual reality is used as an adjunct to therapy and does not replace the therapeutic relationship or professional clinical judgement.</p>
       <div class="pfHeroActions">
         <a class="lpPrimaryCta" href="/contact/?enquiryType=${encodeURIComponent("Immersive EMDR Therapy")}">Register Your Interest</a>
@@ -381,7 +382,7 @@ const GEO_LINKS = `<section class="pfSection pfSection--dark pfGeoQuiet" aria-la
       <p class="pfSectionLead">English-speaking psychotherapy in central Lisbon and securely online across Portugal.</p>
     </div>
     <div class="pfGeoGrid">
-      <article class="pfGeoCard"><h3><a href="/psychotherapy-lisbon/">Psychotherapy Lisbon</a></h3><p>Trauma-informed psychotherapy for adults and couples — in person or online.</p></article>
+      <article class="pfGeoCard"><h3><a href="/psychotherapy-lisbon/">Psychotherapy Lisbon</a></h3><p>Trauma-informed psychotherapy with Brent in Lisbon, plus online support through Pathfinder.</p></article>
       <article class="pfGeoCard"><h3><a href="/trauma-therapy-lisbon/">Trauma therapy Lisbon</a></h3><p>Support for PTSD, complex trauma, and anxiety — EMDR where appropriate.</p></article>
       <article class="pfGeoCard"><h3><a href="/emdr-therapy-lisbon/">EMDR therapy Lisbon</a></h3><p>Eye Movement Desensitisation and Reprocessing within trauma-informed care.</p></article>
       <article class="pfGeoCard"><h3><a href="/english-speaking-therapist-lisbon/">English-speaking therapist</a></h3><p>Therapy in English for expats and international clients in Lisbon.</p></article>
@@ -397,11 +398,12 @@ export function buildVisualHomePageBody() {
         <p class="pfKicker">English-speaking therapy · Lisbon and online</p>
         <h1 class="pfTitle" id="home-title">Trauma-informed psychotherapy in Lisbon and online</h1>
         <p class="pfLead" style="color:rgba(246,242,234,.84)">Therapy for adults and couples navigating trauma, anxiety, attachment difficulties and significant life transitions.</p>
+        <p class="pfLead" style="color:rgba(246,242,234,.84)">Start with a free 30-minute initial consultation by Zoom. There is no obligation to continue.</p>
         <div class="pfHeroActions">
           <a class="lpPrimaryCta" href="${BOOKING_PATH}">${BOOKING_LABEL}</a>
           <a class="pfHeroTextLink" href="/therapy/">Explore therapy</a>
         </div>
-        <p class="pfHeroTrust">EATA registered · ITAA member · Confidential · Sessions from €95</p>
+        <p class="pfHeroTrust">Brent Kelly in Lisbon · online therapy team · confidential · sessions from €95</p>
       </div>
       <div class="pfHeroMark" aria-hidden="true">
         <svg viewBox="0 0 80 80" fill="none"><circle cx="40" cy="40" r="36" stroke="#c89a58" stroke-width="1" opacity=".5"/><path d="M16 52c12-18 24-26 40-30 8 10 12 22 12 34" stroke="#c89a58" stroke-width="1.5" stroke-linecap="round"/></svg>

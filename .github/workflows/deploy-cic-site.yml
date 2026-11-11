@@ -13,6 +13,10 @@ on:
       - cursor/team-director-photos-89a8
     paths:
       - "cic-site/**"
+      - "scripts/optimise-static-site.mjs"
+      - "scripts/build-cic-site.mjs"
+      - "package.json"
+      - "pnpm-lock.yaml"
       - ".github/workflows/deploy-cic-site.yml"
 
 jobs:
@@ -24,9 +28,18 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9
+
       - uses: actions/setup-node@v4
         with:
           node-version: 20
+
+      - name: Install dependencies and optimise the CIC release
+        run: |
+          pnpm install --frozen-lockfile
+          pnpm run build:cic
 
       - name: Deploy cic-site to Cloudflare Pages
         id: deploy
@@ -39,7 +52,8 @@ jobs:
             echo "Missing CLOUDFLARE_API_TOKEN or CLOUDFLARE_ACCOUNT_ID secret"
             exit 1
           fi
-          OUTPUT="$(npx --yes wrangler@4 pages deploy cic-site \
+          cp -R cic-out "${RUNNER_TEMP}/pathfinder-cic-release"
+          OUTPUT="$(npx --yes wrangler@4 --cwd "${RUNNER_TEMP}/pathfinder-cic-release" pages deploy . \
             --project-name=pathfinder-therapy-cic-v10 \
             --branch=main \
             --commit-hash="${GITHUB_SHA}" \

@@ -35,6 +35,7 @@ export const NAV_ITEMS = [
 export const RESOURCES_LINKS = [
   { href: "/knowledge-library/", label: "Knowledge Library" },
   { href: "/journal/", label: "Journal" },
+  { href: "/research/", label: "Research" },
   { href: "/faq/", label: "FAQ" },
   { href: "/retreats/", label: "Retreats" }
 ];
@@ -46,7 +47,11 @@ ${LEGAL_ENTITY_CSS}
 .lpShell { min-height: 100vh; background: var(--pf-forest-deep); color: var(--pf-linen); font-family: var(--pf-font-sans); font-size: 16px; overflow-x: clip; }
 .lpHeader { position: sticky; top: 0; z-index: 40; background: rgba(8,16,15,.94); border-bottom: 1px solid rgba(246,242,234,.08); backdrop-filter: blur(10px); }
 .lpHeaderInner { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 14px clamp(16px, 3vw, 32px); max-width: 1280px; margin: 0 auto; }
-.lpBrand { color: var(--pf-bronze); font-family: var(--pf-font-serif); letter-spacing: .08em; font-size: 13px; text-decoration: none; white-space: nowrap; }
+.lpBrand { display: inline-flex; align-items: center; gap: 10px; color: var(--pf-bronze); font-family: var(--pf-font-serif); letter-spacing: .08em; font-size: 13px; text-decoration: none; white-space: nowrap; }
+.lpBrandMark { display: block; width: 44px; height: 44px; flex: 0 0 44px; border-radius: 50%; }
+.lpBrandText { display: flex; flex-direction: column; gap: 3px; line-height: 1.1; }
+.lpBrandText small { font-family: var(--pf-font-sans); font-size: 9px; letter-spacing: .17em; }
+.pfFooterBrandMark { display: block; width: 72px; height: 72px; margin-bottom: 16px; border-radius: 50%; }
 .lpTopNav { display: none; gap: 2px; align-items: center; }
 .lpTopNav a { padding: 8px 12px; border-radius: 999px; font-size: 13px; font-weight: 500; color: rgba(246,242,234,.78); text-decoration: none; min-height: 44px; display: inline-flex; align-items: center; }
 .lpTopNav a:hover { color: #d9b777; background: rgba(200,154,88,.08); }
@@ -77,6 +82,7 @@ ${LEGAL_ENTITY_CSS}
 .lpMobileNavMore { margin-top: 8px; padding-top: 12px; border-top: 1px solid rgba(246,242,234,.08); }
 .lpMobileNavMore p { margin: 0 0 8px 12px; font-size: 11px; letter-spacing: .12em; text-transform: uppercase; color: rgba(246,242,234,.48); }
 body.lpMenuOpen { overflow: hidden; }
+.lpMobileNav.isOpen { max-height: calc(100dvh - 76px); overflow-y: auto; overscroll-behavior: contain; }
 .lpMain { padding: clamp(20px, 4vw, 40px) clamp(16px, 3vw, 40px) 80px; max-width: 1280px; margin: 0 auto; }
 .lpMainInterior { max-width: none; padding: 0; }
 .lpInteriorBody { width: 100%; }
@@ -143,6 +149,14 @@ a:focus-visible, button:focus-visible, summary:focus-visible, input:focus-visibl
   html { scroll-behavior: auto; }
   * { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; }
 }
+.pfProfessionalReferrals { padding: clamp(32px, 5vw, 48px) var(--pf-space-inline); background: #f6f3eb; color: #263c35; scroll-margin-top: 100px; }
+.pfProfessionalReferralsInner { max-width: 760px; margin: 0 auto; display: grid; gap: 16px; }
+.pfProfessionalReferrals h2 { margin: 0; color: #183b33; font-size: clamp(1.6rem, 3vw, 2rem); line-height: 1.2; }
+.pfProfessionalReferrals p { margin: 0; color: #40534b; line-height: 1.7; }
+.pfProfessionalReferrals .pfKicker { color: #765321; }
+.pfProfessionalReferrals a { color: #183b33; text-decoration: underline; text-underline-offset: 3px; }
+.pfProfessionalReferrals a:focus-visible { outline: 3px solid #a36b22; outline-offset: 4px; }
+.pfProfessionalReferrals .pfReferralEmail { display: inline-flex; align-items: center; min-height: 48px; justify-self: start; font-weight: 600; }
 </style>`;
 
 export const SHELL_V2_SCRIPT = `<script id="pathfinder-shell-v2">
@@ -159,7 +173,7 @@ document.addEventListener("DOMContentLoaded", function () {
     document.body.classList.toggle("lpMenuOpen", open);
     if (open) {
       var first = mobileNav.querySelector(focusableSelector);
-      if (first) first.focus();
+      if (first) first.focus({ preventScroll: true });
     } else {
       menuBtn.focus();
     }
@@ -318,8 +332,8 @@ function buildResourcesDropdown(route) {
   const links = RESOURCES_LINKS.map((item) => navLink(item, route)).join("");
   const active = isResourcesRouteActive(route) ? ' aria-current="page"' : "";
   return `<div class="lpMoreNav" data-resources-nav>
-    <button class="lpMoreBtn" type="button" aria-expanded="false" aria-haspopup="true" aria-controls="lpResourcesMenu"${active}>Resources <span aria-hidden="true">▾</span></button>
-    <div class="lpMoreMenu" id="lpResourcesMenu" role="menu">${links}</div>
+    <button class="lpMoreBtn" type="button" aria-expanded="false" aria-controls="lpResourcesMenu"${active}>Resources <span aria-hidden="true">▾</span></button>
+    <div class="lpMoreMenu" id="lpResourcesMenu">${links}</div>
   </div>`;
 }
 
@@ -334,7 +348,7 @@ export function buildHeader(route) {
 
   return `<header class="lpHeader">
   <div class="lpHeaderInner">
-    <a class="lpBrand" href="/" aria-label="Pathfinder Therapy home">PATHFINDER THERAPY</a>
+    <a class="lpBrand" href="/" aria-label="Pathfinder Therapy home"><img class="lpBrandMark" src="/assets/images/pathfinder-path-icon.png" width="44" height="44" alt=""><span class="lpBrandText">PATHFINDER<small>THERAPY</small></span></a>
     <nav class="lpTopNav" aria-label="Main navigation">${primary}</nav>
     <div class="lpHeaderActions">
       <a class="lpHeaderPhone" href="tel:+351914775365" aria-label="Call Pathfinder Therapy">+351 914 775 365</a>
@@ -366,14 +380,19 @@ export function buildSiteFooter() {
     { href: "/therapy/", label: "Therapy" },
     { href: "/therapy/individual/", label: "Individual therapy" },
     { href: "/therapy/couples/", label: "Couples therapy" },
-    { href: "/therapy/emdr/", label: "EMDR" },
+    { href: "/emdr-therapy-lisbon/", label: "EMDR in Lisbon" },
+    { href: "/english-speaking-therapist-lisbon/", label: "English-speaking therapy" },
+    { href: "/online-emdr-therapy-uk/", label: "Online EMDR · UK" },
     { href: "/therapy/online/", label: "Online therapy" },
-    { href: "/about/", label: "About Brent" },
+    { href: "/nature-based-therapy-alcobaca/", label: "Alcobaça nature practice" },
+    { href: "/about/", label: "About the team" },
     { href: "/approach/", label: "Approach" },
     { href: "/fees/", label: "Fees" },
+    { href: "/contact/#professional-referrals", label: "Professional referrals" },
     ...RESOURCES_LINKS,
     { href: "/privacy/", label: "Privacy" },
     { href: "/terms/", label: "Terms" },
+    { href: "/arbitration-centre/", label: "Consumer dispute resolution" },
     { href: "/crisis-support/", label: "Crisis support" },
     { href: CLIENT_LOGIN_URL, label: CLIENT_LOGIN_LABEL }
   ];
@@ -383,8 +402,9 @@ export function buildSiteFooter() {
   <div class="pfFooterInner">
     <div class="pfFooterGrid">
       <div class="pfFooterBrand">
+        <img class="pfFooterBrandMark" src="/assets/images/pathfinder-path-icon.png" width="72" height="72" loading="lazy" alt="">
         <div class="pfFooterLogo">Pathfinder<small>Therapy</small></div>
-        <p>Trauma-informed psychotherapy with Brent Kelly for English-speaking adults and couples — in Lisbon and securely online across Portugal.</p>
+        <p>Trauma-informed psychotherapy with Brent Kelly in Lisbon and at our nature-based practice in Alcobaça, with online therapy support through Pathfinder where appropriate.</p>
         ${buildTradingNameBlock()}
         <p style="margin-top:12px"><a href="https://www.instagram.com/pathfinder.therapy/" rel="noopener noreferrer" target="_blank">Instagram<span class="visually-hidden"> (opens in a new tab)</span></a></p>
       </div>
@@ -403,6 +423,7 @@ export function buildSiteFooter() {
         <p><a href="mailto:hi@pathfindertherapy.com">hi@pathfindertherapy.com</a></p>
         <p>R. Rodrigues Sampaio 76 1º Andar<br>1150-281 Lisboa, Portugal</p>
         <p><a href="https://www.google.com/maps/dir//Pathfinder+Therapy,+R.+Rodrigues+Sampaio+76+1st+floor,+1150-281+Lisboa" target="_blank" rel="noopener noreferrer">Get directions →<span class="visually-hidden"> (opens in a new tab)</span></a></p>
+        <p><a href="/nature-based-therapy-alcobaca/">Alcobaça nature-based practice</a><br>Around 10 minutes from the centre<br>Sessions by arrangement</p>
       </div>
     </div>
     <div class="pfFooterBottom">
@@ -431,7 +452,7 @@ export function wrapInShellV2({ head, route, mainInner, tail, bodySchemas = [], 
   const floatScript = showFloat ? FLOATING_CTA_SCRIPT : "";
   const stickyMarkup = showFloat ? "" : buildStickyBar();
 
-  return `${head}${SHELL_V2_CSS}
+  return `${head.replace(/<\/head>\s*$/i, "")}${SHELL_V2_CSS}
 </head><body class="lpShell lpBody">
 <a class="skipLink" href="#main-content">Skip to main content</a>
 ${schemas}
@@ -470,5 +491,20 @@ export function applyShellV2(html, route) {
 }
 
 export function buildContactPageBody(formHtml) {
-  return injectLegalPageDisclosure(buildContactVisualBody(formHtml), "/contact/");
+  const professionalReferrals = `<section class="pfProfessionalReferrals" id="professional-referrals" aria-labelledby="professional-referrals-title">
+  <div class="pfProfessionalReferralsInner">
+    <p class="pfKicker">For therapists, clinics and other professionals</p>
+    <h2 id="professional-referrals-title">Professional referrals and collaboration</h2>
+    <p>You can contact Pathfinder about a potential referral or collaborative work in Lisbon, Alcobaça or online. Please enquire about suitability, availability and possible next steps before proposing a start date to a client.</p>
+    <p>For an initial enquiry, tell us about your organisation, the type of support you are exploring and the location or format. Please do not include client names, identifying details or clinical records.</p>
+    <p>Before any client information is shared, we will agree the purpose of the referral, the client’s consent and a suitable secure method. An enquiry does not confirm acceptance into therapy or a start date.</p>
+    <a class="pfReferralEmail" href="mailto:hi@pathfindertherapy.com?subject=Professional%20referral%20enquiry">Email a professional enquiry</a>
+    <p>For your own therapy enquiry, use the availability options below. Both routes are for non-urgent contact.</p>
+  </div>
+</section>`;
+  const body = buildContactVisualBody(formHtml)
+    .replace("You can arrange an initial consultation directly or send an enquiry first — whichever feels easier. Both routes are confidential and non-urgent.", "You can enquire about availability and next steps, or discuss suitability in an initial consultation. An enquiry or consultation does not guarantee a therapy place or start date. Both routes are confidential and non-urgent.")
+    .replace(`>${ENQUIRY_LABEL}</a>`, ">Enquire about availability and next steps</a>")
+    .replace('  <section class="pfContactFormSection" id="consultation-form"', `${professionalReferrals}\n  <section class="pfContactFormSection" id="consultation-form"`);
+  return injectLegalPageDisclosure(body, "/contact/");
 }

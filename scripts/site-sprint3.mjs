@@ -42,7 +42,7 @@ export const SPRINT3_CSS = `<style id="pathfinder-sprint3">
 .lpPageContent .journalSectionTitle { font-size: clamp(1.35rem, 2.4vw, 1.75rem) !important; line-height: 1.15 !important; max-width: 100% !important; }
 .lpPageContent .journalBody p { font-size: 15px !important; line-height: 1.75 !important; }
 .lpPageContent .knowledgeArticleItem { padding: 18px 0 !important; }
-.lpPageContent .knowledgeArticleItem h3 { font-size: 1.05rem !important; line-height: 1.3 !important; }
+.lpPageContent .knowledgeArticleItem h4 { font-size: 1.05rem !important; line-height: 1.3 !important; }
 .lpPageContent .knowledgeArticleItem > p:not(.journalEssayCategory) { font-size: 14px !important; line-height: 1.65 !important; }
 .lpPageContent .knowledgeArticleItem small { font-size: 13px !important; }
 .lpPageContent .knowledgeCategory span { font-size: clamp(1.15rem, 2vw, 1.45rem) !important; line-height: 1.2 !important; }

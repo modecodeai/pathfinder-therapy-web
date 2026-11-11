@@ -16,7 +16,7 @@ This ships the full preview site (therapy, knowledge library, contact form, sche
 - `/thank-you/` — conversion confirmation (noindex)
 - UTM/gclid attribution + Google Ads conversion tracking
 
-**Google Ads copy:** See [`docs/google-ads-copy.md`](docs/google-ads-copy.md) before editing Search campaigns. Do not use “First Session Free” — only the initial Zoom **consultation call** is free; therapy sessions are from €95.
+**Google Ads copy:** See [`docs/google-ads-copy.md`](docs/google-ads-copy.md) before editing Search campaigns. Do not use “First Session Free” — the **Discovery Call** is a 15-minute introduction, separate from therapy. Discovery Call bookings are open, subject to the available calendar slots. New-client therapy sessions are from €95; existing clients retain their agreed terms.
 
 ### Deploy via GitHub Actions
 

@@ -137,8 +137,11 @@ function auditPriorityRoutes() {
     }
 
     if (route === "/about/") {
-      if (!html.includes("Every path is different. <span>But")) {
-        issues.push(`${rel}: about hero punctuation not corrected`);
+      if (
+        !html.includes("A Lisbon clinic, with a carefully held online team.") ||
+        !html.includes("Tim Felton and Sophie Gidley")
+      ) {
+        issues.push(`${rel}: about team hero not updated`);
       }
       if (html.includes('class="lpBookingPanel"')) {
         issues.push(`${rel}: about page still has booking sidebar`);
@@ -198,7 +201,10 @@ function auditCtas() {
       /<a\b(?=[^>]*\bclass="[^"]*\blpPrimaryCta\b)(?=[^>]*\bhref="([^"]+)")[^>]*>\s*Arrange an initial consultation|<a\b(?=[^>]*\bhref="([^"]+)")(?=[^>]*\bclass="[^"]*\blpPrimaryCta\b)[^>]*>\s*Arrange an initial consultation/gi;
     for (const match of html.matchAll(primaryPattern)) {
       const href = match[1] || match[2];
-      if (href !== NATIVE_BOOKING_URL) {
+      const expectedBookingUrl = rel === "therapy/couples/index.html"
+        ? `${NATIVE_BOOKING_URL}?intent=couples`
+        : NATIVE_BOOKING_URL;
+      if (href !== expectedBookingUrl) {
         issues.push(`${rel}: primary CTA href "${href}"`);
       }
     }
@@ -301,20 +307,15 @@ function main() {
 
   for (const route of ROUTES) {
     const html = readRouteHtml(route);
+    if (/at capacity|calls? (?:are |is )?paused|not accepting new discovery/i.test(html)) errors.push(`${route} still advertises a booking pause`);
+    if (/€75|€120|EUR ?75|first session free|30-minute Discovery Call|free[^<.]{0,30}(?:call|consultation)/i.test(html)) errors.push(`${route} contains superseded fee or discovery copy`);
 
     if (route === "/") {
       const order = [
-        'id="home-title"',
-        'id="home-who"',
-        'id="home-approach"',
-        'id="home-about"',
-        'id="home-reassurance"',
-        'id="home-services"',
-        'id="home-immersive"',
-        'id="home-next"',
-        "Independent feedback",
-        'id="home-final-cta"',
-        'id="home-lisbon"'
+        'id="home-title"', 'id="home-about"', 'id="home-who"',
+        'id="home-services"', 'id="home-approach"', 'id="home-next"',
+        'id="home-lisbon"', 'id="home-reassurance"', "Independent feedback",
+        'id="home-immersive"', 'id="home-final-cta"'
       ];
       if (!html.includes("Immersive EMDR Therapy")) {
         errors.push("Homepage missing Immersive EMDR Therapy announcement");
@@ -332,14 +333,14 @@ function main() {
       if (html.includes('id="home-faq"')) errors.push("Homepage FAQ section still present");
     }
     if (route === "/book/") {
-      if (!html.includes("30-minute initial consultation · Free · Secure Zoom")) {
-        errors.push("/book/ missing exact consultation meta line");
+      if (!html.includes("15-minute Discovery Call · Secure Zoom")) {
+        errors.push("/book/ missing 15-minute Discovery Call details");
       }
       if (!html.includes(NATIVE_BOOKING_URL)) {
-        errors.push("/book/ missing native Pathfinder booking URL");
+        errors.push("/book/ missing secure booking route");
       }
-      if (!html.includes("lpNativeBookingPanel")) {
-        errors.push("/book/ missing native booking handoff panel");
+      if (!html.includes("lpNativeBookingPanel") || !html.includes(`href="${NATIVE_BOOKING_URL}"`)) {
+        errors.push("/book/ missing active Discovery Call booking panel");
       }
       if (html.includes("assets.calendly.com") || html.includes("calendly-inline-widget")) {
         errors.push("/book/ still loads Calendly");
@@ -347,7 +348,7 @@ function main() {
     }
     if (route === "/therapy/") {
       if (!html.includes("Take the next step")) errors.push("/therapy/ missing final CTA");
-      if (!html.includes("Choose a consultation time")) errors.push("/therapy/ missing book-first process");
+      if (!html.includes("Choose a consultation time")) errors.push("/therapy/ missing booking-first process");
       if (!html.includes('id="therapy-immersive"')) errors.push("/therapy/ missing Immersive EMDR section");
       if (html.includes('<aside class="lpBookingPanel"')) errors.push("/therapy/ still has sidebar booking panel");
       if (html.includes("Begin with a conversation")) errors.push("/therapy/ has duplicate CTA");
