@@ -403,7 +403,7 @@ export function buildVisualHomePageBody() {
           <a class="lpPrimaryCta" href="${BOOKING_PATH}">${BOOKING_LABEL}</a>
           <a class="pfHeroTextLink" href="/therapy/">Explore therapy</a>
         </div>
-        <p class="pfHeroTrust">Brent Kelly in Lisbon · online therapy team · confidential · sessions from €75</p>
+        <p class="pfHeroTrust">Brent Kelly in Lisbon · online therapy team · confidential · sessions from €95</p>
       </div>
       <div class="pfHeroMark" aria-hidden="true">
         <svg viewBox="0 0 80 80" fill="none"><circle cx="40" cy="40" r="36" stroke="#c89a58" stroke-width="1" opacity=".5"/><path d="M16 52c12-18 24-26 40-30 8 10 12 22 12 34" stroke="#c89a58" stroke-width="1.5" stroke-linecap="round"/></svg>

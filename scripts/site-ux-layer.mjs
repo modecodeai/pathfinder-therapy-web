@@ -64,7 +64,7 @@ const HOMEPAGE_HERO_INJECTION = `<div class="pfHeroConversion">
   <ol class="pfHeroSteps" aria-label="What happens next">
     <li>Send a brief secure enquiry — no detailed history needed.</li>
     <li>Brent replies within one working day.</li>
-    <li>Arrange your first session in Lisbon or online (from €75).</li>
+    <li>Arrange your first session in Lisbon or online (from €95).</li>
   </ol>
 </div>`;
 
@@ -195,7 +195,7 @@ Pathfinder Therapy CIC is an NCPS Recognised Counselling Service (membership num
 Brent Kelly — trauma-informed psychotherapist and EMDR Therapist (EATA registered · ITAA member), leading the Lisbon clinic and face-to-face provision. Tim Felton — online therapist and EMDR Therapist; UK EMDR sessions are online only. Sophie Gidley — online couples therapist. Availability and suitability are discussed before therapy begins.
 
 ## Fees
-Lisbon and Portugal online individual therapy: from EUR 75 for 50 minutes. Portugal EMDR: EUR 95 for 60 minutes with Brent Kelly, in person in Lisbon or online where appropriate. UK online EMDR: GBP 80 for 60 minutes with Brent Kelly or Tim Felton, subject to assessment. The initial 30-minute Zoom consultation with Brent is free and is separate from a paid therapy session. Check https://www.pathfindertherapy.com/fees/ and the UK EMDR page for service-specific terms. Non-urgent enquiries only — not a crisis service.
+Lisbon and Portugal online individual therapy: from EUR 95 for 50 minutes. Portugal EMDR: EUR 95 for 50 minutes with Brent Kelly, in person in Lisbon or online where appropriate. UK online EMDR: GBP 80 for 60 minutes with Brent Kelly or Tim Felton, subject to assessment. The initial 30-minute Zoom consultation with Brent is free and is separate from a paid therapy session. Check https://www.pathfindertherapy.com/fees/ and the UK EMDR page for service-specific terms. Non-urgent enquiries only — not a crisis service.
 `;
 }
 

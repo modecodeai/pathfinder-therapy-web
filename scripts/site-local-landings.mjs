@@ -7,7 +7,7 @@ const DIRECTIONS_LINK = `<p><a class="lpLocationMapLink" href="${getClinicDirect
 const TRAUMA_FAQS = [
   { question: "Can I have trauma therapy in English with Brent Kelly?", answer: "Yes. Brent Kelly is an EMDR Therapist offering trauma-informed psychotherapy in English for adults at Pathfinder Therapy in Lisbon and online across Portugal. EMDR and Transactional Analysis are used where clinically appropriate." },
   { question: "Where is the Lisbon clinic?", answer: "The Pathfinder Therapy Lisbon clinic is at R. Rodrigues Sampaio 76, 1º Andar, 1150-281 Lisboa, Portugal. Brent holds face-to-face sessions at this clinic." },
-  { question: "How much does trauma therapy or EMDR cost?", answer: "Individual therapy in Lisbon or online across Portugal starts from €75 for 50 minutes. EMDR sessions in Lisbon or online across Portugal cost €95 for 60 minutes. The separate <a href=\"/online-emdr-therapy-uk/\">UK online EMDR service</a> with Brent Kelly or Tim Felton costs £80 for 60 minutes." },
+  { question: "How much does trauma therapy or EMDR cost?", answer: "Individual therapy in Lisbon or online across Portugal starts from €95 for 50 minutes. EMDR sessions in Lisbon or online across Portugal cost €95 for 50 minutes. The separate <a href=\"/online-emdr-therapy-uk/\">UK online EMDR service</a> with Brent Kelly or Tim Felton costs £80 for 60 minutes." },
   { question: "Do I need a diagnosis or have to share my full history straight away?", answer: "No diagnosis is needed to begin a conversation. The first meeting helps clarify what brings you to therapy and whether the approach is suitable. There is no pressure to share your full history immediately; EMDR is considered following assessment and preparation." },
   { question: "Is the initial consultation free?", answer: "Yes. The initial 30-minute Zoom consultation with Brent is free and separate from a paid therapy session. You can ask about the approach, fees and suitability, with no obligation to continue. Fees are agreed before therapy begins." },
 ];
@@ -15,7 +15,7 @@ const EMDR_FAQS = [
   { question: "Who offers EMDR therapy in English in Lisbon?", answer: "Brent Kelly is an EMDR Therapist offering EMDR in English for adults through Pathfinder Therapy, in person in Lisbon and online across Portugal where clinically appropriate." },
   { question: "Where are in-person EMDR sessions held?", answer: "The Lisbon practice is at R. Rodrigues Sampaio 76, 1º Andar, 1150-281 Lisboa, Portugal. Face-to-face sessions are by arrangement and depend on availability. Please check before planning a visit." },
   { question: "Can I have EMDR online in Portugal?", answer: "Online EMDR in English can be considered across Portugal where assessment indicates that the approach and format are suitable. Your therapist discusses preparation, privacy, practical arrangements and availability before sessions are agreed." },
-  { question: "How much does EMDR cost in Portugal and the UK?", answer: "EMDR with Brent in Lisbon or online across Portugal costs €95 for a 60-minute session. The separate <a href=\"/online-emdr-therapy-uk/\">UK online EMDR service</a> with Brent Kelly or Tim Felton costs £80 for 60 minutes and is online only. Suitability and availability are discussed before sessions are agreed." },
+  { question: "How much does EMDR cost in Portugal and the UK?", answer: "EMDR with Brent in Lisbon or online across Portugal costs €95 for a 50-minute session. The separate <a href=\"/online-emdr-therapy-uk/\">UK online EMDR service</a> with Brent Kelly or Tim Felton costs £80 for 60 minutes and is online only. Suitability and availability are discussed before sessions are agreed." },
   { question: "Is EMDR suitable for everyone?", answer: "No. Your therapist assesses whether EMDR is appropriate for your circumstances and plans the work with you. Assessment, preparation and the therapeutic relationship come before processing; another approach or more preparation may be suggested." },
   { question: "Is the initial EMDR consultation free?", answer: "The initial 30-minute Zoom consultation with Brent is free and separate from a paid EMDR session. It is a chance to ask questions and discuss suitability, with no obligation to continue. EMDR processing does not have to begin in the first therapy session." },
   { question: "Can EMDR be short-term therapy?", answer: "Sometimes EMDR is agreed as focused, short-term work for a particular difficulty; for others it forms part of longer therapy. Assessment, preparation and regular review shape the plan. There is no fixed number of sessions or guaranteed timeline." },
@@ -51,7 +51,7 @@ export const LOCAL_LANDING_PAGES = [
     hero: {
       kicker: "Psychotherapy · Lisbon & online",
       title: "Psychotherapy in Lisbon with an English-speaking therapist.",
-      lead: "Pathfinder Therapy offers calm, trauma-informed psychotherapy for adults in central Lisbon and online therapy support across Portugal. Sessions from €75."
+      lead: "Pathfinder Therapy offers calm, trauma-informed psychotherapy for adults in central Lisbon and online therapy support across Portugal. Sessions from €95."
     },
     sections: [
       section(
@@ -72,8 +72,8 @@ export const LOCAL_LANDING_PAGES = [
         "Sessions and fees",
         "What an individual session involves",
         "psy-sessions",
-        `<p>Individual psychotherapy sessions are 50 minutes and start from €75. You and Brent discuss what brings you to therapy, what you would like help with and how you might work together. The approach and pace are agreed with you, and there is room to review what is useful as the work develops.</p>
-        <p>EMDR has a separate fee of €95 for a 60-minute session and is considered following assessment and preparation. You do not need to choose a method before making an enquiry. <a href="/fees/">See session fees and practical details</a>.</p>`
+        `<p>Individual psychotherapy sessions are 50 minutes and start from €95. You and Brent discuss what brings you to therapy, what you would like help with and how you might work together. The approach and pace are agreed with you, and there is room to review what is useful as the work develops.</p>
+        <p>EMDR has a separate fee of €95 for a 50-minute session and is considered following assessment and preparation. You do not need to choose a method before making an enquiry. <a href="/fees/">See session fees and practical details</a>.</p>`
       ),
       section(
         "Getting started",
@@ -133,7 +133,7 @@ export const LOCAL_LANDING_PAGES = [
     route: "/emdr-therapy-lisbon/",
     title: "EMDR Therapist Lisbon | Pathfinder Therapy",
     description:
-      "EMDR therapy in English with Brent Kelly. €95 for 60 minutes, in Lisbon or online across Portugal. Start with a free initial consultation.",
+      "EMDR therapy in English with Brent Kelly. €95 for 50 minutes, in Lisbon or online across Portugal. Start with a free initial consultation.",
     serviceName: "EMDR therapy in Lisbon",
     serviceType: "EMDR",
     faqs: EMDR_FAQS,
@@ -161,7 +161,7 @@ export const LOCAL_LANDING_PAGES = [
         "Practical details",
         "Sessions in English — Lisbon or online",
         "emdr-practical",
-        `<p>EMDR sessions with Brent are in English and cost €95 for 60 minutes in Portugal. The Lisbon practice is at R. Rodrigues Sampaio 76, 1º Andar, 1150-281 Lisboa. Online sessions across Portugal can also be considered. Both formats depend on suitability and current availability; please agree an appointment before visiting. <a href="/fees/">See fees</a>.</p>
+        `<p>EMDR sessions with Brent are in English and cost €95 for 50 minutes in Portugal. The Lisbon practice is at R. Rodrigues Sampaio 76, 1º Andar, 1150-281 Lisboa. Online sessions across Portugal can also be considered. Both formats depend on suitability and current availability; please agree an appointment before visiting. <a href="/fees/">See fees</a>.</p>
         <p>Joining from the UK? Our <a href="/online-emdr-therapy-uk/">UK online EMDR service</a> with Brent Kelly or Tim Felton costs £80 for 60 minutes, subject to suitability and availability.</p>
         ${DIRECTIONS_LINK}`
       ),
@@ -203,7 +203,7 @@ export const LOCAL_LANDING_PAGES = [
         "Services",
         "Individual, couples, and trauma-informed work",
         "en-services",
-        `<p><a href="/therapy/individual/">Individual psychotherapy</a> with Brent starts from €75 for 50 minutes. <a href="/emdr-therapy-lisbon/">EMDR in English</a> is €95 for 60 minutes in Portugal and follows assessment and preparation. <a href="/therapy/couples/">Online couples therapy</a> with Sophie Gidley is a separate service at €120 for 90 minutes.</p>
+        `<p><a href="/therapy/individual/">Individual psychotherapy</a> with Brent starts from €95 for 50 minutes. <a href="/emdr-therapy-lisbon/">EMDR in English</a> is €95 for 50 minutes in Portugal and follows assessment and preparation. <a href="/therapy/couples/">Online couples therapy</a> with Sophie Gidley is a separate service at €170 for 90 minutes.</p>
         <p>You can ask about the different approaches before choosing a route. <a href="/about/">Meet the team</a> and <a href="/fees/">read the fees and practical details</a>.</p>`
       ),
       section(

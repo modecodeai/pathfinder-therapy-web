@@ -70,7 +70,7 @@ export const SERVICE_PAGES = [
     route: "/therapy/individual/",
     title: "Individual Therapy in Lisbon & Online | Pathfinder Therapy",
     description:
-      "Trauma-informed individual psychotherapy for adults in Lisbon and online. Confidential 50-minute sessions from €75 with Brent Kelly.",
+      "Trauma-informed individual psychotherapy for adults in Lisbon and online. Confidential 50-minute sessions from €95 with Brent Kelly.",
     canonical: "https://www.pathfindertherapy.com/therapy/individual/",
     serviceType: "Individual psychotherapy in English",
     label: "For adults",
@@ -78,7 +78,7 @@ export const SERVICE_PAGES = [
     heroLead: "A steady one-to-one space to make sense of what you carry — and to move differently through it.",
     image: "/assets/images/understanding.webp",
     imageAlt: "Atmospheric forest path — individual therapy at Pathfinder Therapy Lisbon",
-    fee: "€75",
+    fee: "€95",
     feeFrom: true,
     minPrice: "75",
     priceCurrency: "EUR",
@@ -114,8 +114,8 @@ export const SERVICE_PAGES = [
     heroLead: "Relational work for couples navigating conflict, disconnection, and repeating patterns.",
     image: "/assets/images/working-together.webp",
     imageAlt: "Warm therapy room — online couples therapy through Pathfinder Therapy",
-    fee: "€120",
-    price: "120",
+    fee: "€170",
+    price: "170",
     priceCurrency: "EUR",
     duration: "90 minutes",
     format: "Online with Sophie Gidley; Lisbon face-to-face enquiries are held separately with Brent.",
@@ -129,7 +129,7 @@ export const SERVICE_PAGES = [
     paragraphs: [
       "Couples therapy offers a structured, confidential space to understand what is happening between you — not to assign blame, but to see patterns clearly and explore whether change feels possible.",
       "Through Pathfinder Therapy, online couples work is offered by Sophie Gidley, a psychotherapeutic counsellor whose practice is grounded in Transactional Analysis and couples counselling.",
-      "Begin with a free, private 30-minute introductory call with Brent. Each partner has a separate conversation before the next step is agreed. Ongoing online couples sessions with Sophie are arranged separately and cost €120 for 90 minutes.",
+      "Begin with a free, private 30-minute introductory call with Brent. Each partner has a separate conversation before the next step is agreed. Ongoing online couples sessions with Sophie are arranged separately and cost €170 for 90 minutes.",
       "Brent continues to lead the Lisbon clinic and face-to-face provision. If you are in Lisbon and unsure which route is right, an initial enquiry can clarify whether online couples therapy or another pathway is appropriate."
     ],
     approach:
@@ -151,7 +151,7 @@ export const SERVICE_PAGES = [
     fee: "€95",
     price: "95",
     priceCurrency: "EUR",
-    duration: "60 minutes",
+    duration: "50 minutes",
     format: "Lisbon or online in Portugal, subject to suitability and availability.",
     helpsWith: [
       "PTSD and trauma-related symptoms",
@@ -164,7 +164,7 @@ export const SERVICE_PAGES = [
       "EMDR begins with understanding what brings you to therapy and whether this approach fits your needs. A free 30-minute initial Zoom call gives you space to ask questions and check current availability. The call is separate from a paid therapy session and carries no obligation to continue.",
       "If you agree to work together, assessment and preparation come before memory processing. You discuss the focus of the work, how to pause and practical support between appointments. Your feedback helps shape the pace, and progress is reviewed together.",
       "For some people, EMDR is agreed as focused, short-term work for a specific difficulty. For others, it forms part of longer psychotherapy. There is no fixed number of sessions or guaranteed timeline; assessment, preparation and review shape the plan.",
-      "Portugal sessions with Brent are 60 minutes and cost €95. See <a href=\"/emdr-therapy-lisbon/\">EMDR in Lisbon and practical arrangements in Portugal</a>, or the separate <a href=\"/online-emdr-therapy-uk/\">UK online EMDR service at £80 for 60 minutes</a>. For an introduction to the approach itself, read <a href=\"/knowledge-library/how-does-emdr-work/\">how EMDR works</a>.",
+      "Portugal sessions with Brent are 50 minutes and cost €95. See <a href=\"/emdr-therapy-lisbon/\">EMDR in Lisbon and practical arrangements in Portugal</a>, or the separate <a href=\"/online-emdr-therapy-uk/\">UK online EMDR service at £80 for 60 minutes</a>. For an introduction to the approach itself, read <a href=\"/knowledge-library/how-does-emdr-work/\">how EMDR works</a>.",
       "Brent is EATA registered and an ITAA member, with training in EMDR as part of integrative trauma-informed practice. If no suitable appointment is available, you can ask about the waiting list. An initial call does not guarantee a therapy place or start date."
     ],
     approach:
@@ -174,7 +174,7 @@ export const SERVICE_PAGES = [
       { question: "Does EMDR processing begin during the free call?", answer: "No. The free 30-minute call is an introductory conversation about your needs, questions and availability. Assessment and preparation are part of the therapy agreed afterwards; processing does not have to begin in the first paid session." },
       { question: "Do I need to describe my whole history straight away?", answer: "You do not need to give a detailed account of every experience during the introductory call. If therapy begins, you and Brent discuss what information is needed for assessment and planning, at an agreed pace." },
       { question: "Can I pause or discuss a different approach?", answer: "Yes. You agree how to pause before processing begins and can discuss your concerns throughout. EMDR is not suitable for everyone; further preparation or a different approach may be considered." },
-      { question: "Will I need short-term or longer therapy?", answer: "That is an individual decision made through assessment and review. Some people agree focused work for a particular difficulty; others need or prefer a longer course of therapy. Session length is 60 minutes, but it does not determine the number of appointments needed." },
+      { question: "Will I need short-term or longer therapy?", answer: "That is an individual decision made through assessment and review. Some people agree focused work for a particular difficulty; others need or prefer a longer course of therapy. Session length is 50 minutes, but it does not determine the number of appointments needed." },
       { question: "Where can I check fees and availability?", answer: "Read the <a href=\"/emdr-therapy-lisbon/\">Lisbon and Portugal EMDR page</a> for the €95 session fee and practical arrangements, or the <a href=\"/online-emdr-therapy-uk/\">UK online page</a> for the £80 service. Current availability is checked in the initial conversation. If no suitable slot is available, ask about the waiting list." }
     ]
   },
@@ -183,7 +183,7 @@ export const SERVICE_PAGES = [
     route: "/therapy/online/",
     title: "Online Therapy in English | Portugal | Pathfinder Therapy",
     description:
-      "Online therapy in English across Portugal with Pathfinder Therapy. Individual sessions from €75 for 50 minutes. Explore EMDR and a free 30-minute initial call.",
+      "Online therapy in English across Portugal with Pathfinder Therapy. Individual sessions from €95 for 50 minutes. Explore EMDR and a free 30-minute initial call.",
     canonical: "https://www.pathfindertherapy.com/therapy/online/",
     serviceType: "Online psychotherapy in English",
     providerId: "https://www.pathfindertherapy.com/#organization",
@@ -193,7 +193,7 @@ export const SERVICE_PAGES = [
     heroLead: "Trauma-informed psychotherapy in English across Portugal, with online EMDR available following assessment and preparation.",
     image: "/assets/images/journal.webp",
     imageAlt: "Quiet workspace — secure online therapy with Pathfinder Therapy",
-    fee: "€75",
+    fee: "€95",
     feeFrom: true,
     minPrice: "75",
     priceCurrency: "EUR",
@@ -208,7 +208,7 @@ export const SERVICE_PAGES = [
     ],
     paragraphs: [
       "Online therapy offers relational, trauma-informed attention by secure video for adults across Portugal. Brent Kelly leads Pathfinder Therapy's Lisbon clinic and offers individual online therapy in English. Tim Felton and Sophie Gidley support online provision where clinically appropriate; Sophie offers <a href=\"/therapy/couples/\">online couples therapy</a>.",
-      "Individual online sessions start from €75 for 50 minutes. <a href=\"/therapy/emdr/\">EMDR therapy with Brent in Portugal</a> costs €95 for 60 minutes, subject to assessment and preparation. Online couples sessions with Sophie cost €120 for 90 minutes. <a href=\"/fees/\">See the fees page</a> for practical details.",
+      "Individual online sessions start from €95 for 50 minutes. <a href=\"/therapy/emdr/\">EMDR therapy with Brent in Portugal</a> costs €95 for 50 minutes, subject to assessment and preparation. Online couples sessions with Sophie cost €170 for 90 minutes. <a href=\"/fees/\">See the fees page</a> for practical details.",
       "For clients in the UK, our <a href=\"/online-emdr-therapy-uk/\">dedicated UK online EMDR service</a> is offered by Brent Kelly or Tim Felton at £80 for 60 minutes. This is an online-only service with its own assessment and arrangements.",
       "You do not need to travel to Lisbon to begin online therapy. Start with a free 30-minute initial Zoom call with Brent to discuss what you are looking for and whether online work is suitable. The initial call is separate from paid therapy; there is no obligation to continue."
     ],
@@ -218,7 +218,7 @@ export const SERVICE_PAGES = [
     faqs: [
       { question: "Can I have online therapy in English from anywhere in Portugal?", answer: "Pathfinder Therapy offers online psychotherapy in English for adults across Portugal, including people who cannot attend the Lisbon clinic. Suitability and practical arrangements are discussed before therapy begins." },
       { question: "Who will I work with online?", answer: "Brent Kelly offers individual therapy and EMDR and leads the Lisbon clinic. Tim Felton supports online therapy, including the UK online EMDR service. Sophie Gidley offers online couples therapy. Your needs, practitioner preference and availability help determine the appropriate next step." },
-      { question: "How much does online therapy cost in Portugal?", answer: "Individual online therapy starts from €75 for 50 minutes. EMDR with Brent Kelly costs €95 for 60 minutes. Online couples therapy with Sophie Gidley costs €120 for 90 minutes. <a href=\"/fees/\">Check fees and practical details</a> before booking." },
+      { question: "How much does online therapy cost in Portugal?", answer: "Individual online therapy starts from €95 for 50 minutes. EMDR with Brent Kelly costs €95 for 50 minutes. Online couples therapy with Sophie Gidley costs €170 for 90 minutes. <a href=\"/fees/\">Check fees and practical details</a> before booking." },
       { question: "Is online EMDR available for UK clients?", answer: "The <a href=\"/online-emdr-therapy-uk/\">dedicated UK online EMDR service</a> with Brent Kelly or Tim Felton costs £80 for a 60-minute session. UK EMDR appointments are online only and subject to assessment and availability." },
       { question: "How do you assess whether online therapy is suitable?", answer: "An initial conversation explores what you need and whether online work is appropriate. Before starting, your practitioner discusses your location, privacy, reliable internet access, connection interruptions and relevant support arrangements. EMDR also requires assessment and preparation." },
       { question: "Is the first therapy session free?", answer: "The initial 30-minute Zoom call with Brent is free. It is a conversation to discuss your needs and possible next steps, separate from a paid therapy session. Ongoing therapy is paid at the relevant service fee." }

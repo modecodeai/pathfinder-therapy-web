@@ -58,7 +58,7 @@ const contentChecks = [
   },
   {
     route: "/fees/",
-    test: (html) => html.includes("€95") && html.includes("€120") && !html.includes("may differ")
+    test: (html) => html.includes("€95") && html.includes("€170") && !html.includes("may differ")
   },
   {
     route: "/about/",

@@ -481,7 +481,7 @@ document.addEventListener("DOMContentLoaded", function () {
 </script>`;
 
 const LANDING_SCHEMA = `<script type="application/ld+json">
-{"@context":"https://schema.org","@type":"MedicalWebPage","name":"Arrange an initial psychotherapy consultation in Lisbon","url":"https://www.pathfindertherapy.com/start/","about":{"@type":"MedicalTherapy","name":"Trauma-informed psychotherapy"},"mainEntity":{"@type":"MedicalBusiness","name":"Pathfinder Therapy","url":"https://www.pathfindertherapy.com","telephone":"+351914775365","priceRange":"EUR75","medicalSpecialty":["Psychotherapy","Trauma therapy","EMDR"],"address":{"@type":"PostalAddress","addressLocality":"Lisboa","addressCountry":"PT"}},"provider":{"@type":"Person","name":"Brent Kelly","jobTitle":"Therapist","knowsAbout":["Trauma","EMDR","Transactional Analysis","Military veterans"]}}
+{"@context":"https://schema.org","@type":"MedicalWebPage","name":"Arrange an initial psychotherapy consultation in Lisbon","url":"https://www.pathfindertherapy.com/start/","about":{"@type":"MedicalTherapy","name":"Trauma-informed psychotherapy"},"mainEntity":{"@type":"MedicalBusiness","name":"Pathfinder Therapy","url":"https://www.pathfindertherapy.com","telephone":"+351914775365","priceRange":"EUR95","medicalSpecialty":["Psychotherapy","Trauma therapy","EMDR"],"address":{"@type":"PostalAddress","addressLocality":"Lisboa","addressCountry":"PT"}},"provider":{"@type":"Person","name":"Brent Kelly","jobTitle":"Therapist","knowsAbout":["Trauma","EMDR","Transactional Analysis","Military veterans"]}}
 </script>`;
 
 function prepareLandingForm(formHtml) {
@@ -984,7 +984,7 @@ function buildFaqPage(shellHtml) {
     <p class="sectionKicker">Fees</p>
     <h2 class="approachSectionTitle" id="faq-fees">How much do sessions cost?</h2>
     <div class="approachBody">
-      <p>Individual sessions are from €75 for 50 minutes. Couples sessions may differ depending on format and therapist — see the <a href="/fees/">fees page</a> or ask when you enquire.</p>
+      <p>New-client psychotherapy and Portugal EMDR sessions are €95 for 50 minutes. Couples sessions are €170 for 90 minutes. Existing clients retain their agreed fees and durations. See the <a href="/fees/">fees page</a>.</p>
     </div>
   </div>
 </section>
@@ -1012,7 +1012,7 @@ function buildFaqPage(shellHtml) {
 {"@context":"https://schema.org","@type":"FAQPage","mainEntity":[
 {"@type":"Question","name":"How do I arrange an initial consultation?","acceptedAnswer":{"@type":"Answer","text":"You can arrange an initial consultation at pathfindertherapy.com/book or send an enquiry at pathfindertherapy.com/start. Brent replies within one working day."}},
 {"@type":"Question","name":"Can I see Brent in person or online?","acceptedAnswer":{"@type":"Answer","text":"Yes. Brent offers sessions at the Lisbon clinic and securely online across Portugal. Tim Felton and Sophie Gidley support online-only therapy through Pathfinder."}},
-{"@type":"Question","name":"How much do sessions cost?","acceptedAnswer":{"@type":"Answer","text":"Individual sessions are from EUR 75 for 50 minutes."}},
+{"@type":"Question","name":"How much do sessions cost?","acceptedAnswer":{"@type":"Answer","text":"Individual sessions are from EUR 95 for 50 minutes."}},
 {"@type":"Question","name":"Do you offer EMDR and trauma therapy?","acceptedAnswer":{"@type":"Answer","text":"Yes. Brent is an EMDR Therapist and offers trauma-informed psychotherapy and EMDR where clinically appropriate."}}
 ]}
 </script>`;
@@ -1033,12 +1033,12 @@ function buildFeesPage(shellHtml) {
   <div class="approachHeroCopy">
     <p class="sectionKicker">Fees</p>
     <h1 class="approachHeroTitle" id="fees-title">Session fees</h1>
-    <p class="approachHeroText">Transparent pricing for private psychotherapy in Lisbon and online. Fees are discussed clearly before work begins.</p>
+    <p class="approachHeroText">New-client fees for private psychotherapy in Lisbon and online, from 11 November 2026. Existing clients retain their agreed fees and session durations. Fees are discussed clearly before work begins.</p>
     <table class="pfFeeSummary"><caption>Fees at a glance</caption><thead><tr><th scope="col">Session</th><th scope="col">Length</th><th scope="col">Fee</th></tr></thead><tbody>
       <tr><th scope="row"><a href="#fees-consultation">Initial Zoom call with Brent</a></th><td>30 min</td><td>Free</td></tr>
-      <tr><th scope="row"><a href="#fees-individual">Individual therapy</a></th><td>50 min</td><td>€75</td></tr>
-      <tr><th scope="row"><a href="#fees-emdr">EMDR · Lisbon / Portugal</a></th><td>60 min</td><td>€95</td></tr>
-      <tr><th scope="row"><a href="#fees-couples">Couples therapy</a></th><td>90 min</td><td>€120</td></tr>
+      <tr><th scope="row"><a href="#fees-individual">Individual therapy</a></th><td>50 min</td><td>€95</td></tr>
+      <tr><th scope="row"><a href="#fees-emdr">EMDR · Lisbon / Portugal</a></th><td>50 min</td><td>€95</td></tr>
+      <tr><th scope="row"><a href="#fees-couples">Couples therapy</a></th><td>90 min</td><td>€170</td></tr>
       <tr><th scope="row"><a href="/online-emdr-therapy-uk/">EMDR · UK, online only</a></th><td>60 min</td><td>£80</td></tr>
     </tbody></table>
     <p>The free initial conversation is separate from a paid therapy session. There is no obligation to continue.</p>
@@ -1048,7 +1048,7 @@ function buildFeesPage(shellHtml) {
   <div class="approachEssayInner">
     <h2 class="approachSectionTitle" id="fees-individual">Individual therapy</h2>
     <div class="approachBody">
-      <p><strong>€75</strong> for a 50-minute session.</p>
+      <p><strong>€95</strong> for a 50-minute session.</p>
       <p>Trauma-informed psychotherapy for adults — in person at our Lisbon clinic or securely online.</p>
     </div>
   </div>
@@ -1057,7 +1057,7 @@ function buildFeesPage(shellHtml) {
   <div class="approachEssayInner">
     <h2 class="approachSectionTitle" id="fees-emdr">EMDR</h2>
     <div class="approachBody">
-      <p><strong>€95</strong> for a 60-minute session.</p>
+      <p><strong>€95</strong> for a 50-minute session.</p>
       <p>Eye Movement Desensitisation and Reprocessing within broader trauma-informed psychotherapy, where clinically appropriate.</p>
     </div>
   </div>
@@ -1066,7 +1066,7 @@ function buildFeesPage(shellHtml) {
   <div class="approachEssayInner">
     <h2 class="approachSectionTitle" id="fees-couples">Couples therapy</h2>
     <div class="approachBody">
-      <p><strong>€120</strong> for a 90-minute session.</p>
+      <p><strong>€170</strong> for a 90-minute session.</p>
       <p>Relational therapy for couples navigating conflict, disconnection, and repeating patterns. Online couples therapy is offered through Sophie Gidley; Lisbon face-to-face enquiries are discussed separately with Brent.</p>
     </div>
   </div>
@@ -1093,17 +1093,17 @@ function buildFeesPage(shellHtml) {
   const schema = `<style id="pathfinder-fee-summary">
 .feesPage .approachHero{padding-block:32px}.feesPage .approachEssay{padding-block:32px}.feesPage .approachHeroText{margin-bottom:24px}.pfFeeSummary{width:100%;border-collapse:collapse;font-size:15px;line-height:1.5;margin:24px 0}.pfFeeSummary caption{text-align:left;font-size:18px;font-weight:600;margin-bottom:12px}.pfFeeSummary th,.pfFeeSummary td{padding:12px 8px;border-bottom:1px solid rgba(246,242,234,.2);text-align:left}.pfFeeSummary th:first-child{padding-left:0}.pfFeeSummary tbody th{font-weight:400}.pfFeeSummary td{white-space:nowrap}.pfFeeSummary a{text-underline-offset:4px}.feesPage [id^="fees-"]{scroll-margin-top:100px}@media(max-width:480px){.pfFeeSummary{font-size:14px}.pfFeeSummary th,.pfFeeSummary td{padding:12px 5px}}
 </style><script type="application/ld+json">
-{"@context":"https://schema.org","@type":"MedicalBusiness","name":"Pathfinder Therapy","url":"https://www.pathfindertherapy.com/fees/","priceRange":"EUR75","makesOffer":[
-{"@type":"Offer","price":"75","priceCurrency":"EUR","description":"Individual psychotherapy session (50 minutes)"},
-{"@type":"Offer","price":"95","priceCurrency":"EUR","description":"EMDR session (60 minutes)"},
-{"@type":"Offer","price":"120","priceCurrency":"EUR","description":"Couples therapy session (90 minutes)"}
+{"@context":"https://schema.org","@type":"MedicalBusiness","name":"Pathfinder Therapy","url":"https://www.pathfindertherapy.com/fees/","priceRange":"EUR95","makesOffer":[
+{"@type":"Offer","price":"95","priceCurrency":"EUR","description":"Individual psychotherapy session (50 minutes)"},
+{"@type":"Offer","price":"95","priceCurrency":"EUR","description":"EMDR session (50 minutes)"},
+{"@type":"Offer","price":"170","priceCurrency":"EUR","description":"Couples therapy session (90 minutes)"}
 ]}
 </script>`;
 
   return buildInteriorPageWithBookingPanel(shellHtml, {
     title: "Fees | Therapist Lisbon | Pathfinder Therapy",
     description:
-      "Session fees: individual therapy €75 (50 min), EMDR €95 (60 min), couples therapy from €120 (90 min). Lisbon with Brent Kelly and online through Pathfinder.",
+      "Session fees: individual therapy €95 (50 min), EMDR €95 (50 min), couples therapy from €170 (90 min). Lisbon with Brent Kelly and online through Pathfinder.",
     canonical: "https://www.pathfindertherapy.com/fees/",
     mainInner,
     schema,
