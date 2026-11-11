@@ -42,7 +42,7 @@ const contentChecks = [
   {
     route: "/book/",
     test: (html) =>
-      html.includes("30-minute initial consultation · Free · Secure Zoom") &&
+      html.includes("15-minute Discovery Call · Secure Zoom") &&
       html.includes(nativeBookingUrl) &&
       html.includes("lpNativeBookingPanel") &&
       !html.includes("assets.calendly.com") &&

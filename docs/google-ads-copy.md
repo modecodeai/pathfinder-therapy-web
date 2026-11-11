@@ -203,4 +203,8 @@ Update price-bearing responsive search ads, sitelink descriptions, callouts and 
 
 All headlines above are within 30 characters; descriptions are within 90. Only the initial consultation is free. Existing clients retain agreed fees and session durations.
 
-Live Google Ads assets have not yet been edited; verify the authenticated Ads account and replace outdated assets without enabling paused ads or campaigns.
+Google Ads price-bearing ads and couples/UK fee sitelinks were updated on 11 November 2026. Campaigns remained paused.
+
+## Discovery Call amendment — 11 November 2026
+
+Replace all first-session-free and free initial/Zoom call messaging with **Discovery Call - 15 mins**. Remove the old 30-minute invitation. This is an introductory conversation, not a therapy session. Existing appointments retain their booked time. Do not enable paused campaigns. Website and Alpha call-duration changes must be released together.

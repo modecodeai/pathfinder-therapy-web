@@ -12,21 +12,21 @@ function resolveConsultationDuration() {
     if (digits) return `${digits}-minute`;
     return env.endsWith("-minute") ? env : "";
   }
-  return "30-minute";
+  return "15-minute";
 }
 
 export const BOOKING_CONSULTATION_DURATION = resolveConsultationDuration();
 export const BOOKING_CONSULTATION_PRICE =
-  (process.env.PATHFINDER_BOOKING_PRICE_LABEL || "").trim() || "Free";
+  "";
 
 export function buildConsultationMetaLine() {
   const parts = [];
   if (BOOKING_CONSULTATION_DURATION) {
-    parts.push(`${BOOKING_CONSULTATION_DURATION} initial consultation`);
+    parts.push(`${BOOKING_CONSULTATION_DURATION} Discovery Call`);
   } else {
-    parts.push("Initial consultation");
+    parts.push("Discovery Call");
   }
-  parts.push(BOOKING_CONSULTATION_PRICE, "Secure Zoom");
+  parts.push("Secure Zoom");
   return parts.join(" · ");
 }
 
@@ -100,7 +100,7 @@ export function buildBookPageBody() {
   const meta = buildConsultationMetaLine();
   return `<div class="lpBookPage">
   <section class="lpBookIntro" aria-labelledby="book-title">
-    <p class="lpKicker">Initial consultation · Secure Zoom</p>
+    <p class="lpKicker">Discovery Call · Secure Zoom</p>
     <h1 class="lpTitle" id="book-title">${BOOKING_LABEL}</h1>
     <p class="lpConsultMeta">${meta}</p>
     <p class="lpLead">This is a brief introductory conversation rather than a full therapy session. It gives you an opportunity to explain what you are looking for, ask questions and decide whether working together feels appropriate. There is no obligation to continue.</p>
@@ -113,10 +113,10 @@ export function buildBookPageBody() {
 export function buildBookConfirmedBody() {
   return `<section class="lpHero" style="max-width:42rem" aria-labelledby="book-confirmed-title">
   <p class="lpKicker">Booking confirmed</p>
-  <h1 class="lpTitle" id="book-confirmed-title">Your initial Zoom consultation is booked.</h1>
+  <h1 class="lpTitle" id="book-confirmed-title">Your Discovery Call is booked.</h1>
   <p class="lpLead">Pathfinder will send your confirmation and online meeting details by email. If you do not see it within a few minutes, check your spam folder.</p>
   <ul class="lpSteps">
-    <li><span class="lpStepNum" aria-hidden="true">✓</span><span>Your initial consultation time is reserved.</span></li>
+    <li><span class="lpStepNum" aria-hidden="true">✓</span><span>Your Discovery Call time is reserved.</span></li>
     <li><span class="lpStepNum" aria-hidden="true">2</span><span>Open the Zoom link from your Pathfinder confirmation email at the scheduled time.</span></li>
     <li><span class="lpStepNum" aria-hidden="true">3</span><span>If ongoing therapy feels right, Brent will explain fees and next steps.</span></li>
   </ul>
