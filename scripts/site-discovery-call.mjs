@@ -12,5 +12,7 @@ export function applyDiscoveryCallCopy(html) {
     .replace(/((?:15-minute )?Discovery Call(?: with Brent)?) is free and (?:is )?/gi, '$1 is ')
     .replace(/((?:15-minute )?Discovery Call(?: with Brent)?) is free\./gi, '$1 is a brief introductory conversation.')
     .replace(/free\s+(?:15-minute\s+)?Discovery Call/gi, '15-minute Discovery Call')
-    .replace(/30-minute Discovery Call/gi, '15-minute Discovery Call');
+    .replace(/30-minute Discovery Call/gi, '15-minute Discovery Call')
+    .replace(/\bAn ((?:15-minute )?Discovery Call)\b/g, 'A $1')
+    .replace(/\ban ((?:15-minute )?Discovery Call)\b/g, 'a $1');
 }
