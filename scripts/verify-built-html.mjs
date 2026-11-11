@@ -158,8 +158,8 @@ function auditPriorityRoutes() {
     }
 
     if (route === "/therapy/") {
-      if (!html.includes("Currently at capacity")) {
-        issues.push(`${rel}: therapy page missing current capacity notice`);
+      if (!html.includes("Choose a consultation time")) {
+        issues.push(`${rel}: therapy page missing booking-first process copy`);
       }
       if (!html.includes('<ul class="lpSteps"')) {
         issues.push(`${rel}: therapy process steps should use ul.lpSteps`);
@@ -307,6 +307,7 @@ function main() {
 
   for (const route of ROUTES) {
     const html = readRouteHtml(route);
+    if (/at capacity|calls? (?:are |is )?paused|not accepting new discovery/i.test(html)) errors.push(`${route} still advertises a booking pause`);
     if (/€75|€120|EUR ?75|first session free|30-minute Discovery Call|free[^<.]{0,30}(?:call|consultation)/i.test(html)) errors.push(`${route} contains superseded fee or discovery copy`);
 
     if (route === "/") {
@@ -332,14 +333,14 @@ function main() {
       if (html.includes('id="home-faq"')) errors.push("Homepage FAQ section still present");
     }
     if (route === "/book/") {
-      if (!html.includes("15-minute Discovery Calls are paused.") || !html.includes("not accepting new discovery-call bookings")) {
-        errors.push("/book/ missing paused 15-minute Discovery Call state");
+      if (!html.includes("15-minute Discovery Call · Secure Zoom")) {
+        errors.push("/book/ missing 15-minute Discovery Call details");
       }
-      if (!html.includes(`${NATIVE_BOOKING_URL}/enquiry`)) {
-        errors.push("/book/ missing secure written enquiry route");
+      if (!html.includes(NATIVE_BOOKING_URL)) {
+        errors.push("/book/ missing secure booking route");
       }
-      if (html.includes("lpNativeBookingPanel") || html.includes(`href="${NATIVE_BOOKING_URL}"`)) {
-        errors.push("/book/ reopened discovery booking while at capacity");
+      if (!html.includes("lpNativeBookingPanel") || !html.includes(`href="${NATIVE_BOOKING_URL}"`)) {
+        errors.push("/book/ missing active Discovery Call booking panel");
       }
       if (html.includes("assets.calendly.com") || html.includes("calendly-inline-widget")) {
         errors.push("/book/ still loads Calendly");
@@ -347,7 +348,7 @@ function main() {
     }
     if (route === "/therapy/") {
       if (!html.includes("Take the next step")) errors.push("/therapy/ missing final CTA");
-      if (!html.includes("Currently at capacity")) errors.push("/therapy/ missing current capacity notice");
+      if (!html.includes("Choose a consultation time")) errors.push("/therapy/ missing booking-first process");
       if (!html.includes('id="therapy-immersive"')) errors.push("/therapy/ missing Immersive EMDR section");
       if (html.includes('<aside class="lpBookingPanel"')) errors.push("/therapy/ still has sidebar booking panel");
       if (html.includes("Begin with a conversation")) errors.push("/therapy/ has duplicate CTA");

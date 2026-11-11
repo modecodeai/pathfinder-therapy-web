@@ -495,7 +495,7 @@ export function buildContactPageBody(formHtml) {
   <div class="pfProfessionalReferralsInner">
     <p class="pfKicker">For therapists, clinics and other professionals</p>
     <h2 id="professional-referrals-title">Professional referrals and collaboration</h2>
-    <p>You can contact Pathfinder about a potential referral or collaborative work in Lisbon, Alcobaça or online. We are currently at capacity for new therapy clients. Please enquire about suitability, availability and possible next steps before proposing a start date to a client.</p>
+    <p>You can contact Pathfinder about a potential referral or collaborative work in Lisbon, Alcobaça or online. Please enquire about suitability, availability and possible next steps before proposing a start date to a client.</p>
     <p>For an initial enquiry, tell us about your organisation, the type of support you are exploring and the location or format. Please do not include client names, identifying details or clinical records.</p>
     <p>Before any client information is shared, we will agree the purpose of the referral, the client’s consent and a suitable secure method. An enquiry does not confirm acceptance into therapy or a start date.</p>
     <a class="pfReferralEmail" href="mailto:hi@pathfindertherapy.com?subject=Professional%20referral%20enquiry">Email a professional enquiry</a>
@@ -503,7 +503,7 @@ export function buildContactPageBody(formHtml) {
   </div>
 </section>`;
   const body = buildContactVisualBody(formHtml)
-    .replace("You can arrange an initial consultation directly or send an enquiry first — whichever feels easier. Both routes are confidential and non-urgent.", "We are currently at capacity for new therapy clients. You can enquire about availability and next steps, or discuss suitability in an initial consultation. An enquiry or consultation does not guarantee a therapy place or start date. Both routes are confidential and non-urgent.")
+    .replace("You can arrange an initial consultation directly or send an enquiry first — whichever feels easier. Both routes are confidential and non-urgent.", "You can enquire about availability and next steps, or discuss suitability in an initial consultation. An enquiry or consultation does not guarantee a therapy place or start date. Both routes are confidential and non-urgent.")
     .replace(`>${ENQUIRY_LABEL}</a>`, ">Enquire about availability and next steps</a>")
     .replace('  <section class="pfContactFormSection" id="consultation-form"', `${professionalReferrals}\n  <section class="pfContactFormSection" id="consultation-form"`);
   return injectLegalPageDisclosure(body, "/contact/");

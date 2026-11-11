@@ -55,13 +55,13 @@ async function runDesktop(browser) {
 
   await page.goto(`${baseUrl}/book/`, { waitUntil: "domcontentloaded" });
   const bookingText = await page.locator("main").innerText();
-  if (bookingText.includes("15-minute Discovery Calls are paused.")) pass("/book/ preserves Discovery Call pause");
-  else fail("/book/ preserves Discovery Call pause");
-  const enquiryHref = await page.locator('.pfCapacityPage a').first().getAttribute("href");
-  if (enquiryHref === `${nativeBookingUrl}/enquiry`) pass("/book/ secure written enquiry route");
-  else fail("/book/ secure written enquiry route", enquiryHref || "missing");
-  if (await page.locator(".lpNativeBookingPanel").count() === 0) pass("/book/ has no active call booking panel");
-  else fail("/book/ has no active call booking panel");
+  if (bookingText.includes("15-minute Discovery Call · Secure Zoom")) pass("/book/ shows 15-minute Discovery Call");
+  else fail("/book/ shows 15-minute Discovery Call");
+  const bookingHref = await page.locator('[data-native-booking-link]').first().getAttribute("href");
+  if (bookingHref?.startsWith(nativeBookingUrl)) pass("/book/ secure booking route");
+  else fail("/book/ secure booking route", bookingHref || "missing");
+  if (await page.locator(".lpNativeBookingPanel").count() === 1) pass("/book/ has an active call booking panel");
+  else fail("/book/ has an active call booking panel");
 
   await page.goto(`${baseUrl}/start/#enquiry`, { waitUntil: "domcontentloaded" });
   await page.waitForTimeout(400);

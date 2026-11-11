@@ -57,7 +57,6 @@ import { CONTACT_VISUAL_CSS } from "./site-contact-visual.mjs";
 import { optimiseStaticSite } from "./optimise-static-site.mjs";
 import { applyLisbonRedesign } from "./site-lisbon-redesign.mjs";
 import { applyAlcobacaPractice, ALCOBACA_ROUTE } from "./site-alcobaca.mjs";
-import { applyDiscoveryPause } from "./site-discovery-pause.mjs";
 import { buildJournalPage } from "./site-journal.mjs";
 
 const PREVIEW_ORIGIN =
@@ -605,7 +604,7 @@ function buildStartPageBody(formHtml) {
   return `<section class="lpStartIntro" aria-labelledby="start-title">
   <p class="lpKicker">Getting started · Lisbon and online</p>
   <h1 class="lpTitle" id="start-title">Begin with Pathfinder Therapy</h1>
-  <p class="lpLead">We are currently at capacity for new therapy clients. You can enquire about availability and next steps, or discuss suitability in an initial consultation. An enquiry or consultation does not guarantee a therapy place or start date. Both routes are confidential and non-urgent.</p>
+  <p class="lpLead">You can book a 15-minute Discovery Call or enquire about availability and next steps. An enquiry or consultation does not guarantee a therapy place or start date. Both routes are confidential and non-urgent.</p>
 </section>
 <div class="lpStartPathways">
   <article class="lpStartPathCard lpStartPathCard--primary" aria-labelledby="start-book-direct">
@@ -1036,7 +1035,6 @@ function buildFeesPage(shellHtml) {
     <h1 class="approachHeroTitle" id="fees-title">Session fees</h1>
     <p class="approachHeroText">New-client fees for private psychotherapy in Lisbon and online, from 11 November 2026. Existing clients retain their agreed fees and session durations. Fees are discussed clearly before work begins.</p>
     <table class="pfFeeSummary"><caption>Fees at a glance</caption><thead><tr><th scope="col">Session</th><th scope="col">Length</th><th scope="col">Fee</th></tr></thead><tbody>
-      <tr><th scope="row"><a href="#fees-consultation">Initial Zoom call with Brent</a></th><td>30 min</td><td>Free</td></tr>
       <tr><th scope="row"><a href="#fees-individual">Individual therapy</a></th><td>50 min</td><td>€95</td></tr>
       <tr><th scope="row"><a href="#fees-emdr">EMDR · Lisbon / Portugal</a></th><td>50 min</td><td>€95</td></tr>
       <tr><th scope="row"><a href="#fees-couples">Couples therapy</a></th><td>90 min</td><td>€170</td></tr>
@@ -1113,7 +1111,7 @@ function buildFeesPage(shellHtml) {
 }
 
 function patchSitemap(sitemapXml) {
-  let next = sitemapXml;
+  let next = sitemapXml.replace(/<url>[\s\S]*?<\/url>/g, entry => (entry.includes("/availability/") || entry.includes("/book/</loc>")) ? "" : entry);
   const additions = [
     { loc: "https://www.pathfindertherapy.com/about/", priority: "0.8" },
     { loc: "https://www.pathfindertherapy.com/faq/", priority: "0.75" },
@@ -1249,6 +1247,7 @@ async function main() {
     "/thank-you/",
     "/book/",
     "/book-confirmed/",
+    "/availability/",
     "/faq/",
     "/fees/",
     "/contact/",
@@ -1457,7 +1456,7 @@ async function main() {
       if (!entry.name.endsWith('.html')) continue;
       const original = await readFile(file, 'utf8');
       let next = original.replace(/<form\b[^>]*class="[^"]*contactForm[^"]*"[\s\S]*?<\/form>/g,
-        `<div class="pfEnquiryOptions"><p class="pfEnquiryAvailability"><strong>We are currently at capacity for new therapy clients.</strong></p><p>You can ask about availability and possible next steps. If you are seeking a face-to-face session, you can use the separate waiting-list route below. An enquiry does not confirm a therapy place or start date.</p><div class="pfEnquiryActions"><a class="pfEnquiryButton" href="https://booking.pathfindertherapy.com/book/enquiry">Enquire about availability and next steps</a><a class="pfEnquiryButton pfEnquiryButtonSecondary" href="https://booking.pathfindertherapy.com/book/enquiry?waiting=1">Join the face-to-face waiting list</a></div><p class="pfEnquiryNote">For the face-to-face waiting list, complete the secure form and confirm your email address. Your intake form and therapy agreement will follow automatically. The form explains the paperwork required to join. Completing paperwork does not confirm a therapy place, start date or acceptance into therapy; we will contact you about availability and next steps.</p></div>`);
+        `<div class="pfEnquiryOptions"><p class="pfEnquiryAvailability"><strong>Book a Discovery Call or ask about therapy.</strong></p><p>You can ask about availability and possible next steps. If you are seeking a face-to-face session, you can use the separate waiting-list route below. An enquiry does not confirm a therapy place or start date.</p><div class="pfEnquiryActions"><a class="pfEnquiryButton" href="https://booking.pathfindertherapy.com/book">Book a 15-minute Discovery Call</a><a class="pfEnquiryButton pfEnquiryButtonSecondary" href="https://booking.pathfindertherapy.com/book/enquiry">Enquire about availability and next steps</a><a class="pfEnquiryButton pfEnquiryButtonSecondary" href="https://booking.pathfindertherapy.com/book/enquiry?waiting=1">Join the face-to-face waiting list</a></div><p class="pfEnquiryNote">For the face-to-face waiting list, complete the secure form and confirm your email address. Your intake form and therapy agreement will follow automatically. The form explains the paperwork required to join. Completing paperwork does not confirm a therapy place, start date or acceptance into therapy; we will contact you about availability and next steps.</p></div>`);
       if(next!==original) next=next.replace('</head>',`<style id="pf-enquiry-options-style">
 #consultation-form.pfContactFormSection{background:#e9e4d8!important;color:#263c35!important;padding:48px 24px!important}
 #consultation-form .pfContactFormInner{max-width:760px;margin:0 auto}
@@ -1479,8 +1478,7 @@ async function main() {
     }
   }
   await connectAlphaEnquiries(OUT_DIR);
-  await applyDiscoveryPause(OUT_DIR);
-  // Run after every page generator and the capacity pause, including metadata.
+  // Run after every page generator, including metadata.
   for (const file of [...await walkHtmlFiles(OUT_DIR), path.join(OUT_DIR, "llms.txt"), path.join(OUT_DIR, "ai-summary.json")]) {
     await writeFile(file, applyDiscoveryCallCopy(await readFile(file, "utf8")).replaceAll("€75", "€95").replaceAll("€120", "€170").replaceAll("EUR75", "EUR95").replaceAll("EUR 75", "EUR 95").replaceAll('"price":"75","priceCurrency":"EUR"', '"price":"95","priceCurrency":"EUR"'), "utf8");
   }

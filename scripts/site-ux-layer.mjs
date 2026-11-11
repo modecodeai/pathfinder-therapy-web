@@ -249,8 +249,10 @@ export function buildAiSummaryJson() {
       services: ["Trauma-informed psychotherapy", "Individual therapy", "Online couples therapy", "EMDR", "Online therapy", "Nature-based therapy incorporating Eco-TA"],
       languages: ["English"],
       fees: {
-        lisbon_individual: { currency: "EUR", from: 75, duration_minutes: 50, source: "https://www.pathfindertherapy.com/fees/" },
-        portugal_emdr: { currency: "EUR", amount: 95, duration_minutes: 60, practitioners: ["Brent Kelly"], delivery: "In person in Lisbon or online across Portugal", subject_to_assessment: true, source: "https://www.pathfindertherapy.com/emdr-therapy-lisbon/" },
+        existing_clients: "Existing clients retain their agreed fees and session durations.",
+        couples: { currency: "EUR", amount: 170, duration_minutes: 90, source: "https://www.pathfindertherapy.com/fees/" },
+        lisbon_individual: { currency: "EUR", from: 95, duration_minutes: 50, source: "https://www.pathfindertherapy.com/fees/" },
+        portugal_emdr: { currency: "EUR", amount: 95, duration_minutes: 50, practitioners: ["Brent Kelly"], delivery: "In person in Lisbon or online across Portugal", subject_to_assessment: true, source: "https://www.pathfindertherapy.com/emdr-therapy-lisbon/" },
         uk_online_emdr: { currency: "GBP", amount: 80, duration_minutes: 60, practitioners: ["Brent Kelly", "Tim Felton"], delivery: "Online only", subject_to_assessment: true, source: "https://www.pathfindertherapy.com/online-emdr-therapy-uk/" }
       },
       service_pages: ["https://www.pathfindertherapy.com/therapy/individual/", "https://www.pathfindertherapy.com/therapy/couples/", "https://www.pathfindertherapy.com/therapy/emdr/", "https://www.pathfindertherapy.com/therapy/online/", "https://www.pathfindertherapy.com/online-emdr-therapy-uk/", "https://www.pathfindertherapy.com/nature-based-therapy-alcobaca/"],
