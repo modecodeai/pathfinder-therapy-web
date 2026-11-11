@@ -55,7 +55,7 @@ async function runDesktop(browser) {
 
   await page.goto(`${baseUrl}/book/`, { waitUntil: "domcontentloaded" });
   const meta = await page.textContent(".lpConsultMeta");
-  if (meta?.includes("30-minute initial consultation · Free · Secure Zoom")) {
+  if (meta?.includes("15-minute Discovery Call · Secure Zoom")) {
     pass("/book/ consultation meta", meta);
   } else {
     fail("/book/ consultation meta", meta || "missing");

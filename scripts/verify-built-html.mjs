@@ -331,7 +331,7 @@ function main() {
       if (html.includes('id="home-faq"')) errors.push("Homepage FAQ section still present");
     }
     if (route === "/book/") {
-      if (!html.includes("30-minute initial consultation · Free · Secure Zoom")) {
+      if (!html.includes("15-minute Discovery Call · Secure Zoom")) {
         errors.push("/book/ missing exact consultation meta line");
       }
       if (!html.includes(NATIVE_BOOKING_URL)) {

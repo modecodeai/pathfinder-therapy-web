@@ -1,3 +1,4 @@
+import { applyDiscoveryCallCopy } from "./site-discovery-call.mjs";
 import { mkdir, readFile, writeFile, cp, rm, readdir } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
@@ -324,7 +325,7 @@ function routeToFilePath(route) {
 async function writeRoute(origin, route, html) {
   const filePath = path.join(OUT_DIR, routeToFilePath(route));
   await mkdir(path.dirname(filePath), { recursive: true });
-  await writeFile(filePath, applyCredentialCopy(html), "utf8");
+  await writeFile(filePath, applyDiscoveryCallCopy(applyCredentialCopy(html)), "utf8");
 }
 
 async function walkHtmlFiles(dir) {
