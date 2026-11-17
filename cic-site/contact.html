@@ -210,75 +210,7 @@
         </div>
       </div>
 
-      <form class="pathfinder-form" id="pathfinderContactForm" method="post" action="/api/contact" novalidate>
-        <input class="hp-field" type="text" name="website" tabindex="-1" autocomplete="off" aria-hidden="true">
-        <input type="hidden" name="pageSource" value="">
-        <div class="form-row">
-          <label for="name">Full name</label>
-          <input id="name" name="name" type="text" autocomplete="name" required>
-        </div>
-
-        <div class="form-two">
-          <div class="form-row">
-            <label for="email">Email address</label>
-            <input id="email" name="email" type="email" autocomplete="email" required>
-          </div>
-          <div class="form-row">
-            <label for="phone">Telephone</label>
-            <input id="phone" name="phone" type="tel" autocomplete="tel">
-          </div>
-        </div>
-
-        <div class="form-two">
-          <div class="form-row">
-            <label for="enquiryType">Enquiry type</label>
-            <select id="enquiryType" name="enquiryType" required>
-              <option value="">Please select</option>
-              <option>I’m seeking support for myself</option>
-              <option>I’m referring someone else</option>
-              <option>I’m a professional making an enquiry</option>
-              <option>Partnership / funding enquiry</option>
-              <option>General enquiry</option>
-            </select>
-          </div>
-          <div class="form-row">
-            <label for="preferredContact">Preferred contact method</label>
-            <select id="preferredContact" name="preferredContact" required>
-              <option value="">Please select</option>
-              <option>Email</option>
-              <option>Telephone</option>
-              <option>Either email or telephone</option>
-            </select>
-          </div>
-        </div>
-
-        <div class="form-row">
-          <label for="message">Short message</label>
-          <textarea id="message" name="message" rows="6" maxlength="1600" required placeholder="Please keep this brief. Avoid detailed trauma history, medication information or urgent risk disclosures."></textarea>
-        </div>
-
-        <label class="check-row">
-          <input type="checkbox" name="consent" required>
-          <span>I consent to Pathfinder Therapy CIC using this information to respond to my enquiry.</span>
-        </label>
-
-        <label class="check-row">
-          <input type="checkbox" name="crisisAcknowledgement" required>
-          <span>I understand Pathfinder is not an emergency or crisis service.</span>
-        </label>
-
-        <div class="cf-turnstile" data-sitekey="0x4AAAAAADcobjKn6xifsYPz" data-theme="dark"></div>
-
-        <button class="button button-primary form-submit" type="submit">Send Enquiry <span>→</span></button>
-        <p class="form-status" id="formStatus" role="status" aria-live="polite"></p>
-        <div class="form-next-steps">
-          <h3>What happens next?</h3>
-          <p>We will review your enquiry and respond as soon as practicable. Please do not use this form for urgent risk or crisis situations.</p>
-        </div>
-        <p class="form-privacy-note">By sending this form, you agree that Pathfinder Therapy CIC may use the information provided to respond to your enquiry. Please avoid including detailed clinical history or highly sensitive information in this form. Read our <a href="privacy.html">Privacy Notice</a>
-      <a href="cookie-notice.html">Cookie Notice</a>.</p>
-        <p class="form-fallback">If the form does not send, email <a href="mailto:hello@pathfindertherapy.org.uk">hello@pathfindertherapy.org.uk</a>.</p>
-      </form>
+      <div class="pathfinder-form"><h3>Send a secure enquiry</h3><p>Use our secure Pathfinder Therapy CIC enquiry form for support, referrals or general contact. You can tell us if you are a veteran so your enquiry is flagged for priority review.</p><p><a class="button button-primary" href="https://booking.pathfindertherapy.com/book/uk-enquiry">Open the UK enquiry form <span>→</span></a></p><p>Your enquiry will reach the Pathfinder team securely after you confirm your email address. Please do not include detailed clinical history or urgent crisis information.</p><p>Read our <a href="privacy.html">Privacy Notice</a>.</p></div>
     </div>
   </section>
 
@@ -336,6 +268,7 @@
       <p><a href="immersive-trauma-therapy.html">Adaptive Immersive Trauma Therapy Pilot</a></p>
       <p>Pathfinder Therapy CIC is developing a therapist-led Adaptive Immersive Trauma Therapy Pilot focused on trauma care, accessibility and rehabilitation-informed support. The programme is a service-development initiative and is not a substitute for emergency, medical, psychiatric, pain-management, prosthetic or rehabilitation care.</p>
     </section>
+    <p class="hipaa-compliance-notice"><a href="privacy.html#hipaa-compliance">HIPAA compliant</a></p>
     <div class="legal-footer-grid">
     <p><strong>PATHFINDER THERAPY CIC</strong><br>Company Number 17248842</p>
     <nav aria-label="Legal and support links">

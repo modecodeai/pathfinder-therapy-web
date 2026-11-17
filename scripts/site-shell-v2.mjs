@@ -411,6 +411,7 @@ export function buildSiteFooter() {
       <div class="pfFooterCol pfFooterStandards">
         <h2>Standards and Recognition</h2>
         ${buildNcpsAccreditationBlock()}
+        <p class="pfFooterColNavNote"><a href="/privacy/#hipaa-compliance">HIPAA compliant</a></p>
         <p class="pfFooterColNavNote">Also: EATA registered practice · ITAA membership · clinical supervision · professional indemnity insurance</p>
       </div>
       <div class="pfFooterCol">
