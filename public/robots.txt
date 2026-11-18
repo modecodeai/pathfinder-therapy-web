@@ -1,0 +1,21 @@
+User-agent: OAI-SearchBot
+Allow: /
+Disallow: /api/
+
+User-agent: ChatGPT-User
+Allow: /
+Disallow: /api/
+
+User-agent: *
+Allow: /
+Disallow: /api/
+Disallow: /*?author=*
+Disallow: /*&author=*
+Disallow: /*?tag=*
+Disallow: /*&tag=*
+Disallow: /*?month=*
+Disallow: /*&month=*
+Disallow: /*?view=*
+Disallow: /*&view=*
+
+Sitemap: https://www.pathfindertherapy.com/sitemap.xml

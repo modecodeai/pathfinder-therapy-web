@@ -26,9 +26,9 @@ const contentChecks = [
   {
     route: "/",
     test: (html) =>
-      html.includes("Trauma-informed psychotherapy in Lisbon and online") &&
+      html.includes("English-speaking psychotherapy in") && html.includes("Lisbon.") &&
       !html.includes("Choose the route that suits you") &&
-      html.includes("Not sure where to begin?") &&
+      html.includes("nature around you.") &&
       html.includes(`href="${nativeBookingUrl}"`) &&
       html.includes('href="/start/#enquiry"')
   },
@@ -36,13 +36,13 @@ const contentChecks = [
     route: "/start/",
     test: (html) =>
       html.includes("lpStartPathways") &&
-      html.includes("Arrange a consultation directly") &&
+      html.includes("15-minute Discovery Call") &&
       html.includes('id="enquiry"')
   },
   {
     route: "/book/",
     test: (html) =>
-      html.includes("30-minute initial consultation · Free · Secure Zoom") &&
+      html.includes("15-minute Discovery Call · Secure Zoom") &&
       html.includes(nativeBookingUrl) &&
       html.includes("lpNativeBookingPanel") &&
       !html.includes("assets.calendly.com") &&
@@ -62,7 +62,10 @@ const contentChecks = [
   },
   {
     route: "/about/",
-    test: (html) => html.includes("Every path is different. ") && !html.includes("Every path is different.But")
+    test: (html) =>
+      html.includes("A Lisbon clinic, with a carefully held online team.") &&
+      html.includes("Tim Felton and Sophie Gidley") &&
+      !html.includes('<aside class="lpBookingPanel"')
   },
   {
     route: "/approach/",
@@ -95,6 +98,7 @@ async function verifyOnce() {
       throw new Error(`Missing build SHA marker on ${baseUrl}${route}`);
     }
     auditLegacyLabels(html, route);
+    if (/at capacity|calls? (?:are |is )?paused|not accepting new discovery/i.test(html)) throw new Error(`Booking pause still visible on ${route}`);
   }
 
   for (const check of contentChecks) {

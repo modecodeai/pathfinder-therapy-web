@@ -34,9 +34,9 @@ export default function StartPage() {
           <aside className="funnel-trust-panel">
             <p className="funnel-form-kicker">Why Pathfinder</p>
             <ul className="trust-list">
-              <li>Trauma-informed psychotherapy with Brent Kelly</li>
-              <li>Individual, couples, EMDR, and online sessions</li>
-              <li>Lisbon clinic and secure online therapy</li>
+              <li>Trauma-informed psychotherapy led by Brent Kelly in Lisbon</li>
+              <li>Individual, EMDR, online, and online couples sessions</li>
+              <li>Lisbon clinic with Brent and secure online therapy through Pathfinder</li>
               <li>Experienced with veterans, attachment, and complex trauma</li>
             </ul>
 

@@ -78,6 +78,19 @@ export function buildLegalPageDisclosureSection({ headingId = "legal-entity" } =
 }
 
 export function injectLegalPageDisclosure(mainInner, route) {
+  if (route === "/privacy/" && !mainInner.includes('id="hipaa-compliance"')) {
+    mainInner += `<section class="approachEssay" aria-labelledby="hipaa-compliance">
+  <div class="approachEssayInner">
+    <p class="sectionKicker">Data protection</p>
+    <h2 class="approachSectionTitle" id="hipaa-compliance">HIPAA compliance</h2>
+    <div class="approachBody">
+      <p>Pathfinder Therapy is HIPAA compliant. We have completed a wider HIPAA compliance assessment covering our services and Alpha platform.</p>
+      <p>Our eligible OpenAI API services are covered by a Business Associate Agreement. This agreement forms part of our wider data-protection arrangements.</p>
+    </div>
+  </div>
+</section>`;
+  }
+
   if (!LEGAL_DISCLOSURE_ROUTES.has(route)) {
     return mainInner;
   }

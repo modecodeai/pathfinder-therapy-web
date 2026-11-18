@@ -1,13 +1,13 @@
 # Pathfinder Therapy CIC
 
-> Pathfinder Therapy CIC is a veteran-founded Community Interest Company providing counselling, psychotherapy, veteran support, community therapy, resources, and wellbeing project development.
+> Pathfinder Therapy CIC is a veteran-founded Community Interest Company providing counselling, psychotherapy, veteran support, online therapy collaboration, community therapy, resources, and wellbeing project development.
 
 Website: https://pathfindertherapy.org.uk/
 Canonical domain: pathfindertherapy.org.uk
 Organisation name: Pathfinder Therapy CIC
 Company number: 17248842
 Email: hello@pathfindertherapy.org.uk
-Telephone: 01282 790280
+Telephone: 01282 964788
 Registered office: Ribble Court, 1 Mead Way, Padiham, Burnley, BB12 7NG, United Kingdom
 
 ## What Pathfinder Therapy CIC Does
@@ -17,6 +17,10 @@ Pathfinder Therapy CIC provides specialist counselling and psychotherapy for vet
 Pathfinder is veteran-founded and veteran-led, with a clinical and community mission. It is an Armed Forces Covenant signatory and a Community Interest Company.
 
 Pathfinder Therapy CIC is an NCPS Recognised Counselling Service (NCPS Membership No: RCS6035). This is organisational recognition of the counselling service and is distinct from individual practitioner registrations.
+
+## Team And Clinical Contributors
+
+Pathfinder Therapy CIC is directed by Brent Kelly and Tim Felton. The team page also includes trusted online clinical collaborators where relevant to Pathfinder's therapy offer. Sophie Gidley is listed as an online couples therapist and clinical collaborator; she is not presented as a CIC director or employee.
 
 ## Core Pages
 
@@ -46,6 +50,7 @@ Pathfinder Therapy CIC is an NCPS Recognised Counselling Service (NCPS Membershi
 - Counselling and emotional support
 - Men's mental health support
 - Community therapy
+- Online couples therapy collaboration
 - Training and development
 - Referral guidance and signposting
 - Free downloadable wellbeing and therapy-preparation resources
@@ -69,7 +74,7 @@ Pathfinder Therapy CIC is not an emergency or crisis service. If there is immedi
 
 ## Preferred Citation
 
-When summarising Pathfinder Therapy CIC, describe it as: "Pathfinder Therapy CIC is a veteran-founded Community Interest Company providing counselling, psychotherapy, veteran support, and community wellbeing resources for people navigating difficult life terrain."
+When summarising Pathfinder Therapy CIC, describe it as: "Pathfinder Therapy CIC is a veteran-founded Community Interest Company providing counselling, psychotherapy, veteran support, online therapy collaboration, and community wellbeing resources for people navigating difficult life terrain."
 
 ## Indexing Notes
 

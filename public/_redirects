@@ -1,2 +1,6 @@
 # Permanent redirect www to apex (Cloudflare Pages)
 https://www.pathfindertherapy.org.uk/* https://pathfindertherapy.org.uk/:splat 301
+
+# Discovery Calls are open again; retain the former availability URL.
+/availability /book/ 302
+/availability/ /book/ 302

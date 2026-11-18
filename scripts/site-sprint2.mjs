@@ -175,7 +175,7 @@ const TRUST_STRIP = `<div class="lpTrustStrip" aria-label="Professional credenti
 
 const BOOKING_FIRST_STEPS = `<ul class="lpSteps" aria-label="What happens next">
   <li><span class="lpStepNum" aria-hidden="true">1</span><span><strong>Choose a consultation time</strong> — select a convenient time through the secure booking page.</span></li>
-  <li><span class="lpStepNum" aria-hidden="true">2</span><span><strong>Meet Brent by Zoom</strong> — use the initial conversation to briefly discuss what brings you to therapy and ask questions.</span></li>
+  <li><span class="lpStepNum" aria-hidden="true">2</span><span><strong>Meet by Zoom</strong> — use the initial conversation to briefly discuss what brings you to therapy and ask questions.</span></li>
   <li><span class="lpStepNum" aria-hidden="true">3</span><span><strong>Decide on the next step</strong> — there is no obligation to continue unless the working relationship feels appropriate.</span></li>
 </ul>`;
 
@@ -222,7 +222,7 @@ const LISBON_GEO_LINKS = `<section class="lpSection lpGeoSectionQuiet" aria-labe
       <p class="lpSectionLead">English-speaking psychotherapy in central Lisbon and securely online across Portugal.</p>
     </div>
     <div class="lpGeoGrid">
-      <article class="lpGeoCard"><h3><a href="/psychotherapy-lisbon/">Psychotherapy Lisbon</a></h3><p>Trauma-informed psychotherapy for adults and couples — in person or online.</p></article>
+      <article class="lpGeoCard"><h3><a href="/psychotherapy-lisbon/">Psychotherapy Lisbon</a></h3><p>Trauma-informed psychotherapy with Brent in Lisbon, plus online support through Pathfinder.</p></article>
       <article class="lpGeoCard"><h3><a href="/trauma-therapy-lisbon/">Trauma therapy Lisbon</a></h3><p>Support for PTSD, complex trauma, and anxiety — EMDR where appropriate.</p></article>
       <article class="lpGeoCard"><h3><a href="/emdr-therapy-lisbon/">EMDR therapy Lisbon</a></h3><p>Eye Movement Desensitisation and Reprocessing within trauma-informed care.</p></article>
       <article class="lpGeoCard"><h3><a href="/english-speaking-therapist-lisbon/">English-speaking therapist</a></h3><p>Therapy in English for expats and international clients in Lisbon.</p></article>
@@ -304,13 +304,13 @@ export function buildHomePageBody() {
       </article>
       <article class="lpCard">
         <h3>Relationships &amp; attachment</h3>
-        <p>Individual and couples therapy for patterns that repeat in intimacy, trust, and communication.</p>
+        <p>Individual therapy and online couples work for patterns that repeat in intimacy, trust, and communication.</p>
         <a href="/therapy/">Couples &amp; individual therapy →</a>
       </article>
       <article class="lpCard">
         <h3>Life transitions &amp; veterans</h3>
         <p>Support through change, expatriation, military experiences, and periods when life no longer fits.</p>
-        <a href="/about/">About Brent →</a>
+        <a href="/about/">Meet the team →</a>
       </article>
     </div>
   </section>
@@ -327,7 +327,7 @@ export function buildHomePageBody() {
       </article>
       <article class="lpCard">
         <h3>Heal</h3>
-        <p>Trauma-informed psychotherapy and EMDR Practitioner-led care where appropriate — paced carefully around your nervous system.</p>
+        <p>Trauma-informed psychotherapy and EMDR Therapist-led care where appropriate — paced carefully around your nervous system.</p>
       </article>
       <article class="lpCard">
         <h3>Move forward</h3>
@@ -341,16 +341,16 @@ export function buildHomePageBody() {
 
   <section class="lpSection" aria-labelledby="home-about">
     <div class="lpSectionHead">
-      <p class="lpKicker">About Brent</p>
-      <h2 class="lpSectionTitle" id="home-about">Relationship focused. Personal and authentic.</h2>
+      <p class="lpKicker">About Pathfinder</p>
+      <h2 class="lpSectionTitle" id="home-about">Led in Lisbon by Brent, with trusted online support.</h2>
     </div>
     <div class="lpAboutStrip">
       <img src="/assets/images/about-brent.webp" width="120" height="120" alt="Brent Kelly, therapist at Pathfinder Therapy Lisbon" loading="lazy" decoding="async" />
       <div>
-        <p>Pathfinder is built around evidence-informed care, real conversation, and a steady therapeutic relationship. Brent Kelly works with adults and couples in English — in Lisbon and online.</p>
+        <p>Pathfinder is built around evidence-informed care, real conversation, and a steady therapeutic relationship. Brent Kelly leads the Lisbon clinic and sees clients face to face; Tim Felton and Sophie Gidley support online provision.</p>
         <p><strong>EATA registered · ITAA member</strong> · EMDR · Transactional Analysis · clinical supervision</p>
         ${buildEataBadge()}
-        <a class="lpSecondaryCta" href="/about/" style="display:inline-flex;margin-top:8px">Meet Brent →</a>
+        <a class="lpSecondaryCta" href="/about/" style="display:inline-flex;margin-top:8px">Meet the team →</a>
       </div>
     </div>
   </section>
@@ -362,13 +362,13 @@ export function buildHomePageBody() {
   <section class="lpSection" aria-labelledby="home-services">
     <div class="lpSectionHead">
       <h2 class="lpSectionTitle" id="home-services">Therapy services</h2>
-      <p class="lpSectionLead">Therapy shaped around your life — in person at our Lisbon clinic or securely online.</p>
+      <p class="lpSectionLead">Therapy shaped around your life — in person with Brent at the Lisbon clinic or securely online where appropriate.</p>
     </div>
     <div class="lpServiceGrid">
       <article class="lpServiceCard"><a href="/therapy/" aria-label="Individual therapy — learn more"><h3>Individual therapy</h3><p>Trauma-informed psychotherapy for adults — anxiety, trauma, attachment, and life transitions.</p><span class="lpServiceCardLink">Learn more →</span></a></article>
-      <article class="lpServiceCard"><a href="/therapy/" aria-label="Couples therapy — learn more"><h3>Couples therapy</h3><p>Relational work for couples navigating conflict, disconnection, and repeating patterns.</p><span class="lpServiceCardLink">Learn more →</span></a></article>
+      <article class="lpServiceCard"><a href="/therapy/" aria-label="Couples therapy — learn more"><h3>Couples therapy</h3><p>Online couples therapy with Sophie Gidley for conflict, disconnection, and repeating patterns.</p><span class="lpServiceCardLink">Learn more →</span></a></article>
       <article class="lpServiceCard"><a href="/therapy/" aria-label="EMDR — learn more"><h3>EMDR</h3><p>Eye Movement Desensitisation and Reprocessing where clinically appropriate for trauma processing.</p><span class="lpServiceCardLink">Learn more →</span></a></article>
-      <article class="lpServiceCard"><a href="/therapy/" aria-label="Online therapy — learn more"><h3>Online therapy</h3><p>Secure online sessions across Portugal and internationally where appropriate.</p><span class="lpServiceCardLink">Learn more →</span></a></article>
+      <article class="lpServiceCard"><a href="/therapy/" aria-label="Online therapy — learn more"><h3>Online therapy</h3><p>Secure online sessions with Brent, Tim or Sophie where clinically appropriate.</p><span class="lpServiceCardLink">Learn more →</span></a></article>
     </div>
     <div class="lpHeroActions" style="margin-top:24px">
       <a class="lpSecondaryCta" href="/fees/">See fees</a>
@@ -424,7 +424,7 @@ const THERAPY_GEO_LINKS = `<section class="lpLocalSection lpGeoSection" aria-lab
     <p class="lpSectionLead">English-speaking psychotherapy in central Lisbon and securely online across Portugal.</p>
   </div>
   <div class="lpGeoGrid" style="margin-top:20px">
-    <article class="lpGeoCard"><h3><a href="/psychotherapy-lisbon/">Psychotherapy Lisbon</a></h3><p>Trauma-informed psychotherapy for adults and couples.</p></article>
+    <article class="lpGeoCard"><h3><a href="/psychotherapy-lisbon/">Psychotherapy Lisbon</a></h3><p>Trauma-informed psychotherapy with Brent in Lisbon.</p></article>
     <article class="lpGeoCard"><h3><a href="/trauma-therapy-lisbon/">Trauma therapy Lisbon</a></h3><p>Support for PTSD, complex trauma, and anxiety.</p></article>
     <article class="lpGeoCard"><h3><a href="/emdr-therapy-lisbon/">EMDR therapy Lisbon</a></h3><p>EMDR within broader trauma-informed psychotherapy.</p></article>
     <article class="lpGeoCard"><h3><a href="/english-speaking-therapist-lisbon/">English-speaking therapist</a></h3><p>Therapy in English for expats and international clients.</p></article>

@@ -27,7 +27,7 @@ jobs:
 
       - uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 22
 
       - name: Clean build output and caches
         run: rm -rf out node_modules/.cache .next tsconfig.tsbuildinfo
@@ -62,11 +62,16 @@ jobs:
 
       - name: Deploy to Cloudflare Pages
         id: deploy
-        uses: cloudflare/wrangler-action@v3
-        with:
-          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          command: pages deploy out --project-name=pathfinder-therapy-web --branch=main --commit-hash=${{ github.sha }}
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: |
+          set -euo pipefail
+          OUTPUT="$(npx --yes wrangler@4.148.0 pages deploy out --project-name=pathfinder-therapy-web --branch=main --commit-hash="${GITHUB_SHA}")"
+          printf '%s\n' "$OUTPUT"
+          DEPLOY_URL="$(printf '%s\n' "$OUTPUT" | grep -Eo 'https://[a-z0-9]+\.pathfinder-therapy-web\.pages\.dev' | head -1)"
+          test -n "$DEPLOY_URL"
+          echo "deployment-url=${DEPLOY_URL}" >> "$GITHUB_OUTPUT"
 
       - name: Promote deployment and purge production cache
         env:

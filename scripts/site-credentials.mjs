@@ -2,6 +2,8 @@ export const CREDENTIAL_BODY = "EATA registered · ITAA member";
 export const BRENT_TITLE = "Therapist";
 
 const REPLACEMENTS = [
+  [/EMDR practitioners/gi, "EMDR therapists"],
+  [/EMDR practitioner/gi, "EMDR Therapist"],
   [/NCPS registered practitioner/gi, "EATA registered therapist"],
   [/NCPS registered psychotherapist/gi, "EATA registered therapist"],
   [/NCPS registered/gi, "EATA registered"],
@@ -12,8 +14,8 @@ const REPLACEMENTS = [
   [/"role":"Psychotherapist"/g, '"role":"Therapist"'],
   [/"registrations":\["NCPS"\]/g, '"registrations":["EATA","ITAA"]'],
   [/Brent is NCPS registered/gi, "Brent is registered with EATA and a member of ITAA"],
-  [/EMDR-informed trauma work/gi, "EMDR Practitioner"],
-  [/EMDR-informed work/gi, "EMDR practitioner-led trauma work"],
+  [/EMDR-informed trauma work/gi, "EMDR Therapist"],
+  [/EMDR-informed work/gi, "EMDR Therapist-led trauma work"],
   [/\bPsychotherapist\b/g, "Therapist"],
   [/\bpsychotherapist\b/g, "therapist"]
 ];

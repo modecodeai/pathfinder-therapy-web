@@ -1,3 +1,4 @@
+import { applyDiscoveryCallCopy } from "./site-discovery-call.mjs";
 import { mkdir, readFile, writeFile, cp, rm, readdir } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
@@ -47,10 +48,16 @@ import {
   buildKnowledgeArticlePage,
   buildKnowledgeLibraryIndexPage,
   getKnowledgeLibraryBuiltRoutes,
-  loadKnowledgeArticles
+  loadKnowledgeArticles,
+  KNOWLEDGE_ARTICLE_META
 } from "./site-knowledge-articles.mjs";
 import { buildAllServicePages, getServicePageRoutes } from "./site-service-pages.mjs";
+import { applyUkEmdrLanding, UK_EMDR_ROUTE } from "./site-uk-emdr.mjs";
 import { CONTACT_VISUAL_CSS } from "./site-contact-visual.mjs";
+import { optimiseStaticSite } from "./optimise-static-site.mjs";
+import { applyLisbonRedesign } from "./site-lisbon-redesign.mjs";
+import { applyAlcobacaPractice, ALCOBACA_ROUTE } from "./site-alcobaca.mjs";
+import { buildJournalPage } from "./site-journal.mjs";
 
 const PREVIEW_ORIGIN =
   process.env.PATHFINDER_PREVIEW_ORIGIN ?? "https://9aa49f15.pathfinder-therapy-web.pages.dev";
@@ -84,7 +91,7 @@ const ATTRIBUTION_SCRIPT = `<script id="pathfinder-lead-attribution">
   }
 
   function saveStored(next) {
-    sessionStorage.setItem(KEY, JSON.stringify(next));
+    try { sessionStorage.setItem(KEY, JSON.stringify(next)); } catch (error) {}
   }
 
   function capture() {
@@ -105,7 +112,7 @@ const ATTRIBUTION_SCRIPT = `<script id="pathfinder-lead-attribution">
     PARAMS.forEach(function (key) {
       if (stored[key] && !next.searchParams.has(key)) next.searchParams.set(key, stored[key]);
     });
-    return next.pathname + next.search + next.hash;
+    return next.origin === window.location.origin ? next.pathname + next.search + next.hash : next.toString();
   }
 
   window.pathfinderLead = {
@@ -122,7 +129,13 @@ const ATTRIBUTION_SCRIPT = `<script id="pathfinder-lead-attribution">
     var link = event.target.closest("a[href]");
     if (!link) return;
     var href = link.getAttribute("href");
-    if (!href || href.indexOf("http") === 0 || href.indexOf("mailto:") === 0 || href.indexOf("tel:") === 0) return;
+    if (!href || href.indexOf("mailto:") === 0 || href.indexOf("tel:") === 0) return;
+    var target = new URL(href, window.location.origin);
+    if (target.origin === "https://booking.pathfindertherapy.com" && target.pathname === "/book") {
+      link.setAttribute("href", appendAttribution(href));
+      return;
+    }
+    if (target.origin !== window.location.origin) return;
     if (href.indexOf("/contact") === 0 || href.indexOf("/start") === 0 || href.indexOf("/book") === 0) {
       var nextHref = appendAttribution(href);
       if (nextHref !== href) link.setAttribute("href", nextHref);
@@ -130,6 +143,9 @@ const ATTRIBUTION_SCRIPT = `<script id="pathfinder-lead-attribution">
   });
 
   document.addEventListener("DOMContentLoaded", function () {
+    document.querySelectorAll('a[href^="https://booking.pathfindertherapy.com/book"]').forEach(function (link) {
+      link.setAttribute("href", appendAttribution(link.getAttribute("href")));
+    });
     document.querySelectorAll('a[href="/contact/"], a[href="/contact/#contact-form"]').forEach(function (link) {
       link.setAttribute("href", appendAttribution("/start/"));
     });
@@ -345,18 +361,14 @@ function injectBeforeBodyClose(html, snippet) {
 }
 
 function patchOpenGraph(html, { title, description, canonical, ogImage }) {
-  let next = html.replaceAll("€75", "€95").replaceAll("€120", "€170").replaceAll("EUR75", "EUR95").replaceAll("EUR 75", "EUR 95");
+  let next = html;
   const ogTitle = title;
   const ogDescription = description;
   const ogUrl = canonical;
   const image =
     ogImage || "https://www.pathfindertherapy.com/assets/images/hero-01.webp";
 
-  next = next.replace(/<meta property="og:title" content="[^"]*"\/>/g, "");
-  next = next.replace(/<meta property="og:description" content="[^"]*"\/>/g, "");
-  next = next.replace(/<meta property="og:url" content="[^"]*"\/>/g, "");
-  next = next.replace(/<meta name="twitter:title" content="[^"]*"\/>/g, "");
-  next = next.replace(/<meta name="twitter:description" content="[^"]*"\/>/g, "");
+  next = next.replace(/<meta\b(?=[^>]*(?:property="og:|name="twitter:))[^>]*>/g, "");
 
   const ogBlock = `<meta property="og:type" content="website"/>
 <meta property="og:site_name" content="Pathfinder Therapy"/>
@@ -495,6 +507,14 @@ function prepareLandingForm(formHtml) {
     );
   }
 
+  if (!next.includes("Nature-based therapy in Alcobaça")) {
+    next = next.replace("<option>EMDR</option>", "<option>EMDR</option><option>Nature-based therapy in Alcobaça</option>");
+  }
+
+  if (!next.includes("Provider collaboration in Alcobaça")) {
+    next = next.replace("<option>EMDR</option>", "<option>EMDR</option><option>Provider collaboration in Alcobaça</option>");
+  }
+
   return next;
 }
 
@@ -584,19 +604,19 @@ function buildStartPageBody(formHtml) {
   return `<section class="lpStartIntro" aria-labelledby="start-title">
   <p class="lpKicker">Getting started · Lisbon and online</p>
   <h1 class="lpTitle" id="start-title">Begin with Pathfinder Therapy</h1>
-  <p class="lpLead">Arrange a consultation directly or send an enquiry first — whichever feels easier. Both routes are confidential and non-urgent.</p>
+  <p class="lpLead">You can book a 15-minute Discovery Call or enquire about availability and next steps. An enquiry or consultation does not guarantee a therapy place or start date. Both routes are confidential and non-urgent.</p>
 </section>
 <div class="lpStartPathways">
   <article class="lpStartPathCard lpStartPathCard--primary" aria-labelledby="start-book-direct">
-    <p class="lpStartPathLabel">Fastest route</p>
+    <p class="lpStartPathLabel">Initial conversation</p>
     <h2 id="start-book-direct">Arrange a consultation directly</h2>
-    <p>Choose a convenient time for a confidential initial conversation by Zoom.</p>
+    <p>A confidential initial conversation by Zoom is separate from a therapy appointment. It does not guarantee a therapy place or start date.</p>
     <a class="lpPrimaryCta" href="${BOOKING_PATH}">${BOOKING_LABEL}</a>
   </article>
   <article class="lpStartPathCard" aria-labelledby="start-enquiry-card">
-    <h2 id="start-enquiry-card">Send an enquiry first</h2>
-    <p>Ask a question or briefly explain what you are looking for before choosing a time.</p>
-    <a class="lpSecondaryCta" href="#enquiry" data-open-enquiry>Open the enquiry form</a>
+    <h2 id="start-enquiry-card">Ask about availability</h2>
+    <p>Ask about suitable options, current availability or the face-to-face waiting list before choosing a time.</p>
+    <a class="lpSecondaryCta" href="#enquiry" data-open-enquiry>Enquire about availability and next steps</a>
   </article>
 </div>
 <noscript><style>.lpStartEnquiryPanel { display: grid !important; gap: 14px; }</style></noscript>
@@ -733,9 +753,9 @@ function buildContactPageV2(contactHtml) {
     buildStickyBar(BOOKING_PATH, BOOKING_LABEL)
   );
   html = patchHtml(html, {
-    title: "Contact | Arrange a Consultation | Pathfinder Therapy Lisbon",
+    title: "Contact | Lisbon, Alcobaça & Online | Pathfinder Therapy",
     description:
-      "Contact Brent Kelly to arrange a confidential initial psychotherapy consultation in Lisbon or online. Response within one working day.",
+      "Contact Brent Kelly about therapy in Lisbon, nature-based Eco-TA and EMDR in Alcobaça, or online sessions. Arrange a free initial Zoom consultation.",
     canonical: "https://www.pathfindertherapy.com/contact/"
   });
   return html;
@@ -752,13 +772,161 @@ function buildInteriorPage(shellHtml, options) {
   return buildInteriorPageV2(shellHtml, options);
 }
 
+const ABOUT_PAGE_CSS = `<style id="pathfinder-about-team">
+.pfAboutPage { display: grid; gap: 0; }
+.pfAboutHero { padding: clamp(36px, 6vw, 72px) var(--pf-space-inline); border-bottom: 1px solid rgba(246,242,234,.08); }
+.pfAboutHeroInner { max-width: 1180px; margin: 0 auto; display: grid; gap: 16px; }
+.pfAboutHero .pfSectionTitle { max-width: 14ch; }
+.pfAboutHero .pfSectionLead { max-width: 46rem; }
+.pfAboutNote { margin: 4px 0 0; max-width: 54rem; font-family: var(--pf-font-sans); font-size: var(--pf-text-body-sm); line-height: var(--pf-leading-body); color: var(--pf-linen-muted); }
+.pfTeamSection { padding: clamp(40px, 6vw, 72px) var(--pf-space-inline); background: var(--pf-parchment); color: var(--pf-stone); }
+.pfTeamInner { max-width: 1180px; margin: 0 auto; display: grid; gap: 28px; }
+.pfTeamIntro { display: grid; gap: 10px; max-width: 48rem; }
+.pfTeamIntro h2 { margin: 0; font-family: var(--pf-font-serif); font-size: clamp(1.8rem, 4vw, 3rem); line-height: 1.05; color: var(--pf-stone); }
+.pfTeamIntro p { margin: 0; font-family: var(--pf-font-sans); font-size: var(--pf-text-body); line-height: var(--pf-leading-body); color: var(--pf-stone-muted); }
+.pfTeamGrid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 18px; align-items: stretch; }
+.pfTherapistCard { display: grid; grid-template-rows: auto 1fr; overflow: hidden; border: 1px solid var(--pf-border-light); border-radius: var(--pf-radius-md); background: #fff; box-shadow: var(--pf-shadow-card); }
+.pfTherapistCard img { width: 100%; aspect-ratio: 4 / 5; object-fit: cover; object-position: center 18%; display: block; background: #111a18; }
+.pfTherapistCopy { display: grid; gap: 12px; padding: clamp(18px, 3vw, 24px); }
+.pfTherapistAvailability { width: fit-content; margin: 0; padding: 6px 10px; border: 1px solid rgba(200,154,88,.4); border-radius: var(--pf-radius-pill); color: var(--pf-bronze); font-family: var(--pf-font-sans); font-size: 0.6875rem; font-weight: 700; letter-spacing: .11em; text-transform: uppercase; }
+.pfTherapistCopy h3 { margin: 0; font-family: var(--pf-font-serif); font-size: clamp(1.6rem, 2.8vw, 2.15rem); line-height: 1.05; color: var(--pf-stone); }
+.pfTherapistRole { margin: -4px 0 0; font-family: var(--pf-font-sans); font-weight: 700; color: var(--pf-stone); }
+.pfTherapistCopy p { margin: 0; font-family: var(--pf-font-sans); font-size: var(--pf-text-body-sm); line-height: var(--pf-leading-body); color: var(--pf-stone-muted); }
+.pfTherapistTags { margin: 4px 0 0; padding: 0; list-style: none; display: flex; flex-wrap: wrap; gap: 8px; }
+.pfTherapistTags li { padding: 6px 9px; border-radius: var(--pf-radius-pill); background: var(--pf-parchment-muted); color: var(--pf-stone); font-family: var(--pf-font-sans); font-size: 0.75rem; }
+.pfAboutBoundary { padding: clamp(40px, 6vw, 72px) var(--pf-space-inline); background: var(--pf-forest-deep); color: var(--pf-linen); border-top: 1px solid rgba(246,242,234,.08); }
+.pfAboutBoundaryInner { max-width: 1180px; margin: 0 auto; display: grid; grid-template-columns: minmax(0, .7fr) minmax(0, 1fr); gap: clamp(24px, 4vw, 52px); align-items: start; }
+.pfAboutBoundary p { margin: 0; font-family: var(--pf-font-sans); font-size: var(--pf-text-body); line-height: var(--pf-leading-body); color: var(--pf-linen-muted); }
+.pfAboutPage .lpEndCta { padding: clamp(40px, 6vw, 72px) var(--pf-space-inline); background: var(--pf-forest-deep); color: var(--pf-linen); border-top: 1px solid rgba(246,242,234,.08); }
+.pfAboutPage .lpEndCtaInner { max-width: 1180px; margin: 0 auto; display: grid; gap: 16px; }
+.pfAboutPage .lpEndCta .pfSectionTitle { max-width: 14ch; color: var(--pf-linen); }
+.pfAboutPage .lpEndCta .pfSectionLead { color: var(--pf-linen-muted); }
+@media (max-width: 960px) {
+  .pfTeamGrid, .pfAboutBoundaryInner { grid-template-columns: 1fr; }
+}
+</style>`;
+
+function buildAboutPage(shellHtml) {
+  const therapists = [
+    {
+      name: "Brent Kelly",
+      role: "Trauma-informed psychotherapist · EMDR Therapist",
+      availability: "Lisbon clinic and online",
+      image: "/assets/images/team/brent-kelly.jpeg",
+      alt: "Brent Kelly, therapist at Pathfinder Therapy Lisbon",
+      summary:
+        "Brent leads Pathfinder Therapy in Lisbon and holds the face-to-face clinical space for clients who want to meet in person.",
+      detail:
+        "His work is relational, trauma-informed and grounded in Transactional Analysis, EMDR and careful attention to attachment, identity, anxiety and life transitions.",
+      tags: ["EATA registered", "ITAA member", "EMDR Therapist", "Transactional Analysis"]
+    },
+    {
+      name: "Tim Felton",
+      role: "Online therapist · EMDR Therapist",
+      availability: "Online sessions only",
+      image: "/assets/images/team/tim-felton.jpeg",
+      alt: "Tim Felton, online therapist with Pathfinder Therapy",
+      summary:
+        "Tim supports Pathfinder clients online, offering a steady therapeutic space for people navigating stress, change and the impact of difficult life experiences.",
+      detail:
+        "His background brings together clinical training, lived experience and a calm, practical approach to helping clients make sense of what they are carrying.",
+      tags: ["Therapist", "EMDR Therapist", "Veteran", "Online therapy"]
+    },
+    {
+      name: "Sophie Gidley",
+      role: "Online couples therapist",
+      availability: "Online couples therapy",
+      image: "/assets/images/team/sophie-gidley.webp",
+      alt: "Sophie Gidley, online couples therapist with Pathfinder Therapy",
+      summary:
+        "Sophie is a psychotherapeutic counsellor who works with couples and individuals, with a particular focus on relationship patterns, communication and repair.",
+      detail:
+        "Her practice is grounded in Transactional Analysis and a down-to-earth, non-judgemental therapeutic style. Through Pathfinder Therapy, Sophie offers online couples sessions only.",
+      tags: ["BACP member", "UKATA member", "TA diploma", "Couples counselling"]
+    }
+  ];
+
+  const teamCards = therapists
+    .map(
+      (therapist) => `<article class="pfTherapistCard" id="${therapist.name.toLowerCase().replaceAll(" ", "-")}">
+  <img src="${therapist.image}" width="320" height="400" alt="${therapist.alt}" loading="lazy" decoding="async" />
+  <div class="pfTherapistCopy">
+    <p class="pfTherapistAvailability">${therapist.availability}</p>
+    <h3>${therapist.name}</h3>
+    <p class="pfTherapistRole">${therapist.role}</p>
+    <p>${therapist.summary}</p>
+    <p>${therapist.detail}</p>
+    <ul class="pfTherapistTags" aria-label="${therapist.name} credentials">${therapist.tags
+      .map((tag) => `<li>${tag}</li>`)
+      .join("")}</ul>
+  </div>
+</article>`
+    )
+    .join("");
+
+  const mainInner = `<article class="pfAboutPage">
+<section class="pfAboutHero" aria-labelledby="about-title">
+  <div class="pfAboutHeroInner">
+    <p class="pfKicker">About Pathfinder Therapy</p>
+    <h1 class="pfSectionTitle" id="about-title">A Lisbon clinic, with a carefully held online team.</h1>
+    <p class="pfSectionLead">Brent Kelly is an English-speaking therapist offering trauma-informed psychotherapy, EMDR and Transactional Analysis in Lisbon and online across Portugal. He leads Pathfinder Therapy and holds face-to-face therapy at the Lisbon clinic. Trusted therapists Tim Felton and Sophie Gidley also support online provision.</p>
+    <p class="pfAboutNote">For people looking for therapy in Lisbon, Brent remains the local point of contact and the therapist available for face-to-face work. Tim and Sophie extend Pathfinder's online provision only.</p>
+  </div>
+</section>
+<section class="pfTeamSection" aria-labelledby="team-title">
+  <div class="pfTeamInner">
+    <div class="pfTeamIntro">
+      <p class="pfKicker">The team</p>
+      <h2 id="team-title">Who you may work with</h2>
+      <p>The team is deliberately small. Brent holds the Lisbon clinic and online work, Tim supports online therapy, and Sophie brings a specialist online couples therapy route.</p>
+    </div>
+    <div class="pfTeamGrid">${teamCards}</div>
+  </div>
+</section>
+<section class="pfAboutBoundary" aria-labelledby="clinic-boundary-title">
+  <div class="pfAboutBoundaryInner">
+    <div>
+      <p class="pfKicker">Lisbon and online</p>
+      <h2 class="pfSectionTitle" id="clinic-boundary-title">Clear routes into care.</h2>
+    </div>
+    <p>If you are looking for therapy in Lisbon, Brent is the therapist you will meet face to face at the clinic. If online therapy is a better fit, Brent can help identify whether Tim or Sophie is the appropriate route, including Sophie for online couples work.</p>
+  </div>
+</section>
+<section class="lpEndCta" aria-labelledby="about-next-step">
+  <div class="lpEndCtaInner">
+    <p class="pfKicker">Next step</p>
+    <h2 class="pfSectionTitle" id="about-next-step">Meet the right therapist.</h2>
+    <p class="pfSectionLead">Book an initial consultation or send an enquiry if you want to ask which route fits best: Brent in Lisbon, or online therapy through Pathfinder.</p>
+    <div class="lpHeroActions">
+      <a class="lpPrimaryCta" href="${BOOKING_PATH}">${BOOKING_LABEL}</a>
+      <a class="lpSecondaryCta" href="${ENQUIRY_PATH}">${ENQUIRY_LABEL}</a>
+    </div>
+  </div>
+</section>
+</article>`;
+
+  const schema = `${ABOUT_PAGE_CSS}
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"AboutPage","name":"About Pathfinder Therapy","url":"https://www.pathfindertherapy.com/about/","about":{"@type":"MedicalBusiness","name":"Pathfinder Therapy","address":{"@type":"PostalAddress","addressLocality":"Lisboa","addressCountry":"PT"}}}
+</script>`;
+
+  return buildInteriorPageV2(shellHtml, {
+    title: "Brent Kelly & the Team | Trauma Therapy in Lisbon & Online",
+    description:
+      "Meet Brent Kelly, an English-speaking trauma therapist in Lisbon offering psychotherapy and EMDR, and Pathfinder's online therapy team.",
+    canonical: "https://www.pathfindertherapy.com/about/",
+    mainInner,
+    schema
+  });
+}
+
 function buildFaqPage(shellHtml) {
   const mainInner = `<article class="approachPage">
 <section class="approachHero" aria-labelledby="faq-title">
   <div class="approachHeroCopy">
     <p class="sectionKicker">Questions</p>
     <h1 class="approachHeroTitle" id="faq-title">Frequently asked questions</h1>
-    <p class="approachHeroText">Clear answers about therapy with Brent Kelly in Lisbon and online — so you can decide your next step with less uncertainty.</p>
+    <p class="approachHeroText">Clear answers about therapy with Pathfinder Therapy in Lisbon and online — so you can decide your next step with less uncertainty.</p>
   </div>
 </section>
 <section class="approachEssay" aria-labelledby="faq-booking">
@@ -777,6 +945,7 @@ function buildFaqPage(shellHtml) {
     <h2 class="approachSectionTitle" id="faq-who">Who do you work with?</h2>
     <div class="approachBody">
       <p>Adults and couples navigating trauma, anxiety, attachment, relationship difficulties, life transitions, and complex experiences — including military veterans. Sessions are in English.</p>
+      <p>Brent leads the Lisbon clinic and face-to-face work. Tim Felton and Sophie Gidley support online therapy through Pathfinder, with Sophie offering online couples therapy.</p>
       <p>You do not need a diagnosis to begin. Many people start with a feeling, a pattern, or a sense that something needs attention.</p>
     </div>
   </div>
@@ -786,7 +955,7 @@ function buildFaqPage(shellHtml) {
     <p class="sectionKicker">Location</p>
     <h2 class="approachSectionTitle" id="faq-location">Can I see you in person or online?</h2>
     <div class="approachBody">
-      <p>Yes. Brent offers sessions at the Pathfinder Therapy clinic in Lisbon (R. Rodrigues Sampaio 76) and secure online therapy across Portugal and internationally where appropriate.</p>
+      <p>Yes. Brent offers sessions at the Pathfinder Therapy clinic in Lisbon (R. Rodrigues Sampaio 76) and secure online therapy across Portugal and internationally where appropriate. Tim and Sophie work online only through Pathfinder.</p>
     </div>
   </div>
 </section>
@@ -805,7 +974,7 @@ function buildFaqPage(shellHtml) {
     <p class="sectionKicker">EMDR &amp; trauma</p>
     <h2 class="approachSectionTitle" id="faq-emdr">Do you offer EMDR and trauma therapy?</h2>
     <div class="approachBody">
-      <p>Yes. Brent is an EMDR Practitioner and offers trauma-informed psychotherapy, EMDR where clinically appropriate, Transactional Analysis and relational work.</p>
+      <p>Yes. Brent is an EMDR Therapist and offers trauma-informed psychotherapy, EMDR where clinically appropriate, Transactional Analysis and relational work.</p>
       <p><a href="/knowledge-library/what-is-trauma-therapy/">What is trauma therapy?</a> · <a href="/knowledge-library/how-does-emdr-work/">How does EMDR work?</a></p>
     </div>
   </div>
@@ -815,7 +984,7 @@ function buildFaqPage(shellHtml) {
     <p class="sectionKicker">Fees</p>
     <h2 class="approachSectionTitle" id="faq-fees">How much do sessions cost?</h2>
     <div class="approachBody">
-      <p>New-client psychotherapy and EMDR sessions are €95 for 50 minutes. Couples sessions are €170 for 90 minutes. Existing clients retain their agreed fees and durations. See the <a href="/fees/">fees page</a>.</p>
+      <p>New-client psychotherapy and Portugal EMDR sessions are €95 for 50 minutes. Couples sessions are €170 for 90 minutes. Existing clients retain their agreed fees and durations. See the <a href="/fees/">fees page</a>.</p>
     </div>
   </div>
 </section>
@@ -842,16 +1011,16 @@ function buildFaqPage(shellHtml) {
   const schema = `<script type="application/ld+json">
 {"@context":"https://schema.org","@type":"FAQPage","mainEntity":[
 {"@type":"Question","name":"How do I arrange an initial consultation?","acceptedAnswer":{"@type":"Answer","text":"You can arrange an initial consultation at pathfindertherapy.com/book or send an enquiry at pathfindertherapy.com/start. Brent replies within one working day."}},
-{"@type":"Question","name":"Can I see Brent in person or online?","acceptedAnswer":{"@type":"Answer","text":"Yes. Sessions are available at the Lisbon clinic and securely online across Portugal."}},
+{"@type":"Question","name":"Can I see Brent in person or online?","acceptedAnswer":{"@type":"Answer","text":"Yes. Brent offers sessions at the Lisbon clinic and securely online across Portugal. Tim Felton and Sophie Gidley support online-only therapy through Pathfinder."}},
 {"@type":"Question","name":"How much do sessions cost?","acceptedAnswer":{"@type":"Answer","text":"Individual sessions are from EUR 95 for 50 minutes."}},
-{"@type":"Question","name":"Do you offer EMDR and trauma therapy?","acceptedAnswer":{"@type":"Answer","text":"Yes. Brent is an EMDR Practitioner and offers trauma-informed psychotherapy and EMDR where clinically appropriate."}}
+{"@type":"Question","name":"Do you offer EMDR and trauma therapy?","acceptedAnswer":{"@type":"Answer","text":"Yes. Brent is an EMDR Therapist and offers trauma-informed psychotherapy and EMDR where clinically appropriate."}}
 ]}
 </script>`;
 
   return buildInteriorPageWithBookingPanel(shellHtml, {
     title: "FAQ | Therapist Lisbon | Pathfinder Therapy",
     description:
-      "Answers about booking, fees, online therapy, EMDR, trauma therapy, and first sessions with Brent Kelly in Lisbon.",
+      "Answers about booking, fees, online therapy, EMDR, trauma therapy, and first sessions with Pathfinder Therapy in Lisbon and online.",
     canonical: "https://www.pathfindertherapy.com/faq/",
     mainInner,
     schema
@@ -859,12 +1028,19 @@ function buildFaqPage(shellHtml) {
 }
 
 function buildFeesPage(shellHtml) {
-  const mainInner = `<article class="approachPage">
+  const mainInner = `<article class="approachPage feesPage">
 <section class="approachHero" aria-labelledby="fees-title">
   <div class="approachHeroCopy">
     <p class="sectionKicker">Fees</p>
     <h1 class="approachHeroTitle" id="fees-title">Session fees</h1>
     <p class="approachHeroText">New-client fees for private psychotherapy in Lisbon and online, from 11 November 2026. Existing clients retain their agreed fees and session durations. Fees are discussed clearly before work begins.</p>
+    <table class="pfFeeSummary"><caption>Fees at a glance</caption><thead><tr><th scope="col">Session</th><th scope="col">Length</th><th scope="col">Fee</th></tr></thead><tbody>
+      <tr><th scope="row"><a href="#fees-individual">Individual therapy</a></th><td>50 min</td><td>€95</td></tr>
+      <tr><th scope="row"><a href="#fees-emdr">EMDR · Lisbon / Portugal</a></th><td>50 min</td><td>€95</td></tr>
+      <tr><th scope="row"><a href="#fees-couples">Couples therapy</a></th><td>90 min</td><td>€170</td></tr>
+      <tr><th scope="row"><a href="/online-emdr-therapy-uk/">EMDR · UK, online only</a></th><td>60 min</td><td>£80</td></tr>
+    </tbody></table>
+    <p>The free initial conversation is separate from a paid therapy session. There is no obligation to continue.</p>
   </div>
 </section>
 <section class="approachEssay" aria-labelledby="fees-individual">
@@ -890,7 +1066,7 @@ function buildFeesPage(shellHtml) {
     <h2 class="approachSectionTitle" id="fees-couples">Couples therapy</h2>
     <div class="approachBody">
       <p><strong>€170</strong> for a 90-minute session.</p>
-      <p>Relational therapy for couples navigating conflict, disconnection, and repeating patterns — in person or online.</p>
+      <p>Relational therapy for couples navigating conflict, disconnection, and repeating patterns. Online couples therapy is offered through Sophie Gidley; Lisbon face-to-face enquiries are discussed separately with Brent.</p>
     </div>
   </div>
 </section>
@@ -898,7 +1074,7 @@ function buildFeesPage(shellHtml) {
   <div class="approachEssayInner">
     <h2 class="approachSectionTitle" id="fees-consultation">Initial consultation</h2>
     <div class="approachBody">
-      <p>You can <a href="${BOOKING_PATH}">arrange an initial consultation directly</a> or <a href="${ENQUIRY_PATH}">send an enquiry first</a>. Brent will reply within one working day to confirm fees, format (in person or online), and next steps.</p>
+      <p>You can <a href="${BOOKING_PATH}">arrange an initial consultation directly</a> or <a href="${ENQUIRY_PATH}">send an enquiry first</a>. Brent will reply within one working day to confirm fees, format, therapist and next steps.</p>
     </div>
   </div>
 </section>
@@ -913,7 +1089,9 @@ function buildFeesPage(shellHtml) {
 </section>
 </article>`;
 
-  const schema = `<script type="application/ld+json">
+  const schema = `<style id="pathfinder-fee-summary">
+.feesPage .approachHero{padding-block:32px}.feesPage .approachEssay{padding-block:32px}.feesPage .approachHeroText{margin-bottom:24px}.pfFeeSummary{width:100%;border-collapse:collapse;font-size:15px;line-height:1.5;margin:24px 0}.pfFeeSummary caption{text-align:left;font-size:18px;font-weight:600;margin-bottom:12px}.pfFeeSummary th,.pfFeeSummary td{padding:12px 8px;border-bottom:1px solid rgba(246,242,234,.2);text-align:left}.pfFeeSummary th:first-child{padding-left:0}.pfFeeSummary tbody th{font-weight:400}.pfFeeSummary td{white-space:nowrap}.pfFeeSummary a{text-underline-offset:4px}.feesPage [id^="fees-"]{scroll-margin-top:100px}@media(max-width:480px){.pfFeeSummary{font-size:14px}.pfFeeSummary th,.pfFeeSummary td{padding:12px 5px}}
+</style><script type="application/ld+json">
 {"@context":"https://schema.org","@type":"MedicalBusiness","name":"Pathfinder Therapy","url":"https://www.pathfindertherapy.com/fees/","priceRange":"EUR95","makesOffer":[
 {"@type":"Offer","price":"95","priceCurrency":"EUR","description":"Individual psychotherapy session (50 minutes)"},
 {"@type":"Offer","price":"95","priceCurrency":"EUR","description":"EMDR session (50 minutes)"},
@@ -924,7 +1102,7 @@ function buildFeesPage(shellHtml) {
   return buildInteriorPageWithBookingPanel(shellHtml, {
     title: "Fees | Therapist Lisbon | Pathfinder Therapy",
     description:
-      "Session fees: individual therapy €95 (50 min), EMDR €95 (50 min), couples therapy €170 (90 min). Lisbon and online with Brent Kelly.",
+      "Session fees: individual therapy €95 (50 min), EMDR €95 (50 min), couples therapy from €170 (90 min). Lisbon with Brent Kelly and online through Pathfinder.",
     canonical: "https://www.pathfindertherapy.com/fees/",
     mainInner,
     schema,
@@ -933,9 +1111,9 @@ function buildFeesPage(shellHtml) {
 }
 
 function patchSitemap(sitemapXml) {
-  let next = sitemapXml;
-  const today = new Date().toISOString().slice(0, 10);
+  let next = sitemapXml.replace(/<url>[\s\S]*?<\/url>/g, entry => (entry.includes("/availability/") || entry.includes("/book/</loc>")) ? "" : entry);
   const additions = [
+    { loc: "https://www.pathfindertherapy.com/about/", priority: "0.8" },
     { loc: "https://www.pathfindertherapy.com/faq/", priority: "0.75" },
     { loc: "https://www.pathfindertherapy.com/fees/", priority: "0.75" },
     { loc: "https://www.pathfindertherapy.com/crisis-support/", priority: "0.55" },
@@ -953,10 +1131,24 @@ function patchSitemap(sitemapXml) {
     if (next.includes(entry.loc)) continue;
     next = next.replace(
       "</urlset>",
-      `  <url>\n    <loc>${entry.loc}</loc>\n    <lastmod>${today}</lastmod>\n    <priority>${entry.priority}</priority>\n  </url>\n</urlset>`
+      `  <url>\n    <loc>${entry.loc}</loc>\n    <priority>${entry.priority}</priority>\n  </url>\n</urlset>`
     );
   }
 
+  // Only claim dates for pages materially updated by this release; never use build time.
+  const updatedRoutes = new Set(["/", "/fees/", "/knowledge-library/", ...KNOWLEDGE_ARTICLE_META.map(article => `/knowledge-library/${article.slug}/`)]);
+  const searchContentUpdates = new Set(["/", "/trauma-therapy-lisbon/", "/emdr-therapy-lisbon/", "/therapy/emdr/", "/therapy/online/"]);
+  const organicDiscoveryUpdates = new Set(["/", "/journal/", "/psychotherapy-lisbon/", "/english-speaking-therapist-lisbon/", "/emdr-therapy-lisbon/", "/therapy/emdr/", "/knowledge-library/how-does-emdr-work/", "/knowledge-library/what-is-trauma-therapy/", "/knowledge-library/what-happens-in-a-first-therapy-session/", "/knowledge-library/online-therapy/"]);
+  next = next.replace(/<url>[\s\S]*?<\/url>/g, entry => {
+    const location = entry.match(/<loc>([^<]+)<\/loc>/)?.[1];
+    if (!location) return entry;
+    const route = new URL(location).pathname;
+    if (!updatedRoutes.has(route) && !searchContentUpdates.has(route) && !organicDiscoveryUpdates.has(route)) return entry;
+    const lastmod = organicDiscoveryUpdates.has(route) ? "2026-11-02" : searchContentUpdates.has(route) ? "2026-10-02" : "2026-09-20";
+    return /<lastmod>/.test(entry)
+      ? entry.replace(/<lastmod>[^<]+<\/lastmod>/, `<lastmod>${lastmod}</lastmod>`)
+      : entry.replace("</loc>", `</loc><lastmod>${lastmod}</lastmod>`);
+  });
   return next;
 }
 
@@ -1014,8 +1206,14 @@ async function main() {
 
   const repoRoot = path.join(path.dirname(fileURLToPath(import.meta.url)), "..");
   const staticAssets = [
+    ["public/assets/images/about-brent-pathfinder-logo.webp", "assets/images/about-brent-pathfinder-logo.webp"],
+    ["public/assets/images/pathfinder-path-icon.png", "assets/images/pathfinder-path-icon.png"],
+    ["public/assets/images/pathfinder-path-icon-hq.png", "assets/images/pathfinder-path-icon-hq.png"],
     ["public/assets/images/eata-logo.svg", "assets/images/eata-logo.svg"],
     ["public/assets/images/itaa-member-badge.svg", "assets/images/itaa-member-badge.svg"],
+    ["public/images/team/brent-kelly.jpeg", "assets/images/team/brent-kelly.jpeg"],
+    ["public/images/team/tim-felton.jpeg", "assets/images/team/tim-felton.jpeg"],
+    ["public/images/team/sophie-gidley.webp", "assets/images/team/sophie-gidley.webp"],
     [
       "public/assets/images/locallista-lis-signature-default.svg",
       "assets/images/locallista-lis-signature-default.svg"
@@ -1049,12 +1247,16 @@ async function main() {
     "/thank-you/",
     "/book/",
     "/book-confirmed/",
+    "/availability/",
     "/faq/",
     "/fees/",
     "/contact/",
     "/crisis-support/",
+    "/about/",
     "/",
     ...getServicePageRoutes(),
+    UK_EMDR_ROUTE,
+    ALCOBACA_ROUTE,
     ...getLocalLandingRoutes(),
     ...getKnowledgeLibraryBuiltRoutes()
   ]);
@@ -1112,9 +1314,9 @@ async function main() {
 
   let homePageV2 = stripHydrationScripts(
     patchHtml(buildHomePageV2(homeHtml), {
-      title: "Trauma-Informed Psychotherapy in Lisbon | Pathfinder Therapy",
+      title: "Trauma Therapy & EMDR in Lisbon and Online | Pathfinder Therapy",
       description:
-        "Trauma-informed psychotherapy with Brent Kelly, EMDR Practitioner, in Lisbon and online. English-speaking therapy for adults and couples, including EMDR and an emerging immersive EMDR therapy pilot. Arrange an initial consultation.",
+        "English-speaking trauma therapy and EMDR with Brent Kelly in Lisbon and online across Portugal. Explore UK online EMDR with Brent Kelly or Tim Felton.",
       canonical: "https://www.pathfindertherapy.com/"
     })
   );
@@ -1149,13 +1351,16 @@ async function main() {
   logGoogleAdsBuildConfig();
 
   const shellHtml = await fetchText(`${PREVIEW_ORIGIN}/approach/`);
+  const aboutHtml = stripHydrationScripts(buildAboutPage(shellHtml));
   const faqHtml = stripHydrationScripts(buildFaqPage(shellHtml));
   const feesHtml = stripHydrationScripts(buildFeesPage(shellHtml));
+  for (const asset of extractAssetPaths(aboutHtml)) assetPaths.add(asset);
   for (const asset of extractAssetPaths(faqHtml)) assetPaths.add(asset);
   for (const asset of extractAssetPaths(feesHtml)) assetPaths.add(asset);
+  await writeRoute(PREVIEW_ORIGIN, "/about/", aboutHtml);
   await writeRoute(PREVIEW_ORIGIN, "/faq/", faqHtml);
   await writeRoute(PREVIEW_ORIGIN, "/fees/", feesHtml);
-  console.log("Added /faq/ and /fees/");
+  console.log("Added /about/, /faq/ and /fees/");
 
   for (const page of buildAllServicePages(shellHtml)) {
     let serviceHtml = stripHydrationScripts(
@@ -1200,21 +1405,36 @@ async function main() {
     console.log(`Added ${article.route} (knowledge article)`);
   }
 
+  const journalHtml = stripHydrationScripts(applySprint3Transforms(buildJournalPage(shellHtml, knowledgeArticles, buildInteriorPageV2), "/journal/"));
+  await writeRoute(PREVIEW_ORIGIN, "/journal/", journalHtml);
+  console.log("Added /journal/ with links to published articles");
+
   await writeFile(path.join(OUT_DIR, "llms.txt"), applyCredentialCopy(buildLlmsTxt()), "utf8");
   await writeFile(path.join(OUT_DIR, "ai-summary.json"), applyCredentialCopy(buildAiSummaryJson()), "utf8");
   console.log("Added llms.txt and ai-summary.json");
 
+  const bundledAssetPaths = new Set(staticAssets.map(([, target]) => `/${target}`));
   for (const assetPath of assetPaths) {
-    await downloadAsset(assetPath);
+    if (!bundledAssetPaths.has(assetPath)) await downloadAsset(assetPath);
+  }
+
+  // CSS can reference fonts that are absent from the HTML asset list.
+  const stylesheetDependencies = new Set();
+  for (const assetPath of assetPaths) {
+    if (!assetPath.endsWith(".css")) continue;
+    const css = await readFile(path.join(OUT_DIR, assetPath), "utf8");
+    for (const match of css.matchAll(/url\(["']?([^)'"\s]+)["']?\)/g)) {
+      const dependency = new URL(match[1], `${PREVIEW_ORIGIN}${assetPath}`);
+      if (dependency.origin === new URL(PREVIEW_ORIGIN).origin) stylesheetDependencies.add(dependency.pathname);
+    }
+  }
+  const dependencyPaths = [...stylesheetDependencies];
+  for (let offset = 0; offset < dependencyPaths.length; offset += 8) {
+    await Promise.all(dependencyPaths.slice(offset, offset + 8).map(downloadAsset));
   }
 
   const sitemapPath = path.join(OUT_DIR, "sitemap.xml");
-  try {
-    const existingSitemap = await readFile(sitemapPath, "utf8");
-    await writeFile(sitemapPath, patchSitemap(existingSitemap), "utf8");
-  } catch {
-    await writeFile(sitemapPath, patchSitemap(sitemapXml), "utf8");
-  }
+  await writeFile(sitemapPath, patchSitemap(sitemapXml), "utf8");
 
   const redirectsSource = path.join(path.dirname(fileURLToPath(import.meta.url)), "..", "public", "_redirects");
   try {
@@ -1224,6 +1444,45 @@ async function main() {
   }
 
   await embedBuildProvenance();
+  await cp(path.join(repoRoot, "public", "robots.txt"), path.join(OUT_DIR, "robots.txt"));
+  await applyLisbonRedesign(OUT_DIR);
+  await applyAlcobacaPractice(OUT_DIR);
+  await applyUkEmdrLanding(OUT_DIR);
+  // Use the same verified enquiry form as booking so every new request reaches Alpha.
+  async function connectAlphaEnquiries(directory) {
+    for (const entry of await readdir(directory, { withFileTypes: true })) {
+      const file = path.join(directory, entry.name);
+      if (entry.isDirectory()) { await connectAlphaEnquiries(file); continue; }
+      if (!entry.name.endsWith('.html')) continue;
+      const original = await readFile(file, 'utf8');
+      let next = original.replace(/<form\b[^>]*class="[^"]*contactForm[^"]*"[\s\S]*?<\/form>/g,
+        `<div class="pfEnquiryOptions"><p class="pfEnquiryAvailability"><strong>Book a Discovery Call or ask about therapy.</strong></p><p>You can ask about availability and possible next steps. If you are seeking a face-to-face session, you can use the separate waiting-list route below. An enquiry does not confirm a therapy place or start date.</p><div class="pfEnquiryActions"><a class="pfEnquiryButton" href="https://booking.pathfindertherapy.com/book">Book a 15-minute Discovery Call</a><a class="pfEnquiryButton pfEnquiryButtonSecondary" href="https://booking.pathfindertherapy.com/book/enquiry">Enquire about availability and next steps</a><a class="pfEnquiryButton pfEnquiryButtonSecondary" href="https://booking.pathfindertherapy.com/book/enquiry?waiting=1">Join the face-to-face waiting list</a></div><p class="pfEnquiryNote">For the face-to-face waiting list, complete the secure form and confirm your email address. Your intake form and therapy agreement will follow automatically. The form explains the paperwork required to join. Completing paperwork does not confirm a therapy place, start date or acceptance into therapy; we will contact you about availability and next steps.</p></div>`);
+      if(next!==original) next=next.replace('</head>',`<style id="pf-enquiry-options-style">
+#consultation-form.pfContactFormSection{background:#e9e4d8!important;color:#263c35!important;padding:48px 24px!important}
+#consultation-form .pfContactFormInner{max-width:760px;margin:0 auto}
+#consultation-form .pfSectionTitle{color:#203b33!important;margin:0 0 12px!important}
+#consultation-form .pfSectionLead{color:#40534b!important;line-height:1.65}
+#consultation-form .pfKicker{color:#765321!important}
+.pfEnquiryOptions{display:grid;gap:16px;margin-top:24px;padding:24px;border:1px solid #c6cfc6;border-radius:16px;background:#faf9f4;color:#263c35!important}
+.pfEnquiryOptions p{color:#263c35!important;margin:0!important;line-height:1.65!important;font-size:16px}
+.pfEnquiryActions{display:flex;flex-wrap:wrap;gap:12px;margin:4px 0}
+.pfEnquiryOptions a.pfEnquiryButton{display:inline-flex;align-items:center;justify-content:center;padding:13px 18px;border:1px solid #183c31;border-radius:8px;background:#183c31;color:#fff!important;font-size:15px;font-weight:600;line-height:1.4;text-align:center;text-decoration:none!important;min-height:48px}
+.pfEnquiryOptions a.pfEnquiryButtonSecondary{background:#faf9f4;color:#183c31!important}
+.pfEnquiryOptions a.pfEnquiryButton:hover{background:#2d5145;color:#fff!important}
+.pfEnquiryOptions a.pfEnquiryButton:focus-visible{outline:3px solid #a36b22;outline-offset:4px}
+.pfEnquiryOptions p.pfEnquiryNote{font-size:14px;color:#40534b!important}
+#enquiry .lpFormIntro{color:#40534b!important}
+@media(max-width:600px){#consultation-form.pfContactFormSection{padding:32px 20px!important}.pfEnquiryOptions{padding:20px}.pfEnquiryActions{flex-direction:column}.pfEnquiryButton{width:100%;box-sizing:border-box}}
+</style></head>`);
+      if(next!==original) await writeFile(file,next,'utf8');
+    }
+  }
+  await connectAlphaEnquiries(OUT_DIR);
+  // Run after every page generator, including metadata.
+  for (const file of [...await walkHtmlFiles(OUT_DIR), path.join(OUT_DIR, "llms.txt"), path.join(OUT_DIR, "ai-summary.json")]) {
+    await writeFile(file, applyDiscoveryCallCopy(await readFile(file, "utf8")).replaceAll("€75", "€95").replaceAll("€120", "€170").replaceAll("EUR75", "EUR95").replaceAll("EUR 75", "EUR 95").replaceAll('"price":"75","priceCurrency":"EUR"', '"price":"95","priceCurrency":"EUR"'), "utf8");
+  }
+  await optimiseStaticSite(OUT_DIR);
 
   console.log(`Production build written to ${OUT_DIR}`);
 }

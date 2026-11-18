@@ -129,6 +129,151 @@ h1 { font-family: Georgia, "Times New Roman", serif; font-size: clamp(74px, 9vw,
 .simple-page p { max-width: 620px; color: rgba(246,242,234,.72); font-size: 20px; line-height: 1.6; }
 .back-link { color: var(--bronze-soft); letter-spacing: .16em; text-transform: uppercase; font-size: 12px; }
 
+.about-page {
+  min-height: 100vh;
+  background: linear-gradient(180deg, var(--forest-deep) 0%, var(--forest) 58%, #0c1412 100%);
+  color: var(--linen);
+}
+.about-hero,
+.about-team-section,
+.about-boundary-section {
+  width: min(1160px, calc(100% - 48px));
+  margin: 0 auto;
+}
+.about-hero {
+  min-height: min(72vh, 720px);
+  display: grid;
+  align-content: center;
+  gap: 22px;
+  padding: clamp(48px, 8vw, 96px) 0 clamp(42px, 7vw, 88px);
+}
+.about-hero h1 {
+  max-width: 900px;
+  font-size: clamp(46px, 7vw, 92px);
+  line-height: .96;
+  letter-spacing: 0;
+}
+.about-hero-lead {
+  max-width: 720px;
+  margin: 0;
+  color: rgba(246,242,234,.78);
+  font-size: clamp(17px, 2vw, 22px);
+  line-height: 1.62;
+}
+.about-hero-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 16px;
+  margin-top: 6px;
+}
+.about-team-section {
+  display: grid;
+  gap: 28px;
+  padding: clamp(36px, 6vw, 72px) 0;
+  border-top: 1px solid rgba(246,242,234,.1);
+}
+.about-section-heading {
+  display: grid;
+  gap: 12px;
+  max-width: 760px;
+}
+.about-section-heading h2,
+.about-boundary-section h2 {
+  margin: 0;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: clamp(34px, 4.5vw, 60px);
+  line-height: 1;
+  font-weight: 400;
+  letter-spacing: 0;
+}
+.about-section-heading p,
+.about-boundary-section p {
+  margin: 0;
+  color: rgba(246,242,234,.72);
+  font-size: 17px;
+  line-height: 1.7;
+}
+.about-team-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 18px;
+}
+.therapist-card {
+  display: grid;
+  grid-template-rows: auto 1fr;
+  min-height: 100%;
+  overflow: hidden;
+  border: 1px solid rgba(246,242,234,.12);
+  border-radius: 8px;
+  background: rgba(8,16,15,.62);
+  box-shadow: 0 24px 70px rgba(0,0,0,.2);
+}
+.therapist-card img {
+  display: block;
+  width: 100%;
+  aspect-ratio: 4 / 5;
+  object-fit: cover;
+  object-position: center 18%;
+  background: #111a18;
+}
+.therapist-card-copy {
+  display: grid;
+  gap: 12px;
+  padding: clamp(18px, 3vw, 24px);
+}
+.therapist-availability {
+  width: fit-content;
+  margin: 0;
+  padding: 6px 10px;
+  border: 1px solid rgba(200,154,88,.42);
+  border-radius: 999px;
+  color: var(--bronze-soft);
+  font-size: 11px;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+}
+.therapist-card h3 {
+  margin: 0;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: clamp(28px, 3vw, 40px);
+  line-height: 1.02;
+  font-weight: 400;
+}
+.therapist-role {
+  margin: -6px 0 2px;
+  color: rgba(246,242,234,.84);
+  font-weight: 700;
+}
+.therapist-card p {
+  margin: 0;
+  color: rgba(246,242,234,.72);
+  line-height: 1.62;
+}
+.therapist-card ul {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 6px 0 0;
+  padding: 0;
+  list-style: none;
+}
+.therapist-card li {
+  padding: 6px 9px;
+  border-radius: 999px;
+  background: rgba(246,242,234,.08);
+  color: rgba(246,242,234,.78);
+  font-size: 12px;
+}
+.about-boundary-section {
+  display: grid;
+  grid-template-columns: minmax(0, .72fr) minmax(0, 1fr);
+  gap: clamp(24px, 5vw, 52px);
+  align-items: start;
+  padding: clamp(36px, 6vw, 72px) 0 clamp(64px, 8vw, 104px);
+  border-top: 1px solid rgba(246,242,234,.1);
+}
+
 .footer {
   background: var(--forest-deep);
   border-top: 1px solid rgba(246,242,234,.08);
@@ -347,11 +492,23 @@ h1 { font-family: Georgia, "Times New Roman", serif; font-size: clamp(74px, 9vw,
   .funnel-grid,
   .contact-page-grid,
   .contact-grid { grid-template-columns: 1fr; }
+  .about-hero,
+  .about-team-section,
+  .about-boundary-section {
+    width: min(100% - 32px, 1160px);
+  }
+  .about-team-grid,
+  .about-boundary-section {
+    grid-template-columns: 1fr;
+  }
 }
 
 @media (max-width: 1080px) {
   .arrival-shell { grid-template-columns: 230px 1fr; }
   .right-rail { display: none; }
+  .about-team-grid {
+    grid-template-columns: 1fr;
+  }
 }
 @media (max-width: 760px) {
   .arrival-shell { display: block; overflow: auto; }

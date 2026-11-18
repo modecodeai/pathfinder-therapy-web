@@ -59,6 +59,21 @@
       "isClinical": true,
       "isEmployee": false,
       "isDirector": true
+    },
+    {
+      "slug": "sophie-gidley",
+      "name": "Sophie Gidley",
+      "role": "Online Couples Therapist",
+      "category": "clinical-collaborator",
+      "image": "assets/images/team/sophie-gidley.webp",
+      "imageAlt": "Sophie Gidley, online couples therapist with Pathfinder Therapy",
+      "imageWidth": 1000,
+      "imageHeight": 1139,
+      "website": "https://sophiegidleytherapy.co.uk/about/",
+      "shortBiography": "Sophie is a psychotherapeutic counsellor working with couples and individuals. Her practice is grounded in Transactional Analysis and a warm, non-judgemental approach to relationship patterns, communication and repair. Through Pathfinder, Sophie offers online couples therapy sessions.",
+      "isClinical": true,
+      "isEmployee": false,
+      "isDirector": false
     }
   ]
 }
